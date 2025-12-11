@@ -16,8 +16,8 @@ confirm()
     while true; do
         read -p "$(echo -e ${YELLOW}Do you want to $1? [Yy/Nn]: ${RESET})" yn
         case $yn in
-            [Yy]*) return 0 ;; # Proceed
-            [Nn]*) return 1 ;; # Skip
+            [Yy]*) return 0 ;;
+            [Nn]*) return 1 ;;
             *) echo -e "${RED}Please answer [Y/y] or [N/n]. Try again.${RESET}" ;;
         esac
     done
@@ -30,8 +30,8 @@ await_input()
     while true; do
     read -rsn1 key
     if [[ -n "$key" ]]; then
-    echo -e "${GREEN}Continuing...${RESET}"
-    break
+        echo -e "${GREEN}Continuing...${RESET}"
+        break
     fi
     done
 }

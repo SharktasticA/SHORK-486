@@ -1,7 +1,5 @@
 #!/bin/bash
 
-
-
 # Get common variables and functions
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
@@ -111,7 +109,8 @@ make ARCH=x86 -j$(nproc) && make ARCH=x86 install
 
 
 
-echo -e "${GREEN}Build the filesystem...${RESET}"
+# Build the file system
+echo -e "${GREEN}Build the file system...${RESET}"
 if [ -d "../filesystem" ]; then
     sudo rm -r ../filesystem
 fi
@@ -141,6 +140,9 @@ cd ..
 cp predefined/syslinux.cfg build/
 cd build/
 
+
+# Creating and populating an image containg this system
+echo -e "${GREEN}Creating and populating an image containg this system...${RESET}"
 dd if=/dev/zero of=shorkmini.img bs=1k count=2880
 mkdosfs -n SHORKMINI shorkmini.img
 syslinux --install shorkmini.img
