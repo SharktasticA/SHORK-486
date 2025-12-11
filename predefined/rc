@@ -1,0 +1,13 @@
+#!/bin/sh
+mount -t proc none /proc
+mount -t sysfs none /sys
+mdev -s
+ln -s /proc/mounts /etc/mtab
+mkdir -p /mnt /home
+mount -t msdos -o rw /dev/fd0 /mnt
+mkdir -p /mnt/data
+mount --bind /mnt/data /home
+clear
+cat welcome
+cd /home
+/bin/sh
