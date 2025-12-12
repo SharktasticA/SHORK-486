@@ -1,4 +1,5 @@
 #!/bin/sh
+
 mount -t proc none /proc
 mount -t sysfs none /sys
 mdev -s
@@ -7,9 +8,18 @@ mkdir -p /mnt /home
 mount -t msdos -o rw /dev/fd0 /mnt
 mkdir -p /mnt/data
 mount --bind /mnt/data /home
+
+[ -r /etc/hostname ] && hostname "$(cat /etc/hostname)"
+
 export TERM=linux
 export TERMINFO=/usr/share/terminfo
+
+printf '\033[32m\033[40m'
+
 clear
 cat welcome
 cd /home
-/bin/sh
+
+while true; do
+    /bin/sh
+done

@@ -1,0 +1,133 @@
+#!/bin/sh
+
+
+
+# Find user name
+if [ -n "$USER" ]; then
+    USER_NAME="$USER"
+elif [ -n "$LOGNAME" ]; then
+    USER_NAME="$LOGNAME"
+elif [ -r /etc/passwd ]; then
+    USER_NAME="$(awk -F: -v uid="$(id -u 2>/dev/null)" '$3==uid {print $1}' /etc/passwd)"
+else
+    USER_NAME="root"
+fi
+
+[ -z "$USER_NAME" ] && USER_NAME="root"
+
+
+
+# Find host name
+HOST_NAME="$(hostname 2>/dev/null)"
+[ -z "$HOST_NAME" ] && HOST_NAME="(none)"
+
+
+
+# Combine username and hostname for output header
+HEADER="${USER_NAME}@${HOST_NAME}"
+
+
+
+# Find OS (distro name)
+if [ -r /etc/os-release ]; then
+    DISTRO="$(awk -F= '/^PRETTY_NAME=/{gsub(/"/,"",$2); print $2}' /etc/os-release)"
+elif [ -r /etc/issue ]; then
+    DISTRO="$(head -n 1 /etc/issue | sed 's/\\.*//')"
+else
+    DISTRO="$(uname -o 2>/dev/null)"
+fi
+
+[ -z "$DISTRO" ] && DISTRO="unknown"
+
+
+
+# Find kernel version
+KERNEL="$(uname -r 2>/dev/null)"
+
+
+
+# Calculate system uptime
+if [ -r /proc/uptime ]; then
+    SECONDS="$(awk '{print int($1)}' /proc/uptime)"
+    DAYS=$(expr "$SECONDS" / 86400)
+    HOURS=$(expr "$SECONDS" % 86400 / 3600)
+    MINUTES=$(expr "$SECONDS" % 3600 / 60)
+
+    [ "$DAYS" -eq 1 ] && D_UNIT="day" || D_UNIT="days"
+    [ "$HOURS" -eq 1 ] && H_UNIT="hour" || H_UNIT="hours"
+    [ "$MINUTES" -eq 1 ] && M_UNIT="minute" || M_UNIT="minutes"
+
+    if [ "$DAYS" -gt 0 ]; then
+        UPTIME="${DAYS} ${D_UNIT}, ${HOURS} ${H_UNIT}, ${MINUTES} ${M_UNIT}"
+    else
+        UPTIME="${HOURS} ${H_UNIT}, ${MINUTES} ${M_UNIT}"
+    fi
+else
+    UPTIME="unknown"
+fi
+
+
+
+# Find shell name
+if [ -n "$SHELL" ]; then
+    SHELL_NAME="$(basename "$SHELL")"
+elif [ -r "/proc/$$/exe" ]; then
+    SHELL_NAME="$(basename "$(readlink /proc/$$/exe 2>/dev/null)")"
+else
+    SHELL_NAME="sh"
+fi
+
+
+
+# Find CPU name and specs
+CPU_NAME="$(awk -F': ' '/model name/{print $2; exit}' /proc/cpuinfo)"
+[ -z "$CPU_NAME" ] && CPU_NAME="unknown"
+
+THREAD_COUNT="$(awk '/^processor/{c++} END{print c+0}' /proc/cpuinfo)"
+
+CORE_COUNT="$(awk '
+/^physical id/ {p[$4]=1}
+/^cpu cores/   {c=$4}
+END {
+    if (length(p) > 0 && c > 0)
+        print length(p) * c
+    else
+        print c+0
+}' /proc/cpuinfo)"
+
+[ "$CORE_COUNT" -eq 0 ] && CORE_COUNT="$THREAD_COUNT"
+
+CPU="${CPU_NAME} (${CORE_COUNT}C/${THREAD_COUNT}T)"
+
+
+
+# Find GPU name
+GPU="$(lspci | grep -i 'vga' | awk -F': ' '{print $2}')"
+[ -z "$GPU" ] && GPU="unknown"
+
+
+
+# Find RAM usage and total
+read MEM_TOTAL MEM_USED <<EOF
+$(free | awk '/Mem:/ {print int($2/1024), int($3/1024)}')
+EOF
+
+if [ -n "$MEM_TOTAL" ] && [ -n "$MEM_USED" ]; then
+    MEMORY="${MEM_USED}MB / ${MEM_TOTAL}MB"
+else
+    MEMORY="unknown"
+fi
+
+
+
+# Final output
+printf "%s\n" "$HEADER"
+printf "%s\n" "$(echo "$HEADER" | awk '{for (i=1;i<=length($0);i++) printf "-"}')"
+printf "OS:      %s\n" "$DISTRO"
+printf "Kernel:  %s\n" "$KERNEL"
+printf "Uptime:  %s\n" "$UPTIME"
+printf "Shell:   %s\n" "$SHELL_NAME"
+printf "CPU:     %s\n" "$CPU"
+printf "GPU:     %s\n" "$GPU"
+printf "Memory:  %s\n" "$MEMORY"
+printf "\n"

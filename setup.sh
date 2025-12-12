@@ -101,7 +101,7 @@ else
 fi
 
 echo -e "${GREEN}If further configuration is required, please run \"make ARCH=x86 menuconfig\"...${RESET}"
-await_input
+#await_input
 
 echo -e "${GREEN}Compiling Linux kernel...${RESET}"
 make ARCH=x86 bzImage -j$(nproc)
@@ -120,7 +120,7 @@ sed -i 's/main() {}/int main() {}/' scripts/kconfig/lxdialog/check-lxdialog.sh
 cp $CURR_DIR/configs/busybox.config .config
 
 echo -e "${GREEN}If further configuration is required, please run \"make ARCH=x86 menuconfig\"...${RESET}"
-await_input
+#await_input
 
 echo -e "${GREEN}Compiling BusyBox...${RESET}"
 sed -i "s|^CONFIG_CROSS_COMPILER_PREFIX=.*|CONFIG_CROSS_COMPILER_PREFIX=\"${CURR_DIR}/i486-linux-musl-cross/bin/i486-linux-musl-\"|" .config
@@ -187,25 +187,33 @@ echo -e "${GREEN}Make needed directories...${RESET}"
 mkdir -p etc
 mkdir -p etc/init.d/
 
+echo -e "${GREEN}Configure permissions...${RESET}"
+chmod +x $CURR_DIR/sysfiles/rc
+chmod +x $CURR_DIR/sysfiles/ldd
+chmod +x $CURR_DIR/sysfiles/sfetch
+
 echo -e "${GREEN}Copy pre-defined files...${RESET}"
-cp $CURR_DIR/sysfiles/welcome .
-cp $CURR_DIR/sysfiles/inittab etc/
-cp $CURR_DIR/sysfiles/rc etc/init.d/
-cp $CURR_DIR/sysfiles/ldd usr/bin/
+sudo cp $CURR_DIR/sysfiles/welcome .
+sudo cp $CURR_DIR/sysfiles/hostname etc/
+sudo cp $CURR_DIR/sysfiles/issue etc/
+sudo cp $CURR_DIR/sysfiles/os-release etc/
+sudo cp $CURR_DIR/sysfiles/rc etc/init.d/
+sudo cp $CURR_DIR/sysfiles/ldd usr/bin/
+sudo cp $CURR_DIR/sysfiles/sfetch usr/bin/
+
+# We currently do everything in rc instead:
+#cp $CURR_DIR/sysfiles/inittab etc/
 
 echo -e "${GREEN}Copy and compile terminfo database...${RESET}"
 mkdir -p usr/share/terminfo/src/
 cp $CURR_DIR/sysfiles/terminfo.src usr/share/terminfo/src/
 tic -x -1 -o usr/share/terminfo usr/share/terminfo/src/terminfo.src
 
-echo -e "${GREEN}Configure permissions...${RESET}"
-chmod +x etc/init.d/rc
-sudo chmod +x /usr/bin/ldd
-sudo chown -R root:root .
-
 echo -e "${GREEN}Set up U.K. English locale...${RESET}"
 sudo mkdir -p usr/share/locale/en_GB.UTF-8
 echo "LC_ALL=en_GB.UTF-8" | sudo tee etc/locale.conf > /dev/null
+
+sudo chown -R root:root .
 
 echo -e "${GREEN}Compress directory into one file...${RESET}"
 find . | cpio -H newc -o | xz --check=crc32 --lzma2=dict=512KiB -e > $CURR_DIR/build/rootfs.cpio.xz

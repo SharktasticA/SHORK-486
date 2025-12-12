@@ -2,6 +2,10 @@
 
 A minimal Linux distribution developed originally from [FLOPPINUX's](https://github.com/w84death/floppinux) instructions. The aim is to make something very lean but functional for my mid-'90s IBM ThinkPads. I'm not necessarily aiming to restrict myself to a floppy diskette's size, so this is already above 1.44MB. FLOPPINUX was a neat basis to start with, though. This repo stores my ideal configurations and largely automates the setup and compilation process.
 
+## Usage
+
+On Arch-based or Debian-based Linux, just run `setup.sh`. Once it has finished, a `build` directory with a `shorkmini.img` file inside should be present and ready to use.
+
 ## Scripts
 
 * `setup.sh`: Contains the complete download and compilation process that reproduces a `shorkmini.img` file to use.
@@ -16,9 +20,14 @@ A minimal Linux distribution developed originally from [FLOPPINUX's](https://git
 
 * `sysfiles`: Important files to be copied into the Linux file system before zipping.
 
-## Usage
+## Adjustments
 
-On Arch-based or Debian-based Linux, just run `setup.sh`. Once it has finished, a `build` directory with a `shorkmini.img` file inside should be present and ready to use.
+### Green terminal
+
+If you do not want the environment to always be green-on-black, do the following, then run `setup.sh`:
+
+* Remove/comment out the line with `printf '\033[32m\033[40m'` in `sysfiles/rc`.
+* Replace `sgr0=\E[0m\E[32m\E[40m` with `sgr0=\E[0m` in `sysfiles/terminfo.src`.
 
 ## Notice & disclaimers
 
