@@ -179,13 +179,12 @@ fi
 
 echo -e "${GREEN}Build the file system...${RESET}"
 cd $CURR_DIR/filesystem
-mkdir -pv {dev,proc,etc/init.d,sys,tmp,home}
-sudo mknod dev/console c 5 1
-sudo mknod dev/null c 1 3
 
 echo -e "${GREEN}Make needed directories...${RESET}"
-mkdir -p etc
-mkdir -p etc/init.d/
+mkdir -p {dev,proc,etc/init.d,sys,tmp,home}
+
+sudo mknod dev/console c 5 1
+sudo mknod dev/null c 1 3
 
 echo -e "${GREEN}Configure permissions...${RESET}"
 chmod +x $CURR_DIR/sysfiles/rc
