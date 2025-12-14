@@ -26,9 +26,12 @@ export ENV=/etc/profile
 # Make terminal font green & show current dir
 printf '\033[37m\033[40m'
 
+# Set up networking
 ifconfig eth0 up
 udhcpc -i eth0 -s /usr/share/udhcpc/default.script > /dev/null 2>&1 &
 
+# Set up PC speaker
+modprobe pcspkr 2>/dev/null || true
+
 clear
-[ -f welcome ] && cat welcome
-cd /home
+[ -f welcome ] && printf "\033[37;44m" && cat welcome && printf "\033[0m"

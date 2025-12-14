@@ -32,8 +32,6 @@ esac
 sed -i "s/\\\\033\[[0-9;]*m/\\\\033[${COL}m/g" /etc/profile
 sed -i "s/\\\\033\[[0-9;]*m/\\\\033[${COL}m/g" /etc/init.d/rc
 sed -i 's|sgr0=\\E\[0m\\E\[[0-9;]*m|sgr0=\\E[0m\\E['"$COL"'m|' /usr/share/terminfo/src/terminfo.src
-tic -x -1 -o usr/share/terminfo usr/share/terminfo/src/terminfo.src
-
-#echo "Set terminal colour to $1. You may need to restart for changes to fully take effect."
+tic -x -1 -o /usr/share/terminfo /usr/share/terminfo/src/terminfo.src
 
 kill -TERM "$PPID"

@@ -125,7 +125,7 @@ get_kernel()
 
     echo -e "${GREEN}Compiling Linux kernel...${RESET}"
     make ARCH=x86 bzImage -j$(nproc)
-    mv arch/x86/boot/bzImage ../build || true
+    sudo mv arch/x86/boot/bzImage ../build || true
     cd $CURR_DIR
 }
 
@@ -397,9 +397,9 @@ EOF
     trap cleanup EXIT
 
     # Create and populate root partition
-    sudo mkfs.ext2 "$part"
+    sudo mkfs.ext4 -O ^has_journal,^metadata_csum,^64bit "$part"
     sudo mkdir -p /mnt/shorkmini
-    sudo mount "$part" /mnt/shorkmini
+    sudo mount -t ext4 -o noatime "$part" /mnt/shorkmini
     sudo cp -a root//. /mnt/shorkmini
     sudo mkdir -p /mnt/shorkmini/{dev,proc,sys,boot/syslinux}
 
@@ -413,6 +413,7 @@ EOF
     # Install MBR boot code
     sudo dd if=/usr/lib/syslinux/mbr/mbr.bin of=shorkmini.img bs=440 count=1 conv=notrunc
 }
+
 
 # Converts the disk drive image to VMware format for testing
 convert_disk_img()
