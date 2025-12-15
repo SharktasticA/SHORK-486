@@ -92,8 +92,7 @@ get_kernel()
     if [ ! -d "linux" ]; then
         git clone --depth=1 --branch v$KERNEL_VER https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git || true
         cd linux/
-        make ARCH=x86 tinyconfig
-        cp $CURR_DIR/configs/linux.config .config
+        cp $CURR_DIR/configs/linux-$KERNEL_VER.config .config
     else
         echo -e "${YELLOW}The latest Linux kernel has already downloaded. Select action:${RESET}"
         select action in "Proceed with current kernel" "Reset & clean" "Delete & reclone"; do
@@ -107,14 +106,14 @@ get_kernel()
                     cd linux/
                     git reset --hard || true
                     make clean
+                    cp $CURR_DIR/configs/linux-$KERNEL_VER.config .config
                     break ;;
                 "Delete & reclone")
                     echo -e "${GREEN}Deleting and recloning...${RESET}"
                     sudo rm -r linux
                     git clone --depth=1 --branch v$KERNEL_VER https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git || true
                     cd linux/
-                    make ARCH=x86 tinyconfig
-                    cp $CURR_DIR/configs/linux.config .config
+                    cp $CURR_DIR/configs/linux-$KERNEL_VER.config .config
                     break ;;
                 *)
             esac
@@ -364,7 +363,7 @@ build_disk_img()
 
     # Calculate size for the image
     # OVERHEAD is provided to take into account metadata, partition alignment, bootloader structures, etc.
-    OVERHEAD=8
+    OVERHEAD=0
     krn_bytes=$(stat -c %s bzImage)
     fs_bytes=$(du -sb root/ | cut -f1)
 
@@ -387,7 +386,7 @@ build_disk_img()
     sudo sfdisk shorkmini.img <<EOF
 label: dos
 unit: sectors
-1 : start=2048, size=$((aligned_sectors - 2048)), type=83, bootable
+1 : start=63, size=$((aligned_sectors - 63)), type=83, bootable
 EOF
 
     # Expose partition
@@ -402,9 +401,9 @@ EOF
     trap cleanup EXIT
 
     # Create and populate root partition
-    sudo mkfs.ext4 -O ^has_journal,^metadata_csum,^64bit "$part"
+    sudo mkfs.ext2 "$part"
     sudo mkdir -p /mnt/shorkmini
-    sudo mount -t ext4 -o noatime "$part" /mnt/shorkmini
+    sudo mount "$part" /mnt/shorkmini
     sudo cp -a root//. /mnt/shorkmini
     sudo mkdir -p /mnt/shorkmini/{dev,proc,sys,boot/syslinux}
 
@@ -418,7 +417,6 @@ EOF
     # Install MBR boot code
     sudo dd if=/usr/lib/syslinux/mbr/mbr.bin of=shorkmini.img bs=440 count=1 conv=notrunc
 }
-
 
 # Converts the disk drive image to VMware format for testing
 convert_disk_img()

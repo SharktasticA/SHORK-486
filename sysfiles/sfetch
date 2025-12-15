@@ -113,7 +113,7 @@ GPU="$(lspci | grep -i 'vga' | awk -F': ' '{print $2}')"
 
 # Find RAM usage and total
 read MEM_TOTAL MEM_USED <<EOF
-$(free | awk '/Mem:/ {print int($2/1024), int($3/1024)}')
+$(free | awk '/Mem:/ {printf "%d %.1f\n", $2/1024, $3/1024}')
 EOF
 
 if [ -n "$MEM_TOTAL" ] && [ -n "$MEM_USED" ]; then
