@@ -1,11 +1,14 @@
 #!/bin/sh
 
 case "$1" in
-  bound)
-    ifconfig "$interface" "$ip" netmask "$subnet" up > /dev/null 2>&1 &
+  bound|renew)
+    ifconfig "$interface" "$ip" netmask "$subnet" up
 
     if [ -n "$router" ]; then
-      route add default gw "$router" "$interface" > /dev/null 2>&1 &
+      route del default 2>/dev/null
+      route add default gw "$router" dev "$interface"
     fi
     ;;
 esac
+
+exit 0
