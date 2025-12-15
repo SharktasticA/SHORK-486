@@ -8,18 +8,24 @@ On Arch-based or Debian-based Linux, just run `setup.sh`. Once it has finished, 
 
 ## Capabilities
 
-### Commands from BusyBox
+### Included BusyBox commands
 
-* TODO
+* **Core & text:** awk, basename, cat, chmod, chown, clear, cp, cut, date, echo, find, grep, less, ls, man, mkdir, mv, printf, pwd, readlink, rm, rmdir, sed, tee, test, touch, uname, vi, which
 
-### Commands from included software
+* **Networking:** ftpget, ftpput, hostname, ifconfig, ping, route, udhcpc, wget
+
+* **System & processes:** chroot, crontab, free, kill, mknod, mount, nohup, pkill, sleep, sync, top, umount
+
+* **Other:** beep, showkey
+
+### Included software
 
 * ftp (FTP client, tnftp)
 * nano (text editor)
 * scp (SCP client, Dropbear)
 * ssh (SSH client, Dropbear)
 
-### Commands for my custom tools 
+### Included tools 
 
 * fcol (changes terminal foreground colour)
 * sfetch (minimal "neofetch" clone)
