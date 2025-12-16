@@ -185,17 +185,25 @@ get_nano()
 {
     cd $CURR_DIR
     echo -e "${GREEN}Downloading nano...${RESET}"
-    [ -f nano-$NANO_VER.tar.xz ] || wget https://www.nano-editor.org/dist/v5/nano-$NANO_VER.tar.xz
-    if [ -d nano-$NANO_VER ]; then
+
+    NANO="nano-${NANO_VER}"
+    NANO_ARC="${NANO}.tar.xz"
+    NANO_URI="https://www.nano-editor.org/dist/v5/${NANO_ARC}"
+
+    # Download source
+    [ -f $NANO_ARC ] || wget $NANO_URI
+
+    # Extract source
+    if [ -d $NANO ]; then
         echo -e "${Yellow}nano's source is already present, cleaning up before proceeding...${RESET}"
-        cd nano-$NANO_VER/
+        cd $NANO
         make clean
     else
-        tar xf nano-$NANO_VER.tar.xz
-        cd nano-$NANO_VER/
+        tar xf $NANO_ARC
+        cd $NANO
     fi
 
-    # Check if program already built, skip if so
+    # Compile program
     if [ ! -f "${CURR_DIR}/build/root/usr/bin/nano" ]; then
         echo -e "${GREEN}Compiling nano...${RESET}"
 
@@ -223,17 +231,25 @@ get_tnftp()
 {
     cd $CURR_DIR
     echo -e "${GREEN}Downloading tnftp...${RESET}"
-    [ -f tnftp-$TNFTP_VER.tar.gz ] || wget https://ftp.netbsd.org/pub/NetBSD/misc/tnftp/tnftp-$TNFTP_VER.tar.gz
-    if [ -d tnftp-$TNFTP_VER ]; then
+
+    TNFTP="tnftp-${TNFTP_VER}"
+    TNFTP_ARC="${TNFTP}.tar.gz"
+    TNFTP_URI="https://ftp.netbsd.org/pub/NetBSD/misc/tnftp/${TNFTP_ARC}"
+
+    # Download source
+    [ -f $TNFTP_ARC ] || wget $TNFTP_URI
+
+    # Extract source
+    if [ -d $TNFTP ]; then
         echo -e "${Yellow}tnftp's source is already present, cleaning up before proceeding...${RESET}"
-        cd tnftp-$TNFTP_VER/
+        cd $TNFTP
         make clean
     else
-        tar xzf tnftp-$TNFTP_VER.tar.gz
-        cd tnftp-$TNFTP_VER/
+        tar xzf $TNFTP_ARC
+        cd $TNFTP
     fi
 
-    # Check if program already built, skip if so
+    # Compile program
     if [ ! -f "${CURR_DIR}/build/root/usr/bin/tnftp" ]; then
         echo -e "${GREEN}Compiling tnftp...${RESET}"
 
@@ -255,17 +271,25 @@ get_dropbear()
 {
     cd $CURR_DIR
     echo -e "${GREEN}Downloading Dropbear...${RESET}"
-    [ -f DROPBEAR_$DROPBEAR_VER.tar.gz ] || wget https://github.com/mkj/dropbear/archive/refs/tags/DROPBEAR_$DROPBEAR_VER.tar.gz
-    if [ -d dropbear-DROPBEAR_$DROPBEAR_VER ]; then
+
+    DROPBEAR="DROPBEAR_${DROPBEAR_VER}"
+    DROPBEAR_ARC="${DROPBEAR}.tar.gz"
+    DROPBEAR_URI="https://github.com/mkj/dropbear/archive/refs/tags/${DROPBEAR_ARC}"
+
+    # Download source
+    [ -f $DROPBEAR_ARC ] || wget $DROPBEAR_URI
+
+    # Extract source
+    if [ -d $DROPBEAR ]; then
         echo -e "${YELLOW}Dropbear source is already present, cleaning up before proceeding...${RESET}"
-        cd dropbear-DROPBEAR_$DROPBEAR_VER
+        cd "dropbear-${DROPBEAR}"
         make clean || true
     else
-        tar xzf DROPBEAR_$DROPBEAR_VER.tar.gz
-        cd dropbear-DROPBEAR_$DROPBEAR_VER
+        tar xzf $DROPBEAR_ARC
+        cd "dropbear-${DROPBEAR}"
     fi
 
-    # Check if program already built, skip if so
+    # Compile program
     if [ ! -f "${CURR_DIR}/build/root/usr/bin/ssh" ]; then
         echo -e "${GREEN}Compiling Dropbear...${RESET}"
 
