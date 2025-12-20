@@ -62,6 +62,58 @@ On Arch-based or Debian-based Linux, just run `setup.sh`. Once it has finished, 
 
 * `sysfiles`: Contains important system files to be copied into the Linux root file system before zipping.
 
+## Running
+
+### Real hardware
+
+TODO.
+
+### 86Box
+
+86Box should be able to create many vintage machine configurations to test with. Below is a suggested configuration for the lowest-end machine SHORK Mini should be able to run on:
+
+* Machine
+    * **Machine type:** [1994] i486 (Socket 3 PCI)
+    * **Machine:** [i420EX] Intel Classic/PCI ED (Ninja)
+    * **CPU type:** Intel i486SX
+    * **Frequency:** any option
+    * **FPU:** any option
+    * **Memory:** at least 24 MB
+* Display
+    * **Video:** [ISA] IBM VGA
+* Input
+    * **Keyboard:** AT Keyboard
+* Network
+    * Network Card #1
+        * **Mode:** SLiRP
+        * **Adapter:** [ISA16] AMD PCnet-ISA
+* Storage controllers
+    * Hard disk
+        * **Controller 1:** Internal device
+* Hard disks
+    * Existing...
+        * **Bus:** IDE
+        * **Channel:** 0:0
+        * **Model:** any [Generic] should be fine
+
+You can configure sound, ports, floppy and CD-ROM drives however you wish. Just avoid any SCSI components.
+
+### VMware Workstation
+
+SHORK Mini should work with VMware Workstation without issue. Below is a suggested virtual machine configuration:
+
+* **Hardware compatibility:** any option
+* **Install operating system from:** later
+* **Guest Operating System:** Linux (Other Linux 6.x kernel)
+* **Number of processers:** 1
+* **Number of cores per processor:** 1 (technically any option, extra will not be utilised)
+* **Memory:** at least 24MB
+* **Network Connection:** any option (only NAT presently tested though)
+* **I/O Controller Types:** BusLogic
+* **Virtual Disk Type:** IDE
+* **Disk:** Use an existing virtual disk
+
+
 ## Notice & disclaimers
 
 Running `setup.sh` will automatically perform several tasks on the host computer, including enabling 32-bit packages (Debian), installing prerequisite packages, modifying the PATH, and creating some environment variables. If you intend to use this yourself, please note that this is tailored for my personal usage. Please review what the script does to ensure it does not conflict with your existing configuration.
