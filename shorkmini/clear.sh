@@ -8,6 +8,6 @@ sudo rm -r nano-*/ || true
 sudo rm -r ncurses-*/ || true
 sudo rm -r tnftp-*/ || true
 sudo rm -r dropbear-*/ || true
-rm *.tar.gz || true
-rm *.tar.xz || true
-rm *.tgz || true
+sudo rm *.tar.gz || true
+sudo rm *.tar.xz || true
+sudo rm *.tgz || true

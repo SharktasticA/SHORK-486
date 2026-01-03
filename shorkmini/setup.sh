@@ -5,6 +5,7 @@ MINIMAL=false
 SKIP_PRE=false
 SKIP_KRN=false
 SKIP_BB=false
+ALWAYS_BUILD=false
 
 for arg in "$@"; do
     case "$arg" in
@@ -19,6 +20,9 @@ for arg in "$@"; do
             ;;
         -sb|--skip-busybox)
             SKIP_BB=true
+            ;;
+        -ab|--always-build)
+            ALWAYS_BUILD=true
             ;;
     esac
 done
@@ -49,7 +53,7 @@ get_prerequisites()
                 echo -e "${GREEN}Install needed host packages...${RESET}"
                 sudo dpkg --add-architecture i386
                 sudo apt-get update
-                sudo apt-get install -y libncurses-dev bc flex bison syslinux cpio libncurses-dev:i386 dosfstools texinfo extlinux qemu-utils || true
+                sudo apt-get install -y bc bison bzip2 cpio dosfstools e2fsprogs extlinux fdisk flex git kpartx libncurses-dev:i386 make qemu-utils syslinux texinfo udev wget xz-utils || true
                 export PATH="$PATH:/usr/sbin:/sbin"
                 break ;;
             *)
@@ -60,7 +64,7 @@ get_prerequisites()
 # Download and extract i486 musl cross-compiler
 get_i486_musl_cc()
 {
-    echo -e "${GREEN}Download and extract i486 cross-compiler...${RESET}"
+    echo -e "${GREEN}Downloading i486 cross-compiler...${RESET}"
     [ -f i486-linux-musl-cross.tgz ] || wget https://musl.cc/i486-linux-musl-cross.tgz
     [ -d "i486-linux-musl-cross" ] || tar xvf i486-linux-musl-cross.tgz
 }
@@ -84,8 +88,7 @@ get_ncurses()
     fi
 }
 
-# Download and compile Linux kernel
-get_kernel()
+download_kernel()
 {
     cd "$CURR_DIR"
     echo -e "${GREEN}Downloading the Linux kernel...${RESET}"
@@ -93,39 +96,65 @@ get_kernel()
         git clone --depth=1 --branch v$KERNEL_VER https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git || true
         cd linux/
         cp $CURR_DIR/configs/linux-$KERNEL_VER.config .config
-    else
-        echo -e "${YELLOW}The latest Linux kernel has already downloaded. Select action:${RESET}"
-        select action in "Proceed with current kernel" "Reset & clean" "Delete & reclone"; do
-            case $action in
-                "Proceed with current kernel")
-                    echo -e "${GREEN}Proceeding with current kernel...${RESET}"
-                    cd linux/
-                    break ;;
-                "Reset & clean")
-                    echo -e "${GREEN}Resetting and cleaning...${RESET}"
-                    cd linux/
-                    git reset --hard || true
-                    make clean
-                    cp $CURR_DIR/configs/linux-$KERNEL_VER.config .config
-                    break ;;
-                "Delete & reclone")
-                    echo -e "${GREEN}Deleting and recloning...${RESET}"
-                    sudo rm -r linux
-                    git clone --depth=1 --branch v$KERNEL_VER https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git || true
-                    cd linux/
-                    cp $CURR_DIR/configs/linux-$KERNEL_VER.config .config
-                    break ;;
-                *)
-            esac
-        done
     fi
+}
 
-    echo -e "${GREEN}If further configuration is required, please run \"make ARCH=x86 menuconfig\"...${RESET}"
-    #await_input
+reset_kernel()
+{
+    cd "$CURR_DIR"
+    echo -e "${GREEN}Resetting and cleaning Linux kernel...${RESET}"
+    cd linux/
+    git reset --hard || true
+    make clean
+    cp $CURR_DIR/configs/linux-$KERNEL_VER.config .config
+}
 
+reclone_kernel()
+{
+    cd "$CURR_DIR"
+    echo -e "${GREEN}Deleting and recloning Linux kernel...${RESET}"
+    sudo rm -r linux
+    download_kernel
+}
+
+compile_kernel()
+{   
+    cd "$CURR_DIR/linux/"
     echo -e "${GREEN}Compiling Linux kernel...${RESET}"
     make ARCH=x86 bzImage -j$(nproc)
     sudo mv arch/x86/boot/bzImage ../build || true
+}
+
+# Download and compile Linux kernel
+get_kernel()
+{
+    if $ALWAYS_BUILD; then
+        download_kernel
+        reset_kernel
+    else
+        if [ ! -d "linux" ]; then
+            download_kernel
+        else
+            echo -e "${YELLOW}A Linux kernel has already been downloaded and potentially compiled. Select action:${RESET}"
+            select action in "Proceed with current kernel" "Reset & clean" "Delete & reclone"; do
+                case $action in
+                    "Proceed with current kernel")
+                        echo -e "${GREEN}Proceeding with the current kernel...${RESET}"
+                        return
+                        break ;;
+                    "Reset & clean")
+                        reset_kernel
+                        break ;;
+                    "Delete & reclone")
+                        reclone_kernel
+                        break ;;
+                    *)
+                esac
+            done
+        fi
+    fi
+
+    compile_kernel
 }
 
 # Download and compile BusyBox
@@ -139,9 +168,6 @@ get_busybox()
     make ARCH=x86 allnoconfig
     sed -i 's/main() {}/int main() {}/' scripts/kconfig/lxdialog/check-lxdialog.sh
     cp $CURR_DIR/configs/busybox.config .config
-
-    echo -e "${GREEN}If further configuration is required, please run \"make ARCH=x86 menuconfig\"...${RESET}"
-    #await_input
 
     # Patch BusyBox to suppress banner and help message
     sed -i 's/^#if !ENABLE_FEATURE_SH_EXTRA_QUIET/#if 0 \/* disabled ash banner *\//' shell/ash.c
@@ -387,6 +413,22 @@ build_disk_img()
 {
     echo -e "${GREEN}Creating a disk drive image containing this system...${RESET}"
 
+    # Cleans up all temporary block-device states when script exists, fails or interrupted
+    cleanup()
+    {
+        set +e
+
+        if mountpoint -q "$mountpoint" 2>/dev/null; then
+            sudo umount -lf "$mountpoint"
+        fi
+
+        if [ -n "$loop" ]; then
+            sudo kpartx -dv "$loop" 2>/dev/null || true
+            sudo losetup -d "$loop" 2>/dev/null || true
+        fi
+    }
+    trap cleanup EXIT INT TERM
+
     # Calculate size for the image
     # OVERHEAD is provided to take into account metadata, partition alignment, bootloader structures, etc.
     krn_bytes=$(stat -c %s bzImage)
@@ -416,16 +458,16 @@ unit: sectors
 1 : start=63, size=$((aligned_sectors - 63)), type=83, bootable
 EOF
 
-    # Expose partition
-    loop=$(sudo losetup -fP --show shorkmini.img)
-    part="${loop}p1"
+    # Ensure loop devices exist (Docker does not always create them)
+    for i in $(seq 0 255); do
+        [ -e /dev/loop$i ] || sudo mknod /dev/loop$i b 7 $i
+    done
+    [ -e /dev/loop-control ] || sudo mknod /dev/loop-control c 10 237
 
-    cleanup()
-    {
-        sudo umount /mnt/shorkmini 2>/dev/null || true
-        sudo losetup -d "$loop" 2>/dev/null || true
-    }
-    trap cleanup EXIT
+    # Expose partition
+    loop=$(sudo losetup -f --show shorkmini.img)
+    sudo kpartx -av "$loop"
+    part="/dev/mapper/$(basename "$loop")p1"
 
     # Create and populate root partition
     sudo mkfs.ext2 "$part"
@@ -451,11 +493,33 @@ convert_disk_img()
     qemu-img convert -f raw -O vmdk shorkmini.img shorkmini.vmdk
 }
 
+# Fixes disk drive image permissions after root build (only proceeds if ran as root)
+fix_img_perms()
+{
+    if [ "$(id -u)" -eq 0 ]; then
+        echo -e "${GREEN}Fixing disk drive image permissions so they are usable after being build at root...${RESET}"
+
+        HOST_GID=${HOST_GID:-1000}
+        HOST_UID=${HOST_UID:-1000}
+
+        if [ -d . ]; then
+            chown "$HOST_UID:$HOST_GID" .
+            chmod 755 .
+        fi
+
+        for f in shorkmini.img shorkmini.vmdk; do
+            [ -f "$f" ] || continue
+            chown "$HOST_UID:$HOST_GID" "$f"
+            chmod 644 "$f"
+        done
+    fi
+}
+
 
 
 # Intro message
 echo -e "${BLUE}==============================="
-echo -e "=== SHORK Mini setup script ==="
+echo -e "=== SHORK Mini build script ==="
 echo -e "===============================${RESET}"
 
 mkdir -p build
@@ -483,3 +547,4 @@ fi
 build_file_system
 build_disk_img
 convert_disk_img
+fix_img_perms

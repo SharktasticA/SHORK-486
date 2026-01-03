@@ -1,0 +1,12 @@
+services:
+  shorkmini-build:
+    build: .
+    command:
+      - --always-build
+      - --skip-prerequisites
+    environment:
+      - HOST_GID=1000
+      - HOST_UID=1000
+    privileged: true
+    volumes:
+      - ./shorkmini:/var/shorkmini
