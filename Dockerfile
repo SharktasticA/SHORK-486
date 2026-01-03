@@ -7,4 +7,4 @@ RUN dpkg --add-architecture i386 \
 
 WORKDIR /var/shorkmini
 
-ENTRYPOINT ["/bin/bash", "/var/shorkmini/setup.sh"]
+ENTRYPOINT ["/bin/bash", "/var/shorkmini/build.sh"]
