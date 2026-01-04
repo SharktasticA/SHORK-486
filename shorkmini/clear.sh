@@ -11,3 +11,4 @@ sudo rm -r dropbear-*/ || true
 sudo rm *.tar.gz || true
 sudo rm *.tar.xz || true
 sudo rm *.tgz || true
+sudo rm -r images/ || true

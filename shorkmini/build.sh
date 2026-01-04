@@ -1,25 +1,59 @@
 #!/bin/bash
 
+set -e
+
+
+
+# TUI colour palette
+RED='\033[0;31m'
+LIGHT_RED='\033[0;91m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+RESET='\033[0m'
+CURR_DIR=$(pwd)
+
+
+
+# A general confirmation prompt
+confirm()
+{
+    while true; do
+        read -p "$(echo -e ${YELLOW}Do you want to $1? [Yy/Nn]: ${RESET})" yn
+        case $yn in
+            [Yy]*) return 0 ;;
+            [Nn]*) return 1 ;;
+            *) echo -e "${RED}Please answer [Y/y] or [N/n]. Try again.${RESET}" ;;
+        esac
+    done
+}
+
+
+
 # Process arguments
 MINIMAL=false
 SKIP_PRE=false
 SKIP_KRN=false
 SKIP_BB=false
 ALWAYS_BUILD=false
+DONT_DEL_BUILD=false
 
 for arg in "$@"; do
     case "$arg" in
         -m|--minimal)
             MINIMAL=true
+            DONT_DEL_BUILD=true
             ;;
         -sp|--skip-prerequisites)
             SKIP_PRE=true
             ;;
         -sk|--skip-kernel)
             SKIP_KRN=true
+            DONT_DEL_BUILD=true
             ;;
         -sb|--skip-busybox)
             SKIP_BB=true
+            DONT_DEL_BUILD=true
             ;;
         -ab|--always-build)
             ALWAYS_BUILD=true
@@ -27,8 +61,7 @@ for arg in "$@"; do
     esac
 done
 
-# Get common variables and functions
-source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
+
 
 # Desired versions
 KERNEL_VER=6.14.11
@@ -36,6 +69,11 @@ BUSYBOX_VER=1_36_1
 NANO_VER=5.7
 TNFTP_VER=20230507
 DROPBEAR_VER=2022.83
+
+
+
+# The highest working directory
+CURR_DIR=$(pwd)
 
 # Find MBR binary (can be different depending on distro)
 MBR_BIN=""
@@ -50,6 +88,17 @@ do
         break
     fi
 done
+
+
+
+# Deletes build directory
+delete_build_dir()
+{
+    if [ -n "$CURR_DIR" ] && [ -d "$CURR_DIR/build" ]; then
+        echo -e "${GREEN}Deleting existing build directory to ensure fresh changes can be made...${RESET}"
+        sudo rm -rf "$CURR_DIR/build"
+    fi
+}
 
 
 
@@ -357,10 +406,6 @@ build_file_system()
     echo -e "${GREEN}Make needed directories...${RESET}"
     sudo mkdir -p {dev,proc,etc/init.d,sys,tmp,home,usr/share/udhcpc,usr/libexec}
 
-    # FLOPPY IMAGE CODE - NO LONGER NEEDED
-    #sudo mknod dev/console c 5 1
-    #sudo mknod dev/null c 1 3
-
     echo -e "${GREEN}Configure permissions...${RESET}"
     chmod +x $CURR_DIR/sysfiles/rc
     chmod +x $CURR_DIR/sysfiles/ldd
@@ -396,31 +441,7 @@ build_file_system()
     echo "LC_ALL=en_GB.UTF-8" | sudo tee etc/locale.conf > /dev/null
 
     sudo chown -R root:root .
-
-    # FLOPPY IMAGE CODE - NO LONGER NEEDED
-    #echo -e "${GREEN}Compress directory into one file...${RESET}"
-    #find . | cpio -H newc -o | xz --check=crc32 --lzma2=dict=512KiB -e > $CURR_DIR/build/rootfs.cpio.xz
-
     cd $CURR_DIR/build/
-
-    # FLOPPY IMAGE CODE - NO LONGER NEEDED
-    #cp $CURR_DIR/sysfiles/syslinux.cfg .
-}
-
-# FLOPPY IMAGE CODE - NO LONGER NEEDED
-# Build a floppy image containing our system
-build_diskette_img()
-{
-    echo -e "${GREEN}Creating a diskette image containing this system...${RESET}"
-    dd if=/dev/zero of=shorkmini.img bs=1k count=2880
-    mkdosfs -n SHORKMINI shorkmini.img
-    syslinux --install shorkmini.img
-    sudo mount -o loop shorkmini.img /mnt
-    sudo mkdir /mnt/data
-    sudo cp bzImage /mnt
-    sudo cp rootfs.cpio.xz /mnt
-    sudo cp syslinux.cfg /mnt
-    sudo umount /mnt
 }
 
 # Build a disk drive image containing our system
@@ -456,18 +477,18 @@ build_disk_img()
     mb=$(( ((mb + 3) / 4) * 4 ))
 
     # Create the image
-    dd if=/dev/zero of=shorkmini.img bs=1M count="$mb" status=progress
+    dd if=/dev/zero of=../images/shorkmini.img bs=1M count="$mb" status=progress
 
     # Shrinks the image so it ends on a whole CHS cylinder boundary
     SECTORS_PER_CYL=$((16*63))
-    bytes=$(stat -c %s shorkmini.img)
+    bytes=$(stat -c %s ../images/shorkmini.img)
     sectors=$((bytes / 512))
     aligned_sectors=$(( (sectors / SECTORS_PER_CYL) * SECTORS_PER_CYL ))
     aligned_bytes=$((aligned_sectors * 512))
-    truncate -s "$aligned_bytes" shorkmini.img
+    truncate -s "$aligned_bytes" ../images/shorkmini.img
 
     # Partition the image
-    sudo sfdisk shorkmini.img <<EOF
+    sudo sfdisk ../images/shorkmini.img <<EOF
 label: dos
 unit: sectors
 1 : start=63, size=$((aligned_sectors - 63)), type=83, bootable
@@ -480,7 +501,7 @@ EOF
     [ -e /dev/loop-control ] || sudo mknod /dev/loop-control c 10 237
 
     # Expose partition
-    loop=$(sudo losetup -f --show shorkmini.img)
+    loop=$(sudo losetup -f --show ../images/shorkmini.img)
     sudo kpartx -av "$loop"
     part="/dev/mapper/$(basename "$loop")p1"
 
@@ -499,12 +520,13 @@ EOF
     sudo extlinux --install /mnt/shorkmini/boot/syslinux
 
     # Install MBR boot code
-    sudo dd if="$MBR_BIN" of=shorkmini.img bs=440 count=1 conv=notrunc
+    sudo dd if="$MBR_BIN" of=../images/shorkmini.img bs=440 count=1 conv=notrunc
 }
 
 # Converts the disk drive image to VMware format for testing
 convert_disk_img()
 {
+    cd $CURR_DIR/images/
     qemu-img convert -f raw -O vmdk shorkmini.img shorkmini.vmdk
 }
 
@@ -537,9 +559,13 @@ echo -e "${BLUE}==============================="
 echo -e "=== SHORK Mini build script ==="
 echo -e "===============================${RESET}"
 
-mkdir -p build
+mkdir -p images
 
 if ! $MINIMAL; then
+    if ! $DONT_DEL_BUILD; then
+        delete_build_dir
+    fi
+    mkdir -p build
     if ! $SKIP_PRE; then
         get_prerequisites
     fi

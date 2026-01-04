@@ -1,15 +1,5 @@
 #!/bin/sh
 
-# FLOPPY IMAGE CODE - NO LONGER NEEDED
-#mount -t proc none /proc
-#mount -t sysfs none /sys
-#mdev -s
-#ln -s /proc/mounts /etc/mtab
-#mkdir -p /mnt /home
-#mount -t msdos -o rw /dev/fd0 /mnt
-#mkdir -p /mnt/data
-#mount --bind /mnt/data /home
-
 # Mount core file systems
 mount -t proc  proc  /proc
 mount -t sysfs sysfs /sys
