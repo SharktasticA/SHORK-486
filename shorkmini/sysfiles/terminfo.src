@@ -1,3 +1,11 @@
+######################################################
+## Defines the capabilities and ANSI control        ##
+## sequences for a simple framebuffer console with  ##
+## basic colour support                             ##
+######################################################
+## Kali (sharktastica.co.uk)                        ##
+######################################################
+
 linux|linux console,
     am,
     bce,

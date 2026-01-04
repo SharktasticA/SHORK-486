@@ -1,5 +1,15 @@
 #!/bin/sh
 
+######################################################
+## udhcpc (BusyBox DHCP client) hook script used to ##
+## configure the interface and default route when a ##
+## DHCP lease is bound or renewed                   ##
+######################################################
+## Kali (sharktastica.co.uk)                        ##
+######################################################
+
+
+
 case "$1" in
   bound|renew)
     ifconfig "$interface" "$ip" netmask "$subnet" up

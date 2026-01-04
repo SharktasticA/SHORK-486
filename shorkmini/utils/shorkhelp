@@ -1,7 +1,13 @@
 #!/bin/sh
 
-# A small utility that informs about SHORK Mini's capabilities
-# Kali (sharktastica.co.uk)
+######################################################
+## A small utility that informs about SHORK Mini's  ##
+## capabilities                                     ##
+######################################################
+## Kali (sharktastica.co.uk)                        ##
+######################################################
+
+
 
 echo "BusyBox commands
 ----------------

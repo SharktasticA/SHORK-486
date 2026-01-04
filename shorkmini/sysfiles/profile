@@ -1,3 +1,13 @@
+######################################################
+## System-wide shell profile defining core          ##
+## environment variables, prompt settings, and a    ##
+## helper function for the shorkcol utility         ##
+######################################################
+## Kali (sharktastica.co.uk)                        ##
+######################################################
+
+
+
 export TERM=linux
 export TERMINFO=/usr/share/terminfo
 export HOME=/home

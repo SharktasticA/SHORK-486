@@ -1,5 +1,17 @@
 #!/bin/sh
 
+######################################################
+## System init script executed during boot that     ##
+## mounts core file systems, ensures essential      ##
+## device nodes exist, sets hostname and            ##
+## environment, configures basic networking, and    ##
+## displays a welcome message                       ##
+######################################################
+## Kali (sharktastica.co.uk)                        ##
+######################################################
+
+
+
 # Mount core file systems
 mount -t proc  proc  /proc
 mount -t sysfs sysfs /sys

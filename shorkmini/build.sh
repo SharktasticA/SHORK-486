@@ -442,7 +442,6 @@ build_file_system()
 
     echo -e "${GREEN}Configure permissions...${RESET}"
     chmod +x $CURR_DIR/sysfiles/rc
-    chmod +x $CURR_DIR/sysfiles/ldd
     chmod +x $CURR_DIR/sysfiles/default.script
     chmod +x $CURR_DIR/utils/shorkfetch
     chmod +x $CURR_DIR/utils/shorkcol
@@ -454,7 +453,6 @@ build_file_system()
     sudo cp $CURR_DIR/sysfiles/issue etc/
     sudo cp $CURR_DIR/sysfiles/os-release etc/
     sudo cp $CURR_DIR/sysfiles/rc etc/init.d/
-    sudo cp $CURR_DIR/sysfiles/ldd usr/bin/
     sudo cp $CURR_DIR/sysfiles/inittab etc/
     sudo cp $CURR_DIR/sysfiles/profile etc/
     sudo cp $CURR_DIR/sysfiles/resolv.conf etc/

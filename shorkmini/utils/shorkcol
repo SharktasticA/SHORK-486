@@ -1,8 +1,11 @@
 #!/bin/sh
 
-# A small utility for persistent changing the terminal
-# foreground (font) colour
-# Kali (sharktastica.co.uk)
+######################################################
+## A small utility for persistently changing the    ##
+## terminal foreground (font) colour                ##
+######################################################
+## Kali (sharktastica.co.uk)                        ##
+######################################################
 
 
 

@@ -1,8 +1,11 @@
 #!/bin/sh
 
-# A small utility for listing main OS and hardware
-# specifications
-# Kali (sharktastica.co.uk)
+######################################################
+## A small utility listing main OS and hardware     ##
+## specifications                                   ##
+######################################################
+## Kali (sharktastica.co.uk)                        ##
+######################################################
 
 
 

@@ -1,2 +1,0 @@
-#!/bin/sh
-exec /lib/ld-musl-i386.so.1 --list "$@"

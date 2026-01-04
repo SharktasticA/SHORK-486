@@ -1,3 +1,13 @@
+######################################################
+## BusyBox init configuration defining startup      ##
+## actions, how shell respawns, and handlers for    ##
+## Ctrl‑Alt‑Del and shutdown events                 ##
+######################################################
+## Kali (sharktastica.co.uk)                        ##
+######################################################
+
+
+
 ::sysinit:/etc/init.d/rc
 tty1::respawn:/bin/sh -l
 ::ctrlaltdel:/sbin/reboot
