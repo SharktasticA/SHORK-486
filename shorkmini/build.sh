@@ -297,7 +297,7 @@ get_nano()
 
     # Extract source
     if [ -d $NANO ]; then
-        echo -e "${Yellow}nano's source is already present, cleaning up before proceeding...${RESET}"
+        echo -e "${YELLOW}nano's source is already present, cleaning up before proceeding...${RESET}"
         cd $NANO
         make clean
     else
@@ -343,7 +343,7 @@ get_tnftp()
 
     # Extract source
     if [ -d $TNFTP ]; then
-        echo -e "${Yellow}tnftp's source is already present, cleaning up before proceeding...${RESET}"
+        echo -e "${YELLOW}tnftp's source is already present, cleaning up before proceeding...${RESET}"
         cd $TNFTP
         make clean
     else
@@ -474,6 +474,35 @@ build_file_system()
     sudo mkdir -p usr/share/locale/en_GB.UTF-8
     echo "LC_ALL=en_GB.UTF-8" | sudo tee etc/locale.conf > /dev/null
 
+    # Amend shorkhelp depending on what skip parameters were used
+    if $SKIP_DROPBEAR; then
+        sudo sed -i \
+            -e 's/\bscp, //g' \
+            -e 's/, scp\b//g' \
+            -e 's/\bscp\b//g' \
+            -e 's/\bssh, //g' \
+            -e 's/, ssh\b//g' \
+            -e 's/\bssh\b//g' \
+            "usr/bin/shorkhelp"
+    fi
+    if $SKIP_NANO; then
+        sudo sed -i \
+            -e 's/\bnano, //g' \
+            -e 's/, nano\b//g' \
+            -e 's/\bnano\b//g' \
+            "usr/bin/shorkhelp"
+    fi
+    if $SKIP_TNFTP; then
+        sudo sed -i \
+            -e 's/\bftp, //g' \
+            -e 's/, ftp\b//g' \
+            -e 's/\bftp\b//g' \
+            "usr/bin/shorkhelp"
+    fi
+    if $SKIP_NANO && $SKIP_DROPBEAR && $SKIP_TNFTP; then
+        sudo sed -i '/^Included software[[:space:]]*$/,+2d' "usr/bin/shorkhelp"
+    fi
+
     sudo chown -R root:root .
     cd $CURR_DIR/build/
 }
@@ -574,14 +603,14 @@ fix_img_perms()
         HOST_UID=${HOST_UID:-1000}
 
         if [ -d . ]; then
-            chown "$HOST_UID:$HOST_GID" .
-            chmod 755 .
+            sudo chown "$HOST_UID:$HOST_GID" .
+            sudo chmod 755 .
         fi
 
         for f in shorkmini.img shorkmini.vmdk; do
             [ -f "$f" ] || continue
-            chown "$HOST_UID:$HOST_GID" "$f"
-            chmod 644 "$f"
+            sudo chown "$HOST_UID:$HOST_GID" "$f"
+            sudo chmod 644 "$f"
         done
     fi
 }
