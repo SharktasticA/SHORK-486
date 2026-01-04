@@ -37,6 +37,20 @@ NANO_VER=5.7
 TNFTP_VER=20230507
 DROPBEAR_VER=2022.83
 
+# Find MBR binary (can be different depending on distro)
+MBR_BIN=""
+
+for candidate in \
+    /usr/lib/syslinux/mbr/mbr.bin \
+    /usr/lib/syslinux/bios/mbr.bin \
+    /usr/share/syslinux/mbr.bin
+do
+    if [ -f "$candidate" ]; then
+        MBR_BIN="$candidate"
+        break
+    fi
+done
+
 
 
 # Installs needed packages to host computer
@@ -47,7 +61,7 @@ get_prerequisites()
         case $host in
             "Arch based")
                 echo -e "${GREEN}Install needed host packages...${RESET}"
-                sudo pacman -Sy --needed bc bison bzip2 cpio dosfstools e2fsprogs flex git make multipath-tools ncurses qemu-img syslinux systemd texinfo util-linux wget xz || true
+                sudo pacman -Sy --needed bc base-devel bison bzip2 cpio dosfstools e2fsprogs flex git make multipath-tools ncurses qemu-img syslinux systemd texinfo util-linux wget xz || true
                 break ;;
             "Debian based")
                 echo -e "${GREEN}Install needed host packages...${RESET}"
@@ -121,6 +135,7 @@ compile_kernel()
 {   
     cd "$CURR_DIR/linux/"
     echo -e "${GREEN}Compiling Linux kernel...${RESET}"
+    make ARCH=x86 olddefconfig
     make ARCH=x86 bzImage -j$(nproc)
     sudo mv arch/x86/boot/bzImage ../build || true
 }
@@ -484,7 +499,7 @@ EOF
     sudo extlinux --install /mnt/shorkmini/boot/syslinux
 
     # Install MBR boot code
-    sudo dd if=/usr/lib/syslinux/mbr/mbr.bin of=shorkmini.img bs=440 count=1 conv=notrunc
+    sudo dd if="$MBR_BIN" of=shorkmini.img bs=440 count=1 conv=notrunc
 }
 
 # Converts the disk drive image to VMware format for testing
