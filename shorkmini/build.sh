@@ -32,20 +32,18 @@ confirm()
 
 # Process arguments
 MINIMAL=false
-SKIP_PRE=false
 SKIP_KRN=false
 SKIP_BB=false
 ALWAYS_BUILD=false
 DONT_DEL_BUILD=false
+IS_ARCH=false
+IS_DEBIAN=false
 
 for arg in "$@"; do
     case "$arg" in
         -m|--minimal)
             MINIMAL=true
             DONT_DEL_BUILD=true
-            ;;
-        -sp|--skip-prerequisites)
-            SKIP_PRE=true
             ;;
         -sk|--skip-kernel)
             SKIP_KRN=true
@@ -57,6 +55,14 @@ for arg in "$@"; do
             ;;
         -ab|--always-build)
             ALWAYS_BUILD=true
+            ;;
+        -ia|--is-arch)
+            IS_ARCH=true
+            IS_DEBIAN=false
+            ;;
+        -id|--is-debian)
+            IS_ARCH=false
+            IS_DEBIAN=true
             ;;
     esac
 done
@@ -100,28 +106,42 @@ delete_build_dir()
     fi
 }
 
+install_arch_prerequisites()
+{
+    echo -e "${GREEN}Installing prerequisite packages for an Arch-based system...${RESET}"
+    sudo pacman -Sy --needed bc base-devel bison bzip2 cpio dosfstools e2fsprogs flex git make multipath-tools ncurses qemu-img syslinux systemd texinfo util-linux wget xz || true
+}
 
+install_debian_prerequisites()
+{
+    echo -e "${GREEN}Installing prerequisite packages for a Debian-based system...${RESET}"
+    sudo dpkg --add-architecture i386
+    sudo apt-get update
+    sudo apt-get install -y bc bison bzip2 cpio dosfstools e2fsprogs extlinux fdisk flex git kpartx libncurses-dev:i386 make qemu-utils syslinux texinfo udev wget xz-utils || true
+    export PATH="$PATH:/usr/sbin:/sbin"
+}
 
 # Installs needed packages to host computer
 get_prerequisites()
 {
-    echo -e "${YELLOW}Select host Linux distribution:${RESET}"
-    select host in "Arch based" "Debian based"; do
-        case $host in
-            "Arch based")
-                echo -e "${GREEN}Install needed host packages...${RESET}"
-                sudo pacman -Sy --needed bc base-devel bison bzip2 cpio dosfstools e2fsprogs flex git make multipath-tools ncurses qemu-img syslinux systemd texinfo util-linux wget xz || true
-                break ;;
-            "Debian based")
-                echo -e "${GREEN}Install needed host packages...${RESET}"
-                sudo dpkg --add-architecture i386
-                sudo apt-get update
-                sudo apt-get install -y bc bison bzip2 cpio dosfstools e2fsprogs extlinux fdisk flex git kpartx libncurses-dev:i386 make qemu-utils syslinux texinfo udev wget xz-utils || true
-                export PATH="$PATH:/usr/sbin:/sbin"
-                break ;;
-            *)
-        esac
-    done
+    if $IS_ARCH; then
+        install_arch_prerequisites
+    elif $IS_DEBIAN; then
+        install_debian_prerequisites
+    else
+        echo -e "${YELLOW}Select host Linux distribution:${RESET}"
+        select host in "Arch based" "Debian based"; do
+            case $host in
+                "Arch based")
+                    install_arch_prerequisites
+                    break ;;
+                "Debian based")
+                    install_debian_prerequisites
+                    break ;;
+                *)
+            esac
+        done
+    fi
 }
 
 # Download and extract i486 musl cross-compiler
@@ -566,9 +586,7 @@ if ! $MINIMAL; then
         delete_build_dir
     fi
     mkdir -p build
-    if ! $SKIP_PRE; then
-        get_prerequisites
-    fi
+    get_prerequisites
     get_i486_musl_cc
     get_ncurses
     if ! $SKIP_KRN; then
