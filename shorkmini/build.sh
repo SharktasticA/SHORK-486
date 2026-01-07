@@ -123,6 +123,15 @@ do
     fi
 done
 
+# Common compiler/compiler-related locations
+AR="${CURR_DIR}/build/i486-linux-musl-cross/bin/i486-linux-musl-ar"
+CC="${CURR_DIR}/build/i486-linux-musl-cross/bin/i486-linux-musl-gcc"
+CC_STATIC="${CURR_DIR}/configs/i486-linux-musl-gcc-static"
+HOST=i486-linux-musl
+PREFIX="$CURR_DIR/build/i486-linux-musl-cross"
+RANLIB="${CURR_DIR}/build/i486-linux-musl-cross/bin/i486-linux-musl-ranlib"
+STRIP="${CURR_DIR}/build/i486-linux-musl-cross/bin/i486-linux-musl-strip"
+
 
 
 # Deletes build directory
@@ -207,7 +216,7 @@ get_ncurses()
 
     # Compile and install
     echo -e "${GREEN}Compiling ncurses...${RESET}"
-    ./configure --host=i486-linux-musl --prefix="$CURR_DIR/build/i486-linux-musl-cross" --with-normal --without-shared --without-debug --without-cxx --enable-widec --without-termlib CC="${CURR_DIR}/build/i486-linux-musl-cross/bin/i486-linux-musl-gcc"
+    ./configure --host=${HOST} --prefix="${PREFIX}" --with-normal --without-shared --without-debug --without-cxx --enable-widec --without-termlib CC="${CC}"
     make -j$(nproc) && make install
 }
 
@@ -353,7 +362,7 @@ get_nano()
     export ac_cv_lib_tinfo_tigetstr='no'
     export LIBS="-lncursesw"
 
-    ./configure --cache-file=/dev/null --host=i486-linux-musl --prefix=/usr --enable-utf8 --enable-color --disable-nls --disable-speller --disable-browser --disable-libmagic --disable-justify --disable-wrapping --disable-mouse CC="${CURR_DIR}/build/i486-linux-musl-cross/bin/i486-linux-musl-gcc" CFLAGS="-Os -march=i486 -mno-fancy-math-387 -I${CURR_DIR}/build/i486-linux-musl-cross/include -I${CURR_DIR}/build/i486-linux-musl-cross/include/ncursesw" LDFLAGS="-static -L${CURR_DIR}/build/i486-linux-musl-cross/lib"
+    ./configure --cache-file=/dev/null --host=${HOST} --prefix=/usr --enable-utf8 --enable-color --disable-nls --disable-speller --disable-browser --disable-libmagic --disable-justify --disable-wrapping --disable-mouse CC="${CC}" CFLAGS="-Os -march=i486 -mno-fancy-math-387 -I${CURR_DIR}/build/i486-linux-musl-cross/include -I${CURR_DIR}/build/i486-linux-musl-cross/include/ncursesw" LDFLAGS="-static -L${CURR_DIR}/build/i486-linux-musl-cross/lib"
 
     # In case "cannot find -ltinfo" error 
     grep -rl "\-ltinfo" . | xargs -r sed -i 's/-ltinfo//g' 2>/dev/null || true
@@ -396,14 +405,14 @@ get_tnftp()
     # Compile and install
     echo -e "${GREEN}Downloading and compiling tnftp...${RESET}"
     unset LIBS
-    chmod +x "$CURR_DIR/configs/i486-linux-musl-gcc-static"
-    ./configure --host=i486-linux-musl --prefix=/usr --disable-editcomplete --disable-shared --enable-static CC="$CURR_DIR/configs/i486-linux-musl-gcc-static" AR="$CURR_DIR/build/i486-linux-musl-cross/bin/i486-linux-musl-ar" RANLIB="$CURR_DIR/build/i486-linux-musl-cross/bin/i486-linux-musl-ranlib" STRIP="$CURR_DIR/build/i486-linux-musl-cross/bin/i486-linux-musl-strip" CFLAGS="-Os -march=i486" LDFLAGS=""
+    chmod +x "${CC_STATIC}"
+    ./configure --host=${HOST} --prefix=/usr --disable-editcomplete --disable-shared --enable-static CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}" CFLAGS="-Os -march=i486" LDFLAGS=""
     make -j$(nproc)
     make DESTDIR="${CURR_DIR}/build/root" install
     ln -sf tnftp "${CURR_DIR}/build/root/usr/bin/ftp"
 }
 
-# Download and compile dropbear (SSH client only)
+# Download and compile Dropbear for its SCP and SSH clients
 get_dropbear()
 {
     cd "$CURR_DIR/build"
@@ -429,12 +438,13 @@ get_dropbear()
     # Compile and install
     echo -e "${GREEN}Compiling Dropbear...${RESET}"
     unset LIBS
-    ./configure --host=i486-linux-musl --prefix=/usr --disable-zlib --disable-loginfunc --disable-syslog --disable-lastlog --disable-utmp --disable-utmpx --disable-wtmp --disable-wtmpx CC="${CURR_DIR}/build/i486-linux-musl-cross/bin/i486-linux-musl-gcc" AR="${CURR_DIR}/build/i486-linux-musl-cross/bin/i486-linux-musl-ar" RANLIB="${CURR_DIR}/build/i486-linux-musl-cross/bin/i486-linux-musl-ranlib" CFLAGS="-Os -march=i486 -static" LDFLAGS="-static"
+    ./configure --host=${HOST} --prefix=/usr --disable-zlib --disable-loginfunc --disable-syslog --disable-lastlog --disable-utmp --disable-utmpx --disable-wtmp --disable-wtmpx CC="${CC}" AR="${AR}" RANLIB="${RANLIB}" CFLAGS="-Os -march=i486 -static" LDFLAGS="-static"
     make PROGRAMS="dbclient scp" -j$(nproc)
     sudo make DESTDIR="${CURR_DIR}/build/root" install PROGRAMS="dbclient scp"
     sudo mv "${CURR_DIR}/build/root/usr/bin/dbclient" "${CURR_DIR}/build/root/usr/bin/ssh"
-    sudo "${CURR_DIR}/build/i486-linux-musl-cross/bin/i486-linux-musl-strip" "${CURR_DIR}/build/root/usr/bin/ssh"
-    sudo "${CURR_DIR}/build/i486-linux-musl-cross/bin/i486-linux-musl-strip" "${CURR_DIR}/build/root/usr/bin/scp"
+    sudo "${STRIP}" "${CURR_DIR}/build/root/usr/bin/ssh"
+    sudo "${STRIP}" "${CURR_DIR}/build/root/usr/bin/scp"
+}
 }
 
 # Download and build tic
@@ -446,10 +456,10 @@ build_tic()
     if [ ! -f "${CURR_DIR}/build/root/usr/bin/tic" ]; then
         echo -e "${GREEN}Building tic...${RESET}"
         cd $CURR_DIR/build/ncurses/
-        ./configure --host=i486-linux-musl --prefix=/usr --with-normal --without-shared --without-debug --without-cxx --enable-widec CC="${CURR_DIR}/build/i486-linux-musl-cross/bin/i486-linux-musl-gcc" CFLAGS="-Os -static"
+        ./configure --host=${HOST} --prefix=/usr --with-normal --without-shared --without-debug --without-cxx --enable-widec CC="${CC}" CFLAGS="-Os -static"
         make -C progs tic -j$(nproc)
         sudo install -D progs/tic "$CURR_DIR/build/root/usr/bin/tic"
-        sudo "${CURR_DIR}/build/i486-linux-musl-cross/bin/i486-linux-musl-strip" "$CURR_DIR/build/root/usr/bin/tic"
+        sudo "${STRIP}" "$CURR_DIR/build/root/usr/bin/tic"
     else
         echo -e "${LIGHT_RED}tic already compiled, skipping...${RESET}"
     fi
