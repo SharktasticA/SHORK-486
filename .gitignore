@@ -1,13 +1,3 @@
-*.tar.*
-*.tgz
-busybox-*/
-linux/
-i486-linux-musl-cross/
-build/
-nano-*/
-ncurses-*/
-tnftp-*/
-dropbear-*/
-lynx*/
-images*/
-__pycache__/
+__pycache__
+shorkmini/build/
+shorkmini/images/

@@ -6,7 +6,7 @@
 
 UI /boot/syslinux/menu.c32
 
-MENU TITLE SHORK Mini Boot Menu
+MENU TITLE @NAME@
 MENU ROWS 4
 
 DEFAULT shorkmini
@@ -14,11 +14,11 @@ PROMPT 0
 TIMEOUT 100
 
 LABEL shorkmini
-    MENU LABEL SHORK Mini 0.1
+    MENU LABEL @NAME@ @VER@
     KERNEL /boot/bzImage
     APPEND root=/dev/sda1 rootfstype=ext2 rw rootwait init=/sbin/init console=tty0 ip=off tsc=unstable quiet loglevel=3
 
 LABEL shorkmini-debug
-    MENU LABEL SHORK Mini 0.1 (debug/verbose)
+    MENU LABEL @NAME@ @VER@ (debug/verbose)
     KERNEL /boot/bzImage
     APPEND root=/dev/sda1 rootfstype=ext2 rw rootwait init=/sbin/init console=tty0 ip=off tsc=unstable loglevel=7

@@ -1,6 +1,6 @@
-NAME="SHORK Mini"
-PRETTY_NAME="SHORK Mini 0.1"
-ID=shorkmini
-VERSION="0.1"
-VERSION_ID=0.1
-HOME_URL="https://links.sharktastica.co.uk/"
+NAME="@NAME@"
+PRETTY_NAME="@NAME@ @VER@"
+ID=@ID@
+VERSION="@VER@"
+VERSION_ID=@VER@
+HOME_URL="@URL@"

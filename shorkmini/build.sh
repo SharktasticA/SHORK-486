@@ -46,7 +46,7 @@ SKIP_TNFTP=false
 SKIP_DROPBEAR=false
 SKIP_PCIIDS=false
 ALWAYS_BUILD=false
-DONT_DEL_BUILD=false
+DONT_DEL_ROOT=false
 IS_ARCH=false
 IS_DEBIAN=false
 NO_MENU=false
@@ -55,20 +55,20 @@ for arg in "$@"; do
     case "$arg" in
         -m|--minimal)
             MINIMAL=true
-            DONT_DEL_BUILD=true
+            DONT_DEL_ROOT=true
             ;;
         -sk|--skip-kernel)
             SKIP_KRN=true
-            DONT_DEL_BUILD=true
+            DONT_DEL_ROOT=true
             ;;
         -sb|--skip-busybox)
             SKIP_BB=true
-            DONT_DEL_BUILD=true
+            DONT_DEL_ROOT=true
             ;;
         -snn|--skip-nano)
             SKIP_NANO=true
             ;;
-        -CURR_DIRstp|--skip-tnftp)
+        -stp|--skip-tnftp)
             SKIP_TNFTP=true
             ;;
         -sdb|--skip-dropbear)
@@ -97,6 +97,7 @@ done
 
 
 # Desired versions
+NCURSES_VER=6.4
 KERNEL_VER=6.14.11
 BUSYBOX_VER=1_36_1
 NANO_VER=5.7
@@ -125,11 +126,11 @@ done
 
 
 # Deletes build directory
-delete_build_dir()
+delete_root_dir()
 {
-    if [ -n "$CURR_DIR" ] && [ -d "$CURR_DIR/build" ]; then
-        echo -e "${GREEN}Deleting existing build directory to ensure fresh changes can be made...${RESET}"
-        sudo rm -rf "$CURR_DIR/build"
+    if [ -n "$CURR_DIR" ] && [ -d "$CURR_DIR/build/root" ]; then
+        echo -e "${GREEN}Deleting existing SHORK Mini root directory to ensure fresh changes can be made...${RESET}"
+        sudo rm -rf "$CURR_DIR/build/root"
     fi
 }
 
@@ -174,6 +175,8 @@ get_prerequisites()
 # Download and extract i486 musl cross-compiler
 get_i486_musl_cc()
 {
+    cd "$CURR_DIR/build"
+
     echo -e "${GREEN}Downloading i486 cross-compiler...${RESET}"
     [ -f i486-linux-musl-cross.tgz ] || wget https://musl.cc/i486-linux-musl-cross.tgz
     [ -d "i486-linux-musl-cross" ] || tar xvf i486-linux-musl-cross.tgz
@@ -182,25 +185,35 @@ get_i486_musl_cc()
 # Download and compile ncurses (required for other programs)
 get_ncurses()
 {
-    cd "$CURR_DIR"
-    echo -e "${GREEN}Building ncurses...${RESET}"
-    [ -f ncurses-6.4.tar.gz ] || wget https://ftp.gnu.org/pub/gnu/ncurses/ncurses-6.4.tar.gz
-    [ -d ncurses-6.4 ] || tar xzvf ncurses-6.4.tar.gz
+    cd "$CURR_DIR/build"
 
-    # Check if program already built, skip if so
-    if [ ! -f "${CURR_DIR}/i486-linux-musl-cross/lib/libncursesw.a" ]; then
-        echo -e "${GREEN}Compiling ncurses...${RESET}"
-        cd ncurses-6.4
-        ./configure --host=i486-linux-musl --prefix="$CURR_DIR/i486-linux-musl-cross" --with-normal --without-shared --without-debug --without-cxx --enable-widec --without-termlib CC="${CURR_DIR}/i486-linux-musl-cross/bin/i486-linux-musl-gcc"
-        make -j$(nproc) && make install
-    else
-        echo -e "${LIGHT_RED}ncurses already compiled, skipping...${RESET}"
+    # Skip if already built
+    if [ -f "${CURR_DIR}/build/i486-linux-musl-cross/lib/libncursesw.a" ]; then
+        echo -e "${LIGHT_RED}ncurses already built, skipping...${RESET}"
+        return
     fi
+
+    # Download source
+    if [ -d ncurses ]; then
+        echo -e "${YELLOW}ncurses source already present, resetting...${RESET}"
+        cd ncurses
+        git reset --hard
+        git checkout "v${NCURSES_VER}" || true
+    else
+        echo -e "${GREEN}Downloading ncurses...${RESET}"
+        git clone --branch v${NCURSES_VER} https://github.com/mirror/ncurses.git
+        cd ncurses
+    fi
+
+    # Compile and install
+    echo -e "${GREEN}Compiling ncurses...${RESET}"
+    ./configure --host=i486-linux-musl --prefix="$CURR_DIR/build/i486-linux-musl-cross" --with-normal --without-shared --without-debug --without-cxx --enable-widec --without-termlib CC="${CURR_DIR}/build/i486-linux-musl-cross/bin/i486-linux-musl-gcc"
+    make -j$(nproc) && make install
 }
 
 download_kernel()
 {
-    cd "$CURR_DIR"
+    cd "$CURR_DIR/build"
     echo -e "${GREEN}Downloading the Linux kernel...${RESET}"
     if [ ! -d "linux" ]; then
         git clone --depth=1 --branch v$KERNEL_VER https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git || true
@@ -211,17 +224,18 @@ download_kernel()
 
 reset_kernel()
 {
-    cd "$CURR_DIR"
+    cd "$CURR_DIR/build"
     echo -e "${GREEN}Resetting and cleaning Linux kernel...${RESET}"
     cd linux/
     git reset --hard || true
+    git checkout "v${KERNEL_VER}" || true
     make clean
     cp $CURR_DIR/configs/linux-$KERNEL_VER.config .config
 }
 
 reclone_kernel()
 {
-    cd "$CURR_DIR"
+    cd "$CURR_DIR/build"
     echo -e "${GREEN}Deleting and recloning Linux kernel...${RESET}"
     sudo rm -r linux
     download_kernel
@@ -229,16 +243,18 @@ reclone_kernel()
 
 compile_kernel()
 {   
-    cd "$CURR_DIR/linux/"
+    cd "$CURR_DIR/build/linux/"
     echo -e "${GREEN}Compiling Linux kernel...${RESET}"
     make ARCH=x86 olddefconfig
     make ARCH=x86 bzImage -j$(nproc)
-    sudo mv arch/x86/boot/bzImage ../build || true
+    sudo mv arch/x86/boot/bzImage "$CURR_DIR/build" || true
 }
 
 # Download and compile Linux kernel
 get_kernel()
 {
+    cd "$CURR_DIR/build"
+
     if $ALWAYS_BUILD; then
         download_kernel
         reset_kernel
@@ -271,7 +287,8 @@ get_kernel()
 # Download and compile BusyBox
 get_busybox()
 {
-    cd $CURR_DIR
+    cd "$CURR_DIR/build"
+
     echo -e "${GREEN}Downloading BusyBox...${RESET}"
     [ -f $BUSYBOX_VER.tar.gz ] || wget https://github.com/mirror/busybox/archive/refs/tags/$BUSYBOX_VER.tar.gz
     [ -d busybox-$BUSYBOX_VER ] || tar xzvf $BUSYBOX_VER.tar.gz
@@ -284,10 +301,10 @@ get_busybox()
     sed -i 's/^#if !ENABLE_FEATURE_SH_EXTRA_QUIET/#if 0 \/* disabled ash banner *\//' shell/ash.c
 
     echo -e "${GREEN}Compiling BusyBox...${RESET}"
-    sed -i "s|^CONFIG_CROSS_COMPILER_PREFIX=.*|CONFIG_CROSS_COMPILER_PREFIX=\"${CURR_DIR}/i486-linux-musl-cross/bin/i486-linux-musl-\"|" .config
-    sed -i "s|^CONFIG_SYSROOT=.*|CONFIG_SYSROOT=\"${CURR_DIR}/i486-linux-musl-cross\"|" .config
-    sed -i "s|^CONFIG_EXTRA_CFLAGS=.*|CONFIG_EXTRA_CFLAGS=\"-I${CURR_DIR}/i486-linux-musl-cross/include\"|" .config
-    sed -i "s|^CONFIG_EXTRA_LDFLAGS=.*|CONFIG_EXTRA_LDFLAGS=\"-L${CURR_DIR}/i486-linux-musl-cross/lib\"|" .config
+    sed -i "s|^CONFIG_CROSS_COMPILER_PREFIX=.*|CONFIG_CROSS_COMPILER_PREFIX=\"${CURR_DIR}/build/i486-linux-musl-cross/bin/i486-linux-musl-\"|" .config
+    sed -i "s|^CONFIG_SYSROOT=.*|CONFIG_SYSROOT=\"${CURR_DIR}/build/i486-linux-musl-cross\"|" .config
+    sed -i "s|^CONFIG_EXTRA_CFLAGS=.*|CONFIG_EXTRA_CFLAGS=\"-I${CURR_DIR}/build/i486-linux-musl-cross/include\"|" .config
+    sed -i "s|^CONFIG_EXTRA_LDFLAGS=.*|CONFIG_EXTRA_LDFLAGS=\"-L${CURR_DIR}/build/i486-linux-musl-cross/lib\"|" .config
     make ARCH=x86 -j$(nproc) && make ARCH=x86 install
 
     echo -e "${GREEN}Move the result into a file system we will build...${RESET}"
@@ -300,9 +317,16 @@ get_busybox()
 # Download and compile nano
 get_nano()
 {
-    cd $CURR_DIR
-    echo -e "${GREEN}Downloading nano...${RESET}"
+    cd "$CURR_DIR/build"
 
+    # Skip if already built
+    if [ -f "${CURR_DIR}/build/root/usr/bin/nano" ]; then
+        echo -e "${LIGHT_RED}nano already built, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading nano...${RESET}"
+    
     NANO="nano-${NANO_VER}"
     NANO_ARC="${NANO}.tar.xz"
     NANO_URI="https://www.nano-editor.org/dist/v5/${NANO_ARC}"
@@ -321,32 +345,35 @@ get_nano()
     fi
 
     # Compile program
-    if [ ! -f "${CURR_DIR}/build/root/usr/bin/nano" ]; then
-        echo -e "${GREEN}Compiling nano...${RESET}"
+    echo -e "${GREEN}Compiling nano...${RESET}"
 
-        # In case "cannot find -ltinfo" error 
-        find . -name config.cache -delete
-        export ac_cv_search_tigetstr='-lncursesw'
-        export ac_cv_lib_tinfo_tigetstr='no'
-        export LIBS="-lncursesw"
+    # In case "cannot find -ltinfo" error 
+    find . -name config.cache -delete
+    export ac_cv_search_tigetstr='-lncursesw'
+    export ac_cv_lib_tinfo_tigetstr='no'
+    export LIBS="-lncursesw"
 
-        ./configure --cache-file=/dev/null --host=i486-linux-musl --prefix=/usr --enable-utf8 --enable-color --disable-nls --disable-speller --disable-browser --disable-libmagic --disable-justify --disable-wrapping --disable-mouse CC="${CURR_DIR}/i486-linux-musl-cross/bin/i486-linux-musl-gcc" CFLAGS="-Os -march=i486 -mno-fancy-math-387 -I${CURR_DIR}/i486-linux-musl-cross/include -I${CURR_DIR}/i486-linux-musl-cross/include/ncursesw" LDFLAGS="-static -L${CURR_DIR}/i486-linux-musl-cross/lib"
+    ./configure --cache-file=/dev/null --host=i486-linux-musl --prefix=/usr --enable-utf8 --enable-color --disable-nls --disable-speller --disable-browser --disable-libmagic --disable-justify --disable-wrapping --disable-mouse CC="${CURR_DIR}/build/i486-linux-musl-cross/bin/i486-linux-musl-gcc" CFLAGS="-Os -march=i486 -mno-fancy-math-387 -I${CURR_DIR}/build/i486-linux-musl-cross/include -I${CURR_DIR}/build/i486-linux-musl-cross/include/ncursesw" LDFLAGS="-static -L${CURR_DIR}/build/i486-linux-musl-cross/lib"
 
-        # In case "cannot find -ltinfo" error 
-        grep -rl "\-ltinfo" . | xargs -r sed -i 's/-ltinfo//g' 2>/dev/null || true
-        grep -rl "TINFO_LIBS" . | xargs -r sed -i 's/TINFO_LIBS.*/TINFO_LIBS = /' 2>/dev/null || true
-        
-        make TINFO_LIBS="" -j$(nproc)
-        make DESTDIR="${CURR_DIR}/build/root" install
-    else
-        echo -e "${LIGHT_RED}nano already compiled, skipping...${RESET}"
-    fi
+    # In case "cannot find -ltinfo" error 
+    grep -rl "\-ltinfo" . | xargs -r sed -i 's/-ltinfo//g' 2>/dev/null || true
+    grep -rl "TINFO_LIBS" . | xargs -r sed -i 's/TINFO_LIBS.*/TINFO_LIBS = /' 2>/dev/null || true
+
+    make TINFO_LIBS="" -j$(nproc)
+    make DESTDIR="${CURR_DIR}/build/root" install
 }
 
 # Download and compile tnftp
 get_tnftp()
 {
-    cd $CURR_DIR
+    cd "$CURR_DIR/build"
+
+    # Skip if already built
+    if [ -f "${CURR_DIR}/build/root/usr/bin/ftp" ]; then
+        echo -e "${LIGHT_RED}tnftp already built, skipping...${RESET}"
+        return
+    fi
+
     echo -e "${GREEN}Downloading tnftp...${RESET}"
 
     TNFTP="tnftp-${TNFTP_VER}"
@@ -366,84 +393,90 @@ get_tnftp()
         cd $TNFTP
     fi
 
-    # Compile program
-    if [ ! -f "${CURR_DIR}/build/root/usr/bin/tnftp" ]; then
-        echo -e "${GREEN}Compiling tnftp...${RESET}"
-
-        unset LIBS
-        chmod +x "$CURR_DIR/configs/i486-linux-musl-gcc-static"
-
-        ./configure --host=i486-linux-musl --prefix=/usr --disable-editcomplete --disable-shared --enable-static CC="$CURR_DIR/configs/i486-linux-musl-gcc-static" AR="$CURR_DIR/i486-linux-musl-cross/bin/i486-linux-musl-ar" RANLIB="$CURR_DIR/i486-linux-musl-cross/bin/i486-linux-musl-ranlib" STRIP="$CURR_DIR/i486-linux-musl-cross/bin/i486-linux-musl-strip" CFLAGS="-Os -march=i486" LDFLAGS=""
-
-        make -j$(nproc)
-        make DESTDIR="${CURR_DIR}/build/root" install
-        ln -sf tnftp "${CURR_DIR}/build/root/usr/bin/ftp"
-    else
-        echo -e "${LIGHT_RED}tnftp already compiled, skipping...${RESET}"
-    fi
+    # Compile and install
+    echo -e "${GREEN}Downloading and compiling tnftp...${RESET}"
+    unset LIBS
+    chmod +x "$CURR_DIR/configs/i486-linux-musl-gcc-static"
+    ./configure --host=i486-linux-musl --prefix=/usr --disable-editcomplete --disable-shared --enable-static CC="$CURR_DIR/configs/i486-linux-musl-gcc-static" AR="$CURR_DIR/build/i486-linux-musl-cross/bin/i486-linux-musl-ar" RANLIB="$CURR_DIR/build/i486-linux-musl-cross/bin/i486-linux-musl-ranlib" STRIP="$CURR_DIR/build/i486-linux-musl-cross/bin/i486-linux-musl-strip" CFLAGS="-Os -march=i486" LDFLAGS=""
+    make -j$(nproc)
+    make DESTDIR="${CURR_DIR}/build/root" install
+    ln -sf tnftp "${CURR_DIR}/build/root/usr/bin/ftp"
 }
 
 # Download and compile dropbear (SSH client only)
 get_dropbear()
 {
-    cd $CURR_DIR
-    echo -e "${GREEN}Downloading Dropbear...${RESET}"
+    cd "$CURR_DIR/build"
 
-    DROPBEAR="DROPBEAR_${DROPBEAR_VER}"
-    DROPBEAR_ARC="${DROPBEAR}.tar.gz"
-    DROPBEAR_URI="https://github.com/mkj/dropbear/archive/refs/tags/${DROPBEAR_ARC}"
+    # Skip if already built
+    if [ -f "${CURR_DIR}/build/root/usr/bin/ssh" ]; then
+        echo -e "${LIGHT_RED}Dropbear already built, skipping...${RESET}"
+        return
+    fi
 
     # Download source
-    [ -f $DROPBEAR_ARC ] || wget $DROPBEAR_URI
-
-    # Extract source
-    if [ -d $DROPBEAR ]; then
-        echo -e "${YELLOW}Dropbear source is already present, cleaning up before proceeding...${RESET}"
-        cd "dropbear-${DROPBEAR}"
-        make clean || true
+    if [ -d dropbear ]; then
+        echo -e "${YELLOW}Dropbear source already present, resetting...${RESET}"
+        cd dropbear
+        git reset --hard
+        git checkout "DROPBEAR_${DROPBEAR_VER}" || true
     else
-        tar xzf $DROPBEAR_ARC
-        cd "dropbear-${DROPBEAR}"
+        echo -e "${GREEN}Downloading Dropbear...${RESET}"
+        git clone --branch DROPBEAR_${DROPBEAR_VER} https://github.com/mkj/dropbear.git
+        cd dropbear
     fi
 
-    # Compile program
-    if [ ! -f "${CURR_DIR}/build/root/usr/bin/ssh" ]; then
-        echo -e "${GREEN}Compiling Dropbear...${RESET}"
-
-        unset LIBS
-
-        ./configure --host=i486-linux-musl --prefix=/usr --disable-zlib --disable-loginfunc --disable-syslog --disable-lastlog --disable-utmp --disable-utmpx --disable-wtmp --disable-wtmpx CC="${CURR_DIR}/i486-linux-musl-cross/bin/i486-linux-musl-gcc" AR="${CURR_DIR}/i486-linux-musl-cross/bin/i486-linux-musl-ar" RANLIB="${CURR_DIR}/i486-linux-musl-cross/bin/i486-linux-musl-ranlib" CFLAGS="-Os -march=i486 -static" LDFLAGS="-static"
-
-        make PROGRAMS="dbclient scp" -j$(nproc)
-        sudo make DESTDIR="${CURR_DIR}/build/root" install PROGRAMS="dbclient scp"
-
-        sudo mv "${CURR_DIR}/build/root/usr/bin/dbclient" "${CURR_DIR}/build/root/usr/bin/ssh"
-
-        sudo "${CURR_DIR}/i486-linux-musl-cross/bin/i486-linux-musl-strip" "${CURR_DIR}/build/root/usr/bin/ssh"
-        sudo "${CURR_DIR}/i486-linux-musl-cross/bin/i486-linux-musl-strip" "${CURR_DIR}/build/root/usr/bin/scp"
-    else
-        echo -e "${LIGHT_RED}Dropbear already compiled, skipping...${RESET}"
-    fi
+    # Compile and install
+    echo -e "${GREEN}Compiling Dropbear...${RESET}"
+    unset LIBS
+    ./configure --host=i486-linux-musl --prefix=/usr --disable-zlib --disable-loginfunc --disable-syslog --disable-lastlog --disable-utmp --disable-utmpx --disable-wtmp --disable-wtmpx CC="${CURR_DIR}/build/i486-linux-musl-cross/bin/i486-linux-musl-gcc" AR="${CURR_DIR}/build/i486-linux-musl-cross/bin/i486-linux-musl-ar" RANLIB="${CURR_DIR}/build/i486-linux-musl-cross/bin/i486-linux-musl-ranlib" CFLAGS="-Os -march=i486 -static" LDFLAGS="-static"
+    make PROGRAMS="dbclient scp" -j$(nproc)
+    sudo make DESTDIR="${CURR_DIR}/build/root" install PROGRAMS="dbclient scp"
+    sudo mv "${CURR_DIR}/build/root/usr/bin/dbclient" "${CURR_DIR}/build/root/usr/bin/ssh"
+    sudo "${CURR_DIR}/build/i486-linux-musl-cross/bin/i486-linux-musl-strip" "${CURR_DIR}/build/root/usr/bin/ssh"
+    sudo "${CURR_DIR}/build/i486-linux-musl-cross/bin/i486-linux-musl-strip" "${CURR_DIR}/build/root/usr/bin/scp"
 }
 
-# Build tic
+# Download and build tic
 build_tic()
 {
-    cd $CURR_DIR
+    cd "$CURR_DIR/build"
+
     # Check if program already built, skip if so
     if [ ! -f "${CURR_DIR}/build/root/usr/bin/tic" ]; then
         echo -e "${GREEN}Building tic...${RESET}"
-
-        cd $CURR_DIR/ncurses-6.4/
-        
-        ./configure --host=i486-linux-musl --prefix=/usr --with-normal --without-shared --without-debug --without-cxx --enable-widec CC="${CURR_DIR}/i486-linux-musl-cross/bin/i486-linux-musl-gcc" CFLAGS="-Os -static"
-
+        cd $CURR_DIR/build/ncurses/
+        ./configure --host=i486-linux-musl --prefix=/usr --with-normal --without-shared --without-debug --without-cxx --enable-widec CC="${CURR_DIR}/build/i486-linux-musl-cross/bin/i486-linux-musl-gcc" CFLAGS="-Os -static"
         make -C progs tic -j$(nproc)
         sudo install -D progs/tic "$CURR_DIR/build/root/usr/bin/tic"
-        sudo "${CURR_DIR}/i486-linux-musl-cross/bin/i486-linux-musl-strip" "$CURR_DIR/build/root/usr/bin/tic"
+        sudo "${CURR_DIR}/build/i486-linux-musl-cross/bin/i486-linux-musl-strip" "$CURR_DIR/build/root/usr/bin/tic"
     else
         echo -e "${LIGHT_RED}tic already compiled, skipping...${RESET}"
     fi
+}
+
+# Copies a sysfile to a destination and makes sure any @NAME@ @VER@, @ID@
+# or @URL@ placeholders are replaced
+copy_sysfile()
+{
+    # Input parameters
+    SRC="$1"
+    DST="$2"
+
+    # Ensure source exists
+    [ -f "$SRC" ] || return 1
+
+    # Copy file
+    sudo cp "$SRC" "$DST"
+
+    # Read NAME, VER, ID and URL
+    NAME="$(cat ${CURR_DIR}/branding/NAME | tr -d '\n')"
+    VER="$(cat ${CURR_DIR}/branding/VER | tr -d '\n')"
+    ID="$(cat ${CURR_DIR}/branding/ID | tr -d '\n')"
+    URL="$(cat ${CURR_DIR}/branding/URL | tr -d '\n')"
+
+    # Replace all placeholders with their respective values
+    sudo sed -i -e "s|@NAME@|$NAME|g" -e "s|@VER@|$VER|g" -e "s|@ID@|$ID|g" -e "s|@URL@|$URL|g" "$DST"
 }
 
 # Build the file system
@@ -463,20 +496,20 @@ build_file_system()
     chmod +x $CURR_DIR/utils/shorkhelp
 
     echo -e "${GREEN}Copy pre-defined files...${RESET}"
-    sudo cp $CURR_DIR/sysfiles/welcome .
-    sudo cp $CURR_DIR/sysfiles/hostname etc/
-    sudo cp $CURR_DIR/sysfiles/issue etc/
-    sudo cp $CURR_DIR/sysfiles/os-release etc/
-    sudo cp $CURR_DIR/sysfiles/rc etc/init.d/
-    sudo cp $CURR_DIR/sysfiles/inittab etc/
-    sudo cp $CURR_DIR/sysfiles/profile etc/
-    sudo cp $CURR_DIR/sysfiles/resolv.conf etc/
-    sudo cp $CURR_DIR/sysfiles/services etc/
-    sudo cp $CURR_DIR/sysfiles/default.script usr/share/udhcpc/
-    sudo cp $CURR_DIR/sysfiles/passwd etc/
-    sudo cp $CURR_DIR/utils/shorkfetch usr/bin/
-    sudo cp $CURR_DIR/utils/shorkcol usr/libexec/
-    sudo cp $CURR_DIR/utils/shorkhelp usr/bin/
+    copy_sysfile $CURR_DIR/sysfiles/welcome welcome
+    copy_sysfile $CURR_DIR/sysfiles/hostname etc/hostname
+    copy_sysfile $CURR_DIR/sysfiles/issue etc/issue
+    copy_sysfile $CURR_DIR/sysfiles/os-release etc/os-release
+    copy_sysfile $CURR_DIR/sysfiles/rc etc/init.d/rc
+    copy_sysfile $CURR_DIR/sysfiles/inittab etc/inittab
+    copy_sysfile $CURR_DIR/sysfiles/profile etc/profile
+    copy_sysfile $CURR_DIR/sysfiles/resolv.conf etc/resolv.conf
+    copy_sysfile $CURR_DIR/sysfiles/services etc/services
+    copy_sysfile $CURR_DIR/sysfiles/default.script usr/share/udhcpc/default.script
+    copy_sysfile $CURR_DIR/sysfiles/passwd etc/passwd
+    copy_sysfile $CURR_DIR/utils/shorkfetch usr/bin/shorkfetch
+    copy_sysfile $CURR_DIR/utils/shorkcol usr/libexec/shorkcol
+    copy_sysfile $CURR_DIR/utils/shorkhelp usr/bin/shorkhelp
 
     echo -e "${GREEN}Copy and compile terminfo database...${RESET}"
     sudo mkdir -p usr/share/terminfo/src/
@@ -603,7 +636,7 @@ EOF
     # Install syslinux bootloader
     if ! $NO_MENU; then
         echo -e "${GREEN}Installing menu-based Syslinux bootloader...${RESET}"
-        sudo cp ../sysfiles/syslinux.cfg.menu  /mnt/shorkmini/boot/syslinux/syslinux.cfg
+        copy_sysfile ../sysfiles/syslinux.cfg.menu  /mnt/shorkmini/boot/syslinux/syslinux.cfg
         
         SYSLINUX_DIRS="
         /usr/lib/syslinux
@@ -629,7 +662,7 @@ EOF
         copy_syslinux_file libmenu.c32
     else
         echo -e "${GREEN}Installing boot-only Syslinux bootloader...${RESET}"
-        sudo cp ../sysfiles/syslinux.cfg.boot  /mnt/shorkmini/boot/syslinux/syslinux.cfg
+        copy_sysfile ../sysfiles/syslinux.cfg.boot  /mnt/shorkmini/boot/syslinux/syslinux.cfg
     fi
 
     sudo extlinux --install /mnt/shorkmini/boot/syslinux
@@ -645,17 +678,17 @@ convert_disk_img()
     qemu-img convert -f raw -O vmdk shorkmini.img shorkmini.vmdk
 }
 
-# Fixes directory permissions after root build
+# Fixes directory and disk drive image file permissions after root build
 fix_perms()
 {
     if [ "$(id -u)" -eq 0 ]; then
-        echo -e "${GREEN}Fixing disk drive image permissions so they are usable after being build at root...${RESET}"
+        echo -e "${GREEN}Fixing directory and disk drive image file permissions so they can be accessed by a non-root user/program after a root build...${RESET}"
 
         HOST_GID=${HOST_GID:-1000}
         HOST_UID=${HOST_UID:-1000}
 
         if [ -d . ]; then
-            sudo chown "$HOST_UID:$HOST_GID" .
+            sudo chown -R "$HOST_UID:$HOST_GID" .
             sudo chmod 755 .
         fi
 
@@ -670,6 +703,7 @@ fix_perms()
 # Cleans up any stale mounts and block-device mappings left by image builds
 clean_stale_mounts()
 {
+    echo -e "${GREEN}Cleaning up any stale mounts and block-device mappings left by image builds ...${RESET}"
     sudo umount -lf /mnt/shorkmini 2>/dev/null
     sudo losetup -a | grep shorkmini | cut -d: -f1 | xargs -r sudo losetup -d
     sudo dmsetup remove_all 2>/dev/null
@@ -685,8 +719,8 @@ echo -e "===============================${RESET}"
 mkdir -p images
 
 if ! $MINIMAL; then
-    if ! $DONT_DEL_BUILD; then
-        delete_build_dir
+    if ! $DONT_DEL_ROOT; then
+        delete_root_dir
     fi
     mkdir -p build
     get_prerequisites
