@@ -44,6 +44,7 @@ SKIP_BB=false
 SKIP_NANO=false
 SKIP_TNFTP=false
 SKIP_DROPBEAR=false
+SKIP_GIT=false
 SKIP_PCIIDS=false
 ALWAYS_BUILD=false
 DONT_DEL_ROOT=false
@@ -74,6 +75,9 @@ for arg in "$@"; do
         -sdb|--skip-dropbear)
             SKIP_DROPBEAR=true
             ;;
+        -sg|--skip-git)
+            SKIP_GIT=true
+            ;;
         -spi|--skip-pciids)
             SKIP_PCIIDS=true
             ;;
@@ -96,13 +100,31 @@ done
 
 
 
+# Check what other prerequisites we need
+NEED_ZLIB=false
+NEED_OPENSSL=false
+NEED_CURL=false
+
+if ! $SKIP_GIT; then
+    NEED_ZLIB=true
+    NEED_OPENSSL=true
+    NEED_CURL=true
+fi
+
+
+
 # Desired versions
-NCURSES_VER=6.4
-KERNEL_VER=6.14.11
-BUSYBOX_VER=1_36_1
-NANO_VER=5.7
-TNFTP_VER=20230507
-DROPBEAR_VER=2022.83
+NCURSES_VER="6.4"
+KERNEL_VER="6.14.11"
+BUSYBOX_VER="1_36_1"
+NANO_VER="5.7"
+TNFTP_VER="20230507"
+DROPBEAR_VER="2022.83"
+GIT_VER="2.52.0"
+ZLIB_VER="1.3.1.2"
+OPENSSL_VER="3.6.0"
+CURL_VER="8.18.0"
+
 
 
 
@@ -124,29 +146,71 @@ do
 done
 
 # Common compiler/compiler-related locations
-AR="${CURR_DIR}/build/i486-linux-musl-cross/bin/i486-linux-musl-ar"
-CC="${CURR_DIR}/build/i486-linux-musl-cross/bin/i486-linux-musl-gcc"
+PREFIX="${CURR_DIR}/build/i486-linux-musl-cross"
+AR="${PREFIX}/bin/i486-linux-musl-ar"
+CC="${PREFIX}/bin/i486-linux-musl-gcc"
 CC_STATIC="${CURR_DIR}/configs/i486-linux-musl-gcc-static"
+DESTDIR="${CURR_DIR}/build/root"
 HOST=i486-linux-musl
-PREFIX="$CURR_DIR/build/i486-linux-musl-cross"
-RANLIB="${CURR_DIR}/build/i486-linux-musl-cross/bin/i486-linux-musl-ranlib"
-STRIP="${CURR_DIR}/build/i486-linux-musl-cross/bin/i486-linux-musl-strip"
+RANLIB="${PREFIX}/bin/i486-linux-musl-ranlib"
+STRIP="${PREFIX}/bin/i486-linux-musl-strip"
 
 
+
+######################################################
+## House keeping                                    ##
+######################################################
 
 # Deletes build directory
 delete_root_dir()
 {
-    if [ -n "$CURR_DIR" ] && [ -d "$CURR_DIR/build/root" ]; then
+    if [ -n "$CURR_DIR" ] && [ -d "${DESTDIR}" ]; then
         echo -e "${GREEN}Deleting existing SHORK Mini root directory to ensure fresh changes can be made...${RESET}"
-        sudo rm -rf "$CURR_DIR/build/root"
+        sudo rm -rf "${DESTDIR}"
     fi
 }
+
+# Fixes directory and disk drive image file permissions after root build
+fix_perms()
+{
+    if [ "$(id -u)" -eq 0 ]; then
+        echo -e "${GREEN}Fixing directory and disk drive image file permissions so they can be accessed by a non-root user/program after a root build...${RESET}"
+
+        HOST_GID=${HOST_GID:-1000}
+        HOST_UID=${HOST_UID:-1000}
+
+        if [ -d . ]; then
+            sudo chown -R "$HOST_UID:$HOST_GID" .
+            sudo chmod 755 .
+        fi
+
+        for f in shorkmini.img shorkmini.vmdk; do
+            [ -f "$f" ] || continue
+            sudo chown "$HOST_UID:$HOST_GID" "$f"
+            sudo chmod 644 "$f"
+        done
+    fi
+}
+
+# Cleans up any stale mounts and block-device mappings left by image builds
+clean_stale_mounts()
+{
+    echo -e "${GREEN}Cleaning up any stale mounts and block-device mappings left by image builds ...${RESET}"
+    sudo umount -lf /mnt/shorkmini 2>/dev/null
+    sudo losetup -a | grep shorkmini | cut -d: -f1 | xargs -r sudo losetup -d
+    sudo dmsetup remove_all 2>/dev/null
+}
+
+
+
+######################################################
+## Host environment prerequisites                   ##
+######################################################
 
 install_arch_prerequisites()
 {
     echo -e "${GREEN}Installing prerequisite packages for an Arch-based system...${RESET}"
-    sudo pacman -Syu --noconfirm --needed bc base-devel bison bzip2 cpio dosfstools e2fsprogs flex git make multipath-tools ncurses pciutils python qemu-img syslinux systemd texinfo util-linux wget xz || true
+    sudo pacman -Syu --noconfirm --needed autoconf bc base-devel bison bzip2 ca-certificates cpio dosfstools e2fsprogs flex git libtool make multipath-tools ncurses pciutils python qemu-img syslinux systemd texinfo util-linux wget xz || true
 }
 
 install_debian_prerequisites()
@@ -154,7 +218,7 @@ install_debian_prerequisites()
     echo -e "${GREEN}Installing prerequisite packages for a Debian-based system...${RESET}"
     sudo dpkg --add-architecture i386
     sudo apt-get update
-    sudo apt-get install -y bc bison bzip2 cpio dosfstools e2fsprogs extlinux fdisk flex git kpartx libncurses-dev:i386 make pciutils python3 qemu-utils syslinux texinfo udev wget xz-utils || true
+    sudo apt-get install -y autoconf bc bison bzip2 ca-certificates cpio dosfstools e2fsprogs extlinux fdisk flex git kpartx libncurses-dev:i386 libtool make pciutils python3 qemu-utils syslinux texinfo udev wget xz-utils || true
     export PATH="$PATH:/usr/sbin:/sbin"
 }
 
@@ -181,6 +245,12 @@ get_prerequisites()
     fi
 }
 
+
+
+######################################################
+## Compiled software toolchains & prerequisites     ##
+######################################################
+
 # Download and extract i486 musl cross-compiler
 get_i486_musl_cc()
 {
@@ -197,7 +267,7 @@ get_ncurses()
     cd "$CURR_DIR/build"
 
     # Skip if already built
-    if [ -f "${CURR_DIR}/build/i486-linux-musl-cross/lib/libncursesw.a" ]; then
+    if [ -f "${PREFIX}/lib/libncursesw.a" ]; then
         echo -e "${LIGHT_RED}ncurses already built, skipping...${RESET}"
         return
     fi
@@ -219,6 +289,136 @@ get_ncurses()
     ./configure --host=${HOST} --prefix="${PREFIX}" --with-normal --without-shared --without-debug --without-cxx --enable-widec --without-termlib CC="${CC}"
     make -j$(nproc) && make install
 }
+
+# Download and build tic (required for shorkcol)
+get_tic()
+{
+    cd "$CURR_DIR/build"
+
+    # Check if program already built, skip if so
+    if [ ! -f "${DESTDIR}/usr/bin/tic" ]; then
+        echo -e "${GREEN}Building tic...${RESET}"
+        cd $CURR_DIR/build/ncurses/
+        ./configure --host=${HOST} --prefix=/usr --with-normal --without-shared --without-debug --without-cxx --enable-widec CC="${CC}" CFLAGS="-Os -static"
+        make -C progs tic -j$(nproc)
+        sudo install -D progs/tic "${DESTDIR}/usr/bin/tic"
+        sudo "${STRIP}" "${DESTDIR}/usr/bin/tic"
+    else
+        echo -e "${LIGHT_RED}tic already compiled, skipping...${RESET}"
+    fi
+}
+
+# Download and compile zlib (required for Git)
+get_zlib()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already built
+    if [ -f "${PREFIX}/i486-linux-musl/lib/libz.a" ]; then
+        echo -e "${LIGHT_RED}zlib already built, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d zlib ]; then
+        echo -e "${YELLOW}zlib source already present, resetting...${RESET}"
+        cd zlib
+        git reset --hard
+        git checkout "v${ZLIB_VER}" || true
+    else
+        echo -e "${GREEN}Downloading zlib...${RESET}"
+        git clone --branch v${ZLIB_VER} https://github.com/madler/zlib.git
+        cd zlib
+    fi
+
+    # Compile and install
+    echo -e "${GREEN}Compiling zlib...${RESET}"
+    CC="${CC}" \
+    CFLAGS="-Os -march=i486 -static" \
+    ./configure --static --prefix="${PREFIX}/i486-linux-musl" 
+    make clean
+    make -j$(nproc)
+    make install
+}
+
+# Download and compile OpenSSL (required for curl and Git/HTTPS remote)
+get_openssl()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already built
+    if [ -f "${PREFIX}/i486-linux-musl/lib/libssl.a" ]; then
+        echo -e "${LIGHT_RED}OpenSSL already built, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d openssl ]; then
+        echo -e "${YELLOW}OpenSSL source already present, resetting...${RESET}"
+        cd openssl
+        git reset --hard
+        git checkout "openssl-${OPENSSL_VER}" || true
+    else
+        echo -e "${GREEN}Downloading OpenSSL...${RESET}"
+        git clone --branch openssl-${OPENSSL_VER} https://github.com/openssl/openssl.git
+        cd openssl
+    fi
+
+    # Compile and install
+    echo -e "${GREEN}Compiling OpenSSL...${RESET}"
+    ./Configure linux-generic32 no-shared no-tests no-dso no-engine --prefix="${PREFIX}/i486-linux-musl" --openssldir=/etc/ssl CC="${CC} -latomic" AR="${AR}" RANLIB="${RANLIB}"
+    make -j$(nproc)
+    make install_sw
+}
+
+# Download and compile curl (required for Git/HTTPS remote)
+get_curl()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already built
+    if [ -f "${PREFIX}/i486-linux-musl/lib/libcurl.a" ]; then
+        echo -e "${LIGHT_RED}curl already built, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading curl...${RESET}"
+    
+    CURL="curl-${CURL_VER}"
+    CURL_ARC="${CURL}.tar.xz"
+    CURL_URI="https://curl.se/download/${CURL_ARC}"
+
+    # Download source
+    [ -f $CURL_ARC ] || wget $CURL_URI
+
+    # Extract source
+    if [ -d $CURL ]; then
+        echo -e "${YELLOW}curl's source is already present, cleaning up before proceeding...${RESET}"
+        sudo rm -rf $CURL
+        tar xf $CURL_ARC
+        cd $CURL
+    else
+        tar xf $CURL_ARC
+        cd $CURL
+    fi
+
+    # Compile and install
+    echo -e "${GREEN}Compiling curl...${RESET}"
+    CPPFLAGS="-I${PREFIX}/i486-linux-musl/include" \
+    LDFLAGS="-L${PREFIX}/i486-linux-musl/lib -static" \
+    LIBS="-lssl -lcrypto -lpthread -ldl -latomic" \
+    CC="${CC}" \
+    CFLAGS="-Os -march=i486 -static" \
+    ./configure --build="$(gcc -dumpmachine)" --host="${HOST}" --prefix="${PREFIX}/i486-linux-musl" --with-openssl="${PREFIX}/i486-linux-musl" --without-libpsl --disable-shared
+    make -j$(nproc)
+    make install
+}
+
+
+
+######################################################
+## Kernel building                                  ##
+######################################################
 
 download_kernel()
 {
@@ -293,6 +493,12 @@ get_kernel()
     compile_kernel
 }
 
+
+
+######################################################
+## BusyBox building                                 ##
+######################################################
+
 # Download and compile BusyBox
 get_busybox()
 {
@@ -310,18 +516,24 @@ get_busybox()
     sed -i 's/^#if !ENABLE_FEATURE_SH_EXTRA_QUIET/#if 0 \/* disabled ash banner *\//' shell/ash.c
 
     echo -e "${GREEN}Compiling BusyBox...${RESET}"
-    sed -i "s|^CONFIG_CROSS_COMPILER_PREFIX=.*|CONFIG_CROSS_COMPILER_PREFIX=\"${CURR_DIR}/build/i486-linux-musl-cross/bin/i486-linux-musl-\"|" .config
+    sed -i "s|^CONFIG_CROSS_COMPILER_PREFIX=.*|CONFIG_CROSS_COMPILER_PREFIX=\"${PREFIX}/bin/i486-linux-musl-\"|" .config
     sed -i "s|^CONFIG_SYSROOT=.*|CONFIG_SYSROOT=\"${CURR_DIR}/build/i486-linux-musl-cross\"|" .config
-    sed -i "s|^CONFIG_EXTRA_CFLAGS=.*|CONFIG_EXTRA_CFLAGS=\"-I${CURR_DIR}/build/i486-linux-musl-cross/include\"|" .config
-    sed -i "s|^CONFIG_EXTRA_LDFLAGS=.*|CONFIG_EXTRA_LDFLAGS=\"-L${CURR_DIR}/build/i486-linux-musl-cross/lib\"|" .config
+    sed -i "s|^CONFIG_EXTRA_CFLAGS=.*|CONFIG_EXTRA_CFLAGS=\"-I${PREFIX}/include\"|" .config
+    sed -i "s|^CONFIG_EXTRA_LDFLAGS=.*|CONFIG_EXTRA_LDFLAGS=\"-L${PREFIX}/lib\"|" .config
     make ARCH=x86 -j$(nproc) && make ARCH=x86 install
 
     echo -e "${GREEN}Move the result into a file system we will build...${RESET}"
-    if [ -d "${CURR_DIR}/build/root" ]; then
-        sudo rm -r $CURR_DIR/build/root
+    if [ -d "${DESTDIR}" ]; then
+        sudo rm -r "${DESTDIR}"
     fi
-    mv _install $CURR_DIR/build/root
+    mv _install "${DESTDIR}"
 }
+
+
+
+######################################################
+## Packaged software building                       ##
+######################################################
 
 # Download and compile nano
 get_nano()
@@ -329,7 +541,7 @@ get_nano()
     cd "$CURR_DIR/build"
 
     # Skip if already built
-    if [ -f "${CURR_DIR}/build/root/usr/bin/nano" ]; then
+    if [ -f "${DESTDIR}/usr/bin/nano" ]; then
         echo -e "${LIGHT_RED}nano already built, skipping...${RESET}"
         return
     fi
@@ -362,14 +574,14 @@ get_nano()
     export ac_cv_lib_tinfo_tigetstr='no'
     export LIBS="-lncursesw"
 
-    ./configure --cache-file=/dev/null --host=${HOST} --prefix=/usr --enable-utf8 --enable-color --disable-nls --disable-speller --disable-browser --disable-libmagic --disable-justify --disable-wrapping --disable-mouse CC="${CC}" CFLAGS="-Os -march=i486 -mno-fancy-math-387 -I${CURR_DIR}/build/i486-linux-musl-cross/include -I${CURR_DIR}/build/i486-linux-musl-cross/include/ncursesw" LDFLAGS="-static -L${CURR_DIR}/build/i486-linux-musl-cross/lib"
+    ./configure --cache-file=/dev/null --host=${HOST} --prefix=/usr --enable-utf8 --enable-color --disable-nls --disable-speller --disable-browser --disable-libmagic --disable-justify --disable-wrapping --disable-mouse CC="${CC}" CFLAGS="-Os -march=i486 -mno-fancy-math-387 -I${PREFIX}/include -I${PREFIX}/include/ncursesw" LDFLAGS="-static -L${PREFIX}/lib"
 
     # In case "cannot find -ltinfo" error 
     grep -rl "\-ltinfo" . | xargs -r sed -i 's/-ltinfo//g' 2>/dev/null || true
     grep -rl "TINFO_LIBS" . | xargs -r sed -i 's/TINFO_LIBS.*/TINFO_LIBS = /' 2>/dev/null || true
 
     make TINFO_LIBS="" -j$(nproc)
-    make DESTDIR="${CURR_DIR}/build/root" install
+    make DESTDIR="${DESTDIR}" install
 }
 
 # Download and compile tnftp
@@ -378,7 +590,7 @@ get_tnftp()
     cd "$CURR_DIR/build"
 
     # Skip if already built
-    if [ -f "${CURR_DIR}/build/root/usr/bin/ftp" ]; then
+    if [ -f "${DESTDIR}/usr/bin/ftp" ]; then
         echo -e "${LIGHT_RED}tnftp already built, skipping...${RESET}"
         return
     fi
@@ -408,8 +620,8 @@ get_tnftp()
     chmod +x "${CC_STATIC}"
     ./configure --host=${HOST} --prefix=/usr --disable-editcomplete --disable-shared --enable-static CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}" CFLAGS="-Os -march=i486" LDFLAGS=""
     make -j$(nproc)
-    make DESTDIR="${CURR_DIR}/build/root" install
-    ln -sf tnftp "${CURR_DIR}/build/root/usr/bin/ftp"
+    make DESTDIR="${DESTDIR}" install
+    ln -sf tnftp "${DESTDIR}/usr/bin/ftp"
 }
 
 # Download and compile Dropbear for its SCP and SSH clients
@@ -418,7 +630,7 @@ get_dropbear()
     cd "$CURR_DIR/build"
 
     # Skip if already built
-    if [ -f "${CURR_DIR}/build/root/usr/bin/ssh" ]; then
+    if [ -f "${DESTDIR}/usr/bin/ssh" ]; then
         echo -e "${LIGHT_RED}Dropbear already built, skipping...${RESET}"
         return
     fi
@@ -440,30 +652,50 @@ get_dropbear()
     unset LIBS
     ./configure --host=${HOST} --prefix=/usr --disable-zlib --disable-loginfunc --disable-syslog --disable-lastlog --disable-utmp --disable-utmpx --disable-wtmp --disable-wtmpx CC="${CC}" AR="${AR}" RANLIB="${RANLIB}" CFLAGS="-Os -march=i486 -static" LDFLAGS="-static"
     make PROGRAMS="dbclient scp" -j$(nproc)
-    sudo make DESTDIR="${CURR_DIR}/build/root" install PROGRAMS="dbclient scp"
-    sudo mv "${CURR_DIR}/build/root/usr/bin/dbclient" "${CURR_DIR}/build/root/usr/bin/ssh"
-    sudo "${STRIP}" "${CURR_DIR}/build/root/usr/bin/ssh"
-    sudo "${STRIP}" "${CURR_DIR}/build/root/usr/bin/scp"
-}
+    sudo make DESTDIR="${DESTDIR}" install PROGRAMS="dbclient scp"
+    sudo mv "${DESTDIR}/usr/bin/dbclient" "${DESTDIR}/usr/bin/ssh"
+    sudo "${STRIP}" "${DESTDIR}/usr/bin/ssh"
+    sudo "${STRIP}" "${DESTDIR}/usr/bin/scp"
 }
 
-# Download and build tic
-build_tic()
+# Download and compile Git
+get_git()
 {
     cd "$CURR_DIR/build"
 
-    # Check if program already built, skip if so
-    if [ ! -f "${CURR_DIR}/build/root/usr/bin/tic" ]; then
-        echo -e "${GREEN}Building tic...${RESET}"
-        cd $CURR_DIR/build/ncurses/
-        ./configure --host=${HOST} --prefix=/usr --with-normal --without-shared --without-debug --without-cxx --enable-widec CC="${CC}" CFLAGS="-Os -static"
-        make -C progs tic -j$(nproc)
-        sudo install -D progs/tic "$CURR_DIR/build/root/usr/bin/tic"
-        sudo "${STRIP}" "$CURR_DIR/build/root/usr/bin/tic"
-    else
-        echo -e "${LIGHT_RED}tic already compiled, skipping...${RESET}"
+    # Skip if already built
+    if [ -f "${DESTDIR}/usr/bin/git" ]; then
+        echo -e "${LIGHT_RED}Git already built, skipping...${RESET}"
+        return
     fi
+
+    # Download source
+    if [ -d git ]; then
+        echo -e "${YELLOW}Git source already present, resetting...${RESET}"
+        cd git
+        git reset --hard
+        git checkout "v${GIT_VER}" || true
+    else
+        echo -e "${GREEN}Downloading Git...${RESET}"
+        git clone --branch "v${GIT_VER}" https://github.com/git/git.git
+        cd git
+    fi
+
+    # Compile and install
+    echo -e "${GREEN}Compiling Git...${RESET}"
+    make configure
+    ./configure --host=${HOST} --prefix=/usr CC="${CC}" AR="${AR}" RANLIB="${RANLIB}" CFLAGS="-Os -march=i486 -static -I${PREFIX}/include" LDFLAGS="-static -L${PREFIX}/lib"
+    sudo cp $CURR_DIR/configs/git.config.mak config.mak
+    make -j$(nproc)
+    sudo make DESTDIR="${DESTDIR}" install
+    sudo "${STRIP}" "${DESTDIR}/usr/bin/git" 2>/dev/null || true
 }
+
+
+
+######################################################
+## File system & disk drive image building          ##
+######################################################
 
 # Copies a sysfile to a destination and makes sure any @NAME@ @VER@, @ID@
 # or @URL@ placeholders are replaced
@@ -493,7 +725,7 @@ copy_sysfile()
 build_file_system()
 {
     echo -e "${GREEN}Build the file system...${RESET}"
-    cd $CURR_DIR/build/root
+    cd "${DESTDIR}"
 
     echo -e "${GREEN}Make needed directories...${RESET}"
     sudo mkdir -p {dev,proc,etc/init.d,sys,tmp,home,usr/share/udhcpc,usr/libexec}
@@ -506,20 +738,20 @@ build_file_system()
     chmod +x $CURR_DIR/utils/shorkhelp
 
     echo -e "${GREEN}Copy pre-defined files...${RESET}"
-    copy_sysfile $CURR_DIR/sysfiles/welcome welcome
-    copy_sysfile $CURR_DIR/sysfiles/hostname etc/hostname
-    copy_sysfile $CURR_DIR/sysfiles/issue etc/issue
-    copy_sysfile $CURR_DIR/sysfiles/os-release etc/os-release
-    copy_sysfile $CURR_DIR/sysfiles/rc etc/init.d/rc
-    copy_sysfile $CURR_DIR/sysfiles/inittab etc/inittab
-    copy_sysfile $CURR_DIR/sysfiles/profile etc/profile
-    copy_sysfile $CURR_DIR/sysfiles/resolv.conf etc/resolv.conf
-    copy_sysfile $CURR_DIR/sysfiles/services etc/services
-    copy_sysfile $CURR_DIR/sysfiles/default.script usr/share/udhcpc/default.script
-    copy_sysfile $CURR_DIR/sysfiles/passwd etc/passwd
-    copy_sysfile $CURR_DIR/utils/shorkfetch usr/bin/shorkfetch
-    copy_sysfile $CURR_DIR/utils/shorkcol usr/libexec/shorkcol
-    copy_sysfile $CURR_DIR/utils/shorkhelp usr/bin/shorkhelp
+    copy_sysfile $CURR_DIR/sysfiles/welcome $CURR_DIR/build/root/welcome
+    copy_sysfile $CURR_DIR/sysfiles/hostname $CURR_DIR/build/root/etc/hostname
+    copy_sysfile $CURR_DIR/sysfiles/issue $CURR_DIR/build/root/etc/issue
+    copy_sysfile $CURR_DIR/sysfiles/os-release $CURR_DIR/build/root/etc/os-release
+    copy_sysfile $CURR_DIR/sysfiles/rc $CURR_DIR/build/root/etc/init.d/rc
+    copy_sysfile $CURR_DIR/sysfiles/inittab $CURR_DIR/build/root/etc/inittab
+    copy_sysfile $CURR_DIR/sysfiles/profile $CURR_DIR/build/root/etc/profile
+    copy_sysfile $CURR_DIR/sysfiles/resolv.conf $CURR_DIR/build/root/etc/resolv.conf
+    copy_sysfile $CURR_DIR/sysfiles/services $CURR_DIR/build/root/etc/services
+    copy_sysfile $CURR_DIR/sysfiles/default.script $CURR_DIR/build/root/usr/share/udhcpc/default.script
+    copy_sysfile $CURR_DIR/sysfiles/passwd $CURR_DIR/build/root/etc/passwd
+    copy_sysfile $CURR_DIR/utils/shorkfetch $CURR_DIR/build/root/usr/bin/shorkfetch
+    copy_sysfile $CURR_DIR/utils/shorkcol $CURR_DIR/build/root/usr/libexec/shorkcol
+    copy_sysfile $CURR_DIR/utils/shorkhelp $CURR_DIR/build/root/usr/bin/shorkhelp
 
     echo -e "${GREEN}Copy and compile terminfo database...${RESET}"
     sudo mkdir -p usr/share/terminfo/src/
@@ -530,6 +762,27 @@ build_file_system()
     sudo mkdir -p usr/share/locale/en_GB.UTF-8
     echo "LC_ALL=en_GB.UTF-8" | sudo tee etc/locale.conf > /dev/null
 
+    if ! $SKIP_PCIIDS; then
+        # Include PCI IDs for shorkfetch's GPU identification
+        # **Work offloaded to Python**
+        echo -e "${GREEN}Generating pci.ids database...${RESET}"
+        cd $CURR_DIR/
+        sudo python3 -c "from helpers import *; build_pci_ids()"
+    fi
+
+    if $NEED_OPENSSL; then
+        # Use host's CA certifications to get OpenSSL working
+        echo -e "${GREEN}Installing CA certificates for OpenSSL...${RESET}"
+        sudo mkdir -p $CURR_DIR/build/root/etc/ssl
+        copy_sysfile /etc/ssl/certs/ca-certificates.crt $CURR_DIR/build/root/etc/ssl/cert.pem
+    fi
+
+    if ! $SKIP_GIT; then
+        echo -e "${GREEN}Copying predefined gitconfig...${RESET}"
+        sudo mkdir -p $CURR_DIR/build/root/usr/etc
+        copy_sysfile $CURR_DIR/sysfiles/gitconfig $CURR_DIR/build/root/usr/etc/gitconfig
+    fi
+
     # Amend shorkhelp depending on what skip parameters were used
     if $SKIP_DROPBEAR; then
         sudo sed -i \
@@ -539,35 +792,34 @@ build_file_system()
             -e 's/\bssh, //g' \
             -e 's/, ssh\b//g' \
             -e 's/\bssh\b//g' \
-            "usr/bin/shorkhelp"
+            "${CURR_DIR}/build/root/usr/bin/shorkhelp"
     fi
     if $SKIP_NANO; then
         sudo sed -i \
             -e 's/\bnano, //g' \
             -e 's/, nano\b//g' \
             -e 's/\bnano\b//g' \
-            "usr/bin/shorkhelp"
+            "${CURR_DIR}/build/root/usr/bin/shorkhelp"
     fi
     if $SKIP_TNFTP; then
         sudo sed -i \
             -e 's/\bftp, //g' \
             -e 's/, ftp\b//g' \
             -e 's/\bftp\b//g' \
-            "usr/bin/shorkhelp"
+            "${CURR_DIR}/build/root/usr/bin/shorkhelp"
     fi
-    if $SKIP_NANO && $SKIP_DROPBEAR && $SKIP_TNFTP; then
-        sudo sed -i '/^Included software[[:space:]]*$/,+2d' "usr/bin/shorkhelp"
+    if $SKIP_GIT; then
+        sudo sed -i \
+            -e 's/\bgit, //g' \
+            -e 's/, git\b//g' \
+            -e 's/\bgit\b//g' \
+            "${CURR_DIR}/build/root/usr/bin/shorkhelp"
+    fi
+    if $SKIP_NANO && $SKIP_DROPBEAR && $SKIP_TNFTP && $SKIP_GIT; then
+        sudo sed -i '/^Included software[[:space:]]*$/,+2d' "${CURR_DIR}/build/root/usr/bin/shorkhelp"
     fi
 
-    if ! $SKIP_PCIIDS; then
-        # Include PCI IDs for shorkfetch's GPU identification
-        # **Work offloaded to Python**
-        echo -e "${GREEN}Generating pci.ids database...${RESET}"
-        cd $CURR_DIR/
-        sudo python3 -c "from helpers import *; build_pci_ids()"
-    fi
-
-    cd $CURR_DIR/build/root
+    cd "${DESTDIR}"
     sudo chown -R root:root .
 }
 
@@ -616,11 +868,8 @@ build_disk_img()
     truncate -s "$aligned_bytes" ../images/shorkmini.img
 
     # Partition the image
-    sudo sfdisk ../images/shorkmini.img <<EOF
-label: dos
-unit: sectors
-1 : start=63, size=$((aligned_sectors - 63)), type=83, bootable
-EOF
+    PART_SIZE=$((aligned_sectors - 63))
+    sed "s/@PART_SIZE@/${PART_SIZE}/g" "$CURR_DIR/sysfiles/partitions" | sudo sfdisk ../images/shorkmini.img
 
     # Ensure loop devices exist (Docker does not always create them)
     for i in $(seq 0 255); do
@@ -688,37 +937,6 @@ convert_disk_img()
     qemu-img convert -f raw -O vmdk shorkmini.img shorkmini.vmdk
 }
 
-# Fixes directory and disk drive image file permissions after root build
-fix_perms()
-{
-    if [ "$(id -u)" -eq 0 ]; then
-        echo -e "${GREEN}Fixing directory and disk drive image file permissions so they can be accessed by a non-root user/program after a root build...${RESET}"
-
-        HOST_GID=${HOST_GID:-1000}
-        HOST_UID=${HOST_UID:-1000}
-
-        if [ -d . ]; then
-            sudo chown -R "$HOST_UID:$HOST_GID" .
-            sudo chmod 755 .
-        fi
-
-        for f in shorkmini.img shorkmini.vmdk; do
-            [ -f "$f" ] || continue
-            sudo chown "$HOST_UID:$HOST_GID" "$f"
-            sudo chmod 644 "$f"
-        done
-    fi
-}
-
-# Cleans up any stale mounts and block-device mappings left by image builds
-clean_stale_mounts()
-{
-    echo -e "${GREEN}Cleaning up any stale mounts and block-device mappings left by image builds ...${RESET}"
-    sudo umount -lf /mnt/shorkmini 2>/dev/null
-    sudo losetup -a | grep shorkmini | cut -d: -f1 | xargs -r sudo losetup -d
-    sudo dmsetup remove_all 2>/dev/null
-}
-
 
 
 # Intro message
@@ -734,14 +952,29 @@ if ! $MINIMAL; then
     fi
     mkdir -p build
     get_prerequisites
+
     get_i486_musl_cc
     get_ncurses
+
     if ! $SKIP_KRN; then
         get_kernel
     fi
     if ! $SKIP_BB; then
         get_busybox
     fi
+
+    get_tic
+
+    if $NEED_ZLIB; then
+        get_zlib
+    fi
+    if $NEED_OPENSSL; then
+        get_openssl
+    fi
+    if $NEED_CURL; then
+        get_curl
+    fi
+
     if ! $SKIP_NANO; then
         get_nano
     fi
@@ -751,7 +984,9 @@ if ! $MINIMAL; then
     if ! $SKIP_DROPBEAR; then
         get_dropbear
     fi
-    build_tic
+    if ! $SKIP_GIT; then
+        get_git
+    fi
 else
     echo -e "${LIGHT_RED}Minimal mode specified, skipping to building the file system...${RESET}"
 fi

@@ -1,6 +1,8 @@
 # SHORK Mini
 
-A minimal Linux distribution originally based on [FLOPPINUX's](https://github.com/w84death/floppinux) build instructions, but developed into something more automated and tailored for my usage. The aim is to produce an operating system that is very lean but functional for PCs with 486SX-class or better processors, specifically with my '90s IBM ThinkPads in mind. Whilst FLOPPINUX and [Action Retro's video on it](https://www.youtube.com/watch?v=SiHZbnFrHOY) provided a great basis to start with and inspired me, SHORK Mini does not offer a floppy diskette image. A raw disk drive image is built instead, as my scope includes more utilities and functionality. This repo stores my ideal configurations and largely automates the build and compilation process.
+A minimal Linux distribution originally based on [FLOPPINUX's](https://github.com/w84death/floppinux) build instructions, but developed into something more automated and tailored for my usage. The aim is to produce an operating system that is very lean but functional for PCs with 486SX-class or better processors, specifically with my '90s IBM ThinkPads in mind. Whilst FLOPPINUX and [Action Retro's video on it](https://www.youtube.com/watch?v=SiHZbnFrHOY) provided a great basis to start with and inspired me, SHORK Mini does not offer a floppy diskette image. A raw disk drive image is built instead, as my scope includes more utilities and functionality.
+
+A complete SHORK Mini build aims to take up no more than ~50MB inside the disk. For that size, a complete SHORK Mini build offers many typical Unix/Linux commands, an FTP, SCP and SSH client, a Git source control client, the nano and vi editors, basic ISA, PCI and PCMCIA NIC support, and a cute ASCII shark welcome screen! With 'aggressive' use of the build script skip parameters to skip building bundled utilities, this can be brought down to under ~5MB whilst still including the typical commands as before, the vi editor, and basic networking support.
 
 <img alt="A screenshot of SHORK Mini running on an 86Box virtual machine after a cold boot" src="screenshots/86box_cold_boot.webp" width="512px">
 
@@ -39,6 +41,7 @@ It is recommended to move or copy the images out of this directory before extens
 ### Included software
 
 * ftp (FTP client, tnftp)
+* git (Git source control client)
 * nano (text editor)
 * scp (SCP client, Dropbear)
 * ssh (SSH client, Dropbear)
@@ -80,6 +83,9 @@ It is recommended to move or copy the images out of this directory before extens
         * This does nothing if the "minimal" parameter is also used.
     * **Skip Dropbear** (`-sdb`, `--skip-dropbear`): can be used to skip downloading and compiling Dropbear.
         * This will save ~364KB and 3 files on the root file system. SHORK Mini will lose SCP and SSH capabilities.
+        * This does nothing if the "minimal", "skip kernel" or "skip BusyBox" parameters are also used.
+    * **Skip Git** (`-sg`, `--skip-git`): can be used to skip downloading and compiling Git and its prerequisites (zlib, OpenSSL and curl).
+        * This will save ~43MB and 269 files on the root file system. SHORK Mini will lose its git client.
         * This does nothing if the "minimal", "skip kernel" or "skip BusyBox" parameters are also used.
     * **Skip nano** (`-snn`, `--skip-nano`): can be used to skip downloading and compiling nano.
         * This will save ~1MB and 60 files on the root file system. `vi` is included with BusyBox and can be used if you wish to remove nano.
