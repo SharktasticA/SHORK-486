@@ -1,0 +1,41 @@
+#!/bin/sh
+
+######################################################
+## A small utility that changes SHORK Mini's        ##
+## current and default keymap                       ##
+######################################################
+## Kali (sharktastica.co.uk)                        ##
+######################################################
+
+
+
+set -e
+
+KEYMAPS="/usr/share/keymaps"
+KEYMAP_CONF="/etc/keymap"
+
+AVAILABLE="$(ls "$KEYMAPS"/*.kmap.bin 2>/dev/null | sed 's#.*/##; s#\.kmap.bin$##' | tr '\n' '|')"
+AVAILABLE="${AVAILABLE%|}"
+
+if [ $# -ne 1 ]; then
+    printf "Persistently changes the keymap.\n\n"
+    echo "Usage: shorkmap {${AVAILABLE}}"
+    exit 1
+fi
+
+LAYOUT="$1"
+MAPFILE="$KEYMAPS/$LAYOUT.kmap.bin"
+
+if [ ! -f "$MAPFILE" ]; then
+    echo "Unknown keymap: $LAYOUT"
+    echo "Available keymaps: ${AVAILABLE}"
+    exit 1
+fi
+
+if ! loadkmap < "$MAPFILE"; then
+    echo "ERROR: failed to load keymap: $LAYOUT"
+    exit 1
+fi
+
+echo "$LAYOUT" > "$KEYMAP_CONF"
+sync

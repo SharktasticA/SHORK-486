@@ -750,6 +750,7 @@ build_file_system()
     chmod +x $CURR_DIR/utils/shorkfetch
     chmod +x $CURR_DIR/utils/shorkcol
     chmod +x $CURR_DIR/utils/shorkhelp
+    chmod +x $CURR_DIR/utils/shorkmap
 
     echo -e "${GREEN}Copy pre-defined files...${RESET}"
     copy_sysfile $CURR_DIR/sysfiles/welcome $CURR_DIR/build/root/welcome
@@ -777,6 +778,11 @@ build_file_system()
         sudo mkdir -p $CURR_DIR/build/root/usr/share/keymaps/
         sudo cp $CURR_DIR/sysfiles/keymaps/*.kmap.bin "$CURR_DIR/build/root/usr/share/keymaps/"
         sudo chmod 644 "$CURR_DIR/build/root/usr/share/keymaps/"*.kmap.bin
+
+        echo -e "${GREEN}Installing shorkmap utility...${RESET}"
+        copy_sysfile $CURR_DIR/utils/shorkmap $CURR_DIR/build/root/usr/bin/shorkmap
+    else
+        sudo sed -i -e 's/\bshorkmap, //g' -e 's/, shorkmap\b//g' -e 's/\bshorkmap\b//g' "${CURR_DIR}/build/root/usr/bin/shorkhelp"
     fi
 
     if ! $SKIP_PCIIDS; then

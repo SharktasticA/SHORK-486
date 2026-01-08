@@ -23,6 +23,14 @@ mount -t sysfs sysfs /sys
 
 [ -r /etc/hostname ] && hostname "$(cat /etc/hostname)"
 
+# Load persistent keymap (if present)
+if [ -f /etc/keymap ]; then
+    KM="$(cat /etc/keymap)"
+    if [ -f "/usr/share/keymaps/$KM.kmap.bin" ]; then
+        loadkmap < "/usr/share/keymaps/$KM.kmap.bin"
+    fi
+fi
+
 export ENV=/etc/profile
 
 # Make terminal font green & show current dir

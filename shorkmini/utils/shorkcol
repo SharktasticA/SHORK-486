@@ -12,6 +12,7 @@
 set -e
 
 if [ $# -ne 1 ]; then
+    printf "Persistently changes the terminal's foreground (font) colour.\n\n"
     echo "Usage: shorkcol {blue|cyan|green|magenta|red|white|yellow}"
     exit 1
 fi
@@ -26,6 +27,7 @@ case "$1" in
     yellow)   COL="0;1;33" ;;
     *)
         echo "Invalid colour: $1"
+        echo "Available colours: blue|cyan|green|magenta|red|white|yellow"
         exit 1
         ;;
 esac

@@ -30,7 +30,7 @@ It is recommended to move or copy the images out of this directory before extens
 
 ### Included BusyBox commands
 
-* **Core & text:** awk, basename, cat, chmod, chown, clear, cp, cut, date, echo, find, grep, less, ls, man, mkdir, mv, printf, pwd, readlink, rm, rmdir, sed, tee, test, touch, uname, vi, which
+* **Core & text:** awk, basename, cat, chmod, chown, clear, cp, cut, date, echo, find, grep, less, ls, man, mkdir, mv, printf, pwd, readlink, rm, rmdir, sed, tee, test, touch, tr, uname, vi, which
 
 * **Networking:** ftpget, ftpput, hostname, ifconfig, ping, route, udhcpc, wget
 
@@ -48,9 +48,10 @@ It is recommended to move or copy the images out of this directory before extens
 
 ### Included custom utilities 
 
-* shorkcol (changes terminal foreground colour)
+* shorkcol (persistently changes the terminal's foreground colour)
 * shorkfetch (displays basic system and environment info)
 * shorkhelp (shows a command, software & utilities list)
+* shorkmap (persistently changes the keymap)
 
 ## Overall process
 
@@ -88,7 +89,7 @@ It is recommended to move or copy the images out of this directory before extens
         * This will save ~20MB and 192 files on the root file system. SHORK Mini will lose its git client.
         * This does nothing if the "minimal", "skip kernel" or "skip BusyBox" parameters are also used.
     * **Skip keymaps**  (`-skm`, `--skip-keymaps`): can be used to skip installing keymaps.
-        * This will save ~64KB and 25 files on the root file system. SHORK Mini will stop supporting keyboard layouts other than ANSI U.S. English.
+        * This will save ~65KB and 26 files on the root file system. SHORK Mini will stop supporting keyboard layouts other than ANSI U.S. English. `shorkmap` will not be included.
         * This does nothing if the "minimal", "skip kernel" or "skip BusyBox" parameters are also used.
     * **Skip nano** (`-snn`, `--skip-nano`): can be used to skip downloading and compiling nano.
         * This will save ~1MB and 60 files on the root file system. `vi` is included with BusyBox and can be used if you wish to remove nano.
