@@ -689,6 +689,16 @@ get_git()
     make -j$(nproc)
     sudo make DESTDIR="${DESTDIR}" install
     sudo "${STRIP}" "${DESTDIR}/usr/bin/git" 2>/dev/null || true
+
+    # Trim fat
+    cd "$DESTDIR/usr/libexec/git-core"
+    sudo rm -f git-imap-send git-http-fetch git-http-backend git-daemon git-p4 git-svn git-send-email
+
+    cd "$DESTDIR/usr/bin"
+    sudo rm -f git-shell git-cvsserver scalar
+    sudo rm -rf "$DESTDIR/usr/share/gitweb" "$DESTDIR/usr/share/perl5" "$DESTDIR/usr/share/git-core/templates" "$DESTDIR/usr/share/man" "$DESTDIR/usr/share/doc" "$DESTDIR/usr/share/bash-completion"
+    
+    sudo mkdir -p "$DESTDIR/usr/share/git-core/templates"
 }
 
 
@@ -785,38 +795,20 @@ build_file_system()
 
     # Amend shorkhelp depending on what skip parameters were used
     if $SKIP_DROPBEAR; then
-        sudo sed -i \
-            -e 's/\bscp, //g' \
-            -e 's/, scp\b//g' \
-            -e 's/\bscp\b//g' \
-            -e 's/\bssh, //g' \
-            -e 's/, ssh\b//g' \
-            -e 's/\bssh\b//g' \
-            "${CURR_DIR}/build/root/usr/bin/shorkhelp"
+        sudo sed -i -e 's/\bscp, //g' -e 's/, scp\b//g' -e 's/\bscp\b//g' -e 's/\bssh, //g' -e 's/, ssh\b//g' -e 's/\bssh\b//g' "${CURR_DIR}/build/root/usr/bin/shorkhelp"
     fi
     if $SKIP_NANO; then
-        sudo sed -i \
-            -e 's/\bnano, //g' \
-            -e 's/, nano\b//g' \
-            -e 's/\bnano\b//g' \
-            "${CURR_DIR}/build/root/usr/bin/shorkhelp"
+        sudo sed -i -e 's/\bnano, //g' -e 's/, nano\b//g' -e 's/\bnano\b//g' "${CURR_DIR}/build/root/usr/bin/shorkhelp"
     fi
     if $SKIP_TNFTP; then
-        sudo sed -i \
-            -e 's/\bftp, //g' \
-            -e 's/, ftp\b//g' \
-            -e 's/\bftp\b//g' \
-            "${CURR_DIR}/build/root/usr/bin/shorkhelp"
+        sudo sed -i -e 's/\bftp, //g' -e 's/, ftp\b//g' -e 's/\bftp\b//g' "${CURR_DIR}/build/root/usr/bin/shorkhelp"
     fi
     if $SKIP_GIT; then
-        sudo sed -i \
-            -e 's/\bgit, //g' \
-            -e 's/, git\b//g' \
-            -e 's/\bgit\b//g' \
-            "${CURR_DIR}/build/root/usr/bin/shorkhelp"
+        sudo sed -i -e 's/\bgit, //g' -e 's/, git\b//g' -e 's/\bgit\b//g' "${CURR_DIR}/build/root/usr/bin/shorkhelp"
+        sudo sed -i '/^Supported Git commands[[:space:]]*$/,+4d' "${CURR_DIR}/build/root/usr/bin/shorkhelp"
     fi
     if $SKIP_NANO && $SKIP_DROPBEAR && $SKIP_TNFTP && $SKIP_GIT; then
-        sudo sed -i '/^Included software[[:space:]]*$/,+2d' "${CURR_DIR}/build/root/usr/bin/shorkhelp"
+        sudo sed -i '/^Bundled software[[:space:]]*$/,+2d' "${CURR_DIR}/build/root/usr/bin/shorkhelp"
     fi
 
     cd "${DESTDIR}"

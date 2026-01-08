@@ -9,18 +9,25 @@
 
 
 
-echo "BusyBox commands
-----------------
+echo "Basic commands & utilities
+--------------------------
 awk, basename, beep, cat, chmod, chown, chroot, clear, cp, crontab, cut, date,
 echo, find, free, ftpget, ftpput, grep, hostname, ifconfig, kill, less, ls, man,
 mkdir, mknod, mount, mv, nohup, ping, pkill, printf, pwd, readlink, rm, rmdir,
 route, sed, showkey, sleep, sync, tee, test, top, touch, udhcpc, umount, uname,
 vi, wget, which
 
-Included software
------------------
-ftp, git, nano, scp, ssh
-
 SHORK Mini utilities
 --------------------
-shorkcol, shorkfetch, shorkhelp"
+shorkcol, shorkfetch, shorkhelp
+
+Bundled software
+----------------
+ftp, git, nano, scp, ssh
+
+Supported Git commands
+----------------------
+add, blame, branch, checkout, cherry-pick, clean, clone, commit, config, diff,
+fetch, init, log, merge, mv, pull, push, rebase, reflog, remote, reset,
+restore, rm, show, stash, status, switch, tag
+"

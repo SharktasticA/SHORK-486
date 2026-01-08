@@ -9,6 +9,6 @@
 
 
 ::sysinit:/etc/init.d/rc
-tty1::respawn:/bin/sh -l
+tty1::respawn:/bin/sh -l -c 'cd "$HOME" || cd /home; exec /bin/sh -l'
 ::ctrlaltdel:/sbin/reboot
 ::shutdown:/bin/umount -a -r
