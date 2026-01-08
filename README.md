@@ -36,7 +36,7 @@ It is recommended to move or copy the images out of this directory before extens
 
 * **System & processes:** chroot, crontab, free, kill, mknod, mount, nohup, pkill, sleep, sync, top, umount
 
-* **Other:** beep, showkey
+* **Other:** beep, loadfont, loadkmap, showkey
 
 ### Included software
 
@@ -86,6 +86,9 @@ It is recommended to move or copy the images out of this directory before extens
         * This does nothing if the "minimal", "skip kernel" or "skip BusyBox" parameters are also used.
     * **Skip Git** (`-sg`, `--skip-git`): can be used to skip downloading and compiling Git and its prerequisites (zlib, OpenSSL and curl).
         * This will save ~20MB and 192 files on the root file system. SHORK Mini will lose its git client.
+        * This does nothing if the "minimal", "skip kernel" or "skip BusyBox" parameters are also used.
+    * **Skip keymaps**  (`-skm`, `--skip-keymaps`): can be used to skip installing keymaps.
+        * This will save ~64KB and 25 files on the root file system. SHORK Mini will stop supporting keyboard layouts other than ANSI U.S. English.
         * This does nothing if the "minimal", "skip kernel" or "skip BusyBox" parameters are also used.
     * **Skip nano** (`-snn`, `--skip-nano`): can be used to skip downloading and compiling nano.
         * This will save ~1MB and 60 files on the root file system. `vi` is included with BusyBox and can be used if you wish to remove nano.

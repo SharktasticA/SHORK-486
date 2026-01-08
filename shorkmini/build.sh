@@ -46,6 +46,7 @@ SKIP_TNFTP=false
 SKIP_DROPBEAR=false
 SKIP_GIT=false
 SKIP_PCIIDS=false
+SKIP_KEYMAPS=false
 ALWAYS_BUILD=false
 DONT_DEL_ROOT=false
 IS_ARCH=false
@@ -80,6 +81,9 @@ for arg in "$@"; do
             ;;
         -spi|--skip-pciids)
             SKIP_PCIIDS=true
+            ;;
+        -skm|--skip-keymaps)
+            SKIP_KEYMAPS=true
             ;;
         -ab|--always-build)
             ALWAYS_BUILD=true
@@ -764,13 +768,16 @@ build_file_system()
     copy_sysfile $CURR_DIR/utils/shorkhelp $CURR_DIR/build/root/usr/bin/shorkhelp
 
     echo -e "${GREEN}Copy and compile terminfo database...${RESET}"
-    sudo mkdir -p usr/share/terminfo/src/
-    sudo cp $CURR_DIR/sysfiles/terminfo.src usr/share/terminfo/src/
-    sudo tic -x -1 -o usr/share/terminfo usr/share/terminfo/src/terminfo.src
+    sudo mkdir -p $CURR_DIR/build/root/usr/share/terminfo/src/
+    sudo cp $CURR_DIR/sysfiles/terminfo.src $CURR_DIR/build/root/usr/share/terminfo/src/
+    sudo tic -x -1 -o usr/share/terminfo $CURR_DIR/build/root/usr/share/terminfo/src/terminfo.src
 
-    echo -e "${GREEN}Set up U.K. English locale...${RESET}"
-    sudo mkdir -p usr/share/locale/en_GB.UTF-8
-    echo "LC_ALL=en_GB.UTF-8" | sudo tee etc/locale.conf > /dev/null
+    if ! $SKIP_KEYMAPS; then
+        echo -e "${GREEN}Installing keymaps...${RESET}"
+        sudo mkdir -p $CURR_DIR/build/root/usr/share/keymaps/
+        sudo cp $CURR_DIR/sysfiles/keymaps/*.kmap.bin "$CURR_DIR/build/root/usr/share/keymaps/"
+        sudo chmod 644 "$CURR_DIR/build/root/usr/share/keymaps/"*.kmap.bin
+    fi
 
     if ! $SKIP_PCIIDS; then
         # Include PCI IDs for shorkfetch's GPU identification
@@ -788,9 +795,15 @@ build_file_system()
     fi
 
     if ! $SKIP_GIT; then
-        echo -e "${GREEN}Copying predefined gitconfig...${RESET}"
+        echo -e "${GREEN}Copying predefined Git configuration...${RESET}"
         sudo mkdir -p $CURR_DIR/build/root/usr/etc
         copy_sysfile $CURR_DIR/sysfiles/gitconfig $CURR_DIR/build/root/usr/etc/gitconfig
+    fi
+
+    if ! $SKIP_NANO; then
+        echo -e "${GREEN}Copying predefined nano settings...${RESET}"
+        sudo mkdir -p $CURR_DIR/build/root/usr/etc
+        copy_sysfile $CURR_DIR/sysfiles/nanorc $CURR_DIR/build/root/usr/etc/nanorc
     fi
 
     # Amend shorkhelp depending on what skip parameters were used

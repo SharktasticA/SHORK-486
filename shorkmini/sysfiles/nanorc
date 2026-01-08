@@ -1,11 +1,11 @@
 ######################################################
-## Pre-defined Git client configuration specifying  ##
-## where SHORK Mini's SSL certificate is            ##
+## Pre-defined nano configuration enabling line     ##
+## numbers and soft wrap features                   ##
 ######################################################
 ## Kali (sharktastica.co.uk)                        ##
 ######################################################
 
 
 
-[http]
-    sslcainfo = /etc/ssl/cert.pem
+set linenumbers
+set softwrap

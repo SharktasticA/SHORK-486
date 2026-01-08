@@ -12,10 +12,10 @@
 echo "Basic commands & utilities
 --------------------------
 awk, basename, beep, cat, chmod, chown, chroot, clear, cp, crontab, cut, date,
-echo, find, free, ftpget, ftpput, grep, hostname, ifconfig, kill, less, ls, man,
-mkdir, mknod, mount, mv, nohup, ping, pkill, printf, pwd, readlink, rm, rmdir,
-route, sed, showkey, sleep, sync, tee, test, top, touch, udhcpc, umount, uname,
-vi, wget, which
+echo, find, free, ftpget, ftpput, grep, hostname, ifconfig, kill, less,
+loadfont, loadkmap, ls, man, mkdir, mknod, mount, mv, nohup, ping, pkill,
+printf, pwd, readlink, rm, rmdir, route, sed, showkey, sleep, sync, tee, test,
+top, touch, udhcpc, umount, uname, vi, wget, which
 
 SHORK Mini utilities
 --------------------
