@@ -5,7 +5,6 @@ services:
       - --always-build
       - --is-debian
       - --target-mib=75
-      - --minimal
     environment:
       - HOST_GID=1000
       - HOST_UID=1000
