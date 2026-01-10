@@ -4,8 +4,9 @@
 ## System init script executed during boot that     ##
 ## mounts core file systems, ensures essential      ##
 ## device nodes exist, sets hostname and            ##
-## environment, configures basic networking, and    ##
-## displays a welcome message                       ##
+## environment, configures basic networking,        ##
+## displays a welcome message, and begins a sync    ##
+## loop to help prevent data loss on hard reboots   ##
 ######################################################
 ## Kali (sharktastica.co.uk)                        ##
 ######################################################
@@ -48,6 +49,28 @@ fi
 modprobe pcspkr 2>/dev/null || true
 
 clear
-[ -f welcome ] && printf "\x1b[37;44m" && cat welcome && printf "\x1b[0m"
+if [ -f welcome ]; then
+    printf "\x1b[37;44m"
+    cat welcome
+    printf "\x1b[0m"
+fi
 
 printf "\n\n"
+
+clear
+if [ -f welcome ]; then
+    printf "\x1b[37;44m"
+    cat welcome
+    printf "\x1b[0m"
+fi
+
+printf "\n\n"
+
+# Periodic sync write cache to help ensure files aren't lost after hard reboot
+# User should IDEALLY use shorkoff before hard turning off the host, though!
+(
+    while true; do
+        sleep 10
+        sync
+    done
+) &

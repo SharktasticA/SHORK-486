@@ -30,11 +30,11 @@ It is recommended to move or copy the images out of this directory before extens
 
 ### Included BusyBox commands
 
-* **Core & text:** awk, basename, cat, chmod, chown, clear, cp, cut, date, echo, find, grep, less, ls, man, mkdir, mv, printf, pwd, readlink, rm, rmdir, sed, tee, test, touch, tr, uname, vi, which
+* **Core & text:** awk, basename, cat, chmod, chown, clear, cp, cut, date, echo, find, grep, head, less, ls, man, mkdir, mv, printf, pwd, readlink, rm, rmdir, sed, tee, test, touch, tr, uname, vi, which
 
 * **Networking:** ftpget, ftpput, hostname, ifconfig, ping, route, udhcpc, wget
 
-* **System & processes:** chroot, crontab, free, kill, mknod, mount, nohup, pkill, sleep, sync, top, umount
+* **System & processes:** chroot, crontab, dmesg, free, halt, kill, mknod, mount, nohup, pkill, sleep, stat, sync, top, umount
 
 * **Other:** beep, loadfont, loadkmap, showkey
 
@@ -46,12 +46,13 @@ It is recommended to move or copy the images out of this directory before extens
 * scp (SCP client, Dropbear)
 * ssh (SSH client, Dropbear)
 
-### Included custom utilities 
+### Custom utilities 
 
-* shorkcol (persistently changes the terminal's foreground colour)
-* shorkfetch (displays basic system and environment info)
-* shorkhelp (shows a command, software & utilities list)
-* shorkmap (persistently changes the keymap)
+* **shorkcol** - Persistently changes the terminal's foreground (text) colour. Takes one argument (a colour name); running it without an argument shows a list of possible colours.
+* **shorkfetch** - Displays basic system and environment information. Similar to fastfetch, neofetch, etc. Takes no arguments.
+* **shorkhelp** - Shows lists of supported commands and bundled utilities. Takes the `--shorkutils` parameter to show this SHORK 486 utilities explanation.
+* **shorkmap** - Persistently changes the system's keymap. Takes one argument (a keymap name); running it without an argument shows a list of possible keymaps.
+* **shorkoff** - Brings the system to a halt and syncs the write cache, allowing the computer to be safely turned off. Similar to `poweroff` or `shutdown -h`. Takes no arguments.
 
 ## Overall process
 

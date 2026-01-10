@@ -8,18 +8,19 @@
 ######################################################
 
 
-
+print_main()
+{
 echo "Basic commands & utilities
 --------------------------
 awk, basename, beep, cat, chmod, chown, chroot, clear, cp, crontab, cut, date,
-echo, find, free, ftpget, ftpput, grep, hostname, ifconfig, kill, less,
-loadfont, loadkmap, ls, man, mkdir, mknod, mount, mv, nohup, ping, pkill,
-printf, pwd, readlink, rm, rmdir, route, sed, showkey, sleep, sync, tee, test,
-top, touch, tr, udhcpc, umount, uname, vi, wget, which
+dmesg, echo, find, free, ftpget, ftpput, grep, head, hostname, ifconfig, kill,
+less, loadfont, loadkmap, ls, man, mkdir, mknod, mount, mv, nohup, ping, pkill,
+printf, pwd, readlink, rm, rmdir, route, sed, showkey, sleep, stat, sync, tee,
+test, top, touch, tr, udhcpc, umount, uname, vi, wget, which
 
-SHORK 486 utilities
---------------------
-shorkcol, shorkfetch, shorkhelp, shorkmap
+@NAME@ utilities (--shorkutils for more information)
+-------------------------------------------------------
+shorkcol, shorkfetch, shorkhelp, shorkmap, shorkoff
 
 Bundled software
 ----------------
@@ -30,4 +31,42 @@ Supported Git commands
 add, blame, branch, checkout, cherry-pick, clean, clone, commit, config, diff,
 fetch, init, log, merge, mv, pull, push, rebase, reflog, remote, reset,
 restore, rm, show, stash, status, switch, tag
+" 
+}
+
+print_shorkutils()
+{
+echo "shorkcol - Persistently changes the terminal's foreground (text) colour. This
+utility takes one argument (a colour name); running it without an argument shows
+a list of possible colours.
+
+shorkfetch - Displays basic system and environment information. Similar to
+fastfetch, neofetch, etc. This utility takes no arguments.
+
+shorkhelp - Shows lists of supported commands and bundled utilities. This
+utility takes the \"--shorkutils\" parameter to show this @NAME@
+utilities explanation.
+
+shorkmap - Persistently changes the system's keymap. This utility takes one
+argument (a keymap name); running it without an argument shows a list of
+possible keymaps.
+
+shorkoff - Brings the system to a halt and syncs the write cache, allowing the
+computer to be safely turned off. Similar to poweroff or shutdown -h. This
+utility takes no arguments.
+
 "
+}
+
+
+
+for arg in "$@"; do
+    case "$arg" in
+        --shorkutils)
+            print_shorkutils
+            return 1
+            ;;
+    esac
+done
+
+print_main

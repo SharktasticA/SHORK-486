@@ -208,9 +208,9 @@ fix_perms()
 clean_stale_mounts()
 {
     echo -e "${GREEN}Cleaning up any stale mounts and block-device mappings left by image builds ...${RESET}"
-    sudo umount -lf /mnt/shork486 2>/dev/null
-    sudo losetup -a | grep shork486 | cut -d: -f1 | xargs -r sudo losetup -d
-    sudo dmsetup remove_all 2>/dev/null
+    sudo umount -lf /mnt/shork486 2>/dev/null || true
+    sudo losetup -a | grep shork486 | cut -d: -f1 | xargs -r sudo losetup -d || true
+    sudo dmsetup remove_all 2>/dev/null || true
 }
 
 
@@ -273,20 +273,6 @@ get_prerequisites()
         # Skip if inside Docker as Dockerfile already installs prerequisites
         echo -e "${LIGHT_RED}Running inside Docker, skipping installing prerequisite packages...${RESET}"
     fi
-
-    # Set MBR binary (can be different depending on distro)
-    for candidate in \
-        /usr/lib/SYSLINUX/mbr.bin \
-        /usr/lib/syslinux/mbr/mbr.bin \
-        /usr/lib/syslinux/bios/mbr.bin \
-        /usr/share/syslinux/mbr.bin \
-        /usr/share/syslinux/mbr.bin
-    do
-        if [ -f "$candidate" ]; then
-            MBR_BIN="$candidate"
-            break
-        fi
-    done
 }
 
 
@@ -777,6 +763,23 @@ copy_sysfile()
     sudo sed -i -e "s|@NAME@|$NAME|g" -e "s|@VER@|$VER|g" -e "s|@ID@|$ID|g" -e "s|@URL@|$URL|g" "$DST"
 }
 
+# Find and set MBR binary (can be different depending on distro)
+find_mbr_bin()
+{
+    for candidate in \
+        /usr/lib/SYSLINUX/mbr.bin \
+        /usr/lib/syslinux/mbr/mbr.bin \
+        /usr/lib/syslinux/bios/mbr.bin \
+        /usr/share/syslinux/mbr.bin \
+        /usr/share/syslinux/mbr.bin
+    do
+        if [ -f "$candidate" ]; then
+            MBR_BIN="$candidate"
+            break
+        fi
+    done
+}
+
 # Build the file system
 build_file_system()
 {
@@ -789,6 +792,9 @@ build_file_system()
     echo -e "${GREEN}Configure permissions...${RESET}"
     chmod +x $CURR_DIR/sysfiles/rc
     chmod +x $CURR_DIR/sysfiles/default.script
+    chmod +x $CURR_DIR/sysfiles/poweroff
+    chmod +x $CURR_DIR/sysfiles/shutdown
+    chmod +x $CURR_DIR/utils/shorkoff
     chmod +x $CURR_DIR/utils/shorkfetch
     chmod +x $CURR_DIR/utils/shorkcol
     chmod +x $CURR_DIR/utils/shorkhelp
@@ -796,6 +802,7 @@ build_file_system()
 
     echo -e "${GREEN}Copy pre-defined files...${RESET}"
     copy_sysfile $CURR_DIR/sysfiles/welcome $CURR_DIR/build/root/welcome
+    copy_sysfile $CURR_DIR/sysfiles/goodbye $CURR_DIR/build/root/goodbye
     copy_sysfile $CURR_DIR/sysfiles/hostname $CURR_DIR/build/root/etc/hostname
     copy_sysfile $CURR_DIR/sysfiles/issue $CURR_DIR/build/root/etc/issue
     copy_sysfile $CURR_DIR/sysfiles/os-release $CURR_DIR/build/root/etc/os-release
@@ -806,6 +813,9 @@ build_file_system()
     copy_sysfile $CURR_DIR/sysfiles/services $CURR_DIR/build/root/etc/services
     copy_sysfile $CURR_DIR/sysfiles/default.script $CURR_DIR/build/root/usr/share/udhcpc/default.script
     copy_sysfile $CURR_DIR/sysfiles/passwd $CURR_DIR/build/root/etc/passwd
+    copy_sysfile $CURR_DIR/sysfiles/poweroff $CURR_DIR/build/root/sbin/poweroff
+    copy_sysfile $CURR_DIR/sysfiles/shutdown $CURR_DIR/build/root/sbin/shutdown
+    copy_sysfile $CURR_DIR/utils/shorkoff $CURR_DIR/build/root/sbin/shorkoff
     copy_sysfile $CURR_DIR/utils/shorkfetch $CURR_DIR/build/root/usr/bin/shorkfetch
     copy_sysfile $CURR_DIR/utils/shorkcol $CURR_DIR/build/root/usr/libexec/shorkcol
     copy_sysfile $CURR_DIR/utils/shorkhelp $CURR_DIR/build/root/usr/bin/shorkhelp
@@ -886,8 +896,9 @@ build_disk_img()
     {
         set +e
 
+        mountpoint="/mnt/shork486"
         if mountpoint -q "$mountpoint" 2>/dev/null; then
-            sudo umount -lf "$mountpoint"
+            sudo umount -lf "$mountpoint" || true
         fi
 
         if [ -n "$loop" ]; then
@@ -946,7 +957,7 @@ build_disk_img()
     part="/dev/mapper/$(basename "$loop")p1"
 
     # Create and populate root partition
-    sudo mkfs.ext2 "$part"
+    sudo mkfs.ext4 -F "$part"
     sudo mkdir -p /mnt/shork486
     sudo mount "$part" /mnt/shork486
     sudo cp -a root//. /mnt/shork486
@@ -992,6 +1003,10 @@ build_disk_img()
 
     # Install MBR boot code
     sudo dd if="$MBR_BIN" of=../images/shork486.img bs=440 count=1 conv=notrunc
+    
+    # Ensure file system is in a clean state
+    sudo umount /mnt/shork486
+    sudo fsck.ext4 -f -p "$part"
 }
 
 # Converts the disk drive image to VMware format for testing
@@ -1003,9 +1018,9 @@ convert_disk_img()
 
 
 
-echo -e "${BLUE}=============================="
-echo -e "=== SHORK 486 build script ==="
-echo -e "==============================${RESET}"
+echo -e "${BLUE}============================"
+echo -e "== SHORK 486 build script =="
+echo -e "============================${RESET}"
 
 mkdir -p images
 
@@ -1054,6 +1069,7 @@ else
     echo -e "${LIGHT_RED}Minimal mode specified, skipping to building the file system...${RESET}"
 fi
 
+find_mbr_bin
 build_file_system
 build_disk_img
 convert_disk_img

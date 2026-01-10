@@ -1,0 +1,10 @@
+#!/bin/sh
+
+if [ "$1" = "now" ] || [ "$1" = "-h" ]; then
+    exec /sbin/shorkoff
+    exit 1
+fi
+
+echo "Usage: shutdown now"
+echo "(Note: this is just an alias for shorkoff)"
+exit 1

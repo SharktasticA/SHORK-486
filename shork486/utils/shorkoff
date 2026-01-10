@@ -1,0 +1,24 @@
+#!/bin/sh
+
+######################################################
+## A small utility that calls sync to help prevent  ##
+## data loss from any unwritten cache and halts the ##
+## CPU ready for SHORK 486 to be turned off.        ##
+######################################################
+## Kali (sharktastica.co.uk)                        ##
+######################################################
+
+
+
+cd /
+clear
+if [ -f goodbye ]; then
+    printf "\033[38;5;208m"
+    cat /goodbye
+    printf "\033[0m"
+fi
+
+sync
+sync
+mount -o remount,ro /
+halt -f
