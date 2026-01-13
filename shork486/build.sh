@@ -12,6 +12,12 @@ set -e
 
 
 
+
+# The highest working directory
+CURR_DIR=$(pwd)
+
+
+
 # TUI colour palette
 RED='\033[0;31m'
 LIGHT_RED='\033[0;91m'
@@ -37,6 +43,12 @@ confirm()
 
 
 
+echo -e "${BLUE}============================"
+echo -e "${BLUE}== SHORK 486 build script =="
+echo -e "${BLUE}============================${RESET}"
+
+
+
 # Process arguments
 MINIMAL=false
 SKIP_KRN=false
@@ -53,58 +65,58 @@ IS_ARCH=false
 IS_DEBIAN=false
 NO_MENU=false
 TARGET_MIB=""
+SET_KEYMAP=""
 
 while [ $# -gt 0 ]; do
     case "$1" in
-        -mib=*|--target-mib=*)
+        --target-mib=*)
             TARGET_MIB="${1#*=}"
             ;;
-        -mib|--target-mib)
-            shift
-            TARGET_MIB="$1"
+        --set-keymap=*)
+            KEYMAP="${1#*=}"
             ;;
-        -m|--minimal)
+        --minimal)
             MINIMAL=true
             DONT_DEL_ROOT=true
             ;;
-        -sk|--skip-kernel)
+        --skip-kernel)
             SKIP_KRN=true
             DONT_DEL_ROOT=true
             ;;
-        -sb|--skip-busybox)
+        --skip-busybox)
             SKIP_BB=true
             DONT_DEL_ROOT=true
             ;;
-        -snn|--skip-nano)
+        --skip-nano)
             SKIP_NANO=true
             ;;
-        -stp|--skip-tnftp)
+        --skip-tnftp)
             SKIP_TNFTP=true
             ;;
-        -sdb|--skip-dropbear)
+        --skip-dropbear)
             SKIP_DROPBEAR=true
             ;;
-        -sg|--skip-git)
+        --skip-git)
             SKIP_GIT=true
             ;;
-        -spi|--skip-pciids)
+        --skip-pciids)
             SKIP_PCIIDS=true
             ;;
-        -skm|--skip-keymaps)
+        --skip-keymaps)
             SKIP_KEYMAPS=true
             ;;
-        -ab|--always-build)
+        --always-build)
             ALWAYS_BUILD=true
             ;;
-        -ia|--is-arch)
+        --is-arch)
             IS_ARCH=true
             IS_DEBIAN=false
             ;;
-        -id|--is-debian)
+        --is-debian)
             IS_ARCH=false
             IS_DEBIAN=true
             ;;
-        -nm|--no-menu)
+        --no-menu)
             NO_MENU=true
             ;;
     esac
@@ -113,10 +125,27 @@ done
 
 
 
-# Input validation
+######################################################
+## Input validation & parameter conflict checks     ##
+######################################################
+
+# Target MiB integer check
 if [ -n "$TARGET_MIB" ] && ! [[ "$TARGET_MIB" =~ ^[0-9]+$ ]]; then
     echo -e "${RED}ERROR: the \"target MiB\" parameter value must be an integer (whole number)${RESET}"
     exit 1
+fi
+
+# Set keymap existence check
+if [ -n "$SET_KEYMAP" ]; then
+    if [ ! -f "$CURR_DIR/sysfiles/keymaps/$SET_KEYMAP.kmap.bin" ]; then
+        echo -e "${RED}ERROR: the \"set keymap\" parameter value does not match a known included keymap${RESET}"
+        exit 1
+    fi
+fi
+
+# Set keymap-skip keymaps conflict check
+if [ -n "$SET_KEYMAP" ] && $SKIP_KEYMAPS; then
+    echo -e "${YELLOW}WARNING: the \"set keymap\" parameter has been ignored as the \"skip keymaps\" parameter was also used${RESET}"
 fi
 
 
@@ -145,12 +174,6 @@ GIT_VER="2.52.0"
 ZLIB_VER="1.3.1.2"
 OPENSSL_VER="3.6.0"
 CURL_VER="8.18.0"
-
-
-
-
-# The highest working directory
-CURR_DIR=$(pwd)
 
 # MBR binary
 MBR_BIN=""
@@ -868,6 +891,11 @@ build_file_system()
 
         echo -e "${GREEN}Installing shorkmap utility...${RESET}"
         copy_sysfile $CURR_DIR/utils/shorkmap $CURR_DIR/build/root/usr/bin/shorkmap
+
+        if [ -n "$SET_KEYMAP" ]; then
+            echo -e "${GREEN}Setting default keymap...${RESET}"
+            echo "$SET_KEYMAP" > "$CURR_DIR/build/root/etc/keymap"
+        fi
     else
         sudo sed -i -e 's/\bshorkmap, //g' -e 's/, shorkmap\b//g' -e 's/\bshorkmap\b//g' "${CURR_DIR}/build/root/usr/bin/shorkhelp"
     fi
@@ -1052,10 +1080,6 @@ convert_disk_img()
 }
 
 
-
-echo -e "${BLUE}============================"
-echo -e "== SHORK 486 build script =="
-echo -e "============================${RESET}"
 
 mkdir -p images
 

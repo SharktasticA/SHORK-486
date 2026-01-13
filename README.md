@@ -80,6 +80,10 @@ It is recommended to move or copy the images out of this directory before extens
     * **Minimal** (`--minimal`): can be used to skip to assembling the file system. This is useful if you want to rebuild the disk drive images after only making changes to `sysfiles`.* **
     * **No boot menu** (`--no-menu`): can be used to remove SHORK 486's boot menu.
         * This will save ~512KiB to the boot file system. SHORK 486 will no longer provide the option to boot in a debug/verbose mode.
+    * **Set keymap** (`--set-keymap`): can be used to specify SHORK 486's default keyboard layout (keymap). 
+        * Example usage: `--keymap=de` to specify a German keyboard layout.
+        * If absent, U.S. English is used as the default keyboard layout.
+        * This does nothing if the "skip keymaps" parameter is also used.
     * **Skip kernel** (`--skip-kernel`): can be used to skip downloading and compiling the kernel.* **
         * This does nothing if the "minimal" parameter is also used.
     * **Skip BusyBox** (`--skip-busybox`): can be used to skip downloading and compiling BusyBox.* **
