@@ -16,19 +16,21 @@ def build_pci_ids():
 
     replacements = {
         "Advanced Micro Devices, Inc. [AMD/ATI]": "AMD/ATI",
+        " Corporation": "",
         "GPU (Graphics Processing Unit)": "GPU",
         "DC (Display Controller)": "Display Controller",
+        "Graphics Controller": "Graphics",
         " / ": "/",
         "vers ": "v",
         "rev ": "r"
     }
 
     term_whitelist = [
-        "gpu", "graphics", "vga", "3d", "display", "radeon", "geforce", "quadro", "tesla", "instinct", "firepro", "arc ", "iris", "uhd", "xe ", "framebuffer"
+        "gpu", "graphics", "vga", " 3d ", "display", "radeon", "geforce", "quadro", "tesla", "instinct", "firepro", "arc ", "iris", "uhd", "xe ", "framebuffer"
     ]
 
     term_blacklist = [
-        "audio", "ethernet", "lan", "wireless", "usb", "nvme", "sata", "ahci", "raid", "scsi", "sd", "mmc", "ufs", "flash", "chipset", "lpc", "pch", "southbridge", "northbridge", "host bridge", "pci bridge", "pcie bridge", "root port", "isa bridge", "power", "thermal", "clock", "voltage", "fan", "sensor", "management", "engine", "mei", "psp", "smu", "firmware", "secure", "iommu", "dma", "interrupt", "ioapic", "serial", "uart", "spi", "i2c", "gpio", "smbus", "virtual", "virtual function", "vf", "test", "debug", "dummy", "null", "motherboard", "mainboard", "board", "platform", "system", "processor", "xeon", "atom", "server", "family", "port", "connection", "gigabit", "laptop", "notebook", "mobility", "latitude", "centrino", "wi-fi", "nvm express", "thunderbolt", "fabric", "interconnect", "link", "switch", "endpoint", "upstream", "downstream", "memory", "cache", "ddr", "lpddr", "controller hub", "pmu", "punit", "pwr", "energy", "throttle", "ras", "error", "parity", "ecc", "scrubber", "watchdog", "telemetry", "pll", "tsc", "time", "timer", "trace", "profiling", "perf", "performance monitor", "logic analyzer", "acpi", "apic", "boot", "bios interface", "type-c", "retimer", "mux", "alt mode", "reference", "evaluation", "engineering", "sample", "es", "oem", "register", "network", "block device", "tpu", "virtio", "neural", "pcmcia", "cardbus", "ide", "decoder", "fax", "host", "modem", "firewire", "north bridge", "mac", "can bus", "pci-e", "qemu", "heci", "dram", "amplicon", "motion control", "scratch", "opi ", "zpi ", "i2s", "traffic", "82379ab", "82437fx", "legacy bridge", "80960rm", "advanced peripheral", "shared sram", "cavs", "mrom", "non-core", "quickpath", "root complex", "arctic sound", "redirection"
+        "audio", "ethernet", "lan", "wireless", "usb", "nvme", "sata", "ahci", "raid", "scsi", "sd", "mmc", "ufs", "flash", "chipset", "lpc", "pch", "southbridge", "northbridge", "host bridge", "pci bridge", "pcie bridge", "root port", "isa bridge", "power", "thermal", "clock", "voltage", "fan", "sensor", "management", "engine", "mei", "psp", "smu", "firmware", "secure", "iommu", "dma", "interrupt", "ioapic", "serial", "uart", "spi", "i2c", "gpio", "smbus", "virtual", "virtual function", "vf", "test", "debug", "dummy", "null", "motherboard", "mainboard", "board", "platform", "system", "processor", "xeon", "atom", "server", "family", "port", "connection", "gigabit", "laptop", "notebook", "mobility", "latitude", "centrino", "wi-fi", "nvm express", "thunderbolt", "fabric", "interconnect", "link", "switch", "endpoint", "upstream", "downstream", "memory", "cache", "ddr", "lpddr", "controller hub", "pmu", "punit", "pwr", "energy", "throttle", "ras", "error", "parity", "ecc", "scrubber", "watchdog", "telemetry", "pll", "tsc", "time", "timer", "trace", "profiling", "perf", "performance monitor", "logic analyzer", "acpi", "apic", "boot", "bios interface", "type-c", "retimer", "mux", "alt mode", "reference", "evaluation", "engineering", "sample", "es", "oem", "register", "network", "block device", "tpu", "virtio", "neural", "pcmcia", "cardbus", "ide", "decoder", "fax", "host", "modem", "firewire", "north bridge", "mac", "can bus", "pci-e", "qemu", "heci", "dram", "amplicon", "motion control", "scratch", "opi ", "zpi ", "i2s", "traffic", "82379ab", "82437fx", "legacy bridge", "80960rm", "advanced peripheral", "shared sram", "cavs", "mrom", "non-core", "quickpath", "root complex", "arctic sound", "redirection", "active management", "raid controller", "expansion bus", "general purpose", "memory controller hub"
     ]
 
     vendor_whitelist = [
@@ -85,7 +87,6 @@ def build_pci_ids():
                 vendor["line"] = vendor["line"].replace(find, replace)
                 for i, dev in enumerate(vendor["devices"]):
                     vendor["devices"][i] = dev.replace(find, replace)
-
 
             f.write(vendor["line"] + "\n")
             for dev in vendor["devices"]:
