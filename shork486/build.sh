@@ -52,6 +52,7 @@ echo -e "${BLUE}============================${RESET}"
 # Process arguments
 ALWAYS_BUILD=false
 DONT_DEL_ROOT=false
+ENABLE_HIGHMEM=false
 ENABLE_SATA=false
 ENABLE_SMP=false
 IS_ARCH=false
@@ -75,6 +76,9 @@ while [ $# -gt 0 ]; do
     case "$1" in
         --always-build)
             ALWAYS_BUILD=true
+            ;;
+        --enable-highmem)
+            ENABLE_HIGHMEM=true
             ;;
         --enable-sata)
             ENABLE_SATA=true
@@ -140,6 +144,7 @@ done
 
 # Overrides to ensure "minimal" parameter always takes precedence
 if $MINIMAL; then
+    ENABLE_HIGHMEM=false
     ENABLE_SATA=false
     ENABLE_SMP=false
     NO_MENU=true
@@ -416,7 +421,6 @@ get_zlib()
     make DESTDIR="$SYSROOT" install
 }
 
-
 # Download and compile OpenSSL (required for curl and Git/HTTPS remote)
 get_openssl()
 {
@@ -580,12 +584,20 @@ configure_kernel()
     cp $CURR_DIR/configs/linux.config .config
 
     if $ENABLE_SMP; then
-        echo -e "${GREEN}Enabling symmetric multiprocessing (SMP) support...${RESET}"
+        echo -e "${GREEN}Enabling kernel symmetric multiprocessing (SMP) support...${RESET}"
         patch .config "$CURR_DIR/configs/linux.config.smp.diff"
     fi
 
+    if $ENABLE_HIGHMEM; then
+        echo -e "${GREEN}Enabling kernel high memory support...${RESET}"
+        sed -i 's/CONFIG_NOHIGHMEM=y/CONFIG_NOHIGHMEM=n/' .config
+        sed -i 's/CONFIG_HIGHMEM4G=n/CONFIG_HIGHMEM4G=y/' .config
+        sed -i 's/CONFIG_HIGHMEM=n/CONFIG_HIGHMEM=y/' .config
+        sed -i 's/CONFIG_BOUNCE=n/CONFIG_BOUNCE=y/' .config
+    fi
+
     if $ENABLE_SATA; then
-        echo -e "${GREEN}Enabling SATA support...${RESET}"
+        echo -e "${GREEN}Enabling kernel SATA support...${RESET}"
         sed -i 's/CONFIG_PAHOLE_VERSION=0/CONFIG_PAHOLE_VERSION=130/' .config
         sed -i 's/# CONFIG_SATA_AHCI is not set/CONFIG_SATA_AHCI=y\nCONFIG_SATA_MOBILE_LPM_POLICY=3/' .config
     fi
