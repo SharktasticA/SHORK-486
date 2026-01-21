@@ -149,7 +149,7 @@ if $MINIMAL; then
     SKIP_EMACS=true
     SKIP_GIT=true
     SKIP_KEYMAPS=true
-    SKIP_KRN=true
+    SKIP_KRN=false
     SKIP_NANO=true
     SKIP_PCIIDS=true
     SKIP_TNFTP=true
