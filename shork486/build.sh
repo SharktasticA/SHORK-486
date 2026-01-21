@@ -53,6 +53,7 @@ echo -e "${BLUE}============================${RESET}"
 ALWAYS_BUILD=false
 DONT_DEL_ROOT=false
 ENABLE_SATA=false
+ENABLE_SMP=false
 IS_ARCH=false
 IS_DEBIAN=false
 MINIMAL=false
@@ -76,6 +77,9 @@ while [ $# -gt 0 ]; do
             ;;
         --enable-sata)
             ENABLE_SATA=true
+            ;;
+        --enable-smp)
+            ENABLE_SMP=true
             ;;
         --is-arch)
             IS_ARCH=true
@@ -133,6 +137,7 @@ done
 # Overrides to ensure "minimal" parameter always takes precedence
 if $MINIMAL; then
     ENABLE_SATA=false
+    ENABLE_SMP=false
     NO_MENU=true
     SET_KEYMAP=""
     SKIP_BB=false
@@ -562,6 +567,11 @@ configure_kernel()
 {
     echo -e "${GREEN}Copying base SHORK 486 Linux kernel .config file...${RESET}"
     cp $CURR_DIR/configs/linux.config .config
+
+    if $ENABLE_SMP; then
+        echo -e "${GREEN}Enabling symmetric multiprocessing (SMP) support...${RESET}"
+        patch .config "$CURR_DIR/configs/linux.config.smp.diff"
+    fi
 
     if $ENABLE_SATA; then
         echo -e "${GREEN}Enabling SATA support...${RESET}"

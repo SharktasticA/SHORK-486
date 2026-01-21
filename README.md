@@ -83,6 +83,9 @@ whoami, wget, which, xz, zip
         * This will add ~7MiB to idle RAM usage.
         * This does nothing if the "minimal" or "skip kernel" parameters are also used.
 
+    * **Enable SMP** (`--enable-smp`): can be used to symmetric multiprocessing (e.g., multi-core) support in the Linux kernel. This is provided in case someone wanted to try SHORK 486 on a more modern system or with a non-AMD/non-Intel multi-core x86 processor with lesser instruction support - it is not needed for any 486-era (or indeed '90s) hardware.
+        * This does nothing if the "minimal" or "skip kernel" parameters are also used.
+
     * **Is Arch** (`--is-arch`): can be used skip the host Linux distribution selection prompt and the build script will assume it is running on an Arch-based system.
 
     * **Is Debian** (`--is-debian`): can be used skip the host Linux distribution selection prompt and the build script will assume it is running on a Debian-based system.
