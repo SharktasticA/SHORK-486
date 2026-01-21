@@ -11,9 +11,15 @@
 
 set -e
 
-BOOTCFG="/boot/syslinux/syslinux.cfg"
+CFG=""
 FB_RES="/etc/fb.res"
 RES="80x24|vga|svga|xga"
+
+if [ -f /boot/grub/grub.cfg ]; then
+    CFG="/boot/grub/grub.cfg"
+elif [ -f /boot/syslinux/syslinux.cfg ]; then
+    CFG="/boot/syslinux/syslinux.cfg"
+fi
 
 if [ $# -ne 1 ]; then
     printf "Changes the system's display resolution.\n"
@@ -43,6 +49,6 @@ case "$1" in
     ;;
 esac
 
-sed -i "s/vga=[^ ]*/$MODE/" "$BOOTCFG"
+sed -i "s/vga=[^ ]*/$MODE/" "$CFG"
 echo $1 > $FB_RES
 echo "Set resolution: $1 (restart required before changes take affect)"

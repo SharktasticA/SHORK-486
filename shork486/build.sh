@@ -69,6 +69,7 @@ SKIP_NANO=false
 SKIP_PCIIDS=false
 SKIP_TNFTP=false
 TARGET_MIB=""
+USE_GRUB=false
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -130,6 +131,9 @@ while [ $# -gt 0 ]; do
         --target-mib=*)
             TARGET_MIB="${1#*=}"
             ;;
+        --use-grub)
+            USE_GRUB=true
+            ;;
     esac
     shift
 done
@@ -149,6 +153,7 @@ if $MINIMAL; then
     SKIP_NANO=true
     SKIP_PCIIDS=true
     SKIP_TNFTP=true
+    USE_GRUB=false
 fi
 
 
@@ -275,7 +280,7 @@ clean_stale_mounts()
 install_arch_prerequisites()
 {
     echo -e "${GREEN}Installing prerequisite packages for an Arch-based system...${RESET}"
-    sudo pacman -Syu --noconfirm --needed autoconf bc base-devel bison bzip2 ca-certificates cpio dosfstools e2fsprogs flex git libtool make multipath-tools ncurses pciutils python qemu-img syslinux systemd texinfo util-linux wget xz || true
+    sudo pacman -Syu --noconfirm --needed autoconf bc base-devel bison bzip2 ca-certificates cpio dosfstools e2fsprogs flex git grub libtool make multipath-tools ncurses pciutils python qemu-img syslinux systemd texinfo util-linux wget xz || true
 }
 
 install_debian_prerequisites()
@@ -284,15 +289,21 @@ install_debian_prerequisites()
     sudo dpkg --add-architecture i386
     sudo apt-get update
 
-    PACKAGES="bc bison bzip2 e2fsprogs extlinux fdisk flex git kpartx make qemu-utils syslinux wget xz-utils"
-    if ! $SKIP_NANO; then
-        PACKAGES="$PACKAGES texinfo"
-    fi
+    PACKAGES="bc bison bzip2 e2fsprogs fdisk flex git kpartx make qemu-utils syslinux wget xz-utils"
+
     if ! $SKIP_GIT; then
         PACKAGES="$PACKAGES autoconf"
     fi
     if ! $SKIP_PCIIDS; then
         PACKAGES="$PACKAGES pciutils python3"
+    fi
+    if ! $SKIP_NANO; then
+        PACKAGES="$PACKAGES texinfo"
+    fi
+    if $USE_GRUB; then
+        PACKAGES="$PACKAGES grub-common grub-pc"
+    else
+        PACKAGES="$PACKAGES extlinux"
     fi
 
     sudo apt-get install -y $PACKAGES || true
@@ -1006,7 +1017,7 @@ build_file_system()
 
         if [ -n "$SET_KEYMAP" ]; then
             echo -e "${GREEN}Setting default keymap...${RESET}"
-            echo "$SET_KEYMAP" > "$CURR_DIR/build/root/etc/keymap"
+            echo "$SET_KEYMAP" | sudo tee "$CURR_DIR/build/root/etc/keymap" > /dev/null
         fi
     fi
 
@@ -1044,6 +1055,77 @@ build_file_system()
 
     cd "${DESTDIR}"
     sudo chown -R root:root .
+}
+
+# Install GRUB bootloader
+install_grub_bootloader()
+{
+    cd $CURR_DIR/build/
+
+    sudo mkdir -p /mnt/shork486/boot/grub
+
+    if ! $NO_MENU; then
+        echo -e "${GREEN}Installing menu-based GRUB bootloader...${RESET}"
+        copy_sysfile $CURR_DIR/sysfiles/grub.cfg.menu /mnt/shork486/boot/grub/grub.cfg
+    else
+        echo -e "${GREEN}Installing boot-only GRUB bootloader...${RESET}"
+        copy_sysfile $CURR_DIR/sysfiles/grub.cfg.boot /mnt/shork486/boot/grub/grub.cfg
+    fi
+
+    sudo mount --bind /dev  /mnt/shork486/dev
+    sudo mount --bind /proc /mnt/shork486/proc
+    sudo mount --bind /sys  /mnt/shork486/sys
+
+    sudo grub-install --target=i386-pc --boot-directory=/mnt/shork486/boot --modules="ext2 part_msdos biosdisk" "$1"
+
+    sudo umount /mnt/shork486/dev
+    sudo umount /mnt/shork486/proc
+    sudo umount /mnt/shork486/sys
+}
+
+# Install EXTLINUX bootloader
+install_extlinux_bootloader()
+{
+    cd $CURR_DIR/build/
+
+    sudo mkdir -p /mnt/shork486/boot/syslinux
+
+    if ! $NO_MENU; then
+        echo -e "${GREEN}Installing menu-based Syslinux bootloader...${RESET}"
+        copy_sysfile $CURR_DIR/sysfiles/syslinux.cfg.menu  /mnt/shork486/boot/syslinux/syslinux.cfg
+        
+        SYSLINUX_DIRS="
+        /usr/lib/syslinux/modules/bios
+        /usr/lib/syslinux/bios
+        /usr/share/syslinux
+        /usr/lib/syslinux
+        "
+
+        copy_syslinux_file()
+        {
+            for d in $SYSLINUX_DIRS; do
+                if [ -f "$d/$1" ]; then
+                    sudo cp "$d/$1" /mnt/shork486/boot/syslinux/
+                    return 0
+                fi
+            done
+            echo "ERROR: $1 not found"
+            exit 1
+        }
+
+        copy_syslinux_file menu.c32
+        copy_syslinux_file libutil.c32
+        copy_syslinux_file libcom32.c32
+        copy_syslinux_file libmenu.c32
+    else
+        echo -e "${GREEN}Installing boot-only Syslinux bootloader...${RESET}"
+        copy_sysfile $CURR_DIR/sysfiles/syslinux.cfg.boot  /mnt/shork486/boot/syslinux/syslinux.cfg
+    fi
+
+    sudo extlinux --install /mnt/shork486/boot/syslinux
+
+    # Install MBR boot code
+    sudo dd if="$MBR_BIN" of=../images/shork486.img bs=440 count=1 conv=notrunc
 }
 
 # Build a disk drive image containing our system
@@ -1121,48 +1203,17 @@ build_disk_img()
     sudo mkdir -p /mnt/shork486
     sudo mount "$part" /mnt/shork486
     sudo cp -a root//. /mnt/shork486
-    sudo mkdir -p /mnt/shork486/{dev,proc,sys,boot/syslinux}
+    sudo mkdir -p /mnt/shork486/{dev,proc,sys,boot}
 
     # Install the kernel
     sudo cp bzImage /mnt/shork486/boot/bzImage
 
-    # Install syslinux bootloader
-    if ! $NO_MENU; then
-        echo -e "${GREEN}Installing menu-based Syslinux bootloader...${RESET}"
-        copy_sysfile ../sysfiles/syslinux.cfg.menu  /mnt/shork486/boot/syslinux/syslinux.cfg
-        
-        SYSLINUX_DIRS="
-        /usr/lib/syslinux/modules/bios
-        /usr/lib/syslinux/bios
-        /usr/share/syslinux
-        /usr/lib/syslinux
-        "
-
-        copy_syslinux_file()
-        {
-            for d in $SYSLINUX_DIRS; do
-                if [ -f "$d/$1" ]; then
-                    sudo cp "$d/$1" /mnt/shork486/boot/syslinux/
-                    return 0
-                fi
-            done
-            echo "ERROR: $1 not found"
-            exit 1
-        }
-
-        copy_syslinux_file menu.c32
-        copy_syslinux_file libutil.c32
-        copy_syslinux_file libcom32.c32
-        copy_syslinux_file libmenu.c32
+    # Install a bootloader
+    if $USE_GRUB; then
+        install_grub_bootloader "$loop"
     else
-        echo -e "${GREEN}Installing boot-only Syslinux bootloader...${RESET}"
-        copy_sysfile ../sysfiles/syslinux.cfg.boot  /mnt/shork486/boot/syslinux/syslinux.cfg
+        install_extlinux_bootloader
     fi
-
-    sudo extlinux --install /mnt/shork486/boot/syslinux
-
-    # Install MBR boot code
-    sudo dd if="$MBR_BIN" of=../images/shork486.img bs=440 count=1 conv=notrunc
     
     # Ensure file system is in a clean state
     sudo umount /mnt/shork486
