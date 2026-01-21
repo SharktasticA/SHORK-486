@@ -1232,7 +1232,7 @@ build_disk_img()
     sudo fsck.ext4 -f -p "$part"
 }
 
-# Converts the disk drive image to VMware format for testing
+# Converts the disk drive image to VMware virtual machine disk format for testing
 convert_disk_img()
 {
     cd $CURR_DIR/images/

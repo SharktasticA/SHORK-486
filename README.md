@@ -6,26 +6,6 @@ A complete SHORK 486 build aims to take up no more than ~75MiB inside the disk. 
 
 <img alt="A screenshot of SHORK 486 running on an 86Box virtual machine after a cold boot" src="screenshots/cold_boot.png" width="512px">
 
-## Usage
-
-Please read "Notice & disclaimers" at the end of this readme before proceeding. Compiling SHORK 486 may require up to 4GiB of disk space for downloaded source code.
-
-### Native compilation
-
-If you are using an Arch or Debian-based Linux, run `build.sh` whilst in the `shork486` directory and answer any prompts given throughout the process. Script parameters are listed in the "Scripts & parameters" section of this readme that can be used to reduce the need for the aforementioned prompts.
-
-### Dockerised compilation
-
-If you are using Windows, macOS, a Linux distribution that has not been tested with native compilation, or want some kind of "sandbox" on this process, you can try Dockerised compilation instead. It will create a Docker container with a minimal Debian 13 installation that is active for just the lifetime of the build process. Run `docker-compose up` whilst in this repository's directory (not `shork486`).
-
-Script parameters as seen in the "Scripts & parameters" section can also be used for Dockerised compilation, placed in a list under `services` -> `shork486-build` -> `command` inside `docker-compose.yml`. If a run has already been made, you may need to run `docker-compose up --build` instead before any changes are applied.
-
-### After compilation
-
-Once compiled, two disk drive images - `shork486.img` and `shork486.vmdk` - should be present in the `images` folder. The former can be used as-is with emulation software like 86Box or written to a real drive using (e.g.) `dd`, and the latter can be used as-is with VMware Workstation or Player. Please refer to the "Running" section for suggested virtual machine configurations to get started with SHORK 486.
-
-It is recommended to move or copy the images out of this directory before extensive or serious use because they will be replaced if the build process is rerun.
-
 ## Capabilities
 
 ### BusyBox-provided commands
@@ -60,21 +40,53 @@ whoami, wget, which, xz, zip
 * **shorkoff** - Brings the system to a halt and syncs the write cache, allowing the computer to be safely turned off. Similar to `poweroff` or `shutdown -h`. Takes no arguments.
 * **shorkres** - Persistently changes the system's display resolution (provided the hardware is compatible). Takes one argument (a resolution name); running it without an argument shows a list of possible resolution names.
 
-## Overall process
+## Usage
 
-1. Installs needed packages on the host system (user is prompted to choose Arch or Debian-based).
+Please read "Notice & disclaimers" at the end of this readme before proceeding. Building SHORK 486 may require up to 4GiB of disk space.
+
+### Native building
+
+If you are using an Arch or Debian-based Linux, run `build.sh` whilst in the `shork486` directory and answer any prompts given throughout the process. Script parameters are listed in the "Scripts & parameters" section of this readme that can be used to reduce the need for the aforementioned prompts.
+
+### Dockerised building
+
+If you are using Windows, macOS, a Linux distribution that has not been tested with native building, or want some kind of "sandbox" around the build process, you can try Dockerised building instead. It will create a Docker container with a minimal Debian 13 installation that is active for just the lifetime of the build process. Run `docker-compose up` whilst in this repository's directory (not `shork486`).
+
+Script parameters as seen in the "Scripts & parameters" section can also be used for Dockerised building, placed in a list under `services` -> `shork486-build` -> `command` inside `docker-compose.yml`. If a build run has already been made, you may need to run `docker-compose up --build` instead before any changes are applied.
+
+### Build process
+
+The following describes the build process as it is by default (no script parameters used).
+
+1. The user is prompted to choose if their host environment is Arch or Debian-based. Packages required for the build process are installed based on the host environment choice.
+
 2. An i486 musl cross-compiler is downloaded and extracted.
-3. ncurses source is downloaded and compiled. This is a prerequisite for other program compilations (e.g., nano).
-4. Linux kernel source is downloaded and compiled. `configs/linux.config` is copied during this process. The configuration is tailored to provide the minimum for 486SX, PATA/SATA and networking. The output is `build/bzImage`.
-4. BusyBox source is downloaded and compiled. `configs/busybox.config` is copied during this process. BusyBox provides common Unix-style utilities and our init system in one executable.
-5. BusyBox's compilation is used to assemble a root file system in `build/root`. All files in `sysfiles` are copied into their appropriate locations within it.
-6. Any other programs I desire are downloaded and compiled.
-7. A raw hard drive image (`.img`) is created in the `images` folder, containing the kernel image and the aforementioned file system.
-8. `qemu-img` is used to convert the raw image into a new VMware format image (`.vmdk`).
+
+3. BusyBox is downloaded and compiled. BusyBox provides SHORK 486 with Unix-style utilities and an init system in one executable. BusyBox's compilation is used as the basis for SHORK 486's root file system in `build/root`.
+
+4. The Linux kernel is downloaded and compiled. `configs/linux.config` is copied during this process, which provides a minimal configuration tailored to support 486SX, PATA/IDE storage devices and basic networking without any further modification or script parameters. The output is `build/bzImage`.
+
+5. ncurses and tic are downloaded and compiled. These are prerequisites required for further program compilation and for SHORK 486 utilities.
+
+6. All bundled software and their required libraries are downloaded and compiled.
+
+7. After compilation, any possible fat will be trimmed to save space (mostly, this is documentation, man pages and templates).
+
+8. Building the root file system is continued. This largely involves creating all required subdirectories, copying all of `sysfiles` contents and SHORK 486 utilities (in `utilities`) to their relevant places within `build/root`. Keymaps, the PCI IDs database and any configuration files for bundled software are also installed at this point.
+
+9. A raw disk drive image (`images/shork486.img`) is built, with the root file system copied in and a bootloader installed.
+
+10. `qemu-img` is used to produce a VMware virtual machine disk (`images/shork486.vmdk`) based on the raw disk drive image.
+
+### After building
+
+Once built, two disk images - `shork486.img` and `shork486.vmdk` - should be present in the `images` folder. The former can be used as-is with emulation software like 86Box or written to a real drive using (e.g.) `dd`, and the latter can be used as-is with VMware Workstation or Player. Please refer to the "Running" section for suggested virtual machine configurations to get started with SHORK 486.
+
+It is recommended to move or copy the images out of this directory before extensive or serious use because they will be replaced if the build process is rerun.
 
 ## Scripts & parameters
 
-* `build.sh`: Contains the complete download and compilation process that reproduces a `shork486.img` disk drive image. The following parameters are supported:
+* `build.sh`: Contains the complete download and compilation process that reproduces a working SHORK 486 system on two disk images. The following parameters are supported:
 
     * **Always (re)build** (`--always-build`): can be used to ensure the kernel is always (re)built. This will skip the prompt that appears if the kernel is already downloaded and built, acting like the user selected the "Reset & clean" option.
         * This does nothing if the "skip kernel" parameter is also used.
@@ -141,7 +153,7 @@ whoami, wget, which, xz, zip
     * **Target MiB** (`--target-mib`): can be used to specify a target total size in mebibytes for SHORK 486's disk drive images.
         * Example usage: `--target-mib=100` to specify a 100MiB target size.
         * The build script will always calculate the minimum required disk drive image size, and if the target is below that, it will default to using this calculated size.
-        * Whilst the raw image (`.img`) will be created to this size, the VMware image (`.vmdk`) dynamically expands, so it may initially take up less space.
+        * Whilst the raw image (`.img`) will be created to this size, the VMware virtual machine disk (`.vmdk`) dynamically expands, so it may initially take up less space.
 
     * **Use GRUB** (`--use-grub`): can be used to install a GRUB 2.x bootloader instead of EXTLINUX. This is intended as a diagnostic step when EXTLINUX fails to boot on certain systems.
         * This will add ~13MB to the boot file system.
