@@ -593,7 +593,8 @@ configure_kernel()
         sed -i 's/CONFIG_NOHIGHMEM=y/CONFIG_NOHIGHMEM=n/' .config
         sed -i 's/CONFIG_HIGHMEM4G=n/CONFIG_HIGHMEM4G=y/' .config
         sed -i 's/CONFIG_HIGHMEM=n/CONFIG_HIGHMEM=y/' .config
-        sed -i 's/CONFIG_BOUNCE=n/CONFIG_BOUNCE=y/' .config
+        sed -i 's/CONFIG_PHYSICAL_START=0x100000/CONFIG_PHYSICAL_START=0x1000000/' .config
+        sed -i 's/CONFIG_PHYSICAL_ALIGN=0x100000/CONFIG_PHYSICAL_ALIGN=0x200000/' .config
     fi
 
     if $ENABLE_SATA; then

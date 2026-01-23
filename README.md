@@ -2,7 +2,7 @@
 
 A minimal Linux distribution originally based on [FLOPPINUX's](https://github.com/w84death/floppinux) build instructions, but developed into something more automated and tailored for my usage. The aim is to produce an operating system that is very lean but functional for PCs with 486SX-class or better processors, often with my '90s IBM ThinkPads in mind. Whilst FLOPPINUX and [Action Retro's video on it](https://www.youtube.com/watch?v=SiHZbnFrHOY) provided a great basis to start with and inspired me, SHORK 486 does not offer a floppy diskette image. A raw disk drive image is built instead, as my scope includes more utilities and functionality.
 
-A complete SHORK 486 build aims to take up no more than ~75MiB inside the disk and work with at least 12MiB system memory. Despite those constraints, a complete SHORK 486 build offers many typical Unix/Linux commands, an FTP, SCP and SSH client, a Git source control client, the Mg (Emacs-style), nano and vi editors, basic ISA, PCI and PCMCIA NIC support, supports most major keyboard language layouts, and has a cute ASCII shark welcome screen! With 'aggressive' use of the build script skip parameters to skip building bundled utilities, this can be brought down to under ~5MiB whilst still including the typical commands as before, the vi editor, and basic networking support.
+A complete SHORK 486 system aims to work with at least 16MiB system memory and take up no more than ~75MiB on the disk. Despite those constraints, a complete SHORK 486 system offers many typical Unix/Linux commands, an FTP, SCP and SSH client, a Git source control client, the Mg (Emacs-style), nano and vi editors, basic ISA, PCI and PCMCIA NIC support, supports most major keyboard language layouts, and has a cute ASCII shark welcome screen! The build script supports many parameters to alter a SHORK 486 build to your liking. For example, if making a "minimal" build, the RAM requirement and disk space usage can be brought down to 12MiB and ~5MiB, respectively, whilst still including the typical commands as before, the vi editor, and basic networking support.
 
 <img alt="A screenshot of SHORK 486 running on an 86Box virtual machine after a cold boot" src="screenshots/cold_boot.png" width="512px">
 
@@ -91,7 +91,7 @@ It is recommended to move or copy the images out of this directory before extens
     * **Always (re)build** (`--always-build`): can be used to ensure the kernel is always (re)built. This will skip the prompt that appears if the kernel is already downloaded and built, acting like the user selected the "Reset & clean" option.
         * This does nothing if the "skip kernel" parameter is also used.
 
-    * **Enable high memory** (`--enable-highmem`): can be used to enable high memory support in the Linux kernel. This is provided in case someone wanted to try SHORK 486 on a more modern system with >875MiB RAM - it is not needed for any 486-era (or indeed '90s) hardware.
+    * **Enable high memory** (`--enable-highmem`): can be used to enable high memory support in the Linux kernel and declares that non-reserved physical memory starts at 16MiB instead of 1MiB. In general, this is provided in case someone wanted to try SHORK 486 on a more modern system with >875MiB RAM (it is not normally needed for any 486-era (or indeed '90s) hardware), or if reserved physical memory for any system exceeds 1MB for some reason.
         * This does nothing if the "minimal" or "skip kernel" parameters are also used.
 
     * **Enable SATA** (`--enable-sata`): can be used to enable SATA AHCI support in the Linux kernel. This is provided in case someone wanted to try SHORK 486 on a more modern system with SATA devices - it is not needed for any 486-era (or indeed '90s) hardware.
@@ -194,7 +194,7 @@ TODO.
     * **CPU type:** Intel i486SX
     * **Frequency:** any option
     * **FPU:** any option
-    * **Memory:** at least 12MB (24MB or more recommended)
+    * **Memory:** at least 16MB (24MB or more recommended)
 * Display
     * **Video:** [ISA] IBM VGA
 * Input
@@ -223,7 +223,7 @@ SHORK 486 should work with VMware Workstation without issue. Below is a suggeste
 * **Guest Operating System:** Linux (Other Linux 6.x kernel)
 * **Number of processers:** 1
 * **Number of cores per processor:** 1 (technically any option, extra will not be utilised)
-* **Memory:** at least 12MB (24MB or more recommended)
+* **Memory:** at least 12MB (16MB or more recommended)
 * **Network Connection:** any option (only NAT presently tested though)
 * **I/O Controller Types:** BusLogic
 * **Virtual Disk Type:** IDE
