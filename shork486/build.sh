@@ -790,6 +790,7 @@ get_emacs()
         cd mg
         git config --global --add safe.directory $CURR_DIR/build/mg
         git reset --hard
+        git clean -fdx
         git checkout "v${MG_VER}" || true
     else
         echo -e "${GREEN}Downloading Mg...${RESET}"
