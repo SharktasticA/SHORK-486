@@ -207,17 +207,17 @@ fi
 
 
 # Desired versions
-NCURSES_VER="6.4"
-KERNEL_VER="6.14.11"
 BUSYBOX_VER="1_36_1"
-NANO_VER="5.7"
-TNFTP_VER="20230507"
-DROPBEAR_VER="2022.83"
-MG_VER="3.7"
-GIT_VER="2.52.0"
-ZLIB_VER="1.3.1.2"
-OPENSSL_VER="3.6.0"
 CURL_VER="8.18.0"
+DROPBEAR_VER="2025.89"
+GIT_VER="2.52.0"
+KERNEL_VER="6.14.11"
+MG_VER="3.7"
+NANO_VER="8.7"
+NCURSES_VER="6.4"
+OPENSSL_VER="3.6.0"
+TNFTP_VER="20230507"
+ZLIB_VER="1.3.1.2"
 
 # MBR binary
 MBR_BIN=""
@@ -885,7 +885,7 @@ get_nano()
     
     NANO="nano-${NANO_VER}"
     NANO_ARC="${NANO}.tar.xz"
-    NANO_URI="https://www.nano-editor.org/dist/v5/${NANO_ARC}"
+    NANO_URI="https://www.nano-editor.org/dist/v8/${NANO_ARC}"
 
     # Download source
     [ -f $NANO_ARC ] || wget $NANO_URI

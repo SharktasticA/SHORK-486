@@ -169,11 +169,11 @@ These parameters can be used to include, exclude (skip) or select specific bundl
     * This will save ~512KiB to the boot file system. SHORK 486 will no longer provide the option to boot in a debug/verbose mode.
 
 * **Skip Dropbear** (`--skip-dropbear`): can be used to skip downloading and compiling Dropbear.
-    * This will save ~355KiB and 3 files on the root file system. SHORK 486 will lose SCP and SSH capabilities.
+    * This will save ~404KiB and 2 files on the root file system. SHORK 486 will lose SCP and SSH capabilities.
     * This does nothing if the "skip kernel" or "skip BusyBox" parameters are also used.
 
 * **Skip Emacs** (`--skip-emacs`): can be used to skip downloading and compiling Mg ("Micro (GNU) Emacs"-like text editor).
-    * This will save ~329KiB and 3 files on the root file system. `vi` (always) or nano (can also be removed) are available are alternative editors.
+    * This will save ~329KiB and 3 files on the root file system. `ed`, `vi` (always) or nano (can also be removed) are available are alternative editors.
     * This does nothing if the "skip kernel" or "skip BusyBox" parameters are also used.
 
 * **Skip Git** (`--skip-git`): can be used to skip downloading and compiling Git and its prerequisites (zlib, OpenSSL and curl).
@@ -185,7 +185,7 @@ These parameters can be used to include, exclude (skip) or select specific bundl
     * This does nothing if the "skip kernel" or "skip BusyBox" parameters are also used.
 
 * **Skip nano** (`--skip-nano`): can be used to skip downloading and compiling nano.
-    * This will save ~1MiB and 58 files on the root file system. `vi` (always) or Mg (can also be removed) are available are alternative editors.
+    * This will save ~902KiB and 53 files on the root file system. `ed`, `vi` (always) or Mg (can also be removed) are available are alternative editors.
     * This does nothing if the "skip kernel" or "skip BusyBox" parameters are also used.
 
 * **Skip pci.ids** (`--skip-pciids`): can be used to skip building and including a `pci.ids` file.
