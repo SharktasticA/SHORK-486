@@ -37,29 +37,37 @@ awk, basename, beep, cat, chmod, chown, chroot, clear, cp, crontab, cut, date, d
 
 
 
-## Requirements
+## Hardware requirements
+
+### What is "default"?
+
+A "default SHORK 486 build" or "default SHORK 486 system" mentioned in various sections following refers to when the build script is run without any parameters that add or remove programs or features. Essentially, its a typical build.
 
 ### CPU
 
-An **Intel 486SX** is the minimum processor requirement. Math emulation is enabled, so a 486DX or a separate co-processor is not required (although still supported and desirable). Most newer x86 processors should work fine, although a default SHORK 486 build will not recognise more than 1 core/thread. If you so desire, an "enable SMP" parameter is available to enable symmetric multiprocessing support.
+An **Intel 486SX** is the minimum processor requirement. Math emulation is enabled, so a 486DX or a separate co-processor is not required (although still supported and desirable).
 
 ### RAM
 
-**16MiB** is the recommended minimum system memory for a default SHORK 486 build. SHORK 486 is bootable with **as little as 12MiB**, but there will be very little free memory for programs. If you are constrained to that amount, using skip program parameters or ideally the "minimal" parameter is recommended. A default SHORK 486 system will not recognise more than 875MiB of memory. Whilst this is not a problem for 486-era hardware, if you so desire to use SHORK 486 with more memory than that, an "enable high memory" parameter is available to add support for such (though the minimum system memory requirement is raised to **24MiB**).
+**16MiB** is the minimum system memory for a default SHORK 486 build. **24MiB** is the recommended amount for some comfortable headroom for programs. SHORK 486 is bootable with **as little as 12MiB**, but there will be very little free memory for programs. If you are constrained to that amount, using the "minimal" build parameter or at least using build parameters to skip including network-based programs and features is recommended.
 
 ### Hard drive
 
-A SHORK 486 system with all optional features enabled will require no more than a **~75MiB** disk. Using the "minimum" build parameter will reduce this requirement to **~5MiB**, or selectively using skip bundled program or feature parameters can produce a system in between those two numbers. The result raw disk drive image's geometry is the following:
-
-* Heads per cylinder: 16
-* Sectors per track: 63
-* Sectors per cylinder: 1008
-
-A default SHORK 486 system only supports IDE-based hard drives. If SATA support is so desired, an "enable SATA" build parameter is provided to enable SATA support (however, SHORK 486 should then ideally run with at least 24MiB system memory).
+Even the most complete SHORK 486 system with all optional features enabled will require no more than a **~75MiB** disk. Using the "minimal" build parameter will reduce this requirement to **~5MiB**, or selectively using skip bundled program or feature parameters can produce a system in between those two numbers.
 
 ### Graphics
 
 Only a basic **IBM VGA display card or compatible** is required for using SHORK 486. If a more capable card is present though, the `shorkres` utility can offer SVGA or XGA resolution support.
+
+### Modern hardware
+
+SHORK 486 can be used on newer hardware if you so desire, but there are some considerations and some optional build parameters that may be required for the best experience:
+
+* SHORK 486 can work with newer x86 processors, although a default SHORK 486 build will not recognise more than 1 core/thread. An "enable SMP" build parameter is available to enable symmetric multiprocessing support. Whilst SHORK 486 can work on an x86-64 processor, the system is still limited to supporting 32-bit software.
+
+* A default SHORK 486 system will not recognise more than ~875MiB of memory. An "enable high memory" build parameter is available to address this, though the minimum system memory requirement is raised to **24MiB**.
+
+* A default SHORK 486 system only supports IDE hard drives. An "enable SATA" build parameter is available to address this, though the recommended system memory amount is raised to **24MiB**.
 
 
 
@@ -69,17 +77,17 @@ Please read "Notice & disclaimers" at the end of this readme before proceeding. 
 
 ### Native building
 
-If you are using an Arch or Debian-based Linux, run `build.sh` whilst in the `shork486` directory and answer any prompts given throughout the process. Script parameters are listed in the "Scripts & parameters" section of this readme that can be used to reduce the need for the aforementioned prompts.
+If you are using an Arch or Debian-based Linux, run `build.sh` whilst in the `shork486` directory and answer any prompts given throughout the process. Build parameters are listed in the "Scripts & parameters" section of this readme that can be used to reduce the need for the aforementioned prompts.
 
 ### Dockerised building
 
 If you are using Windows, macOS, a Linux distribution that has not been tested with native building, or want some kind of "sandbox" around the build process, you can try Dockerised building instead. It will create a Docker container with a minimal Debian 13 installation that is active for just the lifetime of the build process. Run `docker-compose up` whilst in this repository's directory (not `shork486`).
 
-Script parameters as seen in the "Scripts & parameters" section can also be used for Dockerised building, placed in a list under `services` -> `shork486-build` -> `command` inside `docker-compose.yml`. If a build run has already been made, you may need to run `docker-compose up --build` instead before any changes are applied.
+Build parameters as seen in the "Scripts & parameters" section can also be used for Dockerised building, placed in a list under `services` -> `shork486-build` -> `command` inside `docker-compose.yml`. If a build run has already been made, you may need to run `docker-compose up --build` instead before any changes are applied.
 
 ### Build process
 
-The following describes the build process as it is by default (no script parameters used).
+The following describes the build process as it is by default (no build parameters used).
 
 1. The user is prompted to choose if their host environment is Arch or Debian-based. Packages required for the build process are installed based on the host environment choice.
 
@@ -87,7 +95,7 @@ The following describes the build process as it is by default (no script paramet
 
 3. BusyBox is downloaded and compiled. BusyBox provides SHORK 486 with Unix-style utilities and an init system in one executable. BusyBox's compilation is used as the basis for SHORK 486's root file system in `build/root`.
 
-4. The Linux kernel is downloaded and compiled. `configs/linux.config` is copied during this process, which provides a minimal configuration tailored to support 486SX, PATA/IDE storage devices and basic networking without any further modification or script parameters. The output is `build/bzImage`.
+4. The Linux kernel is downloaded and compiled. `configs/linux.config` is copied during this process, which provides a minimal configuration tailored to support 486SX, PATA/IDE storage devices and basic networking without any further modification or build parameters. The output is `build/bzImage`.
 
 5. ncurses and tic are downloaded and compiled. These are prerequisites required for further program compilation and for SHORK 486 utilities.
 
@@ -115,7 +123,7 @@ It is recommended to move or copy the images out of this directory before extens
 
 * `clean.sh`: Deletes anything that was downloaded, created or generated by `build.sh`.
 
-### Build script parameters
+### Build parameters
 
 #### Core configuration
 
@@ -241,7 +249,7 @@ TODO.
     * **CPU type:** Intel i486SX
     * **Frequency:** any option
     * **FPU:** any option
-    * **Memory:** at least 16MB (24MB or more recommended)
+    * **Memory:** at least 16MB for default build (24MB or more recommended)
 * Display
     * **Video:** [ISA] IBM VGA
 * Input
@@ -270,11 +278,12 @@ SHORK 486 should work with VMware Workstation without issue. Below is a suggeste
 * **Guest Operating System:** Linux (Other Linux 6.x kernel)
 * **Number of processers:** 1
 * **Number of cores per processor:** 1 (technically any option, extra will not be utilised)
-* **Memory:** at least 12MB (16MB or more recommended)
+* **Memory:** at least 16MB for default build (24MB or more recommended)
 * **Network Connection:** any option (only NAT presently tested though)
 * **I/O Controller Types:** BusLogic
 * **Virtual Disk Type:** IDE
 * **Disk:** Use an existing virtual disk
+
 
 
 ## Notice & disclaimers
