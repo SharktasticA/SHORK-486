@@ -12,6 +12,7 @@
 DROPBEAR_PRESENT=true
 EMACS_PRESENT=true
 GIT_PRESENT=true
+LSUSB_PRESENT=true
 NANO_PRESENT=true
 SHORKMAP_PRESENT=true
 TNFTP_PRESENT=true
@@ -27,6 +28,9 @@ if [ ! -x /usr/bin/mg ]; then
 fi
 if [ ! -x /usr/bin/git ]; then
     GIT_PRESENT=false
+fi
+if [ ! -x /usr/bin/lsusb ]; then
+    LSUSB_PRESENT=false
 fi
 if [ ! -x /usr/bin/nano ]; then
     NANO_PRESENT=false
@@ -55,8 +59,8 @@ ed, emacs, git, nano, vi
 
 System & processes
 ------------------
-beep, clear, crontab, date, dmesg, free, halt, hostname, kill, lsblk, lspci
-nice, nohup, nproc, pkill, sleep, stty, top, uname, whoami
+beep, clear, crontab, date, dmesg, free, halt, hostname, kill, lsblk, lspci,
+lsusb, nice, nohup, nproc, pkill, sleep, stty, top, uname, whoami
 
 Networking & remote access
 --------------------------
@@ -74,6 +78,9 @@ shorkcol, shorkfetch, shorkhelp, shorkmap, shorkoff, shorkres"
     fi
     if ! $GIT_PRESENT; then
         OUTPUT=$(echo "$OUTPUT" | sed -e "s|, git||g")
+    fi
+    if ! $LSUSB_PRESENT; then
+        OUTPUT=$(echo "$OUTPUT" | sed -e "s|lsusb, ||g")
     fi
     if ! $NANO_PRESENT; then
         OUTPUT=$(echo "$OUTPUT" | sed -e "s|, nano||g")

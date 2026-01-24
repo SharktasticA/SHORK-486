@@ -55,6 +55,7 @@ DONT_DEL_ROOT=false
 ENABLE_HIGHMEM=false
 ENABLE_SATA=false
 ENABLE_SMP=false
+ENABLE_USB=false
 IS_ARCH=false
 IS_DEBIAN=false
 MINIMAL=false
@@ -85,6 +86,9 @@ while [ $# -gt 0 ]; do
             ;;
         --enable-smp)
             ENABLE_SMP=true
+            ;;
+        --enable-usb)
+            ENABLE_USB=true
             ;;
         --is-arch)
             IS_ARCH=true
@@ -147,6 +151,7 @@ if $MINIMAL; then
     ENABLE_HIGHMEM=false
     ENABLE_SATA=false
     ENABLE_SMP=false
+    ENABLE_USB=false
     NO_MENU=true
     SET_KEYMAP=""
     SKIP_BB=false
@@ -289,9 +294,9 @@ install_arch_prerequisites()
     PACKAGES="autoconf bc base-devel bison bzip2 ca-certificates cpio dosfstools e2fsprogs flex gettext git libtool make multipath-tools ncurses pciutils python qemu-img systemd texinfo util-linux wget xz"
 
     if $USE_GRUB; then
-        PACKAGES="$PACKAGES grub"
+        PACKAGES+=" grub"
     else
-        PACKAGES="$PACKAGES syslinux"
+        PACKAGES+=" syslinux"
     fi
 
     sudo pacman -Syu --noconfirm --needed $PACKAGES || true
@@ -306,18 +311,18 @@ install_debian_prerequisites()
     PACKAGES="autopoint bc bison bzip2 e2fsprogs fdisk flex git kpartx libtool make qemu-utils syslinux wget xz-utils"
 
     if ! $SKIP_GIT; then
-        PACKAGES="$PACKAGES autoconf"
+        PACKAGES+=" autoconf"
     fi
     if ! $SKIP_PCIIDS; then
-        PACKAGES="$PACKAGES pciutils python3"
+        PACKAGES+=" pciutils python3"
     fi
     if ! $SKIP_NANO; then
-        PACKAGES="$PACKAGES texinfo"
+        PACKAGES+=" texinfo"
     fi
     if $USE_GRUB; then
-        PACKAGES="$PACKAGES grub-common grub-pc"
+        PACKAGES+=" grub-common grub-pc"
     else
-        PACKAGES="$PACKAGES extlinux"
+        PACKAGES+=" extlinux"
     fi
 
     sudo apt-get install -y $PACKAGES || true
@@ -550,7 +555,14 @@ get_busybox()
     # Patch BusyBox to suppress banner and help message
     sed -i 's/^#if !ENABLE_FEATURE_SH_EXTRA_QUIET/#if 0 \/* disabled ash banner *\//' shell/ash.c
 
+    echo -e "${GREEN}Copying base SHORK 486 BusyBox .config file...${RESET}"
     cp $CURR_DIR/configs/busybox.config .config
+
+    if $ENABLE_USB; then
+        echo -e "${GREEN}Enabling BusyBox's lsusb implementation...${RESET}"
+        sed -i 's/# CONFIG_LSUSB is not set/CONFIG_LSUSB=y/' .config
+    fi
+
     # Ensure BusyBox behaves with our toolchain
     sed -i "s|^CONFIG_CROSS_COMPILER_PREFIX=.*|CONFIG_CROSS_COMPILER_PREFIX=\"${PREFIX}/bin/i486-linux-musl-\"|" .config
     sed -i "s|^CONFIG_SYSROOT=.*|CONFIG_SYSROOT=\"${CURR_DIR}/build/i486-linux-musl-cross\"|" .config
@@ -621,24 +633,31 @@ configure_kernel()
     echo -e "${GREEN}Copying base SHORK 486 Linux kernel .config file...${RESET}"
     cp $CURR_DIR/configs/linux.config .config
 
-    if $ENABLE_SMP; then
-        echo -e "${GREEN}Enabling kernel symmetric multiprocessing (SMP) support...${RESET}"
-        patch .config "$CURR_DIR/configs/linux.config.smp.diff"
-    fi
+    FRAGS=""
 
     if $ENABLE_HIGHMEM; then
         echo -e "${GREEN}Enabling kernel high memory support...${RESET}"
-        sed -i 's/CONFIG_NOHIGHMEM=y/CONFIG_NOHIGHMEM=n/' .config
-        sed -i 's/CONFIG_HIGHMEM4G=n/CONFIG_HIGHMEM4G=y/' .config
-        sed -i 's/CONFIG_HIGHMEM=n/CONFIG_HIGHMEM=y/' .config
-        sed -i 's/CONFIG_PHYSICAL_START=0x100000/CONFIG_PHYSICAL_START=0x1000000/' .config
-        sed -i 's/CONFIG_PHYSICAL_ALIGN=0x100000/CONFIG_PHYSICAL_ALIGN=0x200000/' .config
+        FRAGS+="$CURR_DIR/configs/linux.config.highmem.frag "
     fi
 
     if $ENABLE_SATA; then
         echo -e "${GREEN}Enabling kernel SATA support...${RESET}"
-        sed -i 's/CONFIG_PAHOLE_VERSION=0/CONFIG_PAHOLE_VERSION=130/' .config
-        sed -i 's/# CONFIG_SATA_AHCI is not set/CONFIG_SATA_AHCI=y\nCONFIG_SATA_MOBILE_LPM_POLICY=3/' .config
+        FRAGS+="$CURR_DIR/configs/linux.config.sata.frag "
+    fi
+
+    if $ENABLE_SMP; then
+        echo -e "${GREEN}Enabling kernel symmetric multiprocessing (SMP) support...${RESET}"
+        FRAGS+="$CURR_DIR/configs/linux.config.smp.frag "
+    fi
+
+    if $ENABLE_USB; then
+        echo -e "${GREEN}Enabling kernel USB & HID support...${RESET}"
+        FRAGS+="$CURR_DIR/configs/linux.config.usb.frag "
+    fi
+    
+    if [ -n "$FRAGS" ]; then
+        ./scripts/kconfig/merge_config.sh -m $CURR_DIR/configs/linux.config $FRAGS
+        make olddefconfig
     fi
 }
 
@@ -646,6 +665,7 @@ reset_kernel()
 {
     cd "$CURR_DIR/build/linux"
     echo -e "${GREEN}Resetting and cleaning Linux kernel...${RESET}"
+    git config --global --add safe.directory /var/shork486/build/linux || true
     git reset --hard || true
     make clean
     configure_kernel
@@ -658,6 +678,7 @@ reclone_kernel()
     sudo rm -r linux
     download_kernel
 }
+
 compile_kernel()
 {   
     cd "$CURR_DIR/build/linux/"

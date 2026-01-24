@@ -121,7 +121,7 @@ It is recommended to move or copy the images out of this directory before extens
 
 * **Minimal** (`--minimal`): can be used to skip building and including all non-essential features, producing a ~5MiB and less memory hungry but working SHORK 486 system.
     * This is like using the "no boot menu", "skip Dropbear", "skip Emacs", "skip Git", "skip keymaps", "skip nano", "skip pci.ids" and "skip tnftp" parameters together.
-    * The "enable high memory", "enable SATA", "enable SMP", "set keymap", "skip kernel" "skip BusyBox", and "use GRUB" parameters will be overridden if also used.
+    * The "enable high memory", "enable SATA", "enable SMP", "enable USB & HID", "set keymap", "skip kernel" "skip BusyBox", and "use GRUB" parameters will be overridden if also used.
     * The minimum system memory requirement is lowered to 12MiB.
 
 * **Set keymap** (`--set-keymap`): can be used to specify SHORK 486's default keyboard layout (keymap). 
@@ -204,9 +204,13 @@ These parameters enable kernel-level support for features required by modern har
     * This may add ~5-7MiB to idle RAM usage. Whilst SHORK 486 with SATA support should still be bootable with 16MiB system memory, very little will be left for programs, thus 24MiB or more is now recommended.
     * This does nothing if the "minimal" or "skip kernel" parameters are also used.
 
-* **Enable SMP** (`--enable-smp`): can be used to enable symmetric multiprocessing (e.g., multi-core) support in the Linux kernel. This is provided in case someone wanted to try SHORK 486 on a more modern system with a multi-core processor or genuine use with a non-AMD/non-Intel x86 multi-core processor with lesser instruction support - it is not needed for any 486-era (or indeed '90s) hardware.
+* **Enable SMP** (`--enable-smp`): can be used to enable symmetric multiprocessing (e.g., multi-core) support in the Linux kernel. This is provided in case someone wanted to try SHORK 486 on a more modern system with a multi-core processor - it is not needed for any 486-era (or indeed '90s) hardware.
     * This may add ~1-2MiB to idle RAM usage.
     * This does nothing if the "minimal" or "skip kernel" parameters are also used.
+
+* **Enable USB & HID** (`--enable-usb`): can be used to enable USB and HID support in the kernel and for lsusb to be included with BusyBox. This is provided in case someone wanted to try SHORK 486 on a system with USB peripherals and/or mass storage devices.
+    * This will add ~156KiB and 1 file on the root file system.
+    * This does nothing if the "minimal", "skip BusyBox" or "skip kernel" parameters are also used.
 
 ## Directories
 
