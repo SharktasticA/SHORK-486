@@ -2,7 +2,7 @@
 
 A minimal Linux distribution originally based on [FLOPPINUX's](https://github.com/w84death/floppinux) build instructions, but developed into something more automated and tailored for my usage. The aim is to produce an operating system that is very lean but functional for PCs with 486SX-class or better processors, often with my '90s IBM ThinkPads in mind. Whilst FLOPPINUX and [Action Retro's video on it](https://www.youtube.com/watch?v=SiHZbnFrHOY) provided a great basis to start with and inspired me, SHORK 486 does not offer a floppy diskette image. A raw disk drive image is built instead, as my scope includes more utilities and functionality.
 
-A complete SHORK 486 system aims to work with at least 16MiB system memory and take up no more than ~75MiB on the disk. Despite those constraints, a complete SHORK 486 system offers many typical Unix/Linux commands, an FTP, SCP and SSH client, a Git source control client, the Mg (Emacs-style), nano and vi editors, basic ISA, PCI and PCMCIA NIC support, supports most major keyboard language layouts, and has a cute ASCII shark welcome screen! The build script supports many parameters to alter a SHORK 486 build to your liking. For example, if making a "minimal" build, the RAM requirement and disk space usage can be brought down to 12MiB and ~5MiB, respectively, whilst still including the typical commands as before, the vi editor, and basic networking support.
+A default SHORK 486 system aims to work with at least 16MiB system memory and take up no more than ~75MiB on the disk. Despite those constraints, a default SHORK 486 system offers many typical Unix/Linux commands, an FTP, SCP and SSH client, a Git source control client, the Mg (Emacs-style), nano and vi editors, basic IDE, ISA, PCI and PCMCIA NIC support, supports most major keyboard language layouts, and has a cute ASCII shark welcome screen! The build script supports many parameters to alter a SHORK 486 build to your liking. For example, if making a "minimal" build, the RAM requirement and disk space usage can be brought down to 12MiB and ~5MiB, respectively, whilst still including the typical commands as before, the vi editor, and basic networking support. Some people have expressed support for using SHORK 486 on newer hardware for a minimalist Linux environment, and as such, build parameters for enabling high memory, SATA and SMP support are provided if you so desire them!
 
 <img alt="A screenshot of SHORK 486 running on an 86Box virtual machine after a cold boot" src="screenshots/cold_boot.png" width="512px">
 
@@ -34,6 +34,34 @@ awk, basename, beep, cat, chmod, chown, chroot, clear, cp, crontab, cut, date, d
 * **shorkmap** - Persistently changes the system's keyboard layout (keymap). Takes one argument (a keymap name); running it without an argument shows a list of possible keymaps.
 * **shorkoff** - Brings the system to a halt and syncs the write cache, allowing the computer to be safely turned off. Similar to `poweroff` or `shutdown -h`. Takes no arguments.
 * **shorkres** - Persistently changes the system's display resolution (provided the hardware is compatible). Takes one argument (a resolution name); running it without an argument shows a list of possible resolution names.
+
+
+
+## Requirements
+
+### CPU
+
+An **Intel 486SX** is the minimum processor requirement. Math emulation is enabled, so a 486DX or a separate co-processor is not required (although still supported and desirable). Most newer x86 processors should work fine, although a default SHORK 486 build will not recognise more than 1 core/thread. If you so desire, an "enable SMP" parameter is available to enable symmetric multiprocessing support.
+
+### RAM
+
+**16MiB** is the recommended minimum system memory for a default SHORK 486 build. SHORK 486 is bootable with **as little as 12MiB**, but there will be very little free memory for programs. If you are constrained to that amount, using skip program parameters or ideally the "minimal" parameter is recommended. A default SHORK 486 system will not recognise more than 875MiB of memory. Whilst this is not a problem for 486-era hardware, if you so desire to use SHORK 486 with more memory than that, an "enable high memory" parameter is available to add support for such (though the minimum system memory requirement is raised to **24MiB**).
+
+### Hard drive
+
+A SHORK 486 system with all optional features enabled will require no more than a **~75MiB** disk. Using the "minimum" build parameter will reduce this requirement to **~5MiB**, or selectively using skip bundled program or feature parameters can produce a system in between those two numbers. The result raw disk drive image's geometry is the following:
+
+* Heads per cylinder: 16
+* Sectors per track: 63
+* Sectors per cylinder: 1008
+
+A default SHORK 486 system only supports IDE-based hard drives. If SATA support is so desired, an "enable SATA" build parameter is provided to enable SATA support (however, SHORK 486 should then ideally run with at least 24MiB system memory).
+
+### Graphics
+
+Only a basic **IBM VGA display card or compatible** is required for using SHORK 486. If a more capable card is present though, the `shorkres` utility can offer SVGA or XGA resolution support.
+
+
 
 ## Usage
 
@@ -79,86 +107,106 @@ Once built, two disk images - `shork486.img` and `shork486.vmdk` - should be pre
 
 It is recommended to move or copy the images out of this directory before extensive or serious use because they will be replaced if the build process is rerun.
 
+
+
 ## Scripts & parameters
 
 * `build.sh`: Contains the complete download and compilation process that reproduces a working SHORK 486 system on two disk images. The following parameters are supported:
 
-    * **Always (re)build** (`--always-build`): can be used to ensure the kernel is always (re)built. This will skip the prompt that appears if the kernel is already downloaded and built, acting like the user selected the "Reset & clean" option.
-        * This does nothing if the "skip kernel" parameter is also used.
-
-    * **Enable high memory** (`--enable-highmem`): can be used to enable high memory support in the Linux kernel and declares that non-reserved physical memory starts at 16MiB instead of 1MiB. In general, this is provided in case someone wanted to try SHORK 486 on a more modern system with >875MiB RAM (it is not normally needed for any 486-era (or indeed '90s) hardware), or if reserved physical memory for any system exceeds 1MB for some reason.
-        * This does nothing if the "minimal" or "skip kernel" parameters are also used.
-
-    * **Enable SATA** (`--enable-sata`): can be used to enable SATA AHCI support in the Linux kernel. This is provided in case someone wanted to try SHORK 486 on a more modern system with SATA devices - it is not needed for any 486-era (or indeed '90s) hardware.
-        * This may add ~5-7MiB to idle RAM usage.
-        * This does nothing if the "minimal" or "skip kernel" parameters are also used.
-
-    * **Enable SMP** (`--enable-smp`): can be used to enable symmetric multiprocessing (e.g., multi-core) support in the Linux kernel. This is provided in case someone wanted to try SHORK 486 on a more modern system with a multi-core processor or genuine use with a non-AMD/non-Intel x86 multi-core processor with lesser instruction support - it is not needed for any 486-era (or indeed '90s) hardware.
-        * This may add ~1-2MiB to idle RAM usage.
-        * This does nothing if the "minimal" or "skip kernel" parameters are also used.
-
-    * **Is Arch** (`--is-arch`): can be used skip the host Linux distribution selection prompt and the build script will assume it is running on an Arch-based system.
-
-    * **Is Debian** (`--is-debian`): can be used skip the host Linux distribution selection prompt and the build script will assume it is running on a Debian-based system.
-
-    * **Minimal** (`--minimal`): can be used to skip building and including all non-essential features, producing a sub-5MiB but working SHORK 486 system for IDE-based hosts.
-        * This is like using the "no boot menu", "skip Dropbear", "skip Emacs", "skip Git", "skip keymaps", "skip nano", "skip pci.ids" and "skip tnftp" parameters together.
-
-    * **No boot menu** (`--no-menu`): can be used to remove SHORK 486's boot menu.
-        * This will save ~512KiB to the boot file system. SHORK 486 will no longer provide the option to boot in a debug/verbose mode.
-
-    * **Set keymap** (`--set-keymap`): can be used to specify SHORK 486's default keyboard layout (keymap). 
-        * Example usage: `--keymap=de` to specify a German keyboard layout.
-        * If absent, U.S. English is used as the default keyboard layout.
-        * This does nothing if the "minimal" or "skip keymaps" parameters are also used.
-
-    * **Skip kernel** (`--skip-kernel`): can be used to skip downloading and compiling the kernel.* **
-
-    * **Skip BusyBox** (`--skip-busybox`): can be used to skip downloading and compiling BusyBox.* **
-        * This does nothing if the "minimal" parameter is also used.
-
-    * **Skip Dropbear** (`--skip-dropbear`): can be used to skip downloading and compiling Dropbear.
-        * This will save ~355KiB and 3 files on the root file system. SHORK 486 will lose SCP and SSH capabilities.
-        * This does nothing if the "skip kernel" or "skip BusyBox" parameters are also used.
-
-    * **Skip Emacs** (`--skip-emacs`): can be used to skip downloading and compiling Mg ("Micro (GNU) Emacs"-like text editor).
-        * This will save ~329KiB and 3 files on the root file system. `vi` (always) or nano (can also be removed) are available are alternative editors.
-        * This does nothing if the "skip kernel" or "skip BusyBox" parameters are also used.
-
-    * **Skip Git** (`--skip-git`): can be used to skip downloading and compiling Git and its prerequisites (zlib, OpenSSL and curl).
-        * This will save ~19MiB and 192 files on the root file system. SHORK 486 will lose its git client.
-        * This does nothing if the "skip kernel" or "skip BusyBox" parameters are also used.
-
-    * **Skip keymaps** (`--skip-keymaps`): can be used to skip installing keymaps.
-        * This will save ~63.5KiB and 26 files on the root file system. SHORK 486 will stop supporting keyboard layouts other than ANSI U.S. English. `shorkmap` will not be included.
-        * This does nothing if the "skip kernel" or "skip BusyBox" parameters are also used.
-
-    * **Skip nano** (`--skip-nano`): can be used to skip downloading and compiling nano.
-        * This will save ~1MiB and 58 files on the root file system. `vi` (always) or Mg (can also be removed) are available are alternative editors.
-        * This does nothing if the "skip kernel" or "skip BusyBox" parameters are also used.
-
-    * **Skip pci.ids** (`--skip-pciids`): can be used to skip building and including a `pci.ids` file.
-        * This will save ~75-100KiB and one file on the root file system. `shorkfetch` will lose its "GPU" field.
-        * GPU identification on some 486SX configurations can take a while, so excluding this may be desirable to speed up `shorkfetch` significantly in such scenarios.
-
-    * **Skip tnftp** (`--skip-tnftp`): can be used to skip downloading and compiling tnftp.
-        * This will save ~304KiB and 3 files on the root file system. SHORK 486 will lose FTP capabilities.
-        * This does nothing if the "skip kernel" or "skip BusyBox" parameters are also used.
-
-    * **Target MiB** (`--target-mib`): can be used to specify a target total size in mebibytes for SHORK 486's disk drive images.
-        * Example usage: `--target-mib=100` to specify a 100MiB target size.
-        * The build script will always calculate the minimum required disk drive image size, and if the target is below that, it will default to using this calculated size.
-        * Whilst the raw image (`.img`) will be created to this size, the VMware virtual machine disk (`.vmdk`) dynamically expands, so it may initially take up less space.
-
-    * **Use GRUB** (`--use-grub`): can be used to install a GRUB 2.x bootloader instead of EXTLINUX. This is intended as a diagnostic step when EXTLINUX fails to boot on certain systems.
-        * This will add ~13MB to the boot file system.
-        * This does nothing if the "minimal" parameter is also used.
-
 * `clean.sh`: Deletes anything that was downloaded, created or generated by `build.sh`.
 
-*Using this parameter requires at least one complete run through before it works.
+### Build script parameters
 
-**Using this parameter will skip deleting the `build` directory before compilation because it reuses existing compiled software. This means any newly used parameters that control what software is bundled may not work.
+#### Core configuration
+
+* **Minimal** (`--minimal`): can be used to skip building and including all non-essential features, producing a ~5MiB and less memory hungry but working SHORK 486 system.
+    * This is like using the "no boot menu", "skip Dropbear", "skip Emacs", "skip Git", "skip keymaps", "skip nano", "skip pci.ids" and "skip tnftp" parameters together.
+    * The "enable high memory", "enable SATA", "enable SMP", "set keymap", "skip kernel" "skip BusyBox", and "use GRUB" parameters will be overridden if also used.
+    * The minimum system memory requirement is lowered to 12MiB.
+
+* **Set keymap** (`--set-keymap`): can be used to specify SHORK 486's default keyboard layout (keymap). 
+    * Example usage: `--keymap=de` to specify a German QWERTZ keyboard layout. Possible keymaps can be found in the `sysfiles/keymaps` directory (just exclude the `.kmap.bin` extension).
+    * If absent, U.S. English is used as the default keyboard layout.
+    * This does nothing if the "minimal" or "skip keymaps" parameters are also used.
+
+* **Target MiB** (`--target-mib`): can be used to specify a target total size in mebibytes for SHORK 486's disk drive images.
+    * Example usage: `--target-mib=75` to specify a 75MiB target size.
+    * The build script will always calculate the minimum required disk drive image size, and if the target is below that, it will default to using this calculated size.
+    * Whilst the raw image (`.img`) will be created to this size, the VMware virtual machine disk (`.vmdk`) dynamically expands, so it may initially take up less space.
+
+#### Build automation
+
+These parameters help automate the use of the build script, especially for successive runs. Note that some of these should be used wisely! The "skip kernel" and "skip BusyBox" parameters are useful for speeding up successive builds that differ only by their sysfiles and recompiling previously bundled programs, but any changes to their respective `.config` files or any manual patches made in the build script will not be applied and "stale" compilations will be used, and any skip bundled program parameters will not have an effect.
+
+* **Always (re)build** (`--always-build`): can be used to ensure the kernel is always (re)built. This will skip the prompt that appears if the kernel is already downloaded and built, acting like the user selected the "Reset & clean" option.
+    * This does nothing if the "skip kernel" parameter is also used.
+
+* **Is Arch** (`--is-arch`): can be used skip the host Linux distribution selection prompt and the build script will assume it is running on an Arch-based system.
+
+* **Is Debian** (`--is-debian`): can be used skip the host Linux distribution selection prompt and the build script will assume it is running on a Debian-based system.
+
+* **Skip kernel** (`--skip-kernel`): can be used to skip recompiling the kernel.
+    * This parameter requires at least one complete build.
+    * This does nothing if the "minimal" Aparameter is also used.
+
+* **Skip BusyBox** (`--skip-busybox`): can be used to skip recompiling BusyBox.
+    * This parameter requires at least one complete build.
+    * This does nothing if the "minimal" parameter is also used.
+
+#### Bundled programs and features
+
+These parameters can be used to include, exclude (skip) or select specific bundled programs and features.
+
+* **No boot menu** (`--no-menu`): can be used to remove SHORK 486's boot menu.
+    * This will save ~512KiB to the boot file system. SHORK 486 will no longer provide the option to boot in a debug/verbose mode.
+
+* **Skip Dropbear** (`--skip-dropbear`): can be used to skip downloading and compiling Dropbear.
+    * This will save ~355KiB and 3 files on the root file system. SHORK 486 will lose SCP and SSH capabilities.
+    * This does nothing if the "skip kernel" or "skip BusyBox" parameters are also used.
+
+* **Skip Emacs** (`--skip-emacs`): can be used to skip downloading and compiling Mg ("Micro (GNU) Emacs"-like text editor).
+    * This will save ~329KiB and 3 files on the root file system. `vi` (always) or nano (can also be removed) are available are alternative editors.
+    * This does nothing if the "skip kernel" or "skip BusyBox" parameters are also used.
+
+* **Skip Git** (`--skip-git`): can be used to skip downloading and compiling Git and its prerequisites (zlib, OpenSSL and curl).
+    * This will save ~19MiB and 192 files on the root file system. SHORK 486 will lose its git client.
+    * This does nothing if the "skip kernel" or "skip BusyBox" parameters are also used.
+
+* **Skip keymaps** (`--skip-keymaps`): can be used to skip installing keymaps.
+    * This will save ~63.5KiB and 26 files on the root file system. SHORK 486 will stop supporting keyboard layouts other than ANSI U.S. English. `shorkmap` will not be included.
+    * This does nothing if the "skip kernel" or "skip BusyBox" parameters are also used.
+
+* **Skip nano** (`--skip-nano`): can be used to skip downloading and compiling nano.
+    * This will save ~1MiB and 58 files on the root file system. `vi` (always) or Mg (can also be removed) are available are alternative editors.
+    * This does nothing if the "skip kernel" or "skip BusyBox" parameters are also used.
+
+* **Skip pci.ids** (`--skip-pciids`): can be used to skip building and including a `pci.ids` file.
+    * This will save ~75-100KiB and one file on the root file system. `shorkfetch` will lose its "GPU" field.
+    * GPU identification on some 486SX configurations can take a while, so excluding this may be desirable to speed up `shorkfetch` significantly in such scenarios.
+
+* **Skip tnftp** (`--skip-tnftp`): can be used to skip downloading and compiling tnftp.
+    * This will save ~304KiB and 3 files on the root file system. SHORK 486 will lose FTP capabilities.
+    * This does nothing if the "skip kernel" or "skip BusyBox" parameters are also used.
+
+* **Use GRUB** (`--use-grub`): can be used to install a GRUB 2.x bootloader instead of EXTLINUX. This is intended as a diagnostic step when EXTLINUX fails to boot on certain systems.
+    * This will add ~13MB to the boot file system.
+    * This does nothing if the "minimal" parameter is also used.
+
+#### Modern kernel features
+
+These parameters enable kernel-level support for features required by modern hardware. SHORK 486 is not intended to be used on such, but given some interest in using it as a minimal Linux environment on modern hardware, these are provided to help accommodate such. :)
+
+* **Enable high memory** (`--enable-highmem`): can be used to enable high memory support in the Linux kernel and declares that non-reserved physical memory starts at 16MiB instead of 1MiB. In general, this is provided in case someone wanted to try SHORK 486 on a more modern system with >875MiB RAM (it is not normally needed for any 486-era (or indeed '90s) hardware), or if reserved physical memory for any system exceeds 1MB for some reason.
+    * The minimum system memory requirement is raised to 24MiB.
+    * This does nothing if the "minimal" or "skip kernel" parameters are also used.
+
+* **Enable SATA** (`--enable-sata`): can be used to enable SATA AHCI support in the Linux kernel. This is provided in case someone wanted to try SHORK 486 on a more modern system with SATA devices - it is not needed for any 486-era (or indeed '90s) hardware.
+    * This may add ~5-7MiB to idle RAM usage. Whilst SHORK 486 with SATA support should still be bootable with 16MiB system memory, very little will be left for programs, thus 24MiB or more is now recommended.
+    * This does nothing if the "minimal" or "skip kernel" parameters are also used.
+
+* **Enable SMP** (`--enable-smp`): can be used to enable symmetric multiprocessing (e.g., multi-core) support in the Linux kernel. This is provided in case someone wanted to try SHORK 486 on a more modern system with a multi-core processor or genuine use with a non-AMD/non-Intel x86 multi-core processor with lesser instruction support - it is not needed for any 486-era (or indeed '90s) hardware.
+    * This may add ~1-2MiB to idle RAM usage.
+    * This does nothing if the "minimal" or "skip kernel" parameters are also used.
 
 ## Directories
 
