@@ -153,15 +153,12 @@ if $MINIMAL; then
     ENABLE_SMP=false
     ENABLE_USB=false
     NO_MENU=true
-    SET_KEYMAP=""
     SKIP_BB=false
     SKIP_DROPBEAR=true
     SKIP_EMACS=true
     SKIP_GIT=true
-    SKIP_KEYMAPS=true
     SKIP_KRN=false
     SKIP_NANO=true
-    SKIP_PCIIDS=true
     SKIP_TNFTP=true
     USE_GRUB=false
 fi
@@ -1218,7 +1215,7 @@ build_disk_img()
     }
     trap cleanup EXIT INT TERM
     
-    echo -e "${GREEN}Creating a disk drive image containing this system...${RESET}"
+    echo -e "${GREEN}Creating a disk drive image...${RESET}"
 
     # Calculate size for the image
     # OVERHEAD is provided to take into account metadata, partition alignment, bootloader structures, etc.
@@ -1267,6 +1264,7 @@ build_disk_img()
     part="/dev/mapper/$(basename "$loop")p1"
 
     # Create and populate root partition
+    echo -e "${GREEN}Creating root partition...${RESET}"
     sudo mkfs.ext4 -F "$part"
     sudo mkdir -p /mnt/shork486
     sudo mount "$part" /mnt/shork486
@@ -1274,6 +1272,7 @@ build_disk_img()
     sudo mkdir -p /mnt/shork486/{dev,proc,sys,boot}
 
     # Install the kernel
+    echo -e "${GREEN}Installing kernel image...${RESET}"
     sudo cp bzImage /mnt/shork486/boot/bzImage
 
     # Install a bootloader
@@ -1284,6 +1283,7 @@ build_disk_img()
     fi
     
     # Ensure file system is in a clean state
+    echo -e "${GREEN}Unmounting file system...${RESET}"
     sudo umount /mnt/shork486
     sudo fsck.ext4 -f -p "$part"
 }
@@ -1292,6 +1292,8 @@ build_disk_img()
 convert_disk_img()
 {
     cd $CURR_DIR/images/
+
+    echo -e "${GREEN}Creating VMware virtual machine disk from disk drive image...${RESET}"
     qemu-img convert -f raw -O vmdk shork486.img shork486.vmdk
 }
 
