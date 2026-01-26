@@ -113,9 +113,11 @@ The following describes the build process as it is by default (no build paramete
 
 10. `qemu-img` is used to produce a VMware virtual machine disk (`images/shork486.vmdk`) based on the raw disk drive image.
 
+11. An after-build report (`images/report.txt`) is generated to help confirm if the build was completed as intended. It confirms what kind of build was made, how long it took to make, what the minimum system memory requirement should be, handy disk image statistics, and what programs or features are included or excluded.
+
 ### After building
 
-Once built, two disk images - `shork486.img` and `shork486.vmdk` - should be present in the `images` folder. The former can be used as-is with emulation software like 86Box or written to a real drive using (e.g.) `dd`, and the latter can be used as-is with VMware Workstation or Player. Please refer to the "Running" section for suggested virtual machine configurations to get started with SHORK 486.
+Once built, two disk images - `shork486.img` and `shork486.vmdk` - and an after-build report (`report.txt`) should be present in the `images` folder. The former raw disk image can be used as-is with emulation software like 86Box or written to a real drive using (e.g.) `dd`, and the latter VMware virtual machine disk can be used as-is with VMware Workstation or Player. Please refer to the "Running" section for suggested virtual machine configurations to get started with SHORK 486.
 
 It is recommended to move or copy the images out of this directory before extensive or serious use because they will be replaced if the build process is rerun.
 
@@ -132,7 +134,7 @@ It is recommended to move or copy the images out of this directory before extens
 #### Core configuration
 
 * **Minimal** (`--minimal`): can be used to skip building and including all non-essential features, producing a ~10MiB or less disk drive image and a potentially less memory-hungry SHORK 486 system.
-    * This is like using the "no boot menu", "skip Dropbear", "skip Emacs", "skip Git", "skip nano", and "skip tnftp" parameters together.
+    * This is like using the "no boot menu", "skip Dropbear", "skip Emacs", "skip Git", "skip nano", "skip pci.ids", and "skip tnftp" parameters together.
     * Framebuffer, VESA and enhanced VGA support will be reduced and `shorkres` will not be included.
     * The "enable high memory", "enable SATA", "enable SMP", "enable USB & HID", "skip kernel", "skip BusyBox", and "use GRUB" parameters will be overridden if also used.
     * The minimum system memory requirement is lowered to 8MiB (extreme minimum) to 10MiB (realistic minimum).
@@ -252,7 +254,7 @@ These parameters enable kernel-level support for features required by modern har
 
 * `configs`: Contains my Linux kernel and BusyBox `.config` files that are copied into their respective source code directories before compilation, and a helper when compiling a binary that should be static not dynamic.
 
-* `images`: Contains the result raw disk drive images created at the end of the build process.
+* `images`: Contains the result raw disk drive images and an after-build report created at the end of the build process.
     * Created after a build attempt is made.
 
 * `sysfiles`: Contains important system files to be copied into the Linux root file system before zipping.

@@ -8,8 +8,11 @@
 
 
 
-set -e
+START_TIME=$(date +%s)
 
+
+
+set -e
 
 
 
@@ -49,9 +52,22 @@ echo -e "${BLUE}============================${RESET}"
 
 
 
-# Process arguments
+# General global vars
 ALWAYS_BUILD=false
+BUILD_TYPE="default"
+BOOTLDR_USED=""
+DISK_CYLINDERS=0
+DISK_HEADS=16
+DISK_SECTORS_TRACK=63
 DONT_DEL_ROOT=false
+EST_MIN_RAM="16"
+EXCLUDED_FEATURES=""
+INCLUDED_FEATURES=""
+ROOT_PART_SIZE=""
+TOTAL_DISK_SIZE=""
+USED_PARAMS=""
+
+# Process arguments
 ENABLE_FB=true
 ENABLE_HIGHMEM=false
 ENABLE_SATA=false
@@ -79,24 +95,29 @@ TARGET_SWAP=""
 USE_GRUB=false
 
 while [ $# -gt 0 ]; do
+    USED_PARAMS+="\n  $1"
     case "$1" in
         --always-build)
             ALWAYS_BUILD=true
             ;;
         --enable-highmem)
             ENABLE_HIGHMEM=true
+            BUILD_TYPE="custom"
             ;;
         --enable-sata)
             ENABLE_SATA=true
+            BUILD_TYPE="custom"
             ;;
         --enable-smp)
             ENABLE_SMP=true
+            BUILD_TYPE="custom"
             ;;
         --fix-extlinux)
             FIX_EXTLINUX=true
             ;;
         --enable-usb)
             ENABLE_USB=true
+            BUILD_TYPE="custom"
             ;;
         --is-arch)
             IS_ARCH=true
@@ -114,6 +135,7 @@ while [ $# -gt 0 ]; do
             ;;
         --no-menu)
             NO_MENU=true
+            BUILD_TYPE="custom"
             ;;
         --set-keymap=*)
             SET_KEYMAP="${1#*=}"
@@ -124,15 +146,19 @@ while [ $# -gt 0 ]; do
             ;;
         --skip-dropbear)
             SKIP_DROPBEAR=true
+            BUILD_TYPE="custom"
             ;;
         --skip-emacs)
             SKIP_EMACS=true
+            BUILD_TYPE="custom"
             ;;
         --skip-git)
             SKIP_GIT=true
+            BUILD_TYPE="custom"
             ;;
         --skip-keymaps)
             SKIP_KEYMAPS=true
+            BUILD_TYPE="custom"
             ;;
         --skip-kernel)
             SKIP_KRN=true
@@ -140,12 +166,15 @@ while [ $# -gt 0 ]; do
             ;;
         --skip-nano)
             SKIP_NANO=true
+            BUILD_TYPE="custom"
             ;;
         --skip-pciids)
             SKIP_PCIIDS=true
+            BUILD_TYPE="custom"
             ;;
         --skip-tnftp)
             SKIP_TNFTP=true
+            BUILD_TYPE="custom"
             ;;
         --target-disk=*)
             TARGET_DISK="${1#*=}"
@@ -155,6 +184,7 @@ while [ $# -gt 0 ]; do
             ;;
         --use-grub)
             USE_GRUB=true
+            BUILD_TYPE="custom"
             ;;
     esac
     shift
@@ -169,11 +199,13 @@ done
 # Overrides to ensure "maximal" parameter always takes precedence
 if $MAXIMAL; then
     echo -e "${GREEN}Configuring for a maximal build...${RESET}"
+    BUILD_TYPE="maximal"
     ENABLE_FB=true
     ENABLE_HIGHMEM=true
     ENABLE_SATA=true
     ENABLE_SMP=true
     ENABLE_USB=true
+    EST_MIN_RAM="24"
     NO_MENU=false
     SKIP_BB=false
     SKIP_DROPBEAR=false
@@ -187,11 +219,13 @@ if $MAXIMAL; then
 # Overrides to ensure "minimal" parameter always takes precedence (if not maximal)
 elif $MINIMAL; then
     echo -e "${GREEN}Configuring for a minimal build...${RESET}"
+    BUILD_TYPE="minimal"
     ENABLE_FB=false
     ENABLE_HIGHMEM=false
     ENABLE_SATA=false
     ENABLE_SMP=false
     ENABLE_USB=false
+    EST_MIN_RAM="10"
     NO_MENU=true
     SKIP_BB=false
     SKIP_DROPBEAR=true
@@ -199,6 +233,7 @@ elif $MINIMAL; then
     SKIP_GIT=true
     SKIP_KRN=false
     SKIP_NANO=true
+    SKIP_PCIIDS=true
     SKIP_TNFTP=true
     USE_GRUB=false
 fi
@@ -623,6 +658,8 @@ get_tic()
     else
         echo -e "${LIGHT_RED}tic already compiled, skipping...${RESET}"
     fi
+
+    INCLUDED_FEATURES+="\n  * tic"
 }
 
 # Download and build our forked EXTLINUX (required if "Fix EXTLINUX" was used)
@@ -742,6 +779,8 @@ get_util_linux()
         sudo install -D -m 755 "${bin}" "${DESTDIR}/usr/bin/${bin}"
         sudo "${STRIP}" "${DESTDIR}/usr/bin/${bin}"
     done
+
+    INCLUDED_FEATURES+="\n  * util-linux (lsblk & whereis)"
 }
 
 
@@ -769,7 +808,7 @@ configure_kernel()
     FRAGS=""
 
     if $ENABLE_FB; then
-        echo -e "${GREEN}Enabling framebuffer and VGA support...${RESET}"
+        echo -e "${GREEN}Enabling framebuffer, VESA and enhanced VGA support...${RESET}"
         FRAGS+="$CURR_DIR/configs/linux.config.fb.frag "
     fi
 
@@ -837,8 +876,11 @@ get_kernel()
     cd "$CURR_DIR/build"
 
     if $ALWAYS_BUILD; then
-        download_kernel
-        reset_kernel
+        if [ ! -d "linux" ]; then
+            download_kernel
+        else
+            reset_kernel
+        fi
     else
         if [ ! -d "linux" ]; then
             download_kernel
@@ -863,6 +905,50 @@ get_kernel()
     fi
 
     compile_kernel
+}
+
+# Makes sure that the after-build report includes kernel statistics
+# This is separate to configure_kernel so that these are still recorded if
+# the "skip kernel" parameter is used.
+get_kernel_features()
+{
+    if $ENABLE_FB; then
+        INCLUDED_FEATURES+="\n  * kernel-level framebuffer, VESA & enhanced VGA support"
+    else
+        EXCLUDED_FEATURES+="\n  * kernel-level framebuffer, VESA & enhanced VGA support"
+    fi
+
+    if $ENABLE_HIGHMEM; then
+        EST_MIN_RAM="24"
+        INCLUDED_FEATURES+="\n  * kernel-level high memory support"
+    else
+        EXCLUDED_FEATURES+="\n  * kernel-level high memory support"
+    fi
+
+    if $ENABLE_SATA; then
+        EST_MIN_RAM="24"
+        INCLUDED_FEATURES+="\n  * kernel-level SATA support"
+    else
+        EXCLUDED_FEATURES+="\n  * kernel-level SATA support"
+    fi
+
+    if $ENABLE_SMP; then
+        INCLUDED_FEATURES+="\n  * kernel-level SMP support"
+    else
+        EXCLUDED_FEATURES+="\n  * kernel-level SMP support"
+    fi
+
+    if $ENABLE_USB; then
+        INCLUDED_FEATURES+="\n  * kernel-level USB & HID support"
+    else
+        EXCLUDED_FEATURES+="\n  * kernel-level USB & HID support"
+    fi
+    
+    if [ -n "$TARGET_SWAP" ]; then
+        INCLUDED_FEATURES+="\n  * kernel-level swap support"
+    else
+        EXCLUDED_FEATURES+="\n  * kernel-level swap support"
+    fi
 }
 
 # Download and compile v86d (needed for uvesafb)
@@ -1234,10 +1320,16 @@ build_file_system()
     copy_sysfile $CURR_DIR/sysfiles/passwd $CURR_DIR/build/root/etc/passwd
     copy_sysfile $CURR_DIR/sysfiles/poweroff $CURR_DIR/build/root/sbin/poweroff
     copy_sysfile $CURR_DIR/sysfiles/shutdown $CURR_DIR/build/root/sbin/shutdown
-    copy_sysfile $CURR_DIR/shorkutils/shorkoff $CURR_DIR/build/root/sbin/shorkoff
-    copy_sysfile $CURR_DIR/shorkutils/shorkfetch $CURR_DIR/build/root/usr/bin/shorkfetch
+
+    echo -e "${GREEN}Copy shorkutils...${RESET}"
     copy_sysfile $CURR_DIR/shorkutils/shorkcol $CURR_DIR/build/root/usr/libexec/shorkcol
+    INCLUDED_FEATURES+="\n  * shorkcol"
+    copy_sysfile $CURR_DIR/shorkutils/shorkfetch $CURR_DIR/build/root/usr/bin/shorkfetch
+    INCLUDED_FEATURES+="\n  * shorkfetch"
     copy_sysfile $CURR_DIR/shorkutils/shorkhelp $CURR_DIR/build/root/usr/bin/shorkhelp
+    INCLUDED_FEATURES+="\n  * shorkhelp"
+    copy_sysfile $CURR_DIR/shorkutils/shorkoff $CURR_DIR/build/root/sbin/shorkoff
+    INCLUDED_FEATURES+="\n  * shorkoff"
 
     echo -e "${GREEN}Copy and compile terminfo database...${RESET}"
     sudo mkdir -p $CURR_DIR/build/root/usr/share/terminfo/src/
@@ -1247,6 +1339,9 @@ build_file_system()
     if $ENABLE_FB; then
         echo -e "${GREEN}Installing shorkres as framebuffer and VGA support is present...${RESET}"
         copy_sysfile $CURR_DIR/shorkutils/shorkres $CURR_DIR/build/root/usr/bin/shorkres
+        INCLUDED_FEATURES+="\n  * shorkres"
+    else
+        EXCLUDED_FEATURES+="\n  * shorkres"
     fi
 
     if ! $SKIP_KEYMAPS; then
@@ -1262,6 +1357,12 @@ build_file_system()
             echo -e "${GREEN}Setting default keymap...${RESET}"
             echo "$SET_KEYMAP" | sudo tee "$CURR_DIR/build/root/etc/keymap" > /dev/null
         fi
+
+        INCLUDED_FEATURES+="\n  * keymaps"
+        INCLUDED_FEATURES+="\n  * shorkmap"
+    else
+        EXCLUDED_FEATURES+="\n  * keymaps"
+        EXCLUDED_FEATURES+="\n  * shorkmap"
     fi
 
     if ! $SKIP_PCIIDS; then
@@ -1270,6 +1371,9 @@ build_file_system()
         echo -e "${GREEN}Generating pci.ids database...${RESET}"
         cd $CURR_DIR/
         sudo python3 -c "from helpers import *; build_pci_ids()"
+        INCLUDED_FEATURES+="\n  * pci.ids database"
+    else
+        EXCLUDED_FEATURES+="\n  * pci.ids database"
     fi
 
     if $NEED_OPENSSL; then
@@ -1305,20 +1409,21 @@ partition_image()
 {
     cd $CURR_DIR/build/
 
-    local aligned_sectors="$1"
-    local PART_START=63
+    local ALIGNED_SECTORS="$1"
 
     if [ -n "$TARGET_SWAP" ] && [ "$TARGET_SWAP" -gt 0 ]; then
         echo -e "${GREEN}Setting up for root and swap partitions...${RESET}"
-        SWAP_SIZE=$((TARGET_SWAP * 1024 * 1024 / 512))
-        ROOT_SIZE=$((aligned_sectors - PART_START - SWAP_SIZE))
-        SWAP_START=$((PART_START + ROOT_SIZE))
-        sed -e "s/@ROOT_SIZE@/${ROOT_SIZE}/g" -e "s/@SWAP_START@/${SWAP_START}/g" -e "s/@SWAP_SIZE@/${SWAP_SIZE}/g" "$CURR_DIR/sysfiles/partitions_swap" | sudo sfdisk ../images/shork486.img
+        SWAP_SIZE=$((TARGET_SWAP * 2048))
+        ROOT_SIZE=$((ALIGNED_SECTORS - DISK_SECTORS_TRACK - SWAP_SIZE))
+        SWAP_START=$((DISK_SECTORS_TRACK + ROOT_SIZE))
+        sed -e "s/@ROOT_SIZE@/${ROOT_SIZE}/g" -e "s/@SWAP_START@/${SWAP_START}/g" -e "s/@SWAP_SIZE@/${SWAP_SIZE}/g" "$CURR_DIR/sysfiles/partitions_swap" | sudo sfdisk "$CURR_DIR/images/shork486.img"
     else
         echo -e "${GREEN}Setting up for just root partition (no swap)...${RESET}"
-        ROOT_SIZE=$((aligned_sectors - PART_START))
-        sed "s/@ROOT_SIZE@/${ROOT_SIZE}/g" "$CURR_DIR/sysfiles/partitions_noswap" | sudo sfdisk ../images/shork486.img
+        ROOT_SIZE=$((ALIGNED_SECTORS - DISK_SECTORS_TRACK))
+        sed "s/@ROOT_SIZE@/${ROOT_SIZE}/g" "$CURR_DIR/sysfiles/partitions_noswap" | sudo sfdisk "$CURR_DIR/images/shork486.img"
     fi
+
+    ROOT_PART_SIZE=$((ROOT_SIZE / 2048))
 }
 
 # Install GRUB bootloader
@@ -1345,6 +1450,8 @@ install_grub_bootloader()
     sudo umount /mnt/shork486/dev
     sudo umount /mnt/shork486/proc
     sudo umount /mnt/shork486/sys
+
+    BOOTLDR_USED="GRUB"
 }
 
 # Install EXTLINUX bootloader
@@ -1353,8 +1460,10 @@ install_extlinux_bootloader()
     cd $CURR_DIR/build/
 
     EXTLINUX_BIN="extlinux"
+    BOOTLDR_USED="EXTLINUX"
     if $FIX_EXTLINUX; then
         EXTLINUX_BIN="$CURR_DIR/build/syslinux/bios/extlinux/extlinux"
+        BOOTLDR_USED="patched EXTLINUX"
     fi
 
     sudo mkdir -p /mnt/shork486/boot/syslinux
@@ -1423,42 +1532,42 @@ build_disk_img()
 
     # Calculate size for the image
     # OVERHEAD is provided to take into account metadata, partition alignment, bootloader structures, etc.
-    krn_bytes=$(stat -c %s bzImage)
-    fs_bytes=$(du -sb root/ | cut -f1)
-
-    OVERHEAD=$(((krn_bytes + fs_bytes + 1024 * 1024 - 1) / (1024 * 1024)))
-    total=$((krn_bytes + fs_bytes + OVERHEAD * 1024 * 1024))
-    mib=$(((total + 1024 * 1024 - 1) / (1024 * 1024)))
-    mib=$((((mib + 3) / 4) * 4 ))
+    KERNEL_SIZE=$(stat -c %s bzImage)
+    ROOT_SIZE=$(du -sb root/ | cut -f1)
+    OVERHEAD=$(((KERNEL_SIZE + ROOT_SIZE + 1048576 - 1) / 1048576))
+    total=$((KERNEL_SIZE + ROOT_SIZE + OVERHEAD * 1048576))
+    TOTAL_DISK_SIZE=$(((total + 1048576 - 1) / 1048576))
+    TOTAL_DISK_SIZE=$((((TOTAL_DISK_SIZE + 3) / 4) * 4))
 
     # Factor in target swap if provided
     if [ -n "$TARGET_SWAP" ]; then
-        mib=$((mib + TARGET_SWAP))
+        TOTAL_DISK_SIZE=$((TOTAL_DISK_SIZE + TARGET_SWAP))
     fi
 
     # Use target disk value is provided
     if [ -n "$TARGET_DISK" ]; then
-        if [ "$TARGET_DISK" -lt "$mib" ]; then
-            echo -e "${YELLOW}WARNING: the provided target disk value (${TARGET_DISK}MiB) is smaller than required size (${mib}MiB) - using calculated size instead${RESET}"
+        if [ "$TARGET_DISK" -lt "$TOTAL_DISK_SIZE" ]; then
+            echo -e "${YELLOW}WARNING: the provided target disk value (${TARGET_DISK}MiB) is smaller than required size (${TOTAL_DISK_SIZE}MiB) - using calculated size instead${RESET}"
         else
             echo -e "${GREEN}Using user-specified disk size (${TARGET_DISK}MiB)${RESET}"
-            mib="$TARGET_DISK"
+            TOTAL_DISK_SIZE="$TARGET_DISK"
         fi
     fi
 
     # Create the image
-    dd if=/dev/zero of=../images/shork486.img bs=1M count="$mib" status=progress
+    dd if=/dev/zero of=../images/shork486.img bs=1M count="$TOTAL_DISK_SIZE" status=progress
 
-    # Shrinks the image so it ends on a whole CHS cylinder boundary
-    SECTORS_PER_CYL=$((16*63))
-    bytes=$(stat -c %s ../images/shork486.img)
-    sectors=$((bytes / 512))
-    aligned_sectors=$(( (sectors / SECTORS_PER_CYL) * SECTORS_PER_CYL ))
-    aligned_bytes=$((aligned_sectors * 512))
-    truncate -s "$aligned_bytes" ../images/shork486.img
+    # Enlarges the image so it ends on a whole CHS cylinder boundary
+    SECTORS_PER_CYL=$((DISK_HEADS*DISK_SECTORS_TRACK))
+    IMG_SIZE=$(stat -c %s ../images/shork486.img)
+    SECTORS_NO=$((IMG_SIZE / 512))
+    ALIGNED_SECTORS=$(((SECTORS_NO + SECTORS_PER_CYL - 1) / SECTORS_PER_CYL * SECTORS_PER_CYL))
+    ALIGNED_IMG_SIZE=$((ALIGNED_SECTORS * 512))
+    truncate -s "$ALIGNED_IMG_SIZE" ../images/shork486.img
+    DISK_CYLINDERS=$((ALIGNED_SECTORS / SECTORS_PER_CYL))
 
     # Partition the image
-    partition_image "$aligned_sectors"
+    partition_image "$ALIGNED_SECTORS"
 
     # Ensure loop devices exist (Docker does not always create them)
     for i in $(seq 0 255); do
@@ -1517,6 +1626,77 @@ convert_disk_img()
 
 
 
+######################################################
+## End of build report generation                   ##
+######################################################
+
+# Generate a report to go in the images folder to indicate details about this build
+generate_report()
+{
+    DATE=$(date "+%Y-%m-%d  %H:%M:%S")
+    END_TIME=$(date +%s)
+    TOTAL_SECONDS=$(( END_TIME - START_TIME ))
+    MINS=$(( TOTAL_SECONDS / 60 ))
+    SECS=$(( TOTAL_SECONDS % 60 ))
+
+    local lines=(
+        "=================================="
+        "== SHORK 486 after-build report =="
+        "=================================="
+        "==     $DATE     =="
+        "=================================="
+        ""
+        "Build type: $BUILD_TYPE"
+        "Build time: $MINS minutes, $SECS seconds"
+    )
+
+    if [ -n "$USED_PARAMS" ]; then
+        lines+=(
+            "Build parameters: $USED_PARAMS"
+        )
+    fi
+
+    lines+=(
+        ""
+        "Est. minimal RAM: ${EST_MIN_RAM}MiB"
+        "Total disk size: ${TOTAL_DISK_SIZE}MiB"
+        "Root partition size: ${ROOT_PART_SIZE}MiB"
+    )
+
+    if [ -n "$TARGET_SWAP" ]; then
+        lines+=("Swap partition size: ${TARGET_SWAP}MiB")
+    fi
+
+    lines+=(
+        "CHS geometry: $DISK_CYLINDERS/$DISK_HEADS/$DISK_SECTORS_TRACK"
+        "Bootloader used: $BOOTLDR_USED"
+    )
+
+    if $NO_MENU; then
+        lines+=("Boot style: boot only")
+    else
+        lines+=("Boot style: menu")
+    fi
+
+    if [ -n "$INCLUDED_FEATURES" ]; then
+        lines+=(
+            ""
+            "Included programs & features: $INCLUDED_FEATURES"
+        )
+    fi
+
+    if [ -n "$EXCLUDED_FEATURES" ]; then
+        lines+=(
+            ""
+            "Excluded programs & features: $EXCLUDED_FEATURES"
+        )
+    fi
+
+    printf "%b\n" "${lines[@]}" | sudo tee "$CURR_DIR/images/report.txt" > /dev/null
+}
+
+
+
 mkdir -p images
 
 if ! $DONT_DEL_ROOT; then
@@ -1535,6 +1715,7 @@ get_util_linux
 if ! $SKIP_KRN; then
     get_kernel
 fi
+get_kernel_features
 
 get_ncurses
 get_tic
@@ -1551,18 +1732,33 @@ fi
 
 if ! $SKIP_DROPBEAR; then
     get_dropbear
+    INCLUDED_FEATURES+="\n  * Dropbear"
+else
+    EXCLUDED_FEATURES+="\n  * Dropbear"
 fi
 if ! $SKIP_EMACS; then
     get_emacs
+    INCLUDED_FEATURES+="\n  * Mg"
+else
+    EXCLUDED_FEATURES+="\n  * Mg"
 fi
 if ! $SKIP_GIT; then
     get_git
+    INCLUDED_FEATURES+="\n  * Git"
+else
+    EXCLUDED_FEATURES+="\n  * Git"
 fi
 if ! $SKIP_NANO; then
     get_nano
+    INCLUDED_FEATURES+="\n  * nano"
+else
+    EXCLUDED_FEATURES+="\n  * nano"
 fi
 if ! $SKIP_TNFTP; then
     get_tnftp
+    INCLUDED_FEATURES+="\n  * tnftp"
+else
+    EXCLUDED_FEATURES+="\n  * tnftp"
 fi
 
 trim_fat
@@ -1577,3 +1773,4 @@ build_disk_img
 convert_disk_img
 fix_perms
 clean_stale_mounts
+generate_report
