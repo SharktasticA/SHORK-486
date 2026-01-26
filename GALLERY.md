@@ -110,7 +110,7 @@
 <table style="table-layout: fixed; width: 100%;">
   <tr>
     <td style="width: 50%; text-align: center;"><img src="screenshots/vmware_ftp.png" style="width: 100%;" /></td>
-    <td style="width: 50%; text-align: center;"><img src="screenshots/vmware_ftp.png" style="width: 100%;" /></td>
+    <td style="width: 50%; text-align: center;"><img src="screenshots/vmware_git_clone.png" style="width: 100%;" /></td>
   </tr>
   <tr>
     <td>FTP</td>
