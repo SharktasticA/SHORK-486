@@ -57,7 +57,7 @@ ENABLE_HIGHMEM=false
 ENABLE_SATA=false
 ENABLE_SMP=false
 ENABLE_USB=false
-FIX_EXTLINUX=fale
+FIX_EXTLINUX=false
 IS_ARCH=false
 IS_DEBIAN=false
 MAXIMAL=false
@@ -72,6 +72,7 @@ SKIP_KEYMAPS=false
 SKIP_KRN=false
 SKIP_NANO=false
 SKIP_PCIIDS=false
+SKIP_TMUX=true
 SKIP_TNFTP=false
 TARGET_MIB=""
 USE_GRUB=false
@@ -249,10 +250,12 @@ CURL_VER="8.18.0"
 DROPBEAR_VER="2025.89"
 GIT_VER="2.52.0"
 KERNEL_VER="6.14.11"
+LIBEVENT_VER="release-2.1.12-stable"
 MG_VER="3.7"
 NANO_VER="8.7"
 NCURSES_VER="6.4"
 OPENSSL_VER="3.6.0"
+TMUX_VER="3.6a"
 TNFTP_VER="20230507"
 ZLIB_VER="1.3.1.2"
 
@@ -330,6 +333,10 @@ install_arch_prerequisites()
 
     PACKAGES="autoconf bc base-devel bison bzip2 ca-certificates cpio dosfstools e2fsprogs flex gettext git libtool make multipath-tools ncurses pciutils python qemu-img systemd texinfo util-linux wget xz"
 
+    if ! $SKIP_TMUX; then
+        PACKAGES+=" pkgconf"
+    fi
+
     if $FIX_EXTLINUX; then
         PACKAGES+=" nasm"
     fi
@@ -359,6 +366,9 @@ install_debian_prerequisites()
     fi
     if ! $SKIP_NANO; then
         PACKAGES+=" texinfo"
+    fi
+    if ! $SKIP_TMUX; then
+        PACKAGES+=" pkg-config"
     fi
 
     if $FIX_EXTLINUX; then
@@ -420,7 +430,7 @@ get_i486_musl_cc()
     [ -d "i486-linux-musl-cross" ] || tar xvf i486-linux-musl-cross.tgz
 }
 
-# Download and compile ncurses (required for nano and tic)
+# Download and compile ncurses (required for nano, tmux and tic)
 get_ncurses()
 {
     cd "$CURR_DIR/build"
@@ -436,7 +446,6 @@ get_ncurses()
         echo -e "${YELLOW}ncurses source already present, resetting...${RESET}"
         cd ncurses
         git reset --hard
-        git checkout "v${NCURSES_VER}" || true
     else
         echo -e "${GREEN}Downloading ncurses...${RESET}"
         git clone --branch v${NCURSES_VER} https://github.com/mirror/ncurses.git
@@ -446,7 +455,39 @@ get_ncurses()
     # Compile and install
     echo -e "${GREEN}Compiling ncurses...${RESET}"
     ./configure --host=${HOST} --prefix="${PREFIX}" --with-normal --without-shared --without-debug --without-cxx --enable-widec --without-termlib CC="${CC}"
-    make -j$(nproc) && make install
+    make -j$(nproc)
+    make install
+    ln -sf "${PREFIX}/lib/libncursesw.a" "${PREFIX}/lib/libncurses.a"
+}
+
+# Download and compile ncurses (required for tmux)
+get_libevent()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already built
+    if [ -f "${PREFIX}/lib/libevent.a" ]; then
+        echo -e "${LIGHT_RED}libevent already built, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d libevent ]; then
+        echo -e "${YELLOW}libevent source already present, resetting...${RESET}"
+        cd libevent
+        git reset --hard
+    else
+        echo -e "${GREEN}Downloading libevent...${RESET}"
+        git clone --branch ${LIBEVENT_VER} https://github.com/libevent/libevent.git
+        cd libevent
+    fi
+
+    # Compile and install
+    echo -e "${GREEN}Compiling libevent...${RESET}"
+    ./autogen.sh
+    ./configure --host=${HOST} --prefix="${PREFIX}" --disable-shared  --enable-static --disable-samples --disable-openssl CC="${CC}"
+    make -j$(nproc)
+    make install
 }
 
 # Download and compile zlib (required for Git)
@@ -465,7 +506,6 @@ get_zlib()
         echo -e "${YELLOW}zlib source already present, resetting...${RESET}"
         cd zlib
         git reset --hard
-        git checkout "v${ZLIB_VER}" || true
     else
         echo -e "${GREEN}Downloading zlib...${RESET}"
         git clone --branch v${ZLIB_VER} https://github.com/madler/zlib.git
@@ -497,7 +537,6 @@ get_openssl()
         echo -e "${YELLOW}OpenSSL source already present, resetting...${RESET}"
         cd openssl
         git reset --hard
-        git checkout "openssl-${OPENSSL_VER}" || true
     else
         echo -e "${GREEN}Downloading OpenSSL...${RESET}"
         git clone --branch openssl-${OPENSSL_VER} https://github.com/openssl/openssl.git
@@ -613,7 +652,6 @@ get_busybox()
         cd busybox
         git config --global --add safe.directory $CURR_DIR/build/busybox
         git reset --hard
-        git checkout $BUSYBOX_VER || true
     else
         echo -e "${GREEN}Downloading BusyBox...${RESET}"
         git clone --branch $BUSYBOX_VER https://github.com/mirror/busybox.git
@@ -658,7 +696,7 @@ get_util_linux()
     cd "$CURR_DIR/build"
 
     # Skip if already built
-    if [ -f "${DESTDIR}/usr/bin/lsblk" ] && [ -f "${DESTDIR}/usr/bin/whereis"]; then
+    if [ -f "${DESTDIR}/usr/bin/lsblk" ] && [ -f "${DESTDIR}/usr/bin/whereis" ]; then
         echo -e "${LIGHT_RED}lsblk and whereis from util-linux already built, skipping...${RESET}"
         return
     fi
@@ -859,7 +897,6 @@ get_dropbear()
         cd dropbear
         git config --global --add safe.directory "$CURR_DIR/build/dropbear"
         git reset --hard
-        git checkout "DROPBEAR_${DROPBEAR_VER}" || true
     else
         echo -e "${GREEN}Downloading Dropbear...${RESET}"
         git clone --branch DROPBEAR_${DROPBEAR_VER} https://github.com/mkj/dropbear.git
@@ -895,7 +932,6 @@ get_emacs()
         git config --global --add safe.directory $CURR_DIR/build/mg
         git reset --hard
         git clean -fdx
-        git checkout "v${MG_VER}" || true
     else
         echo -e "${GREEN}Downloading Mg...${RESET}"
         git clone --branch "v${MG_VER}" https://github.com/troglobit/mg.git
@@ -936,7 +972,6 @@ get_git()
         cd git
         git config --global --add safe.directory "$CURR_DIR/build/git"
         git reset --hard
-        git checkout "v${GIT_VER}" || true
     else
         echo -e "${GREEN}Downloading Git...${RESET}"
         git clone --branch "v${GIT_VER}" https://github.com/git/git.git
@@ -997,6 +1032,37 @@ get_nano()
     grep -rl "TINFO_LIBS" . | xargs -r sed -i 's/TINFO_LIBS.*/TINFO_LIBS = /' 2>/dev/null || true
 
     make TINFO_LIBS="" -j$(nproc)
+    sudo make DESTDIR="${DESTDIR}" install
+}
+
+# Download and compile tmux
+get_tmux()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already built
+    if [ -f "${DESTDIR}/usr/bin/tmux" ]; then
+        echo -e "${LIGHT_RED}tmux already built, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d tmux ]; then
+        echo -e "${YELLOW}tmux source already present, resetting...${RESET}"
+        cd tmux
+        git config --global --add safe.directory "$CURR_DIR/build/tmux"
+        git reset --hard
+    else
+        echo -e "${GREEN}Downloading tmux...${RESET}"
+        git clone --branch "${TMUX_VER}" https://github.com/tmux/tmux.git
+        cd tmux
+    fi
+
+    # Compile and install
+    echo -e "${GREEN}Compiling tmux...${RESET}"
+    ./autogen.sh
+    ./configure --host=${HOST} --prefix=/usr CC="${CC_STATIC}" CFLAGS="-I${PREFIX}/include -I${PREFIX}/include/ncursesw -DHAVE_FORKPTY=1" LDFLAGS="-L${PREFIX}/lib -static" LIBEVENT_CFLAGS="-I${PREFIX}/include" LIBEVENT_LIBS="-L${PREFIX}/lib -levent" CURSES_CFLAGS="-I${PREFIX}/include" CURSES_LIBS="-L${PREFIX}/lib -lncursesw" LIBS="-levent -lutil -lrt -lpthread -lm"
+    make -j$(nproc)
     sudo make DESTDIR="${DESTDIR}" install
 }
 
