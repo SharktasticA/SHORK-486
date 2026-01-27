@@ -518,6 +518,9 @@ get_ncurses()
     make -j$(nproc)
     make install
     ln -sf "${PREFIX}/lib/libncursesw.a" "${PREFIX}/lib/libncurses.a"
+
+    # Copy licence file
+    cp COPYING $CURR_DIR/build/LICENCES/ncurses.txt
 }
 
 # Download and compile ncurses (required for tmux)
@@ -648,9 +651,6 @@ get_curl()
     ./configure --build="$(gcc -dumpmachine)" --host="${HOST}" --prefix="$SYSROOT" --with-openssl="$SYSROOT" --without-libpsl --disable-shared
     make -j$(nproc)
     make install
-
-    # Copy licence file
-    cp COPYING $CURR_DIR/build/LICENCES/ncurses.txt
 }
 
 # Download and build tic (required for shorkcol)
