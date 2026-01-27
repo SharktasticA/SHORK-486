@@ -39,9 +39,6 @@ fi
 
 export ENV=/etc/profile
 
-# Make terminal font green & show current dir
-printf '\033[37m\033[40m'
-
 # Set up networking
 if [ -d /sys/class/net/eth0 ] && [ -e /sys/class/net/eth0/device ]; then
     ifconfig eth0 up
