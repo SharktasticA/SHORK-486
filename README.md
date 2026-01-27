@@ -6,7 +6,7 @@ A default SHORK 486 system aims to work with at least 16MiB system memory and ta
 
 <p align="center"><img alt="A screenshot of SHORK 486 running on an 86Box virtual machine after a cold boot" src="photos/20260126_365ed_first_boot_crop.jpg" width="640"></p>
 
-See [GALLERY](GALLERY.md) for more photos!
+See [GALLERY](GALLERY.md) for more photos and screenshots!
 
 ## Capabilities
 
