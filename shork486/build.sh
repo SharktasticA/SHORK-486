@@ -755,7 +755,6 @@ get_busybox()
         sudo rm -r "${DESTDIR}"
     fi
     mv _install "${DESTDIR}"
-    mkdir -p $DESTDIR/LICENCES
 
     # Copy licence file
     cp LICENSE $CURR_DIR/build/LICENCES/busybox.txt
@@ -1329,12 +1328,12 @@ trim_fat()
     done
 }
 
-# Copies all licences for including software
+# Copies all licences for included software
 copy_licences()
 {
-    echo -e "${GREEN}Copy all needed licences for including software...${RESET}"
-    mkdir -p "$DESTDIR/LICENCES"
-    cp -a "$CURR_DIR/build/LICENCES/." "$DESTDIR/LICENCES/"
+    echo -e "${GREEN}Copy all needed licences for included software...${RESET}"
+    sudo mkdir -p "$DESTDIR/LICENCES"
+    sudo cp -a "$CURR_DIR/build/LICENCES/." "$DESTDIR/LICENCES/"
 }
 
 
