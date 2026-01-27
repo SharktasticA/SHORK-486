@@ -53,7 +53,6 @@ echo -e "${BLUE}============================${RESET}"
 
 
 # General global vars
-ALWAYS_BUILD=false
 BUILD_TYPE="default"
 BOOTLDR_USED=""
 DISK_CYLINDERS=0
@@ -68,6 +67,7 @@ TOTAL_DISK_SIZE=""
 USED_PARAMS=""
 
 # Process arguments
+ALWAYS_BUILD=false
 ENABLE_FB=true
 ENABLE_HIGHMEM=false
 ENABLE_SATA=false
@@ -711,7 +711,7 @@ get_busybox()
     if [ -d busybox ]; then
         echo -e "${YELLOW}BusyBox source already present, resetting...${RESET}"
         cd busybox
-        git config --global --add safe.directory $CURR_DIR/build/busybox
+        git config --global --add safe.directory "$CURR_DIR/build/busybox"
         git reset --hard
     else
         echo -e "${GREEN}Downloading BusyBox...${RESET}"
@@ -766,7 +766,7 @@ get_util_linux()
     if [ -d util-linux ]; then
         echo -e "${YELLOW}util-linux source already present, resetting...${RESET}"
         cd util-linux
-        git config --global --add safe.directory /var/shork486/build/util-linux
+        git config --global --add safe.directory $CURR_DIR/build/util-linux
         git reset --hard
     else
         echo -e "${GREEN}Downloading util-linux...${RESET}"
@@ -853,7 +853,7 @@ reset_kernel()
 {
     cd "$CURR_DIR/build/linux"
     echo -e "${GREEN}Resetting and cleaning Linux kernel...${RESET}"
-    git config --global --add safe.directory /var/shork486/build/linux || true
+    git config --global --add safe.directory $CURR_DIR/build/linux || true
     git reset --hard || true
     make clean
     configure_kernel
