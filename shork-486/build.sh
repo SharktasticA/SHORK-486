@@ -1637,7 +1637,7 @@ build_disk_img()
     # OVERHEAD is provided to take into account metadata, partition alignment, bootloader structures, etc.
     KERNEL_SIZE=$(stat -c %s bzImage)
     ROOT_SIZE=$(du -sb root/ | cut -f1)
-    OVERHEAD=4
+    OVERHEAD=$(((KERNEL_SIZE + ROOT_SIZE + 1048576 - 1) / 1048576))
     total=$((KERNEL_SIZE + ROOT_SIZE + OVERHEAD * 1048576))
     TOTAL_DISK_SIZE=$(((total + 1048576 - 1) / 1048576))
     TOTAL_DISK_SIZE=$((((TOTAL_DISK_SIZE + 3) / 4) * 4))
