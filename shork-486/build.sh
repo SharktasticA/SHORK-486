@@ -364,7 +364,7 @@ fix_perms()
             sudo chmod 755 .
         fi
 
-        for f in shork486.img shork486.vmdk; do
+        for f in shork-486.img shork-486.vmdk; do
             [ -f "$f" ] || continue
             sudo chown "$HOST_UID:$HOST_GID" "$f"
             sudo chmod 644 "$f"
@@ -376,8 +376,8 @@ fix_perms()
 clean_stale_mounts()
 {
     echo -e "${GREEN}Cleaning up any stale mounts and block-device mappings left by image builds ...${RESET}"
-    sudo umount -lf /mnt/shork486 2>/dev/null || true
-    sudo losetup -a | grep shork486 | cut -d: -f1 | xargs -r sudo losetup -d || true
+    sudo umount -lf /mnt/shork-486 2>/dev/null || true
+    sudo losetup -a | grep shork-486 | cut -d: -f1 | xargs -r sudo losetup -d || true
     sudo dmsetup remove_all 2>/dev/null || true
 }
 
@@ -1519,11 +1519,11 @@ partition_image()
         SWAP_SIZE=$((TARGET_SWAP * 2048))
         ROOT_SIZE=$((ALIGNED_SECTORS - DISK_SECTORS_TRACK - SWAP_SIZE))
         SWAP_START=$((DISK_SECTORS_TRACK + ROOT_SIZE))
-        sed -e "s/@ROOT_SIZE@/${ROOT_SIZE}/g" -e "s/@SWAP_START@/${SWAP_START}/g" -e "s/@SWAP_SIZE@/${SWAP_SIZE}/g" "$CURR_DIR/sysfiles/partitions_swap" | sudo sfdisk "$CURR_DIR/images/shork486.img"
+        sed -e "s/@ROOT_SIZE@/${ROOT_SIZE}/g" -e "s/@SWAP_START@/${SWAP_START}/g" -e "s/@SWAP_SIZE@/${SWAP_SIZE}/g" "$CURR_DIR/sysfiles/partitions_swap" | sudo sfdisk "$CURR_DIR/images/shork-486.img"
     else
         echo -e "${GREEN}Setting up for just root partition (no swap)...${RESET}"
         ROOT_SIZE=$((ALIGNED_SECTORS - DISK_SECTORS_TRACK))
-        sed "s/@ROOT_SIZE@/${ROOT_SIZE}/g" "$CURR_DIR/sysfiles/partitions_noswap" | sudo sfdisk "$CURR_DIR/images/shork486.img"
+        sed "s/@ROOT_SIZE@/${ROOT_SIZE}/g" "$CURR_DIR/sysfiles/partitions_noswap" | sudo sfdisk "$CURR_DIR/images/shork-486.img"
     fi
 
     ROOT_PART_SIZE=$((ROOT_SIZE / 2048))
@@ -1534,25 +1534,25 @@ install_grub_bootloader()
 {
     cd $CURR_DIR/build/
 
-    sudo mkdir -p /mnt/shork486/boot/grub
+    sudo mkdir -p /mnt/shork-486/boot/grub
 
     if ! $NO_MENU; then
         echo -e "${GREEN}Installing menu-based GRUB bootloader...${RESET}"
-        copy_sysfile $CURR_DIR/sysfiles/grub.cfg.menu /mnt/shork486/boot/grub/grub.cfg
+        copy_sysfile $CURR_DIR/sysfiles/grub.cfg.menu /mnt/shork-486/boot/grub/grub.cfg
     else
         echo -e "${GREEN}Installing boot-only GRUB bootloader...${RESET}"
-        copy_sysfile $CURR_DIR/sysfiles/grub.cfg.boot /mnt/shork486/boot/grub/grub.cfg
+        copy_sysfile $CURR_DIR/sysfiles/grub.cfg.boot /mnt/shork-486/boot/grub/grub.cfg
     fi
 
-    sudo mount --bind /dev  /mnt/shork486/dev
-    sudo mount --bind /proc /mnt/shork486/proc
-    sudo mount --bind /sys  /mnt/shork486/sys
+    sudo mount --bind /dev  /mnt/shork-486/dev
+    sudo mount --bind /proc /mnt/shork-486/proc
+    sudo mount --bind /sys  /mnt/shork-486/sys
 
-    sudo grub-install --target=i386-pc --boot-directory=/mnt/shork486/boot --modules="ext2 part_msdos biosdisk" "$1"
+    sudo grub-install --target=i386-pc --boot-directory=/mnt/shork-486/boot --modules="ext2 part_msdos biosdisk" "$1"
 
-    sudo umount /mnt/shork486/dev
-    sudo umount /mnt/shork486/proc
-    sudo umount /mnt/shork486/sys
+    sudo umount /mnt/shork-486/dev
+    sudo umount /mnt/shork-486/proc
+    sudo umount /mnt/shork-486/sys
 
     BOOTLDR_USED="GRUB"
 }
@@ -1569,11 +1569,11 @@ install_extlinux_bootloader()
         BOOTLDR_USED="patched EXTLINUX"
     fi
 
-    sudo mkdir -p /mnt/shork486/boot/syslinux
+    sudo mkdir -p /mnt/shork-486/boot/syslinux
 
     if ! $NO_MENU; then
         echo -e "${GREEN}Installing menu-based EXTLINUX bootloader...${RESET}"
-        copy_sysfile $CURR_DIR/sysfiles/syslinux.cfg.menu  /mnt/shork486/boot/syslinux/syslinux.cfg
+        copy_sysfile $CURR_DIR/sysfiles/syslinux.cfg.menu  /mnt/shork-486/boot/syslinux/syslinux.cfg
         
         SYSLINUX_DIRS="
         /usr/lib/syslinux/modules/bios
@@ -1586,7 +1586,7 @@ install_extlinux_bootloader()
         {
             for d in $SYSLINUX_DIRS; do
                 if [ -f "$d/$1" ]; then
-                    sudo cp "$d/$1" /mnt/shork486/boot/syslinux/
+                    sudo cp "$d/$1" /mnt/shork-486/boot/syslinux/
                     return 0
                 fi
             done
@@ -1600,13 +1600,13 @@ install_extlinux_bootloader()
         copy_syslinux_file libmenu.c32
     else
         echo -e "${GREEN}Installing boot-only EXTLINUX bootloader...${RESET}"
-        copy_sysfile $CURR_DIR/sysfiles/syslinux.cfg.boot  /mnt/shork486/boot/syslinux/syslinux.cfg
+        copy_sysfile $CURR_DIR/sysfiles/syslinux.cfg.boot  /mnt/shork-486/boot/syslinux/syslinux.cfg
     fi
 
-    sudo "$EXTLINUX_BIN" --install /mnt/shork486/boot/syslinux
+    sudo "$EXTLINUX_BIN" --install /mnt/shork-486/boot/syslinux
 
     # Install MBR boot code
-    sudo dd if="$MBR_BIN" of=../images/shork486.img bs=440 count=1 conv=notrunc
+    sudo dd if="$MBR_BIN" of=../images/shork-486.img bs=440 count=1 conv=notrunc
 }
 
 # Build a disk image containing our system
@@ -1619,7 +1619,7 @@ build_disk_img()
     {
         set +e
 
-        mountpoint="/mnt/shork486"
+        mountpoint="/mnt/shork-486"
         if mountpoint -q "$mountpoint" 2>/dev/null; then
             sudo umount -lf "$mountpoint" || true
         fi
@@ -1658,15 +1658,15 @@ build_disk_img()
     fi
 
     # Create the image
-    dd if=/dev/zero of=../images/shork486.img bs=1M count="$TOTAL_DISK_SIZE" status=progress
+    dd if=/dev/zero of=../images/shork-486.img bs=1M count="$TOTAL_DISK_SIZE" status=progress
 
     # Enlarges the image so it ends on a whole CHS cylinder boundary
     SECTORS_PER_CYL=$((DISK_HEADS*DISK_SECTORS_TRACK))
-    IMG_SIZE=$(stat -c %s ../images/shork486.img)
+    IMG_SIZE=$(stat -c %s ../images/shork-486.img)
     SECTORS_NO=$((IMG_SIZE / 512))
     ALIGNED_SECTORS=$(((SECTORS_NO + SECTORS_PER_CYL - 1) / SECTORS_PER_CYL * SECTORS_PER_CYL))
     ALIGNED_IMG_SIZE=$((ALIGNED_SECTORS * 512))
-    truncate -s "$ALIGNED_IMG_SIZE" ../images/shork486.img
+    truncate -s "$ALIGNED_IMG_SIZE" ../images/shork-486.img
     DISK_CYLINDERS=$((ALIGNED_SECTORS / SECTORS_PER_CYL))
 
     # Partition the image
@@ -1679,7 +1679,7 @@ build_disk_img()
     [ -e /dev/loop-control ] || sudo mknod /dev/loop-control c 10 237
 
     # Expose partition
-    loop=$(sudo losetup -f --show ../images/shork486.img)
+    loop=$(sudo losetup -f --show ../images/shork-486.img)
     sudo kpartx -av "$loop"
     root_part="/dev/mapper/$(basename "$loop")p1"
     if [ -n "$TARGET_SWAP" ]; then
@@ -1689,21 +1689,21 @@ build_disk_img()
     # Create and populate root partition
     echo -e "${GREEN}Creating root partition...${RESET}"
     sudo mkfs.ext4 -F "$root_part"
-    sudo mkdir -p /mnt/shork486
-    sudo mount "$root_part" /mnt/shork486
-    sudo cp -a root//. /mnt/shork486
-    sudo mkdir -p /mnt/shork486/{dev,proc,sys,boot}
+    sudo mkdir -p /mnt/shork-486
+    sudo mount "$root_part" /mnt/shork-486
+    sudo cp -a root//. /mnt/shork-486
+    sudo mkdir -p /mnt/shork-486/{dev,proc,sys,boot}
 
     # Create swap partition if enabled
     if [ -n "$TARGET_SWAP" ]; then
         echo -e "${GREEN}Creating swap partition...${RESET}"
         sudo mkswap "$swap_part"
-        echo "/dev/sda2 none swap sw 0 0" | sudo tee -a /mnt/shork486/etc/fstab
+        echo "/dev/sda2 none swap sw 0 0" | sudo tee -a /mnt/shork-486/etc/fstab
     fi
 
     # Install the kernel
     echo -e "${GREEN}Installing kernel image...${RESET}"
-    sudo cp bzImage /mnt/shork486/boot/bzImage
+    sudo cp bzImage /mnt/shork-486/boot/bzImage
 
     # Install a bootloader
     if $USE_GRUB; then
@@ -1714,7 +1714,7 @@ build_disk_img()
     
     # Ensure file system is in a clean state
     echo -e "${GREEN}Unmounting file system...${RESET}"
-    sudo umount /mnt/shork486
+    sudo umount /mnt/shork-486
     sudo fsck.ext4 -f -p "$root_part"
 }
 
@@ -1724,7 +1724,7 @@ convert_disk_img()
     cd $CURR_DIR/images/
 
     echo -e "${GREEN}Creating VMware virtual machine disk from disk image...${RESET}"
-    qemu-img convert -f raw -O vmdk shork486.img shork486.vmdk
+    qemu-img convert -f raw -O vmdk shork-486.img shork-486.vmdk
 }
 
 

@@ -1,6 +1,6 @@
 # SHORK 486
 
-Member of the SHORK family: **SHORK 486** | [SHORK DISKETTE](https://github.com/SharktasticA/SHORK-486)
+Member of the SHORK family: **SHORK 486** | [SHORK DISKETTE](https://github.com/SharktasticA/SHORK-DISKETTE)
 
 -----
 
@@ -88,13 +88,13 @@ Please read "Notice & disclaimers" at the end of this readme before proceeding. 
 
 ### Native building
 
-If you are using an Arch or Debian-based Linux, run `build.sh` whilst in the `shork486` directory and answer any prompts given throughout the process. Build parameters are listed in the "Scripts & parameters" section of this readme that can be used to reduce the need for the aforementioned prompts.
+If you are using an Arch or Debian-based Linux, run `build.sh` whilst in the `shork-486` directory and answer any prompts given throughout the process. Build parameters are listed in the "Scripts & parameters" section of this readme that can be used to reduce the need for the aforementioned prompts.
 
 ### Dockerised building
 
 If you are using Windows, macOS (x86-64), a Linux distribution that has not been tested with native building, or want some kind of "sandbox" around the build process, you can try Dockerised building instead. It will create a Docker container with a minimal Debian 13 installation that is active for just the lifetime of the build process. You simply run `docker-compose up`.
 
-Build parameters as seen in the "Scripts & parameters" section can also be used for Dockerised building, placed in a list under `services` -> `shork486-build` -> `command` inside `docker-compose.yml`. If a build run has already been made, you may need to run `docker-compose up --build` instead before any changes are applied.
+Build parameters as seen in the "Scripts & parameters" section can also be used for Dockerised building, placed in a list under `services` -> `shork-486-build` -> `command` inside `docker-compose.yml`. If a build run has already been made, you may need to run `docker-compose up --build` instead before any changes are applied.
 
 ### Build process
 
@@ -116,15 +116,15 @@ The following describes the build process as it is by default (no build paramete
 
 8. Building the root file system is continued. This involves creating all required subdirectories, copying all of `sysfiles` contents and SHORK utilities from `shorkutils` to their relevant places within the root file system. Keymaps, the PCI IDs database and any configuration files for bundled software are also installed at this point.
 
-9. A raw disk image (`images/shork486.img`) is created, and the kernel image, root file system and bootloader are installed to it.
+9. A raw disk image (`images/shork-486.img`) is created, and the kernel image, root file system and bootloader are installed to it.
 
-10. `qemu-img` is used to produce a VMware virtual machine disk (`images/shork486.vmdk`) based on the raw disk image.
+10. `qemu-img` is used to produce a VMware virtual machine disk (`images/shork-486.vmdk`) based on the raw disk image.
 
 11. An after-build report (`images/report.txt`) is generated to help confirm if the build was completed as intended. It confirms the type of build made, the time it took to create, the minimum system memory requirement, handy disk image statistics, and which programs or features are included or excluded.
 
 ### After building
 
-Once built, two disk images - `shork486.img` and `shork486.vmdk` - and an after-build report (`report.txt`) should be present in the `images` folder. The former raw disk image can be used as-is with emulation software like 86Box or written to a real drive using (e.g.) `dd`, and the latter VMware virtual machine disk can be used as-is with VMware Workstation or Player. Please refer to the "Running" section for suggested virtual machine configurations to get started with SHORK 486.
+Once built, two disk images - `shork-486.img` and `shork-486.vmdk` - and an after-build report (`report.txt`) should be present in the `images` folder. The former raw disk image can be used as-is with emulation software like 86Box or written to a real drive using (e.g.) `dd`, and the latter VMware virtual machine disk can be used as-is with VMware Workstation or Player. Please refer to the "Running" section for suggested virtual machine configurations to get started with SHORK 486.
 
 It is recommended to move or copy the images out of this directory before extensive or serious use because they will be replaced if the build process is rerun.
 

@@ -1,5 +1,5 @@
 services:
-  shork486-build:
+  shork-486-build:
     build: .
     command:
       - --always-build
@@ -12,4 +12,4 @@ services:
       - IN_DOCKER=1
     privileged: true
     volumes:
-      - ./shork486:/var/shork486
+      - ./shork-486:/var/shork-486

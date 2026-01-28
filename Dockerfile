@@ -5,6 +5,6 @@ RUN dpkg --add-architecture i386 \
     && apt-get install -y autoconf autopoint bc bison bzip2 e2fsprogs extlinux fdisk flex git grub-common grub-pc kpartx libtool make nasm pciutils pkg-config python3 python-is-python3 qemu-utils sudo syslinux texinfo uuid-dev wget xz-utils \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /var/shork486
+WORKDIR /var/shork-486
 
-ENTRYPOINT ["/bin/bash", "/var/shork486/build.sh"]
+ENTRYPOINT ["/bin/bash", "/var/shork-486/build.sh"]
