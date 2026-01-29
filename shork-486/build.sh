@@ -400,6 +400,10 @@ install_arch_prerequisites()
 
     PACKAGES="autoconf bc base-devel bison bzip2 ca-certificates cpio dosfstools e2fsprogs flex gettext git libtool make multipath-tools ncurses pciutils python qemu-img systemd texinfo util-linux wget xz"
 
+    if $ENABLE_X11; then
+        PACKAGES+=" xorg-bdftopcf"
+    fi
+
     if $FIX_EXTLINUX; then
         PACKAGES+=" nasm"
     fi
@@ -424,6 +428,10 @@ install_debian_prerequisites()
     sudo apt-get update
 
     PACKAGES="autopoint bc bison bzip2 e2fsprogs fdisk flex git kpartx libtool make python3 python-is-python3 qemu-utils syslinux wget xz-utils"
+
+    if $ENABLE_X11; then
+        PACKAGES+=" xfonts-utils"
+    fi
 
     if $FIX_EXTLINUX; then
         PACKAGES+=" nasm uuid-dev"
@@ -1194,8 +1202,45 @@ get_libxcb()
     make install DESTDIR="$SYSROOT"
 }
 
+get_xtrans()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already built
+    if [ -f "$SYSROOT/usr/include/X11/Xtrans/Xtrans.h" ]; then
+        echo -e "${LIGHT_RED}xtrans already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading xtrans...${RESET}"
+
+    XTRANS="xtrans-1.6.0"
+    XTRANS_ARC="${XTRANS}.tar.xz"
+    XTRANS_URI="https://www.x.org/releases/individual/lib/${XTRANS_ARC}"
+
+    # Download source
+    [ -f $XTRANS_ARC ] || wget $XTRANS_URI
+
+    # Extract source
+    if [ -d $XTRANS ]; then
+        echo -e "${YELLOW}xtrans' source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -r $XTRANS
+    fi
+    tar xf $XTRANS_ARC
+    cd $XTRANS
+
+    # Compile and install
+    echo -e "${GREEN}Compiling xtrans...${RESET}"
+    ./configure --host="$HOST" --prefix=/usr CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    make -j$(nproc)
+    make DESTDIR="$SYSROOT" install
+}
+
 get_libx11()
 {
+    # Prevent hard-coded paths poisoning the cross-compilation linker
+    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+
     cd "$CURR_DIR/build"
 
     # Skip if already built
@@ -1404,40 +1449,6 @@ get_utilmacros()
     make DESTDIR="$SYSROOT" install
 }
 
-get_xtrans()
-{
-    cd "$CURR_DIR/build"
-
-    # Skip if already built
-    if [ -f "$SYSROOT/usr/include/X11/Xtrans/Xtrans.h" ]; then
-        echo -e "${LIGHT_RED}xtrans already compiled, skipping...${RESET}"
-        return
-    fi
-
-    echo -e "${GREEN}Downloading xtrans...${RESET}"
-
-    XTRANS="xtrans-1.6.0"
-    XTRANS_ARC="${XTRANS}.tar.xz"
-    XTRANS_URI="https://www.x.org/releases/individual/lib/${XTRANS_ARC}"
-
-    # Download source
-    [ -f $XTRANS_ARC ] || wget $XTRANS_URI
-
-    # Extract source
-    if [ -d $XTRANS ]; then
-        echo -e "${YELLOW}xtrans' source archive is already present, re-extracting before proceeding...${RESET}"
-        rm -r $XTRANS
-    fi
-    tar xf $XTRANS_ARC
-    cd $XTRANS
-
-    # Compile and install
-    echo -e "${GREEN}Compiling xtrans...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
-    make DESTDIR="$SYSROOT" install
-}
-
 get_freetype()
 {
     cd "$CURR_DIR/build"
@@ -1621,13 +1632,13 @@ prepare_x11()
     get_libxau
     get_xcbproto
     get_libxcb
+    get_xtrans
     get_libx11
     get_libxext
     get_libxfixes
     get_libxi
     get_libxtst
     get_utilmacros
-    get_xtrans
     get_freetype
     get_libfontenc
     get_libxfont
@@ -2516,6 +2527,9 @@ fi
 if $ENABLE_X11; then
     prepare_x11
     get_tinyx
+    INCLUDED_FEATURES+="\n  * TinyX"
+else
+    EXCLUDED_FEATURES+="\n  * TinyX"
 fi
 
 if ! $SKIP_DROPBEAR; then
