@@ -2711,8 +2711,14 @@ build_disk_img()
     # OVERHEAD is provided to take into account metadata, partition alignment, bootloader structures, etc.
     KERNEL_BYTES=$(stat -c %s bzImage)
     ROOT_BYTES=$(du -sb root/ | cut -f1)
-    OVERHEAD_BYTE=$((ROOT_BYTES / 2))
-    TOTAL_BYTES=$((KERNEL_BYTES + ROOT_BYTES + OVERHEAD_BYTE))
+    OVERHEAD_BYTES=0
+    if [[ $ROOT_BYTES -lt 10485760 ]]; then
+        OVERHEAD_BYTES=$ROOT_BYTES
+    else
+        OVERHEAD_BYTES=$((ROOT_BYTES / 2))
+    fi
+
+    TOTAL_BYTES=$((KERNEL_BYTES + ROOT_BYTES + OVERHEAD_BYTES))
     TOTAL_MIB=$((TOTAL_BYTES / 1048576))
     TOTAL_DISK_SIZE=$((((TOTAL_MIB + 3) / 4) * 4))
 
