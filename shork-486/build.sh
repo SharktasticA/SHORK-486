@@ -324,6 +324,7 @@ NCURSES_VER="6.4"
 OPENSSL_VER="3.6.0"
 TMUX_VER="3.6a"
 TNFTP_VER="20230507"
+TWM_VER="1.0.13.1"
 ZLIB_VER="1.3.1.2"
 
 # MBR binary
@@ -1588,25 +1589,15 @@ get_fontutil()
 get_font_misc()
 {
     cd "$CURR_DIR/build"
-    
-    # We need the font-util to provide the 'bdftopcf' tool logic
-    # and the actual font-misc-misc package for the 'fixed' font.
-    # Package: font-misc-misc-1.0.3 (contains 'fixed')
-    # Package: font-cursor-misc-1.0.3 (contains the 'X' cursor)
 
     for FONT in font-misc-misc-1.1.3 font-cursor-misc-1.0.4; do
         echo -e "${GREEN}Building $FONT...${RESET}"
-        
         ARC="${FONT}.tar.xz"
         URI="https://www.x.org/releases/individual/font/${ARC}"
-
         [ -f $ARC ] || wget $URI
         tar xf $ARC
         cd $FONT
-
-        # Fonts are cross-compiled differently; they mostly just need a path
         ./configure --host="$HOST" --prefix=/usr --with-fontdir=/usr/lib/X11/fonts/misc
-            
         make -j$(nproc)
         make install DESTDIR="$SYSROOT"
         cd ..
@@ -1685,7 +1676,34 @@ get_tinyx()
 
 get_twm()
 {
-    return
+    cd "$CURR_DIR/build"
+
+    # Skip if already built
+    if [ -f "$DESTDIR/usr/bin/twm" ]; then
+        echo -e "${LIGHT_RED}TWM already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d twm ]; then
+        echo -e "${YELLOW}TWM source already present, resetting...${RESET}"
+        cd twm
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading TWM...${RESET}"
+        git clone https://gitlab.freedesktop.org/xorg/app/twm.git
+        cd twm
+    fi
+
+    export ACLOCAL_PATH="$SYSROOT/usr/share/aclocal"
+    
+    # Compile and install
+    echo -e "${GREEN}Compiling TWM...${RESET}"
+    ./autogen.sh
+    ./configure --host="$HOST" --prefix=/usr CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    make -j$(nproc)
+    make DESTDIR="$DESTDIR" install
 }
 
 
@@ -2528,9 +2546,12 @@ fi
 if $ENABLE_X11; then
     prepare_x11
     get_tinyx
+    #get_twm
     INCLUDED_FEATURES+="\n  * TinyX"
+    INCLUDED_FEATURES+="\n  * TWM"
 else
     EXCLUDED_FEATURES+="\n  * TinyX"
+    #INCLUDED_FEATURES+="\n  * TWM"
 fi
 
 if ! $SKIP_DROPBEAR; then
