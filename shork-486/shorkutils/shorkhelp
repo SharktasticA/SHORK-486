@@ -50,7 +50,7 @@ if [ ! -x /usr/bin/ftp ]; then
     TNFTP_PRESENT=false
 fi
 
-WIDTH=$(stty size 2>/dev/null | cut -d' ' -f2)
+TERMWIDTH=$(stty size 2>/dev/null | cut -d' ' -f2)
 
 
 
@@ -104,7 +104,7 @@ shorkcol, shorkfetch, shorkhelp, shorkmap, shorkoff, shorkres"
         OUTPUT=$(echo "$OUTPUT" | sed -e "s|ftp, ||g")
     fi
 
-    echo "$OUTPUT" | fold -s -w "$WIDTH"
+    echo "$OUTPUT" | fold -s -w "$TERMWIDTH"
 }
 
 print_emacs_hints()
@@ -135,7 +135,7 @@ print_git_commands()
 
 add, blame, branch, checkout, cherry-pick, clean, clone, commit, config, diff, fetch, init, log, merge, mv, pull, push, rebase, reflog, remote, reset, restore, rm, show, stash, status, switch, tag"
 
-    echo "$OUTPUT" | fold -s -w "$WIDTH"
+    echo "$OUTPUT" | fold -s -w "$TERMWIDTH"
 }
 
 print_intro()
@@ -157,7 +157,7 @@ Getting started with @NAME@
 7. Check shorkhelp's other options to learn about all available commands and other @NAME@ utilities.
 8. When you are finished using @NAME@, run shorkoff to safely bring your system to a halt."
 
-    echo "$OUTPUT" | fold -s -w "$WIDTH"
+    echo "$OUTPUT" | fold -s -w "$TERMWIDTH"
 }
 
 print_utilities()
@@ -185,7 +185,7 @@ shorkres - Persistently changes the system's display resolution (provided the ha
         OUTPUT=$(echo "$OUTPUT" | awk '/^shorkres -/ {f=1; next} f && /^$/ {f=0; next} !f')
     fi
 
-    echo "$OUTPUT" | fold -s -w "$WIDTH"
+    echo "$OUTPUT" | fold -s -w "$TERMWIDTH"
 }
 
 
@@ -233,6 +233,6 @@ if ! $GIT_PRESENT; then
     CMDS=$(echo "$CMDS" | sed -E 's/--git \| //g; s/ \| --git//g; s/--git//g')
 fi
 
-printf "Displays help and reference information for using @NAME@ and its built-in tools.\n\n" | fold -s -w "$WIDTH"
-echo "Usage: shorkhelp {$CMDS}" | fold -s -w "$WIDTH"
+printf "Displays help and reference information for using @NAME@ and its built-in tools.\n\n" | fold -s -w "$TERMWIDTH"
+echo "Usage: shorkhelp {$CMDS}" | fold -s -w "$TERMWIDTH"
 exit 1

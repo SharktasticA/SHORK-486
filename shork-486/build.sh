@@ -2109,6 +2109,7 @@ build_file_system()
 
     echo -e "${GREEN}Copying shorkutils...${RESET}"
     copy_sysfile $CURR_DIR/shorkutils/shorkcol $DESTDIR/usr/libexec/shorkcol
+    copy_sysfile $CURR_DIR/sysfiles/shorkcol.conf $DESTDIR/etc/shorkcol.conf
     INCLUDED_FEATURES+="\n  * shorkcol"
     copy_sysfile $CURR_DIR/shorkutils/shorkfetch $DESTDIR/usr/bin/shorkfetch
     INCLUDED_FEATURES+="\n  * shorkfetch"

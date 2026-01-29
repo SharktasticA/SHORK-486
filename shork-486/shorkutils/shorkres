@@ -21,11 +21,11 @@ elif [ -f /boot/syslinux/syslinux.cfg ]; then
     CFG="/boot/syslinux/syslinux.cfg"
 fi
 
-WIDTH=$(stty size 2>/dev/null | cut -d' ' -f2)
+TERMWIDTH=$(stty size 2>/dev/null | cut -d' ' -f2)
 
 if [ $# -ne 1 ]; then
-    printf "Changes the system's display resolution.\n\n" | fold -s -w "$WIDTH"
-    echo "Usage: shorkres {$RES}" | fold -s -w "$WIDTH"
+    printf "Changes the system's display resolution.\n\n" | fold -s -w "$TERMWIDTH"
+    echo "Usage: shorkres {$RES}" | fold -s -w "$TERMWIDTH"
     echo "Current resolution: $([ -f $FB_RES ] && cat $FB_RES || echo 80x24)"
 
     exit 1
