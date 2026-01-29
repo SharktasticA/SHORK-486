@@ -13,7 +13,11 @@ FONT_DIR="/usr/lib/X11/fonts/misc/"
 TERMWIDTH=$(stty size 2>/dev/null | cut -d' ' -f2)
 
 if [ ! -e /dev/fb0 ]; then
-    printf "ERROR: Framebuffer support appears to be disabled. This could be due to not using a VESA-compatible resolution or @NAME@ was built without kernel-level framebuffer, VESA and enhanced VGA support. Try using \033[32mshorkres\033[${ASCII}m to switch to \"vga\" or higher resolution, and if that does not work, verify if kernel-level support is included as per @NAME@'s after-build report.\n" | fold -s -w "$TERMWIDTH"
+    printf "ERROR: No framebuffer device has been found. This could be due to using a non-VESA-compatible graphics card or resolution, or @NAME@ was built without kernel-level framebuffer, VESA and enhanced VGA support. Try using \033[32mshorkres\033[${ASCII}m to switch to \"vga\" or higher resolution, and if that does not work, verify if kernel-level support is included as per @NAME@'s after-build report.\n" | fold -s -w "$TERMWIDTH"
+    exit 1
 fi
 
-Xfbdev :0 -fp $FONT_DIR 2>/dev/null
+Xfbdev :0 -fp $FONT_DIR 2>/dev/null &
+export DISPLAY=:0
+sleep 2
+twm

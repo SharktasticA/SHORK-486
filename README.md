@@ -84,7 +84,7 @@ SHORK 486 can be used on newer hardware if you so desire, but there are some con
 
 ## Usage
 
-Please read "Notice & disclaimers" at the end of this readme before proceeding. Building SHORK 486 may require up to 4GiB of disk space.
+Please read "Notice & disclaimers" at the end of this readme before proceeding. Building SHORK 486 may require up to 5GiB of disk space.
 
 ### Native building
 

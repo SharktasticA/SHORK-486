@@ -72,6 +72,7 @@ ENABLE_FB=true
 ENABLE_HIGHMEM=false
 ENABLE_SATA=false
 ENABLE_SMP=false
+ENABLE_TWM=false
 ENABLE_USB=false
 ENABLE_X11=false
 FIX_EXTLINUX=false
@@ -114,8 +115,9 @@ while [ $# -gt 0 ]; do
             ENABLE_SMP=true
             BUILD_TYPE="custom"
             ;;
-        --fix-extlinux)
-            FIX_EXTLINUX=true
+        --enable-twm)
+            ENABLE_TWM=true
+            BUILD_TYPE="custom"
             ;;
         --enable-usb)
             ENABLE_USB=true
@@ -124,6 +126,9 @@ while [ $# -gt 0 ]; do
         --enable-x11)
             ENABLE_X11=true
             BUILD_TYPE="custom"
+            ;;
+        --fix-extlinux)
+            FIX_EXTLINUX=true
             ;;
         --is-arch)
             IS_ARCH=true
@@ -252,9 +257,14 @@ elif $MINIMAL; then
     USE_GRUB=false
 fi
 
-# Override to ensure "use GRUB" is disabled when "Fix EXTLINUX" parameter is used
+# Override to ensure the "use GRUB" parameter is disabled when the "Fix EXTLINUX" parameter is used
 if $FIX_EXTLINUX; then
     USE_GRUB=false
+fi
+
+# Override to ensure the "enable TWM" parameter is disabled when the "use X11" parameter is not used
+if ! $ENABLE_X11; then
+    ENABLE_TWM=false
 fi
 
 
@@ -301,6 +311,10 @@ fi
 NEED_ZLIB=false
 NEED_OPENSSL=false
 NEED_CURL=false
+
+if $ENABLE_TWM; then
+    NEED_ZLIB=true
+fi
 
 if ! $SKIP_GIT; then
     NEED_ZLIB=true
@@ -401,6 +415,10 @@ install_arch_prerequisites()
 
     PACKAGES="autoconf bc base-devel bison bzip2 ca-certificates cpio dosfstools e2fsprogs flex gettext git libtool make multipath-tools ncurses pciutils python qemu-img systemd texinfo util-linux wget xz"
 
+    if $ENABLE_TWM; then
+        PACKAGES+=" gperf"
+    fi
+
     if $ENABLE_X11; then
         PACKAGES+=" xorg-bdftopcf"
     fi
@@ -429,6 +447,10 @@ install_debian_prerequisites()
     sudo apt-get update
 
     PACKAGES="autopoint bc bison bzip2 e2fsprogs fdisk flex git kpartx libtool make python3 python-is-python3 qemu-utils syslinux wget xz-utils"
+
+    if $ENABLE_TWM; then
+        PACKAGES+=" gperf"
+    fi
 
     if $ENABLE_X11; then
         PACKAGES+=" xfonts-utils"
@@ -569,7 +591,7 @@ get_libevent()
     make install
 }
 
-# Download and compile zlib (required for Git)
+# Download and compile zlib (required for Git and TWM)
 get_zlib()
 {
     cd "$CURR_DIR/build"
@@ -1038,7 +1060,7 @@ get_xorgproto()
     cd "$CURR_DIR/build"
 
     # Skip if already built
-    if [ -f "$SYSROOT/usr/include/X11/extensions/xproto.h" ]; then
+    if [ -f "$SYSROOT/usr/include/X11/Xproto.h" ]; then
         echo -e "${LIGHT_RED}xorgproto already compiled, skipping...${RESET}"
         return
     fi
@@ -1061,7 +1083,7 @@ get_xorgproto()
     cd $XORGPROTO
 
     # Compile and install
-    echo -e "${GREEN}Compiling curxorgprotol...${RESET}"
+    echo -e "${GREEN}Compiling xorgproto...${RESET}"
     ./configure --host="$HOST" --prefix=/usr --enable-legacy --with-sysroot="$SYSROOT" CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
     make -j$(nproc)
     make DESTDIR="$SYSROOT" install
@@ -1416,6 +1438,145 @@ get_libxtst()
     make DESTDIR="$SYSROOT" install
 }
 
+get_libice()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already built
+    if [ -f "$SYSROOT/usr/lib/libICE.a" ]; then
+        echo -e "${LIGHT_RED}libICE already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading libICE...${RESET}"
+
+    LIBICE="libICE-1.1.2"
+    LIBICE_ARC="${LIBICE}.tar.xz"
+    LIBICE_URI="https://www.x.org/releases/individual/lib/${LIBICE_ARC}"
+
+    # Download source
+    [ -f $LIBICE_ARC ] || wget $LIBICE_URI
+
+    # Extract source
+    if [ -d $LIBICE ]; then
+        echo -e "${YELLOW}libICE's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -rf $LIBICE
+    fi
+    tar xf $LIBICE_ARC
+    cd $LIBICE
+
+    # Compile and install
+    echo -e "${GREEN}Compiling libICE...${RESET}"
+    ./configure --host="$HOST" --prefix=/usr CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    make -j$(nproc)
+    make DESTDIR="$SYSROOT" install
+}
+
+get_libsm()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already built
+    if [ -f "$SYSROOT/usr/lib/libSM.a" ]; then
+        echo -e "${LIGHT_RED}libSM already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading libSM...${RESET}"
+
+    LIBSM="libSM-1.2.6"
+    LIBSM_ARC="${LIBSM}.tar.xz"
+    LIBSM_URI="https://www.x.org/releases/individual/lib/${LIBSM_ARC}"
+
+    # Download source
+    [ -f $LIBSM_ARC ] || wget $LIBSM_URI
+
+    # Extract source
+    if [ -d $LIBSM ]; then
+        echo -e "${YELLOW}libSM's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -rf $LIBSM
+    fi
+    tar xf $LIBSM_ARC
+    cd $LIBSM
+
+    # Compile and install
+    echo -e "${GREEN}Compiling libSM...${RESET}"
+    ./configure --host="$HOST" --prefix=/usr CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    make -j$(nproc)
+    make DESTDIR="$SYSROOT" install
+}
+
+get_libxt()
+{
+    # Prevent hard-coded paths poisoning the cross-compilation linker
+    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+
+    cd "$CURR_DIR/build"
+
+    # Skip if already built
+    if [ -f "$SYSROOT/usr/lib/libXt.a" ]; then
+        echo -e "${LIGHT_RED}libXt already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading libXt...${RESET}"
+
+    LIBXT="libXt-1.3.1"
+    LIBXT_ARC="${LIBXT}.tar.xz"
+    LIBXT_URI="https://www.x.org/releases/individual/lib/${LIBXT_ARC}"
+
+    # Download source
+    [ -f $LIBXT_ARC ] || wget $LIBXT_URI
+
+    # Extract source
+    if [ -d $LIBXT ]; then
+        echo -e "${YELLOW}libXt's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -rf $LIBXT
+    fi
+    tar xf $LIBXT_ARC
+    cd $LIBXT
+
+    # Compile and install
+    echo -e "${GREEN}Compiling libXt...${RESET}"
+    ./configure --host="$HOST" --prefix=/usr CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    make -j$(nproc)
+    make DESTDIR="$SYSROOT" install
+}
+
+get_libxmu()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already built
+    if [ -f "$SYSROOT/usr/lib/libXmu.a" ]; then
+        echo -e "${LIGHT_RED}libXmu already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading libXmu...${RESET}"
+
+    LIBXMU="libXmu-1.3.1"
+    LIBXMU_ARC="${LIBXMU}.tar.xz"
+    LIBXMU_URI="https://www.x.org/releases/individual/lib/${LIBXMU_ARC}"
+
+    # Download source
+    [ -f $LIBXMU_ARC ] || wget $LIBXMU_URI
+
+    # Extract source
+    if [ -d $LIBXMU ]; then
+        echo -e "${YELLOW}libXmu's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -rf $LIBXMU
+    fi
+    tar xf $LIBXMU_ARC
+    cd $LIBXMU
+
+    # Compile and install
+    echo -e "${GREEN}Compiling libXmu...${RESET}"
+    ./configure --host="$HOST" --prefix=/usr CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    make -j$(nproc)
+    make DESTDIR="$SYSROOT" install
+}
+
 get_utilmacros()
 {
     cd "$CURR_DIR/build"
@@ -1479,6 +1640,145 @@ get_freetype()
 
     # Compile and install
     echo -e "${GREEN}Compiling freetype...${RESET}"
+    ./configure --host="$HOST" --prefix=/usr CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    make -j$(nproc)
+    make DESTDIR="$SYSROOT" install
+}
+
+get_libexpat()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already built
+    if [ -f "$SYSROOT/usr/lib/libexpat.a" ]; then
+        echo -e "${LIGHT_RED}libexpat already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading libexpat...${RESET}"
+
+    LIBEXPAT="expat-2.5.0"
+    LIBEXPAT_ARC="${LIBEXPAT}.tar.xz"
+    LIBEXPAT_URI="https://github.com/libexpat/libexpat/releases/download/R_2_5_0/${LIBEXPAT_ARC}"
+
+    # Download source
+    [ -f $LIBEXPAT_ARC ] || wget $LIBEXPAT_URI
+
+    # Extract source
+    if [ -d $LIBEXPAT ]; then
+        echo -e "${YELLOW}libexpat's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -r $LIBEXPAT
+    fi
+    tar xf $LIBEXPAT_ARC
+    cd $LIBEXPAT
+
+    # Compile and install
+    echo -e "${GREEN}Compiling libexpat...${RESET}"
+    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static --without-examples --without-tests CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    make -j$(nproc)
+    make DESTDIR="$SYSROOT" install
+}
+
+get_fontconfig()
+{
+    # Prevent hard-coded paths poisoning the cross-compilation linker
+    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+    
+    cd "$CURR_DIR/build"
+
+    # Skip if already built
+    if [ -f "$SYSROOT/usr/lib/libfontconfig.a" ]; then
+        echo -e "${LIGHT_RED}fontconfig already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading fontconfig...${RESET}"
+
+    FONTCONFIG="fontconfig-2.16.0"
+    FONTCONFIG_ARC="${FONTCONFIG}.tar.xz"
+    FONTCONFIG_URI="https://www.freedesktop.org/software/fontconfig/release/${FONTCONFIG_ARC}"
+
+    # Download source
+    [ -f $FONTCONFIG_ARC ] || wget $FONTCONFIG_URI
+
+    # Extract source
+    if [ -d $FONTCONFIG ]; then
+        echo -e "${YELLOW}fontconfig's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -r $FONTCONFIG
+    fi
+    tar xf $FONTCONFIG_ARC
+    cd $FONTCONFIG
+
+    # Compile and install
+    echo -e "${GREEN}Compiling fontconfig...${RESET}"
+    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP" LIBS="-lz -lm"
+    make -j$(nproc)
+    make DESTDIR="$SYSROOT" install
+}
+
+get_libxrender()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already built
+    if [ -f "$SYSROOT/usr/lib/libXrender.a" ]; then
+        echo -e "${LIGHT_RED}libXrender already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading libXrender...${RESET}"
+
+    LIBXRENDER="libXrender-0.9.12"
+    LIBXRENDER_ARC="${LIBXRENDER}.tar.xz"
+    LIBXRENDER_URI="https://www.x.org/archive/individual/lib/${LIBXRENDER_ARC}"
+
+    # Download source
+    [ -f $LIBXRENDER_ARC ] || wget $LIBXRENDER_URI
+
+    # Extract source
+    if [ -d $LIBXRENDER ]; then
+        echo -e "${YELLOW}libXrender's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -r $LIBXRENDER
+    fi
+    tar xf $LIBXRENDER_ARC
+    cd $LIBXRENDER
+
+    # Compile and install
+    echo -e "${GREEN}Compiling libXrender...${RESET}"
+    ./configure --host="$HOST" --prefix=/usr CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    make -j$(nproc)
+    make DESTDIR="$SYSROOT" install
+}
+
+get_libxft()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already built
+    if [ -f "$SYSROOT/usr/lib/libXft.a" ]; then
+        echo -e "${LIGHT_RED}libXft already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading libXft...${RESET}"
+
+    LIBXFT="libXft-2.3.9"
+    LIBXFT_ARC="${LIBXFT}.tar.xz"
+    LIBXFT_URI="https://www.x.org/archive/individual/lib/${LIBXFT_ARC}"
+
+    # Download source
+    [ -f $LIBXFT_ARC ] || wget $LIBXFT_URI
+
+    # Extract source
+    if [ -d $LIBXFT ]; then
+        echo -e "${YELLOW}libXft's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -r $LIBXFT
+    fi
+    tar xf $LIBXFT_ARC
+    cd $LIBXFT
+
+    # Compile and install
+    echo -e "${GREEN}Compiling libXft...${RESET}"
     ./configure --host="$HOST" --prefix=/usr CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
     make -j$(nproc)
     make DESTDIR="$SYSROOT" install
@@ -1557,7 +1857,7 @@ get_fontutil()
     cd "$CURR_DIR/build"
 
     # Skip if already built
-    if [ -f "$SYSROOT/usr/share/pkgconfig/fontutil.pc" ]; then
+    if [ -f "$SYSROOT/usr/share/aclocal/fontutil.m4" ]; then
         echo -e "${LIGHT_RED}font-util already compiled, skipping...${RESET}"
         return
     fi
@@ -1590,6 +1890,13 @@ get_font_misc()
 {
     cd "$CURR_DIR/build"
 
+    FONTDIR=$DESTDIR/usr/lib/X11/fonts/misc
+
+    if [ -f "$FONTDIR/fonts.dir" ]; then
+        echo -e "${LIGHT_RED}Fonts for X11 already installed, skipping...${RESET}"
+        return
+    fi
+
     for FONT in font-misc-misc-1.1.3 font-cursor-misc-1.0.4; do
         echo -e "${GREEN}Building $FONT...${RESET}"
         ARC="${FONT}.tar.xz"
@@ -1604,7 +1911,6 @@ get_font_misc()
     done
 
     # Copy basic font set
-    FONTDIR=$DESTDIR/usr/lib/X11/fonts/misc
     mkdir -p $FONTDIR
     cp $SYSROOT/usr/lib/X11/fonts/misc/6x13.pcf.gz $FONTDIR
     cp $SYSROOT/usr/lib/X11/fonts/misc/cursor.pcf.gz $FONTDIR
@@ -1629,8 +1935,24 @@ prepare_x11()
     get_libxfixes
     get_libxi
     get_libxtst
+
+    if $ENABLE_TWM; then
+        get_libice
+        get_libsm
+        get_libxt
+        get_libxmu
+    fi
+
     get_utilmacros
     get_freetype
+
+    if $ENABLE_TWM; then
+        get_libexpat
+        get_fontconfig
+        get_libxrender
+        get_libxft
+    fi
+
     get_libfontenc
     get_libxfont
     get_fontutil
@@ -1672,6 +1994,9 @@ get_tinyx()
     ./configure --host="${HOST}" --prefix=/usr --with-sysroot="$SYSROOT" --disable-xorg --enable-kdrive --enable-xfbdev --disable-shared --enable-static CC="${CC_STATIC}" CPPFLAGS="-I$SYSROOT/usr/include -I$SYSROOT/usr/include/freetype2" CFLAGS="-Os -march=i486 -static --sysroot=$SYSROOT" LDFLAGS="-static -L$SYSROOT/usr/lib --sysroot=$SYSROOT" LIBS="$LINK_LIBS" \XSERVERCFLAGS_CFLAGS="-I$SYSROOT/usr/include -I$SYSROOT/usr/include/freetype2" XSERVERLIBS_LIBS="$LINK_LIBS"
     make -j$(nproc)
     make DESTDIR="${DESTDIR}" install
+
+    # Copy licence file
+    cp COPYING $CURR_DIR/build/LICENCES/tinyx.txt
 }
 
 get_twm()
@@ -1692,18 +2017,57 @@ get_twm()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading TWM...${RESET}"
-        git clone https://gitlab.freedesktop.org/xorg/app/twm.git
+        git clone --branch "twm-${TWM_VER}" https://gitlab.freedesktop.org/xorg/app/twm.git
         cd twm
     fi
 
+    export PKG_CONFIG_SYSROOT_DIR="$SYSROOT"
+    export PKG_CONFIG_PATH="$SYSROOT/usr/lib/pkgconfig:$SYSROOT/usr/share/pkgconfig"
+    export PKG_CONFIG="pkg-config --static"
     export ACLOCAL_PATH="$SYSROOT/usr/share/aclocal"
-    
+
+    sudo cp $CURR_DIR/configs/system.twmrc src/system.twmrc
+
     # Compile and install
     echo -e "${GREEN}Compiling TWM...${RESET}"
     ./autogen.sh
     ./configure --host="$HOST" --prefix=/usr CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
     make -j$(nproc)
     make DESTDIR="$DESTDIR" install
+
+    # Copy licence file
+    cp COPYING $CURR_DIR/build/LICENCES/twm.txt
+}
+
+get_st()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already built
+    if [ -f "$DESTDIR/usr/bin/st" ]; then
+        echo -e "${LIGHT_RED}st already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d st ]; then
+        echo -e "${YELLOW}st source already present, resetting...${RESET}"
+        cd st
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading st...${RESET}"
+        git clone git://git.suckless.org/st
+        cd st
+    fi
+
+    # Compile and install
+    echo -e "${GREEN}Compiling st...${RESET}"
+    make -j$(nproc) CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP" LIBS="-lXft -lfontconfig -lfreetype -lXrender -lX11 -lxcb -lXau -lXdmcp -lexpat -lz -lm"
+    make DESTDIR="$DESTDIR" PREFIX=/usr install CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+
+    # Copy licence file
+    cp LICENSE $CURR_DIR/build/LICENCES/st.txt
 }
 
 
@@ -2546,12 +2910,18 @@ fi
 if $ENABLE_X11; then
     prepare_x11
     get_tinyx
-    #get_twm
     INCLUDED_FEATURES+="\n  * TinyX"
-    INCLUDED_FEATURES+="\n  * TWM"
+    if $ENABLE_TWM; then
+        get_twm
+        get_st
+        INCLUDED_FEATURES+="\n  * TWM"
+        INCLUDED_FEATURES+="\n  * st"
+    else
+        INCLUDED_FEATURES+="\n  * TWM"
+    fi
 else
     EXCLUDED_FEATURES+="\n  * TinyX"
-    #INCLUDED_FEATURES+="\n  * TWM"
+    EXCLUDED_FEATURES+="\n  * st"
 fi
 
 if ! $SKIP_DROPBEAR; then
