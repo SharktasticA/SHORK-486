@@ -85,12 +85,3 @@ if [ ! -f /etc/.past_first_boot ]; then
     echo "1" > /etc/.past_first_boot
     printf "\n\n"
 fi
-
-# Periodic sync write cache to help ensure files aren't lost after hard reboot
-# User should IDEALLY use shorkoff before hard turning off the host, though!
-(
-    while true; do
-        sleep 10
-        sync
-    done
-) &
