@@ -20,7 +20,7 @@ export DISPLAY=:0
 export FONTCONFIG_PATH=/etc/fonts
 export FONTCONFIG_FILE=/etc/fonts/fonts.conf
 
-Xfbdev :0 -fp $FONT_DIR 2>/dev/null &
+Xfbdev :0 -mouse /dev/input/mice -mouse /dev/ttyS0 -fp $FONT_DIR 2>/dev/null &
 X_PID=$!
 
 # Make sure TWM doesn't start until we think TinyX is up and running
