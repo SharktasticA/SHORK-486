@@ -70,11 +70,11 @@ USED_WM="TWM"
 # Process arguments
 ALWAYS_BUILD=false
 ENABLE_FB=true
+ENABLE_GUI=false
 ENABLE_HIGHMEM=false
 ENABLE_SATA=false
 ENABLE_SMP=false
 ENABLE_USB=false
-ENABLE_X11=false
 FIX_EXTLINUX=false
 IS_ARCH=false
 IS_DEBIAN=false
@@ -91,6 +91,7 @@ SKIP_KRN=false
 SKIP_FILE=false
 SKIP_NANO=false
 SKIP_PCIIDS=false
+SKIP_ROVER=false
 SKIP_TMUX=true
 SKIP_TNFTP=false
 TARGET_DISK=""
@@ -102,6 +103,9 @@ while [ $# -gt 0 ]; do
     case "$1" in
         --always-build)
             ALWAYS_BUILD=true
+            ;;
+        --enable-gui)
+            ENABLE_GUI=true
             ;;
         --enable-highmem)
             ENABLE_HIGHMEM=true
@@ -118,9 +122,6 @@ while [ $# -gt 0 ]; do
         --enable-usb)
             ENABLE_USB=true
             BUILD_TYPE="custom"
-            ;;
-        --enable-x11)
-            ENABLE_X11=true
             ;;
         --fix-extlinux)
             FIX_EXTLINUX=true
@@ -182,6 +183,10 @@ while [ $# -gt 0 ]; do
             SKIP_PCIIDS=true
             BUILD_TYPE="custom"
             ;;
+        --skip-rover)
+            SKIP_ROVER=true
+            BUILD_TYPE="custom"
+            ;;
         --skip-tnftp)
             SKIP_TNFTP=true
             BUILD_TYPE="custom"
@@ -207,7 +212,7 @@ done
 ######################################################
 
 # Override build type to "X11" if not already "custom" and the "enable X11" parameter is used
-if [[ "$BUILD_TYPE" != "custom" && "$ENABLE_X11" == true ]]; then
+if [[ "$BUILD_TYPE" != "custom" && "$ENABLE_GUI" == true ]]; then
     BUILD_TYPE="X11"
 fi
 
@@ -220,7 +225,7 @@ if $MAXIMAL; then
     ENABLE_SATA=true
     ENABLE_SMP=true
     ENABLE_USB=true
-    ENABLE_X11=true
+    ENABLE_GUI=true
     EST_MIN_RAM="24"
     NO_MENU=false
     SKIP_BB=false
@@ -232,6 +237,7 @@ if $MAXIMAL; then
     SKIP_FILE=false
     SKIP_NANO=false
     SKIP_PCIIDS=false
+    SKIP_ROVER=false
     SKIP_TNFTP=false
 # Overrides to ensure "minimal" parameter always takes precedence (if not maximal)
 elif $MINIMAL; then
@@ -242,7 +248,7 @@ elif $MINIMAL; then
     ENABLE_SATA=false
     ENABLE_SMP=false
     ENABLE_USB=false
-    ENABLE_X11=false
+    ENABLE_GUI=false
     EST_MIN_RAM="10"
     NO_MENU=true
     SKIP_BB=false
@@ -253,13 +259,14 @@ elif $MINIMAL; then
     SKIP_FILE=true
     SKIP_NANO=true
     SKIP_PCIIDS=true
+    SKIP_ROVER=true
     SKIP_TNFTP=true
     USE_GRUB=false
     USED_WM=""
 fi
 
 # Override to ensure the USED_WM is empty when the "use X11" parameter is not used
-if ! $ENABLE_X11; then
+if ! $ENABLE_GUI; then
     USED_WM=""
 # Otherwise, if USED_WM is empty but X11 is desired, ensure the default WM (TWM) is set
 elif [[ $USED_WM == "" ]]; then
@@ -340,6 +347,7 @@ MG_VER="3.7"
 NANO_VER="8.7"
 NCURSES_VER="6.4"
 OPENSSL_VER="3.6.0"
+ROVER_VER="v1.0.1"
 TMUX_VER="3.6a"
 TNFTP_VER="20230507"
 TWM_VER="1.0.13.1"
@@ -467,7 +475,7 @@ install_arch_prerequisites()
 
     PACKAGES="autoconf bc base-devel bison bzip2 ca-certificates cpio dosfstools e2fsprogs flex gettext git libtool make multipath-tools ncurses pciutils python qemu-img systemd texinfo util-linux wget xz"
 
-    if $ENABLE_X11; then
+    if $ENABLE_GUI; then
         PACKAGES+=" fontconfig unzip xfonts-utils xorg-font-util xorg-mkfontscale"
     fi
 
@@ -500,7 +508,7 @@ install_debian_prerequisites()
 
     PACKAGES="autopoint bc bison bzip2 e2fsprogs fdisk flex git kpartx libtool make python3 python-is-python3 qemu-utils syslinux wget xz-utils"
 
-    if $ENABLE_X11; then
+    if $ENABLE_GUI; then
         PACKAGES+=" fontconfig unzip xfonts-utils"
     fi
 
@@ -946,7 +954,7 @@ configure_kernel()
         FRAGS+="$CURR_DIR/configs/linux.config.usb.frag "
     fi
 
-    if $ENABLE_X11; then
+    if $ENABLE_GUI; then
         echo -e "${GREEN}Enabling kernel event interface support...${RESET}"
         FRAGS+="$CURR_DIR/configs/linux.config.x11.frag "
     fi
@@ -1064,7 +1072,7 @@ get_kernel_features()
         EXCLUDED_FEATURES+="\n  * kernel-level USB & HID support"
     fi
     
-    if $ENABLE_X11; then
+    if $ENABLE_GUI; then
         INCLUDED_FEATURES+="\n  * kernel-level event interface support"
     else
         EXCLUDED_FEATURES+="\n  * kernel-level event interface support"
@@ -2707,6 +2715,54 @@ get_nano()
     cp COPYING $CURR_DIR/build/LICENCES/nano.txt
 }
 
+# Download and compile Rover
+get_rover()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "${DESTDIR}/usr/bin/rover" ]; then
+        echo -e "${LIGHT_RED}Rover already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d rover ]; then
+        echo -e "${YELLOW}Rover source already present, resetting...${RESET}"
+        cd rover
+        git config --global --add safe.directory $CURR_DIR/build/rover
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading Rover...${RESET}"
+        git clone --branch $ROVER_VER https://github.com/lecram/rover.git
+        cd rover
+    fi
+
+    # Patch rover to support alternate key assignments
+    echo '// Alternate key binds for SHORK 486' | sudo tee -a config.h > /dev/null
+    echo '#define RVK_DOWN_ALT          "B"' | sudo tee -a config.h > /dev/null
+    echo '#define RVK_UP_ALT            "A"' | sudo tee -a config.h > /dev/null
+    #echo '#define RVK_JUMP_BOTTOM_ALT   "TODO"' | sudo tee -a config.h > /dev/null
+    #echo '#define RVK_JUMP_TOP_ALT      "TODO"' | sudo tee -a config.h > /dev/null
+    echo '#define RVK_CD_DOWN_ALT       "C"' | sudo tee -a config.h > /dev/null
+    echo '#define RVK_CD_UP_ALT         "D"' | sudo tee -a config.h > /dev/null
+    sudo sed -i 's/if (!strcmp(key, RVK_DOWN))/if (!strcmp(key, RVK_DOWN) || !strcmp(key, RVK_DOWN_ALT))/' rover.c
+    sudo sed -i 's/if (!strcmp(key, RVK_UP))/if (!strcmp(key, RVK_UP) || !strcmp(key, RVK_UP_ALT))/' rover.c
+    #sudo sed -i 's/if (!strcmp(key, RVK_JUMP_BOTTOM))/if (!strcmp(key, RVK_JUMP_BOTTOM) || !strcmp(key, RVK_JUMP_BOTTOM_ALT))/' rover.c
+    #sudo sed -i 's/if (!strcmp(key, RVK_JUMP_TOP))/if (!strcmp(key, RVK_JUMP_TOP) || !strcmp(key, RVK_JUMP_TOP_ALT))/' rover.c
+    sudo sed -i 's/if (!strcmp(key, RVK_CD_DOWN))/if (!strcmp(key, RVK_CD_DOWN) || !strcmp(key, RVK_CD_DOWN_ALT))/' rover.c
+    sudo sed -i 's/if (!strcmp(key, RVK_CD_UP))/if (!strcmp(key, RVK_CD_UP) || !strcmp(key, RVK_CD_UP_ALT))/' rover.c
+
+    # Compile and install
+    echo -e "${GREEN}Compiling Rover...${RESET}"
+    make -j$(nproc) CC="${CC_STATIC}" CFLAGS="-I${PREFIX}/include -I${PREFIX}/include/ncursesw -D_POSIX_C_SOURCE=200809L" LDFLAGS="-L${PREFIX}/lib -lncursesw -static" rover
+    sudo make PREFIX=/usr DESTDIR="${DESTDIR}" install
+
+    # Create "licence" file
+    echo "Public domain" | sudo tee "$CURR_DIR/build/LICENCES/rover.txt" > /dev/null
+}
+
 # Download and compile tmux
 get_tmux()
 {
@@ -2786,9 +2842,9 @@ trim_fat()
 {
     echo -e "${GREEN}Trimming any possible fat...${RESET}"
 
-    sudo rm -rf "${DESTDIR}/usr/lib/pkgconfig" "$DESTDIR/usr/share/man" "$DESTDIR/usr/share/doc" "$DESTDIR/usr/share/bash-completion"
+    sudo rm -rf "${DESTDIR}/usr/lib/pkgconfig" "$DESTDIR/usr/man" "$DESTDIR/usr/share/bash-completion" "$DESTDIR/usr/share/doc" "$DESTDIR/usr/share/man"
 
-    if $ENABLE_X11; then
+    if $ENABLE_GUI; then
         sudo $STRIP "${DESTDIR}/usr/bin/Xfbdev" || true
         sudo $STRIP "${DESTDIR}/usr/bin/Xvesa" || true
 
@@ -2821,6 +2877,13 @@ trim_fat()
 
     if ! $SKIP_FILE; then
         sudo $STRIP "${DESTDIR}/usr/bin/file" || true
+        sudo rm -rf "${DESTDIR}/usr/include/magic.h"
+        sudo rm -rf "${DESTDIR}/usr/lib/libmagic.a"
+        sudo rm -rf "${DESTDIR}/usr/lib/libmagic.la"
+    fi
+
+    if ! $SKIP_ROVER; then
+        sudo $STRIP "${DESTDIR}/usr/bin/rover" || true
         sudo rm -rf "${DESTDIR}/usr/include/magic.h"
         sudo rm -rf "${DESTDIR}/usr/lib/libmagic.a"
         sudo rm -rf "${DESTDIR}/usr/lib/libmagic.la"
@@ -2925,7 +2988,7 @@ build_file_system()
         EXCLUDED_FEATURES+="\n  * shorkres"
     fi
 
-    if $ENABLE_X11; then
+    if $ENABLE_GUI; then
         echo -e "${GREEN}Installing shorkgui as X11 support is enabled...${RESET}"
         copy_sysfile $CURR_DIR/shorkutils/shorkgui $DESTDIR/usr/bin/shorkgui
         INCLUDED_FEATURES+="\n  * shorkgui"
@@ -3335,7 +3398,7 @@ if $NEED_CURL; then
     get_curl
 fi
 
-if $ENABLE_X11; then
+if $ENABLE_GUI; then
     prepare_x11
     get_tinyx
     INCLUDED_FEATURES+="\n  * TinyX"
@@ -3378,6 +3441,12 @@ if ! $SKIP_NANO; then
     INCLUDED_FEATURES+="\n  * nano"
 else
     EXCLUDED_FEATURES+="\n  * nano"
+fi
+if ! $SKIP_ROVER; then
+    get_rover
+    INCLUDED_FEATURES+="\n  * Rover"
+else
+    EXCLUDED_FEATURES+="\n  * Rover"
 fi
 if ! $SKIP_TNFTP; then
     get_tnftp

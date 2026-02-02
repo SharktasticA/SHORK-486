@@ -44,7 +44,7 @@ fi
 
 NAME="${DATE}_SHORK-486_${VER}_x11"
 if [[ ! -f "release/${NAME}.zip" ]]; then
-    ./build.sh --always-build --is-debian --target-swap=16 --enable-x11 --enable-twm --fix-extlinux
+    ./build.sh --always-build --is-debian --target-swap=16 --enable-gui --enable-twm --fix-extlinux
     cp images/shork-486.img "release/${NAME}.img"
     cp images/report.txt "release/${NAME}.txt"
     cd release

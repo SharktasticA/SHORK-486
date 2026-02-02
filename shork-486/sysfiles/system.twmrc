@@ -69,21 +69,21 @@ menu "defops"
     "SHORKGUI"	        f.title
     "Show Tasklist"	    f.showiconmgr
     "Hide Tasklist"	    f.hideiconmgr
-    ""		            f.nop
+    "--------------"    f.nop
     "Minimise"	        f.iconify
     "Close"	            f.delete
     "Force Close"		f.destroy
-    ""		            f.nop
+    "--------------"    f.nop
     "Resize"	        f.resize
     "Move"		        f.move
     "Bring Forward"		f.raise
     "Send Backward"		f.lower
-    ""		            f.nop
+    "--------------"    f.nop
     "Focus Window"		f.focus
     "Unfocus Window"    f.unfocus
-    ""		            f.nop
+    "--------------"    f.nop
     "Terminal"          f.exec "exec /usr/bin/st &"
-    ""		            f.nop
+    "--------------"    f.nop
     "Exit"		        f.quit
 }
 
