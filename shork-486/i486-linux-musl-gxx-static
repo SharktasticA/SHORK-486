@@ -1,0 +1,5 @@
+#!/bin/sh
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REAL_GXX="$SCRIPT_DIR/build/i486-linux-musl-cross/bin/i486-linux-musl-g++"
+exec "$REAL_GXX" -fno-pie -no-pie -static "$@"

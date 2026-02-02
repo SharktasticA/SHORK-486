@@ -9,7 +9,7 @@ else
     ASCII="0;37"
 fi
 
-FONT_DIR="/usr/lib/X11/fonts/misc/"
+FONT_DIR="/usr/lib/X11/fonts/misc"
 TERMWIDTH=$(stty size 2>/dev/null | cut -d' ' -f2)
 
 if [ ! -e /dev/fb0 ]; then
@@ -17,7 +17,10 @@ if [ ! -e /dev/fb0 ]; then
     exit 1
 fi
 
-Xfbdev :0 -fp $FONT_DIR 2>/dev/null &
 export DISPLAY=:0
+export FONTCONFIG_PATH=/etc/fonts
+export FONTCONFIG_FILE=/etc/fonts/fonts.conf
+
+Xfbdev :0 -fp $FONT_DIR 2>/dev/null &
 sleep 2
 twm

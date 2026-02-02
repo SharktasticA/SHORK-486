@@ -65,7 +65,7 @@ INCLUDED_FEATURES=""
 ROOT_PART_SIZE=""
 TOTAL_DISK_SIZE=""
 USED_PARAMS=""
-USED_WM=""
+USED_WM="TWM"
 
 # Process arguments
 ALWAYS_BUILD=false
@@ -196,9 +196,6 @@ while [ $# -gt 0 ]; do
             USE_GRUB=true
             BUILD_TYPE="custom"
             ;;
-        --use-twm)
-            USED_WM="TWM"
-            ;;
     esac
     shift
 done
@@ -236,7 +233,6 @@ if $MAXIMAL; then
     SKIP_NANO=false
     SKIP_PCIIDS=false
     SKIP_TNFTP=false
-    USED_WM="TWM"
 # Overrides to ensure "minimal" parameter always takes precedence (if not maximal)
 elif $MINIMAL; then
     echo -e "${GREEN}Configuring for a minimal build...${RESET}"
@@ -262,16 +258,17 @@ elif $MINIMAL; then
     USED_WM=""
 fi
 
+# Override to ensure the USED_WM is empty when the "use X11" parameter is not used
+if ! $ENABLE_X11; then
+    USED_WM=""
+# Otherwise, if USED_WM is empty but X11 is desired, ensure the default WM (TWM) is set
+elif [[ $USED_WM == "" ]]; then
+    USED_WM="TWM"
+fi
+
 # Override to ensure the "use GRUB" parameter is disabled when the "Fix EXTLINUX" parameter is used
 if $FIX_EXTLINUX; then
     USE_GRUB=false
-fi
-
-# Override to ensure the "enable TWM" parameter is disabled when the "use X11" parameter is not used
-if ! $ENABLE_X11; then
-    USED_WM=""
-elif [[ $USED_WM == "" ]]; then
-    USED_WM="TWM"
 fi
 
 
@@ -319,7 +316,7 @@ NEED_ZLIB=false
 NEED_OPENSSL=false
 NEED_CURL=false
 
-if [[ $USED_WM == "TWM" ]]; then
+if [ -n "$USED_WM" ]; then
     NEED_ZLIB=true
 fi
 
@@ -358,6 +355,7 @@ PREFIX="${CURR_DIR}/build/i486-linux-musl-cross"
 AR="${PREFIX}/bin/i486-linux-musl-ar"
 CC="${PREFIX}/bin/i486-linux-musl-gcc"
 CC_STATIC="${CURR_DIR}/i486-linux-musl-gcc-static"
+CXX_STATIC="${CURR_DIR}/i486-linux-musl-gxx-static"
 DESTDIR="${CURR_DIR}/build/root"
 HOST=i486-linux-musl
 RANLIB="${PREFIX}/bin/i486-linux-musl-ranlib"
@@ -413,6 +411,53 @@ clean_stale_mounts()
 
 
 ######################################################
+## Copy functions                                   ##
+######################################################
+
+# Copies a config file to a destination and makes sure any @CC@, @CC_STATIC@, @AR@
+# or @STRIP@ placeholders are replaced
+copy_config()
+{
+    # Input parameters
+    SRC="$1"
+    DST="$2"
+
+    # Ensure source exists
+    [ -f "$SRC" ] || return 1
+
+    # Copy file
+    sudo cp "$SRC" "$DST"
+
+    # Replace all placeholders with their respective values
+    sudo sed -i -e "s|@CC@|$CC|g" -e "s|@CC_STATIC@|$CC_STATIC|g" -e "s|@AR@|$AR|g" -e "s|@STRIP@|$STRIP|g" "$DST"
+}
+
+# Copies a sysfile to a destination and makes sure any @NAME@ @VER@, @ID@
+# or @URL@ placeholders are replaced
+copy_sysfile()
+{
+    # Input parameters
+    SRC="$1"
+    DST="$2"
+
+    # Ensure source exists
+    [ -f "$SRC" ] || return 1
+
+    # Copy file
+    sudo cp "$SRC" "$DST"
+
+    # Read NAME, VER, ID and URL
+    NAME="$(cat ${CURR_DIR}/branding/NAME | tr -d '\n')"
+    VER="$(cat ${CURR_DIR}/branding/VER | tr -d '\n')"
+    ID="$(cat ${CURR_DIR}/branding/ID | tr -d '\n')"
+    URL="$(cat ${CURR_DIR}/branding/URL | tr -d '\n')"
+
+    # Replace all placeholders with their respective values
+    sudo sed -i -e "s|@NAME@|$NAME|g" -e "s|@VER@|$VER|g" -e "s|@ID@|$ID|g" -e "s|@URL@|$URL|g" "$DST"
+}
+
+
+######################################################
 ## Host environment prerequisites                   ##
 ######################################################
 
@@ -422,12 +467,8 @@ install_arch_prerequisites()
 
     PACKAGES="autoconf bc base-devel bison bzip2 ca-certificates cpio dosfstools e2fsprogs flex gettext git libtool make multipath-tools ncurses pciutils python qemu-img systemd texinfo util-linux wget xz"
 
-    if [[ $USED_WM == "TWM" ]]; then
-        PACKAGES+=" gperf"
-    fi
-
     if $ENABLE_X11; then
-        PACKAGES+=" xorg-bdftopcf"
+        PACKAGES+=" fontconfig unzip xorg-bdftopcf"
     fi
 
     if $FIX_EXTLINUX; then
@@ -444,6 +485,10 @@ install_arch_prerequisites()
         PACKAGES+=" syslinux"
     fi
 
+    if [[ $USED_WM == "TWM" ]]; then
+        PACKAGES+=" gperf"
+    fi
+
     sudo pacman -Syu --noconfirm --needed $PACKAGES || true
 }
 
@@ -455,12 +500,8 @@ install_debian_prerequisites()
 
     PACKAGES="autopoint bc bison bzip2 e2fsprogs fdisk flex git kpartx libtool make python3 python-is-python3 qemu-utils syslinux wget xz-utils"
 
-    if [[ $USED_WM == "TWM" ]]; then
-        PACKAGES+=" gperf"
-    fi
-
     if $ENABLE_X11; then
-        PACKAGES+=" xfonts-utils"
+        PACKAGES+=" fontconfig unzip xfonts-utils"
     fi
 
     if $FIX_EXTLINUX; then
@@ -484,6 +525,10 @@ install_debian_prerequisites()
         PACKAGES+=" grub-common grub-pc"
     else
         PACKAGES+=" extlinux"
+    fi
+
+    if [[ $USED_WM == "TWM" ]]; then
+        PACKAGES+=" gperf"
     fi
 
     sudo apt-get install -y $PACKAGES || true
@@ -869,6 +914,7 @@ configure_kernel()
     cp $CURR_DIR/configs/linux.config .config
 
     FRAGS=""
+    
     if $ENABLE_FB; then
         echo -e "${GREEN}Enabling kernel framebuffer, VESA and enhanced VGA support...${RESET}"
         FRAGS+="$CURR_DIR/configs/linux.config.fb.frag "
@@ -1053,7 +1099,7 @@ get_v86d()
     make clean >/dev/null 2>&1
     make CC="$CC -m32 -static -no-pie" v86d
     install -Dm755 v86d "$DESTDIR/sbin/v86d"
-    strip "${DESTDIR}/sbin/v86d"
+    $STRIP "${DESTDIR}/sbin/v86d"
 }
 
 
@@ -1098,6 +1144,9 @@ get_xorgproto()
 
 get_libxdmcp()
 {
+    # Prevent hard-coded paths poisoning the cross-compilation linker
+    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+
     cd "$CURR_DIR/build"
 
     # Skip if already built
@@ -1132,6 +1181,9 @@ get_libxdmcp()
 
 get_libxau()
 {
+    # Prevent hard-coded paths poisoning the cross-compilation linker
+    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+
     cd "$CURR_DIR/build"
 
     # Skip if already built
@@ -1166,6 +1218,9 @@ get_libxau()
 
 get_xcbproto()
 {
+    # Prevent hard-coded paths poisoning the cross-compilation linker
+    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+
     cd "$CURR_DIR/build"
 
     # Skip if already built
@@ -1200,6 +1255,9 @@ get_xcbproto()
 
 get_libxcb()
 {
+    # Prevent hard-coded paths poisoning the cross-compilation linker
+    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+
     cd "$CURR_DIR/build"
 
     # Skip if already built
@@ -1234,6 +1292,9 @@ get_libxcb()
 
 get_xtrans()
 {
+    # Prevent hard-coded paths poisoning the cross-compilation linker
+    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+
     cd "$CURR_DIR/build"
 
     # Skip if already built
@@ -1342,6 +1403,9 @@ get_libxext()
 
 get_libxfixes()
 {
+    # Prevent hard-coded paths poisoning the cross-compilation linker
+    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+
     cd "$CURR_DIR/build"
 
     # Skip if already built
@@ -1376,6 +1440,9 @@ get_libxfixes()
 
 get_libxi()
 {
+    # Prevent hard-coded paths poisoning the cross-compilation linker
+    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+
     cd "$CURR_DIR/build"
 
     # Skip if already built
@@ -1447,6 +1514,9 @@ get_libxtst()
 
 get_libice()
 {
+    # Prevent hard-coded paths poisoning the cross-compilation linker
+    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+
     cd "$CURR_DIR/build"
 
     # Skip if already built
@@ -1481,6 +1551,9 @@ get_libice()
 
 get_libsm()
 {
+    # Prevent hard-coded paths poisoning the cross-compilation linker
+    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+
     cd "$CURR_DIR/build"
 
     # Skip if already built
@@ -1550,8 +1623,86 @@ get_libxt()
     make DESTDIR="$SYSROOT" install
 }
 
+get_libpng()
+{
+    # Prevent hard-coded paths poisoning the cross-compilation linker
+    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+
+    cd "$CURR_DIR/build"
+
+    # Skip if already built
+    if [ -f "$SYSROOT/usr/lib/libpng.a" ]; then
+        echo -e "${LIGHT_RED}libpng already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading libpng...${RESET}"
+
+    LIBPNG_VER="1.6.54"
+    LIBPNG="libpng-${LIBPNG_VER}"
+    LIBPNG_ARC="${LIBPNG}.tar.xz"
+    LIBPNG_URI="https://unlimited.dl.sourceforge.net/project/libpng/libpng16/1.6.54/${LIBPNG_ARC}"
+
+    # Download source
+    [ -f "$LIBPNG_ARC" ] || wget "$LIBPNG_URI"
+
+    # Extract source
+    if [ -d $LIBPNG ]; then
+        echo -e "${YELLOW}libpng's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -rf $LIBPNG
+    fi
+    tar xf $LIBPNG_ARC
+    cd $LIBPNG
+
+    # Compile and install
+    echo -e "${GREEN}Compiling libpng...${RESET}"
+    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    make -j$(nproc)
+    make DESTDIR="$SYSROOT" install
+}
+
+get_libxpm()
+{
+    # Prevent hard-coded paths poisoning the cross-compilation linker
+    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+
+    cd "$CURR_DIR/build"
+
+    # Skip if already built
+    if [ -f "$SYSROOT/usr/lib/libXpm.a" ]; then
+        echo -e "${LIGHT_RED}libXpm already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading libXpm...${RESET}"
+
+    LIBXPM="libXpm-3.5.18"
+    LIBXPM_ARC="${LIBXPM}.tar.xz"
+    LIBXPM_URI="https://www.x.org/archive/individual/lib/${LIBXPM_ARC}"
+
+    # Download source
+    [ -f $LIBXPM_ARC ] || wget $LIBXPM_URI
+
+    # Extract source
+    if [ -d $LIBXPM ]; then
+        echo -e "${YELLOW}libXpm's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -rf $LIBXPM
+    fi
+    tar xf $LIBXPM_ARC
+    cd $LIBXPM
+
+    # Compile and install
+    echo -e "${GREEN}Compiling libXpm...${RESET}"
+    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static --with-sysroot="$SYSROOT" CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP" LIBS="-lX11 -lxcb -lXau -lXdmcp -lSM -lICE"
+    make -j$(nproc)
+    make DESTDIR="$SYSROOT" install
+}
+
 get_libxmu()
 {
+    # Prevent hard-coded paths poisoning the cross-compilation linker
+    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+
     cd "$CURR_DIR/build"
 
     # Skip if already built
@@ -1586,6 +1737,9 @@ get_libxmu()
 
 get_utilmacros()
 {
+    # Prevent hard-coded paths poisoning the cross-compilation linker
+    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+
     cd "$CURR_DIR/build"
 
     # Skip if already built
@@ -1620,6 +1774,9 @@ get_utilmacros()
 
 get_freetype()
 {
+    # Prevent hard-coded paths poisoning the cross-compilation linker
+    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+
     cd "$CURR_DIR/build"
 
     # Skip if already built
@@ -1654,6 +1811,9 @@ get_freetype()
 
 get_libexpat()
 {
+    # Prevent hard-coded paths poisoning the cross-compilation linker
+    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+
     cd "$CURR_DIR/build"
 
     # Skip if already built
@@ -1718,6 +1878,7 @@ get_fontconfig()
 
     # Compile and install
     echo -e "${GREEN}Compiling fontconfig...${RESET}"
+    #./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP" LIBS="-lpng16 -lz -lm"
     ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP" LIBS="-lz -lm"
     make -j$(nproc)
     make DESTDIR="$SYSROOT" install
@@ -1725,6 +1886,9 @@ get_fontconfig()
 
 get_libxrender()
 {
+    # Prevent hard-coded paths poisoning the cross-compilation linker
+    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+
     cd "$CURR_DIR/build"
 
     # Skip if already built
@@ -1759,6 +1923,9 @@ get_libxrender()
 
 get_libxft()
 {
+    # Prevent hard-coded paths poisoning the cross-compilation linker
+    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+
     cd "$CURR_DIR/build"
 
     # Skip if already built
@@ -1793,6 +1960,9 @@ get_libxft()
 
 get_libfontenc()
 {
+    # Prevent hard-coded paths poisoning the cross-compilation linker
+    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+
     cd "$CURR_DIR/build"
 
     # Skip if already built
@@ -1827,6 +1997,9 @@ get_libfontenc()
 
 get_libxfont()
 {
+    # Prevent hard-coded paths poisoning the cross-compilation linker
+    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+
     cd "$CURR_DIR/build"
 
     # Skip if already built
@@ -1861,6 +2034,9 @@ get_libxfont()
 
 get_fontutil()
 {
+    # Prevent hard-coded paths poisoning the cross-compilation linker
+    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+
     cd "$CURR_DIR/build"
 
     # Skip if already built
@@ -1893,17 +2069,24 @@ get_fontutil()
     make install DESTDIR="$SYSROOT"
 }
 
-get_font_misc()
+get_fonts()
 {
+    # Prevent hard-coded paths poisoning the cross-compilation linker
+    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+
     cd "$CURR_DIR/build"
 
-    FONTDIR=$DESTDIR/usr/lib/X11/fonts/misc
+    BIT_FONT_DIR=$DESTDIR/usr/lib/X11/fonts/misc
+    OTF_FONT_DIR=$DESTDIR/usr/share/fonts/opentype
 
-    if [ -f "$FONTDIR/fonts.dir" ]; then
-        echo -e "${LIGHT_RED}Fonts for X11 already installed, skipping...${RESET}"
+    if [ -f "$BIT_FONT_DIR/fonts.dir" ]; then
+        echo -e "${LIGHT_RED}Fonts already installed, skipping...${RESET}"
         return
     fi
 
+
+
+    echo -e "${GREEN}Downloading bitmap fonts...${RESET}"
     for FONT in font-misc-misc-1.1.3 font-cursor-misc-1.0.4; do
         echo -e "${GREEN}Building $FONT...${RESET}"
         ARC="${FONT}.tar.xz"
@@ -1917,12 +2100,228 @@ get_font_misc()
         cd ..
     done
 
-    # Copy basic font set
-    mkdir -p $FONTDIR
-    cp $SYSROOT/usr/lib/X11/fonts/misc/6x13.pcf.gz $FONTDIR
-    cp $SYSROOT/usr/lib/X11/fonts/misc/cursor.pcf.gz $FONTDIR
-    cp $CURR_DIR/sysfiles/fonts.dir $FONTDIR
-    echo "fixed -misc-fixed-medium-r-semicondensed--13-120-75-75-c-60-iso10646-1" | sudo tee $FONTDIR/fonts.alias > /dev/null
+    echo -e "${GREEN}Installing bitmap fonts...${RESET}"
+    mkdir -p $BIT_FONT_DIR
+    for f in 6x13.pcf.gz 7x14.pcf.gz 8x13.pcf.gz 9x15.pcf.gz cursor.pcf.gz; do
+        if [ -f "$SYSROOT/usr/lib/X11/fonts/misc/$f" ]; then
+            sudo cp $SYSROOT/usr/lib/X11/fonts/misc/$f $BIT_FONT_DIR
+        fi
+    done
+    echo "fixed -misc-fixed-medium-r-normal--14-130-75-75-c-70-iso10646-1" | sudo tee "$BIT_FONT_DIR/fonts.alias" > /dev/null
+    cd $DESTDIR/usr/lib/X11/fonts/misc
+    rm -f fonts.dir fonts.scale
+    mkfontscale .
+    mkfontdir .
+
+
+
+    cd "$CURR_DIR/build"
+
+    echo -e "${GREEN}Downloading OTF/TTF fonts...${RESET}"
+    IBMPM="ibm-plex-mono"
+    IBMPM_ARC="${IBMPM}.zip"
+    IBMPM_URI="https://github.com/IBM/plex/releases/download/%40ibm%2Fplex-mono%401.1.0/${IBMPM_ARC}"
+
+    mkdir -p "$OTF_FONT_DIR/$IBMPM"
+    [ -f $IBMPM_ARC ] || wget $IBMPM_URI
+    unzip -oj "$IBMPM_ARC" "ibm-plex-mono/fonts/complete/otf/IBMPlexMono-Regular.otf" -d $CURR_DIR/build/plex
+    unzip -oj "$IBMPM_ARC" "ibm-plex-mono/LICENSE.txt" -d $CURR_DIR/build/plex
+    cd plex
+    sudo cp IBMPlexMono-Regular.otf $OTF_FONT_DIR/ibm-plex-mono
+    sudo cp LICENSE.txt $CURR_DIR/build/LICENCES/ibm-plex.txt
+
+
+
+    sudo mkdir -p $DESTDIR/var/cache/fontconfig
+    sudo chmod 777 $DESTDIR/var/cache/fontconfig
+    sudo mkdir -p $DESTDIR/etc/fonts
+    copy_sysfile $CURR_DIR/sysfiles/fonts.conf $DESTDIR/etc/fonts/fonts.conf
+    sudo fc-cache -r "$DESTDIR/usr/share/fonts"
+}
+
+get_libxaw()
+{
+    # Prevent hard-coded paths poisoning the cross-compilation linker
+    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+
+    cd "$CURR_DIR/build"
+
+    # Skip if already built
+    if [ -f "$SYSROOT/usr/lib/libXaw7.a" ]; then
+        echo -e "${LIGHT_RED}libXaw already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading libXaw...${RESET}"
+
+    LIBXAW="libXaw-1.0.16"
+    LIBXAW_ARC="${LIBXAW}.tar.xz"
+    LIBXAW_URI="https://www.x.org/releases/individual/lib/${LIBXAW_ARC}"
+
+    # Download source
+    [ -f $LIBXAW_ARC ] || wget $LIBXAW_URI
+
+    # Extract source
+    if [ -d $LIBXAW ]; then
+        echo -e "${YELLOW}libXaw's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -r $LIBXAW
+    fi
+    tar xf $LIBXAW_ARC
+    cd $LIBXAW
+
+    # Compile and install
+    echo -e "${GREEN}Compiling libXaw...${RESET}"
+    ./configure --host="$HOST" --prefix=/usr CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    make -j$(nproc)
+    make install DESTDIR="$SYSROOT"
+}
+
+get_xbitmaps()
+{
+    # Prevent hard-coded paths poisoning the cross-compilation linker
+    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+
+    cd "$CURR_DIR/build"
+
+    # Skip if already built
+    if [ -f "$DESTDIR/usr/share/pkgconfig/xbitmaps.pc" ]; then
+        echo -e "${LIGHT_RED}xbitmaps already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading xbitmaps...${RESET}"
+
+    XBITMAPS="xbitmaps-1.1.3"
+    XBITMAPS_ARC="${XBITMAPS}.tar.xz"
+    XBITMAPS_URI="https://www.x.org/releases/individual/data/${XBITMAPS_ARC}"
+
+    # Download source
+    [ -f $XBITMAPS_ARC ] || wget $XBITMAPS_URI
+
+    # Extract source
+    if [ -d $XBITMAPS ]; then
+        echo -e "${YELLOW}xbitmaps's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -r $XBITMAPS
+    fi
+    tar xf $XBITMAPS_ARC
+    cd $XBITMAPS
+
+    # Compile and install
+    echo -e "${GREEN}Compiling xbitmaps...${RESET}"
+    ./configure --host="$HOST" --prefix=/usr CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    make -j$(nproc)
+    make install DESTDIR="$DESTDIR"
+}
+
+get_xbiff()
+{
+    # Prevent hard-coded paths poisoning the cross-compilation linker
+    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+
+    cd "$CURR_DIR/build"
+
+    # Skip if already built
+    if [ -f "$DESTDIR/usr/bin/xbiff" ]; then
+        echo -e "${LIGHT_RED}xbiff already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading xbiff...${RESET}"
+
+    XBIFF="xbiff-1.0.5"
+    XBIFF_ARC="${XBIFF}.tar.gz"
+    XBIFF_URI="https://www.x.org/archive//individual/app/${XBIFF_ARC}"
+
+    # Download source
+    [ -f $XBIFF_ARC ] || wget $XBIFF_URI
+
+    # Extract source
+    if [ -d $XBIFF ]; then
+        echo -e "${YELLOW}xbiff's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -r $XBIFF
+    fi
+    tar xf $XBIFF_ARC
+    cd $XBIFF
+
+    # Compile and install
+    echo -e "${GREEN}Compiling xbiff...${RESET}"
+    ./configure --host="$HOST" --prefix=/usr --x-includes="$SYSROOT/usr/include" --x-libraries="$SYSROOT/usr/lib" CC="$CC_STATIC" LIBS="-lXaw7 -lXmu -lXpm -lXt -lSM -lICE -lXext -lX11 -lxcb -lXau -lXdmcp"
+    make -j$(nproc)
+    make DESTDIR="$DESTDIR" install
+}
+
+get_xeyes()
+{
+    # Prevent hard-coded paths poisoning the cross-compilation linker
+    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+
+    cd "$CURR_DIR/build"
+
+    # Skip if already built
+    if [ -f "$DESTDIR/usr/bin/xeyes" ]; then
+        echo -e "${LIGHT_RED}xeyes already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading xeyes...${RESET}"
+
+    XEYES="xeyes-1.3.1"
+    XEYES_ARC="${XEYES}.tar.gz"
+    XEYES_URI="https://www.x.org/archive/individual/app/${XEYES_ARC}"
+
+    # Download source
+    [ -f $XEYES_ARC ] || wget $XEYES_URI
+
+    # Extract source
+    if [ -d $XEYES ]; then
+        echo -e "${YELLOW}xeyes's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -r $XEYES
+    fi
+    tar xf $XEYES_ARC
+    cd $XEYES
+
+    # Compile and install
+    echo -e "${GREEN}Compiling xeyes...${RESET}"
+    ./configure --host="$HOST" --prefix=/usr --x-includes="$SYSROOT/usr/include" --x-libraries="$SYSROOT/usr/lib" CC="$CC_STATIC" LIBS="-lXaw7 -lXmu -lXpm -lXt -lSM -lICE -lXext -lX11 -lxcb -lXau -lXdmcp"
+    make -j$(nproc)
+    make DESTDIR="$DESTDIR" install
+}
+
+get_xload()
+{
+    # Prevent hard-coded paths poisoning the cross-compilation linker
+    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+
+    cd "$CURR_DIR/build"
+
+    # Skip if already built
+    if [ -f "$DESTDIR/usr/bin/xload" ]; then
+        echo -e "${LIGHT_RED}xload already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading xload...${RESET}"
+
+    XLOAD="xload-1.2.0"
+    XLOAD_ARC="${XLOAD}.tar.gz"
+    XLOAD_URI="https://www.x.org/archive/individual/app/${XLOAD_ARC}"
+
+    # Download source
+    [ -f $XLOAD_ARC ] || wget $XLOAD_URI
+
+    # Extract source
+    if [ -d $XLOAD ]; then
+        echo -e "${YELLOW}xload's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -r $XLOAD
+    fi
+    tar xf $XLOAD_ARC
+    cd $XLOAD
+
+    # Compile and install
+    echo -e "${GREEN}Compiling xload...${RESET}"
+    ./configure --host="$HOST" --prefix=/usr --x-includes="$SYSROOT/usr/include" --x-libraries="$SYSROOT/usr/lib" CC="$CC_STATIC" LIBS="-lXaw7 -lXmu -lXpm -lXt -lSM -lICE -lXext -lX11 -lxcb -lXau -lXdmcp"
+    make -j$(nproc)
+    make DESTDIR="$DESTDIR" install
 }
 
 prepare_x11()
@@ -1942,28 +2341,27 @@ prepare_x11()
     get_libxfixes
     get_libxi
     get_libxtst
-
-    if [[ $USED_WM == "TWM" ]]; then
-        get_libice
-        get_libsm
-        get_libxt
-        get_libxmu
-    fi
-
+    get_libice
+    get_libsm
+    get_libxt
+    #get_libpng
+    #get_libxpm
+    get_libxmu
     get_utilmacros
     get_freetype
-
-    if [[ $USED_WM == "TWM" ]]; then
-        get_libexpat
-        get_fontconfig
-        get_libxrender
-        get_libxft
-    fi
-
+    get_libexpat
+    get_fontconfig
+    get_libxrender
+    get_libxft
     get_libfontenc
     get_libxfont
     get_fontutil
-    get_font_misc
+    get_fonts
+    #get_libxaw
+    #get_xbitmaps
+    #get_xbiff
+    #get_xeyes
+    #get_xload
 }
 
 get_tinyx()
@@ -2070,6 +2468,9 @@ get_st()
         git clone git://git.suckless.org/st
         cd st
     fi
+
+    sudo sed -i 's/pselect(\(.*\), NULL)/select(\1)/' st.c
+    sudo sed -i 's/pselect(\(.*\), NULL)/select(\1)/' x.c
 
     # Compile and install
     echo -e "${GREEN}Compiling st...${RESET}"
@@ -2189,12 +2590,12 @@ get_file()
     fi
 
     # Prune magic database of "non-essential" categories to save space
-    #CULL_LIST="acorn adi adventure algol68 amigaos apple aria asf bioinformatics blackberry c64 claris clojure console convex dolby epoc erlang forth frame freebsd geo hp ispell lif macintosh map mathematica mercurial mips nasa netbsd netscape ole2compounddocs pc98 pdp scientific spectrum statistics ti-8x tplink vacuum-cleaner wordpress xenix zyxel"
-    #for TO_CULL in $CULL_LIST; do
-    #    if [ -f "$CURR_DIR/build/file/magic/Magdir/$TO_CULL" ]; then
-    #        truncate -s 0 "$CURR_DIR/build/file/magic/Magdir/$TO_CULL"
-    #    fi
-    #done
+    CULL_LIST="acorn adi adventure algol68 amigaos apple aria asf bioinformatics blackberry c64 claris clojure console convex dolby epoc erlang forth frame freebsd geo hp ispell lif macintosh map mathematica mercurial mips nasa netbsd netscape ole2compounddocs pc98 pdp scientific spectrum statistics ti-8x tplink vacuum-cleaner wordpress xenix zyxel"
+    for TO_CULL in $CULL_LIST; do
+        if [ -f "$CURR_DIR/build/file/magic/Magdir/$TO_CULL" ]; then
+            truncate -s 0 "$CURR_DIR/build/file/magic/Magdir/$TO_CULL"
+        fi
+    done
 
     # Compile and install
     echo -e "${GREEN}Compiling file...${RESET}"
@@ -2376,6 +2777,12 @@ trim_fat()
     if $ENABLE_X11; then
         sudo $STRIP "${DESTDIR}/usr/bin/Xfbdev" || true
         sudo $STRIP "${DESTDIR}/usr/bin/Xvesa" || true
+
+        sudo $STRIP "${DESTDIR}/usr/bin/st" || true
+
+        if [[ $USED_WM == "TWM" ]]; then
+            sudo $STRIP "${DESTDIR}/usr/bin/twm" || true
+        fi
     fi
 
     if ! $SKIP_DROPBEAR; then
@@ -2405,11 +2812,6 @@ trim_fat()
         sudo rm -rf "${DESTDIR}/usr/lib/libmagic.la"
     fi
 
-    if [[ $USED_WM == "TWM" ]]; then
-        sudo $STRIP "${DESTDIR}/usr/bin/st" || true
-        sudo $STRIP "${DESTDIR}/usr/bin/twm" || true
-    fi
-
     sudo $STRIP "${DESTDIR}/usr/bin/tic" || true
 
     for bin in lsblk whereis; do
@@ -2430,30 +2832,6 @@ copy_licences()
 ######################################################
 ## File system & disk image building                ##
 ######################################################
-
-# Copies a sysfile to a destination and makes sure any @NAME@ @VER@, @ID@
-# or @URL@ placeholders are replaced
-copy_sysfile()
-{
-    # Input parameters
-    SRC="$1"
-    DST="$2"
-
-    # Ensure source exists
-    [ -f "$SRC" ] || return 1
-
-    # Copy file
-    sudo cp "$SRC" "$DST"
-
-    # Read NAME, VER, ID and URL
-    NAME="$(cat ${CURR_DIR}/branding/NAME | tr -d '\n')"
-    VER="$(cat ${CURR_DIR}/branding/VER | tr -d '\n')"
-    ID="$(cat ${CURR_DIR}/branding/ID | tr -d '\n')"
-    URL="$(cat ${CURR_DIR}/branding/URL | tr -d '\n')"
-
-    # Replace all placeholders with their respective values
-    sudo sed -i -e "s|@NAME@|$NAME|g" -e "s|@VER@|$VER|g" -e "s|@ID@|$ID|g" -e "s|@URL@|$URL|g" "$DST"
-}
 
 # Find and set MBR binary (can be different depending on distro)
 find_mbr_bin()
@@ -2860,7 +3238,7 @@ generate_report()
 
     lines+=(
         ""
-        "Est. minimal RAM: ${EST_MIN_RAM}MiB"
+        "Est. minimum RAM: ${EST_MIN_RAM}MiB"
         "Total disk size: ${TOTAL_DISK_SIZE}MiB"
         "Root partition size: ${ROOT_PART_SIZE}MiB"
     )
@@ -2878,6 +3256,13 @@ generate_report()
         lines+=("Boot style: boot only")
     else
         lines+=("Boot style: menu")
+    fi
+
+    if [ -n "$USED_WM" ]; then
+        lines+=(
+            ""
+            "Included WM: $USED_WM"
+        )
     fi
 
     if [ -n "$INCLUDED_FEATURES" ]; then
@@ -2938,15 +3323,11 @@ if $ENABLE_X11; then
     INCLUDED_FEATURES+="\n  * TinyX"
     if [[ $USED_WM == "TWM" ]]; then
         get_twm
-        get_st
-        INCLUDED_FEATURES+="\n  * TWM"
-        INCLUDED_FEATURES+="\n  * st"
-    else
-        INCLUDED_FEATURES+="\n  * TWM"
     fi
+    get_st
+    INCLUDED_FEATURES+="\n  * st"
 else
     EXCLUDED_FEATURES+="\n  * TinyX"
-    EXCLUDED_FEATURES+="\n  * TWM"
     EXCLUDED_FEATURES+="\n  * st"
 fi
 

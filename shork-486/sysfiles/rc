@@ -17,7 +17,13 @@
 mount -t proc  proc  /proc
 mount -t sysfs sysfs /sys
 
+# Mount devpts for pseudo-terminals
+mkdir -p /dev/pts
+mount -t devpts devpts /dev/pts
+chmod 666 /dev/pts
+
 # Required device nodes
+[ -c /dev/ptmx ] || mknod -m 666 /dev/ptmx c 5 2
 [ -c /dev/tty ]  || mknod -m 666 /dev/tty  c 5 0
 [ -c /dev/tty0 ] || mknod -m 620 /dev/tty0 c 4 0
 [ -c /dev/tty1 ] || mknod -m 620 /dev/tty1 c 4 1
