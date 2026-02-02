@@ -1,32 +1,44 @@
-SetEnvironment "PATH" "/usr/bin:/bin"
 NoGrabServer
 RestartPreviousState
 DecorateTransients
-TitleFont "-adobe-helvetica-bold-r-normal--*-120-*-*-*-*-*-*"
-ResizeFont "-adobe-helvetica-bold-r-normal--*-120-*-*-*-*-*-*"
-MenuFont "-adobe-helvetica-bold-r-normal--*-120-*-*-*-*-*-*"
-IconFont "-adobe-helvetica-bold-r-normal--*-100-*-*-*-*-*-*"
-IconManagerFont "-adobe-helvetica-bold-r-normal--*-100-*-*-*"
-#ClientBorderWidth
+IconifyByUnmapping
+
+
+
+TitleFont       "fixed"
+MenuFont        "fixed"
+ResizeFont      "fixed"
+IconFont        "fixed"
+IconManagerFont "fixed"
+
+
 
 Color
 {
-    BorderColor "slategrey"
-    DefaultBackground "rgb:2/a/9"
-    DefaultForeground "gray85"
-    TitleBackground "rgb:2/a/9"
-    TitleForeground "gray85"
-    MenuBackground "rgb:2/a/9"
-    MenuForeground "gray85"
-    MenuBorderColor "slategrey"
-    MenuTitleBackground "gray70"
-    MenuTitleForeground "rgb:2/a/9"
-    IconBackground "rgb:2/a/9"
-    IconForeground "gray85"
-    IconBorderColor "gray85"
-    IconManagerBackground "rgb:2/a/9"
-    IconManagerForeground "gray85"
+    BorderColor           "gray30"
+    DefaultBackground     "black"
+    DefaultForeground     "white"
+    TitleBackground       "#000080"
+    TitleForeground       "white"
+    MenuBackground        "black"
+    MenuForeground        "white"
+    MenuBorderColor       "gray50"
+    MenuTitleBackground   "#000080"
+    MenuTitleForeground   "white"
+    IconBackground        "#000080"
+    IconForeground        "white"
+    IconBorderColor       "gray90"
+    IconManagerBackground "#000080"
+    IconManagerForeground "white"
 }
+
+
+
+ShowIconManager
+IconManagerGeometry "@FB_WIDTH@x25+0+0"
+IconManagerColumns 6
+IconManagerWidth 107
+
 
 
 MoveDelta 3
@@ -50,25 +62,41 @@ Button2 = : icon : f.iconify
 Button1 = : iconmgr : f.iconify
 Button2 = : iconmgr : f.iconify
 
+
+
 menu "defops"
 {
-"Twm"	f.title
-"Iconify"	f.iconify
-"Resize"	f.resize
-"Move"		f.move
-"Raise"		f.raise
-"Lower"		f.lower
-""		f.nop
-"Focus"		f.focus
-"Unfocus"	f.unfocus
-"Show Iconmgr"	f.showiconmgr
-"Hide Iconmgr"	f.hideiconmgr
-""		f.nop
-"st"    f.exec "exec /usr/bin/st &"
-""		f.nop
-"Kill"		f.destroy
-"Delete"	f.delete
-""		f.nop
-"Restart"	f.restart
-"Exit"		f.quit
+    "SHORKGUI"	        f.title
+    "Show Tasklist"	    f.showiconmgr
+    "Hide Tasklist"	    f.hideiconmgr
+    ""		            f.nop
+    "Minimise"	        f.iconify
+    "Close"	            f.delete
+    "Force Close"		f.destroy
+    ""		            f.nop
+    "Resize"	        f.resize
+    "Move"		        f.move
+    "Bring Forward"		f.raise
+    "Send Backward"		f.lower
+    ""		            f.nop
+    "Focus Window"		f.focus
+    "Unfocus Window"    f.unfocus
+    ""		            f.nop
+    "Terminal"          f.exec "exec /usr/bin/st &"
+    ""		            f.nop
+    "Exit"		        f.quit
+}
+
+
+
+DontIconify
+{
+    "Tasklist"
+    "TWM Icon Manager"
+}
+
+NoTitle
+{
+    "Tasklist"
+    "TWM Icon Manager"
 }

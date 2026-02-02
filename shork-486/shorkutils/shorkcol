@@ -13,7 +13,7 @@ set -e
 
 COLS="blue | blue_bright | cyan | cyan_bright | green | green_bright | grey | magenta | magenta_bright | red | red_bright | white | white_bright | yellow | yellow_bright"
 
-TERMWIDTH=$(stty size 2>/dev/null | cut -d' ' -f2)
+TERM_WIDTH=$(stty size 2>/dev/null | cut -d' ' -f2)
 
 get_current_colour()
 {
@@ -26,8 +26,8 @@ get_current_colour()
 }
 
 if [ $# -ne 1 ]; then
-    printf "Changes the terminal's foreground (font) colour.\n\n" | fold -s -w "$TERMWIDTH"
-    echo "Usage: shorkcol {$COLS}" | fold -s -w "$TERMWIDTH"
+    printf "Changes the terminal's foreground (font) colour.\n\n" | fold -s -w "$TERM_WIDTH"
+    echo "Usage: shorkcol {$COLS}" | fold -s -w "$TERM_WIDTH"
     echo "Current colour: $(get_current_colour)"
     exit 1
 fi
@@ -50,7 +50,7 @@ case "$1" in
     yellow_bright)  COL="0;1;33" ;;
     *)
         echo "Invalid colour: $1"
-        echo "Available colours: $COLS" | fold -s -w "$TERMWIDTH"
+        echo "Available colours: $COLS" | fold -s -w "$TERM_WIDTH"
         exit 1
         ;;
 esac

@@ -2439,6 +2439,9 @@ get_twm()
     export PKG_CONFIG="pkg-config --static"
     export ACLOCAL_PATH="$SYSROOT/usr/share/aclocal"
 
+    # Patch to rename "TWM Icon Manager" to "Tasklist"
+    #sudo sed -i 's/"%s Icon Manager"/"Tasklist"/' src/iconmgr.c
+
     # Compile and install
     echo -e "${GREEN}Compiling TWM...${RESET}"
     ./autogen.sh
@@ -2473,8 +2476,15 @@ get_st()
         cd st
     fi
 
+    # Patch to fix "select: function not implemented" error
     sudo sed -i 's/pselect(\(.*\), NULL)/select(\1)/' st.c
     sudo sed -i 's/pselect(\(.*\), NULL)/select(\1)/' x.c
+    
+    # Patch to fix st launching as "Untitled" in TWM
+    sudo sed -i '/CWColormap, &xw\.attrs);/a XTextProperty prop; char *name = "Terminal"; XStringListToTextProperty(&name, 1, &prop); XSetWMName(xw.dpy, xw.win, &prop); XSetWMIconName(xw.dpy, xw.win, &prop);' x.c
+
+    # Patch to make sure st uses our fixed font
+    sudo sed -i 's/^static char \*font.*/static char *font = "fixed:pixelsize=14";/' config.def.h
 
     # Compile and install
     echo -e "${GREEN}Compiling st...${RESET}"

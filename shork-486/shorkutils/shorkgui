@@ -1,7 +1,5 @@
 #!/bin/sh
 
-# STUB - THIS IS NOT FINISHED!
-
 if [ -f /etc/shorkcol.conf ]; then
     . /etc/shorkcol.conf
 else
@@ -9,11 +7,12 @@ else
     ASCII="0;37"
 fi
 
+FB_WIDTH=$(cat /sys/class/graphics/fb0/virtual_size | cut -d',' -f1)
 FONT_DIR="/usr/lib/X11/fonts/misc"
-TERMWIDTH=$(stty size 2>/dev/null | cut -d' ' -f2)
+TERM_WIDTH=$(stty size 2>/dev/null | cut -d' ' -f2)
 
 if [ ! -e /dev/fb0 ]; then
-    printf "ERROR: No framebuffer device has been found. This could be due to using a non-VESA-compatible graphics card or resolution, or @NAME@ was built without kernel-level framebuffer, VESA and enhanced VGA support. Try using \033[32mshorkres\033[${ASCII}m to switch to \"vga\" or higher resolution, and if that does not work, verify if kernel-level support is included as per @NAME@'s after-build report.\n" | fold -s -w "$TERMWIDTH"
+    printf "ERROR: No framebuffer device has been found. This could be due to using a non-VESA-compatible graphics card or resolution, or @NAME@ was built without kernel-level framebuffer, VESA and enhanced VGA support. Try using \033[32mshorkres\033[${ASCII}m to switch to \"vga\" or higher resolution, and if that does not work, verify if kernel-level support is included as per @NAME@'s after-build report.\n" | fold -s -w "$TERM_WIDTH"
     exit 1
 fi
 
@@ -22,5 +21,24 @@ export FONTCONFIG_PATH=/etc/fonts
 export FONTCONFIG_FILE=/etc/fonts/fonts.conf
 
 Xfbdev :0 -fp $FONT_DIR 2>/dev/null &
-sleep 2
-twm
+X_PID=$!
+
+# Make sure TWM doesn't start until we think TinyX is up and running
+while [ ! -S /tmp/.X11-unix/X0 ]; do
+    if ! kill -0 $X_PID 2>/dev/null; then
+        printf "ERROR: Xfbdev failed to start.\n" | fold -s -w "$TERM_WIDTH"
+        exit 1
+    fi
+    sleep 1
+done
+
+# Create temporary twmrc that populates FB_WIDTH with current screen resolution
+sed "s/@FB_WIDTH@/$FB_WIDTH/g" /usr/share/X11/twm/system.twmrc > /tmp/shorkgui.twmrc
+
+twm -f /tmp/shorkgui.twmrc 2>/dev/null
+
+# Makes sure TinyX exists after TWM does
+kill $X_PID
+
+# Remove temporary twmrc
+rm /tmp/shorkgui.twmrc
