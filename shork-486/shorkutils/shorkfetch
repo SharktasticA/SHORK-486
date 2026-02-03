@@ -9,15 +9,107 @@
 
 
 
-# Find RAM usage and total
-read MEM_TOTAL MEM_USED <<EOF
-$(free | awk '/Mem:/ {printf "%d %.1f\n", $2/1024, $3/1024}')
-EOF
+convert_bytes()
+{
+    BYTES=$1
+    GIB=1073741824
+    MIB=1048576
+    KIB=1024
 
-if [ -n "$MEM_TOTAL" ] && [ -n "$MEM_USED" ]; then
-    MEMORY="${MEM_USED}MiB / ${MEM_TOTAL}MiB"
-else
-    MEMORY="unknown"
+    if [ "$BYTES" -ge "$GIB" ]; then
+        WHOLE=$((BYTES / GIB))
+        REM=$((BYTES % GIB))
+        DEC=$(((REM * 10 + GIB / 2) / GIB))
+
+        if [ "$DEC" -eq 10 ]; then
+            WHOLE=$((WHOLE + 1))
+            DEC=0
+        fi
+
+        if [ "$DEC" -eq 0 ]; then
+            echo "${WHOLE}GiB"
+        else
+            echo "${WHOLE}.${DEC}GiB"
+        fi
+
+    elif [ "$BYTES" -ge "$MIB" ]; then
+        WHOLE=$((BYTES / MIB))
+        REM=$((BYTES % MIB))
+        DEC=$(((REM * 10 + MIB / 2) / MIB))
+
+        if [ "$DEC" -eq 10 ]; then
+            WHOLE=$((WHOLE + 1))
+            DEC=0
+        fi
+
+        if [ "$DEC" -eq 0 ]; then
+            echo "${WHOLE}MiB"
+        else
+            echo "${WHOLE}.${DEC}MiB"
+        fi
+
+    elif [ "$BYTES" -ge "$KIB" ]; then
+        WHOLE=$((BYTES / KIB))
+        REM=$((BYTES % KIB))
+        DEC=$(((REM * 10 + KIB / 2) / KIB))
+
+        if [ "$DEC" -eq 10 ]; then
+            WHOLE=$((WHOLE + 1))
+            DEC=0
+        fi
+
+        if [ "$DEC" -eq 0 ]; then
+            echo "${WHOLE}KiB"
+        else
+            echo "${WHOLE}.${DEC}KiB"
+        fi
+    else
+        echo "${BYTES}B"
+    fi
+}
+
+
+
+# Find RAM usage and total
+MEM=""
+read MEM_TOTAL MEM_USED <<EOF
+$(free -b | awk '/Mem:/ {print $2, $3}')
+EOF
+if [ -n "$MEM_TOTAL" ] && [ -n "$MEM_USED" ] && [ "$MEM_TOTAL" -gt 0 ]; then
+    MEM_PCT=$((MEM_USED * 100 / MEM_TOTAL))
+    MEM_TOTAL=$(convert_bytes "$MEM_TOTAL")
+    MEM_USED=$(convert_bytes "$MEM_USED")
+    MEM="${MEM_USED} / ${MEM_TOTAL} (${MEM_PCT}%)"
+fi
+
+
+
+# Find swap partition usage and total
+SWAP=""
+read SWAP_TOTAL SWAP_USED <<EOF
+$(free -b | awk '/Swap:/ {print $2, $3}')
+EOF
+if [ -n "$SWAP_TOTAL" ] && [ -n "$SWAP_USED" ] && [ "$SWAP_TOTAL" -gt 0 ]; then
+    SWAP_PCT=$((SWAP_USED * 100 / SWAP_TOTAL))
+    SWAP_TOTAL=$(convert_bytes "$SWAP_TOTAL")
+    SWAP_USED=$(convert_bytes "$SWAP_USED")
+    SWAP="${SWAP_USED} / ${SWAP_TOTAL} (${SWAP_PCT}%)"
+fi
+
+
+
+# Find root partition usage and total
+ROOT=""
+read ROOT_TOTAL ROOT_USED <<EOF
+$(df | awk '$NF == "/" {print $2, $3}')
+EOF
+if [ -n "$ROOT_TOTAL" ] && [ -n "$ROOT_USED" ]; then
+    ROOT_PCT=$((ROOT_USED * 100 / ROOT_TOTAL))
+    ROOT_TOTAL=$((ROOT_TOTAL * 1024))
+    ROOT_USED=$((ROOT_USED * 1024))
+    ROOT_TOTAL=$(convert_bytes "$ROOT_TOTAL")
+    ROOT_USED=$(convert_bytes "$ROOT_USED")
+    ROOT="${ROOT_USED} / ${ROOT_TOTAL} (${ROOT_PCT}%)"
 fi
 
 
@@ -193,6 +285,8 @@ printf "Kernel:  %s\n" "$KERNEL"
 printf "Uptime:  %s\n" "$UPTIME"
 printf "Shell:   %s\n" "$SHELL_NAME"
 printf "CPU:     %s\n" "$CPU"
-[ -n "$GPU" ] && printf "GPU:     %s\n" "$GPU"
-printf "Memory:  %s\n" "$MEMORY"
+[ -n "$GPU" ]  && printf "GPU:     %s\n" "$GPU"
+[ -n "$MEM" ]  && printf "Memory:  %s\n" "$MEM"
+[ -n "$SWAP" ] && printf "Swap:    %s\n" "$SWAP"
+[ -n "$ROOT" ] && printf "Root:    %s\n" "$ROOT"
 printf "\n"
