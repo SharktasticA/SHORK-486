@@ -7,14 +7,15 @@ else
     ASCII="0;37"
 fi
 
-FB_WIDTH=$(cat /sys/class/graphics/fb0/virtual_size | cut -d',' -f1)
-FONT_DIR="/usr/lib/X11/fonts/misc"
 TERM_WIDTH=$(stty size 2>/dev/null | cut -d' ' -f2)
 
 if [ ! -e /dev/fb0 ]; then
     printf "ERROR: No framebuffer device has been found. This could be due to using a non-VESA-compatible graphics card or resolution, or @NAME@ was built without kernel-level framebuffer, VESA and enhanced VGA support. Try using \033[32mshorkres\033[${ASCII}m to switch to \"vga\" or higher resolution, and if that does not work, verify if kernel-level support is included as per @NAME@'s after-build report.\n" | fold -s -w "$TERM_WIDTH"
     exit 1
 fi
+
+FB_WIDTH=$(cat /sys/class/graphics/fb0/virtual_size | cut -d',' -f1)
+FONT_DIR="/usr/lib/X11/fonts/misc"
 
 export DISPLAY=:0
 export FONTCONFIG_PATH=/etc/fonts
@@ -41,4 +42,4 @@ twm -f /tmp/shorkgui.twmrc 2>/dev/null
 kill $X_PID
 
 # Remove temporary twmrc
-rm /tmp/shorkgui.twmrc
+rm /tmp/shorkgui.twmrc 2>/dev/null
