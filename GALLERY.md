@@ -1,6 +1,6 @@
 # SHORK 486 Gallery
 
-* Updated 26th January 2026
+* Updated 3rd February 2026
 
 ## Photos
 
@@ -105,6 +105,17 @@
   </tr>
 </table>
 
+<table style="table-layout: fixed; width: 100%;">
+  <tr>
+    <td style="width: 50%; text-align: center;"><img src="screenshots/86box_shorkgui_crop.png" style="width: 100%;" /></td>
+    <td style="width: 50%; text-align: center;"></td>
+  </tr>
+  <tr>
+    <td>SHORKGUI</td>
+    <td></td>
+  </tr>
+</table>
+
 ## VMware Workstation screenshots
 
 <table style="table-layout: fixed; width: 100%;">
@@ -115,5 +126,16 @@
   <tr>
     <td>FTP</td>
     <td>Git clone</td>
+  </tr>
+</table>
+
+<table style="table-layout: fixed; width: 100%;">
+  <tr>
+    <td style="width: 50%; text-align: center;"><img src="screenshots/vmware_shorkgui.png" style="width: 100%;" /></td>
+    <td style="width: 50%; text-align: center;"></td>
+  </tr>
+  <tr>
+    <td>SHORKGUI</td>
+    <td></td>
   </tr>
 </table>

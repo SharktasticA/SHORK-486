@@ -2338,6 +2338,59 @@ get_xload()
     make DESTDIR="$DESTDIR" install
 }
 
+get_xli()
+{
+    # Prevent hard-coded paths poisoning the cross-compilation linker
+    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+
+    cd "$CURR_DIR/build"
+
+    # Skip if already built
+    if [ -f "$DESTDIR/usr/bin/xli" ]; then
+        echo -e "${LIGHT_RED}xli already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d xli ]; then
+        echo -e "${YELLOW}xli source already present, resetting...${RESET}"
+        git config --global --add safe.directory "$CURR_DIR/build/xli"
+        cd xli
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading xli...${RESET}"
+        git clone https://github.com/openSUSE/xli.git
+        cd xli
+    fi
+
+    # Patch to remove JPEG support
+    sudo sed -i -e 's/jpeg\.c//g' -e 's/jpeg\.o//g' -e 's/rle\.c//g' -e 's/rle\.o//g' -e 's/rlelib\.c//g' -e 's/rlelib\.o//g' Makefile.std
+    sudo sed -i '/jpegIdent/d' imagetypes.c
+    sudo sed -i '/jpegLoad/d' imagetypes.c
+    sudo sed -i '/rleIdent/d' imagetypes.c
+    sudo sed -i '/rleLoad/d' imagetypes.c
+
+    # Patch to add missing string.h headers in various files
+    sudo sed -i '1i #include <string.h>' ddxli.c pcd.c png.c zoom.c
+
+    # Patch to disable gamma correction logic
+    sudo sed -i 's/make_gamma(/ \/\/ make_gamma(/g' bright.c send.c
+    sudo sed -i 's/gammacorrect(/ \/\/ gammacorrect(/g' xli.c
+
+    # Patch to add explicit linking of X11 components
+    sudo sed -i -e 's/^LIBS=.*/LIBS= -lX11 -lXext -lxcb -lXau -lXdmcp -lpng -lz -lm/' Makefile.std
+    sudo sed -i -e 's/^\t$(MAKE) all CC=/\t$(MAKE) CC=/' Makefile.std
+  
+    # Compile and install
+    echo -e "${GREEN}Compiling xli...${RESET}"
+    make -f Makefile.std all CC="${CC_STATIC}" CFLAGS="-I${PREFIX}/include -DSYSPATHFILE=\\\"/usr/lib/X11/Xli\\\" -DNO_JPEG" LDFLAGS="-L${PREFIX}/lib"
+    install -Dm755 xli "$DESTDIR/usr/bin/xli"
+
+    # Copy licence file
+    cp LICENSE $CURR_DIR/build/LICENCES/xli.txt
+}
+
 prepare_x11()
 {
     export PKG_CONFIG_DIR=""
@@ -2358,7 +2411,7 @@ prepare_x11()
     get_libice
     get_libsm
     get_libxt
-    #get_libpng
+    get_libpng
     #get_libxpm
     get_libxmu
     get_utilmacros
@@ -2376,6 +2429,7 @@ prepare_x11()
     #get_xbiff
     #get_xeyes
     #get_xload
+    get_xli
 }
 
 get_tinyx()
@@ -2849,6 +2903,7 @@ trim_fat()
         sudo $STRIP "${DESTDIR}/usr/bin/Xvesa" || true
 
         sudo $STRIP "${DESTDIR}/usr/bin/st" || true
+        sudo $STRIP "${DESTDIR}/usr/bin/xli" || true
 
         if [[ $USED_WM == "TWM" ]]; then
             sudo $STRIP "${DESTDIR}/usr/bin/twm" || true
@@ -2929,7 +2984,7 @@ build_file_system()
     cd "${DESTDIR}"
 
     echo -e "${GREEN}Creating required directories...${RESET}"
-    sudo mkdir -p {dev,proc,etc/init.d,sys,tmp,home,usr/share/udhcpc,usr/libexec,banners}
+    sudo mkdir -p {dev,proc,etc/init.d,sys,tmp,home,usr/share/backgrounds,usr/share/udhcpc,usr/libexec,banners}
 
     echo -e "${GREEN}Configure permissions...${RESET}"
     chmod +x $CURR_DIR/sysfiles/rc
@@ -2989,11 +3044,12 @@ build_file_system()
     fi
 
     if $ENABLE_GUI; then
-        echo -e "${GREEN}Installing shorkgui as X11 support is enabled...${RESET}"
+        echo -e "${GREEN}Installing files needed for SHORKGUI...${RESET}"
         copy_sysfile $CURR_DIR/shorkutils/shorkgui $DESTDIR/usr/bin/shorkgui
+        copy_sysfile $CURR_DIR/sysfiles/shork-486.png $DESTDIR/usr/share/backgrounds/shork-486.png
         INCLUDED_FEATURES+="\n  * shorkgui"
         if [[ $USED_WM == "TWM" ]]; then 
-            echo -e "${GREEN}Installing SHORK-specific TWM configuration...${RESET}"
+            echo -e "${GREEN}Installing SHORKGUI-specific TWM configuration...${RESET}"
             copy_sysfile $CURR_DIR/sysfiles/system.twmrc $DESTDIR/usr/share/X11/twm/system.twmrc
         fi
     else
@@ -3402,6 +3458,7 @@ if $ENABLE_GUI; then
     prepare_x11
     get_tinyx
     INCLUDED_FEATURES+="\n  * TinyX"
+    INCLUDED_FEATURES+="\n  * xli"
     if [[ $USED_WM == "TWM" ]]; then
         get_twm
     fi
@@ -3409,6 +3466,7 @@ if $ENABLE_GUI; then
     INCLUDED_FEATURES+="\n  * st"
 else
     EXCLUDED_FEATURES+="\n  * TinyX"
+    EXCLUDED_FEATURES+="\n  * xli"
     EXCLUDED_FEATURES+="\n  * st"
 fi
 

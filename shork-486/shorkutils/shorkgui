@@ -33,6 +33,9 @@ while [ ! -S /tmp/.X11-unix/X0 ]; do
     sleep 1
 done
 
+# Set default background image
+xli -onroot -center -border black -quiet /usr/share/backgrounds/shork-486.png &
+
 # Create temporary twmrc that populates FB_WIDTH with current screen resolution
 sed "s/@FB_WIDTH@/$FB_WIDTH/g" /usr/share/X11/twm/system.twmrc > /tmp/shorkgui.twmrc
 
@@ -41,5 +44,5 @@ twm -f /tmp/shorkgui.twmrc 2>/dev/null
 # Makes sure TinyX exists after TWM does
 kill $X_PID
 
-# Remove temporary twmrc
+# Remove temporary twmrc if still present
 rm /tmp/shorkgui.twmrc 2>/dev/null
