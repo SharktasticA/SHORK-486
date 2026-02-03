@@ -602,6 +602,7 @@ get_ncurses()
     # Download source
     if [ -d ncurses ]; then
         echo -e "${YELLOW}ncurses source already present, resetting...${RESET}"
+        git config --global --add safe.directory $CURR_DIR/build/ncurses
         cd ncurses
         git reset --hard
     else
@@ -665,6 +666,7 @@ get_zlib()
     # Download source
     if [ -d zlib ]; then
         echo -e "${YELLOW}zlib source already present, resetting...${RESET}"
+        git config --global --add safe.directory $CURR_DIR/build/zlib
         cd zlib
         git reset --hard
     else
@@ -696,6 +698,7 @@ get_openssl()
     # Download source
     if [ -d openssl ]; then
         echo -e "${YELLOW}OpenSSL source already present, resetting...${RESET}"
+        git config --global --add safe.directory $CURR_DIR/build/openssl
         cd openssl
         git reset --hard
     else
@@ -2460,7 +2463,7 @@ get_tinyx()
     
     export ACLOCAL_PATH="$SYSROOT/usr/share/aclocal"
 
-    LINK_LIBS="-lXtst -lXi -lXext -lXfixes -lXfont -lfontenc -lX11 -lxcb -lXau -lXdmcp -lfreetype -lz -lm"
+    LINK_LIBS="-lXtst -lXi -lXext -lXfixes -lXfont -lfontenc -lX11 -lxcb -lXau -lXdmcp -lfreetype -lpng -lz -lm"
 
     # Compile and install
     echo -e "${GREEN}Compiling TinyX...${RESET}"
