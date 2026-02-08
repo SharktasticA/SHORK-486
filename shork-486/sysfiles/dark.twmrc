@@ -2,6 +2,9 @@ NoGrabServer
 RestartPreviousState
 DecorateTransients
 IconifyByUnmapping
+RandomPlacement
+OpaqueMove
+NoMenuShadows
 
 
 
@@ -18,17 +21,17 @@ Color
     BorderColor           "gray30"
     DefaultBackground     "black"
     DefaultForeground     "white"
-    TitleBackground       "#000080"
+    TitleBackground       "blue"
     TitleForeground       "white"
     MenuBackground        "black"
     MenuForeground        "white"
     MenuBorderColor       "gray50"
-    MenuTitleBackground   "#000080"
+    MenuTitleBackground   "blue"
     MenuTitleForeground   "white"
-    IconBackground        "#000080"
+    IconBackground        "blue"
     IconForeground        "white"
     IconBorderColor       "gray90"
-    IconManagerBackground "#000080"
+    IconManagerBackground "blue"
     IconManagerForeground "white"
 }
 
@@ -83,6 +86,12 @@ menu "defops"
     "Unfocus Window"    f.unfocus
     "--------------"    f.nop
     "Terminal"          f.exec "exec /usr/bin/st &"
+    "--------------"    f.nop
+    "Calculator"        f.exec "exec /usr/bin/xcalc &"
+    "Clock"             f.exec "exec /usr/bin/xclock -name Clock &"
+    "Eyes"              f.exec "exec /usr/bin/xeyes -name Eyes &"
+    "Load Meter"        f.exec "exec /usr/bin/xload -name \"Load Meter\" -fn fixed &"
+    "Neko"              f.exec "exec /usr/bin/oneko &"
     "--------------"    f.nop
     "Exit"		        f.quit
 }

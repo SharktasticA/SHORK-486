@@ -14,12 +14,12 @@ menuentry "@NAME@ @VER@" {
     set color_normal=light-gray/black
     clear
     echo "Starting @NAME@..."
-    linux16 /boot/bzImage root=/dev/sda1 rootfstype=ext4 rw rootwait init=/sbin/init console=tty0 ip=off tsc=unstable quiet loglevel=3 vga=normal
+    linux16 /boot/bzImage root=/dev/sda1 rootfstype=ext4 rw rootwait init=/sbin/init console=tty1 ip=off tsc=unstable quiet loglevel=3 vga=normal
 }
 
 menuentry "@NAME@ @VER@ (debug/verbose)" {
     set color_normal=light-gray/black
     clear
     echo "Starting @NAME@..."
-    linux16 /boot/bzImage root=/dev/sda1 rootfstype=ext4 rw rootwait init=/sbin/init console=tty0 ip=off tsc=unstable loglevel=7 vga=normal
+    linux16 /boot/bzImage root=/dev/sda1 rootfstype=ext4 rw rootwait init=/sbin/init console=tty1 ip=off tsc=unstable loglevel=7 vga=normal
 }

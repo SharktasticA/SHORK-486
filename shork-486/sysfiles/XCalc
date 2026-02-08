@@ -1,0 +1,168 @@
+XCalc.Title:        Calculator
+XCalc.IconName:     Calc
+XCalc.IconPixmap:   calculator
+
+
+
+XCalc*Cursor:       hand2
+XCalc*Font:         fixed
+XCalc*ShapeStyle:   rectangle
+
+
+
+XCalc*Command.background:       white
+XCalc*Command.foreground:       black
+XCalc*Command.horizDistance:    2
+XCalc*Command.vertDistance:     2
+XCalc*Command.width:            32
+XCalc*Command.height:           32
+XCalc*Command.internalWidth:    1
+
+
+
+XCalc*bevel.background:         black
+XCalc*bevel.horizDistance:      4
+XCalc*bevel.vertDistance:       2
+
+
+
+XCalc*bevel.screen.horizDistance:   6
+XCalc*bevel.screen.vertDistance:    2
+XCalc*bevel.screen.defaultDistance: 0
+XCalc*bevel.screen.Label.label:
+XCalc*bevel.screen.Label.width: 0
+
+XCalc*bevel.screen.LCD.background:  white
+XCalc*bevel.screen.LCD.foreground:  black
+XCalc*bevel.screen.LCD.fromHoriz: 
+XCalc*bevel.screen.LCD.horizDistance: 0
+XCalc*bevel.screen.LCD.vertDistance:  0
+XCalc*bevel.screen.LCD.height:        24
+XCalc*bevel.screen.LCD.width:         128
+
+XCalc*bevel.screen.INV.mappedWhenManaged:  False
+XCalc*bevel.screen.DEG.mappedWhenManaged:  False
+XCalc*bevel.screen.RAD.mappedWhenManaged:  False
+XCalc*bevel.screen.GRAD.mappedWhenManaged: False
+XCalc*bevel.screen.P.mappedWhenManaged:    False
+
+
+
+XCalc*ti.bevel.screen.LCD.translations: #replace\n\
+    Ctrl<Key>c:quit()\n\
+    Ctrl<Key>h:clear()\n\
+    None<Key>0:digit(0)\n\
+    None<Key>1:digit(1)\n\
+    None<Key>2:digit(2)\n\
+    None<Key>3:digit(3)\n\
+    None<Key>4:digit(4)\n\
+    None<Key>5:digit(5)\n\
+    None<Key>6:digit(6)\n\
+    None<Key>7:digit(7)\n\
+    None<Key>8:digit(8)\n\
+    None<Key>9:digit(9)\n\
+    <Key>KP_0:digit(0)\n\
+    <Key>KP_1:digit(1)\n\
+    <Key>KP_2:digit(2)\n\
+    <Key>KP_3:digit(3)\n\
+    <Key>KP_4:digit(4)\n\
+    <Key>KP_5:digit(5)\n\
+    <Key>KP_6:digit(6)\n\
+    <Key>KP_7:digit(7)\n\
+    <Key>KP_8:digit(8)\n\
+    <Key>KP_9:digit(9)\n\
+    <Key>KP_Enter:equal()\n\
+    <Key>KP_Equal:equal()\n\
+    <Key>Return:equal()\n\
+    <Key>KP_Multiply:multiply()\n\
+    <Key>KP_Add:add()\n\
+    <Key>KP_Subtract:subtract()\n\
+    <Key>KP_Decimal:decimal()\n\
+    <Key>KP_Separator:decimal()\n\
+    <Key>KP_Divide:divide()\n\
+    <Key>KP_Tab:equal()\n\
+    <Key>Clear:clear()\n\
+    :<Key>.:decimal()\n\
+    :<Key>+:add()\n\
+    :<Key>-:subtract()\n\
+    :<Key>*:multiply()\n\
+    :<Key>/:divide()\n\
+    :<Key>=:equal()\n\
+    <Key>q:quit()\n\
+    <Key>Delete:clear()\n\
+    <Key>BackSpace:clear()\n\
+    <Btn1Down>,<Btn1Up>:toggle()selection()\n
+
+
+
+XCalc*ti.button1.label: 7
+XCalc*ti.button1.translations: #override<Btn1Down>,<Btn1Up>:digit(7)unset()
+XCalc*ti.button2.label: 8
+XCalc*ti.button2.translations: #override<Btn1Down>,<Btn1Up>:digit(8)unset()
+XCalc*ti.button3.label: 9
+XCalc*ti.button3.translations: #override<Btn1Down>,<Btn1Up>:digit(9)unset()
+XCalc*ti.button4.label: /
+XCalc*ti.button4.translations: #override<Btn1Down>,<Btn1Up>:divide()unset()
+XCalc*ti.button5.label: 4
+XCalc*ti.button5.translations: #override<Btn1Down>,<Btn1Up>:digit(4)unset()
+XCalc*ti.button6.label: 5
+XCalc*ti.button6.translations: #override<Btn1Down>,<Btn1Up>:digit(5)unset()
+XCalc*ti.button7.label: 6
+XCalc*ti.button7.translations: #override<Btn1Down>,<Btn1Up>:digit(6)unset()
+XCalc*ti.button8.label: *
+XCalc*ti.button8.translations: #override<Btn1Down>,<Btn1Up>:multiply()unset()
+XCalc*ti.button9.label: 1
+XCalc*ti.button9.translations: #override<Btn1Down>,<Btn1Up>:digit(1)unset()
+XCalc*ti.button10.label: 2
+XCalc*ti.button10.translations: #override<Btn1Down>,<Btn1Up>:digit(2)unset()
+XCalc*ti.button11.label: 3
+XCalc*ti.button11.translations: #override<Btn1Down>,<Btn1Up>:digit(3)unset()
+XCalc*ti.button12.label: -
+XCalc*ti.button12.translations: #override<Btn1Down>,<Btn1Up>:subtract()unset()
+XCalc*ti.button13.label: 0
+XCalc*ti.button13.translations: #override<Btn1Down>,<Btn1Up>:digit(0)unset()
+XCalc*ti.button14.label: .
+XCalc*ti.button14.translations: #override<Btn1Down>,<Btn1Up>:decimal()unset()
+XCalc*ti.button15.label: +
+XCalc*ti.button15.translations: #override<Btn1Down>,<Btn1Up>:add()unset()
+XCalc*ti.button16.label: =
+XCalc*ti.button16.translations: #override<Btn1Down>,<Btn1Up>:equal()unset()
+
+
+
+XCalc*ti.button1.horizDistance: 4
+XCalc*ti.button1.vertDistance:  12
+XCalc*ti.button1.fromVert:      bevel
+XCalc*ti.button2.fromHoriz:     button1
+XCalc*ti.button2.fromVert:      bevel
+XCalc*ti.button2.vertDistance:  12
+XCalc*ti.button3.fromHoriz:     button2
+XCalc*ti.button3.fromVert:      bevel
+XCalc*ti.button3.vertDistance:  12
+XCalc*ti.button4.fromHoriz:     button3
+XCalc*ti.button4.fromVert:      bevel
+XCalc*ti.button4.vertDistance:  12
+XCalc*ti.button5.horizDistance: 4
+XCalc*ti.button5.fromVert:      button1
+XCalc*ti.button6.fromHoriz:     button5
+XCalc*ti.button6.fromVert:      button2
+XCalc*ti.button7.fromHoriz:     button6
+XCalc*ti.button7.fromVert:      button3
+XCalc*ti.button8.fromHoriz:     button7
+XCalc*ti.button8.fromVert:      button4
+XCalc*ti.button9.horizDistance: 4
+XCalc*ti.button9.fromVert:      button5
+XCalc*ti.button10.fromHoriz:    button9
+XCalc*ti.button10.fromVert:     button6
+XCalc*ti.button11.fromHoriz:    button10
+XCalc*ti.button11.fromVert:     button7
+XCalc*ti.button12.fromHoriz:    button11
+XCalc*ti.button12.fromVert:     button8
+XCalc*ti.button13.horizDistance: 4
+XCalc*ti.button13.fromVert:     button9
+XCalc*ti.button14.fromHoriz:    button13
+XCalc*ti.button14.fromVert:     button10
+XCalc*ti.button15.fromHoriz:    button14
+XCalc*ti.button15.fromVert:     button11
+XCalc*ti.button16.fromHoriz:    button15
+XCalc*ti.button16.fromVert:     button12

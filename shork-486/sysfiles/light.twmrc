@@ -1,0 +1,111 @@
+NoGrabServer
+RestartPreviousState
+DecorateTransients
+IconifyByUnmapping
+RandomPlacement
+OpaqueMove
+NoMenuShadows
+
+
+
+TitleFont       "fixed"
+MenuFont        "fixed"
+ResizeFont      "fixed"
+IconFont        "fixed"
+IconManagerFont "fixed"
+
+
+
+Color
+{
+    BorderColor           "gray30"
+    DefaultBackground     "white"
+    DefaultForeground     "black"
+    TitleBackground       "cyan"
+    TitleForeground       "black"
+    MenuBackground        "white"
+    MenuForeground        "black"
+    MenuBorderColor       "gray50"
+    MenuTitleBackground   "cyan"
+    MenuTitleForeground   "black"
+    IconBackground        "cyan"
+    IconForeground        "white"
+    IconBorderColor       "gray90"
+    IconManagerBackground "cyan"
+    IconManagerForeground "black"
+}
+
+
+
+ShowIconManager
+IconManagerGeometry "@FB_WIDTH@x25+0+0"
+IconManagerColumns 6
+IconManagerWidth 107
+
+
+
+MoveDelta 3
+Function "move-or-lower" { f.move f.deltastop f.lower }
+Function "move-or-raise" { f.move f.deltastop f.raise }
+Function "move-or-iconify" { f.move f.deltastop f.iconify }
+
+
+Button1 = : root : f.menu "defops"
+
+Button1 = m : window|icon : f.function "move-or-lower"
+Button2 = m : window|icon : f.iconify
+Button3 = m : window|icon : f.function "move-or-raise"
+
+Button1 = : title : f.function "move-or-raise"
+Button2 = : title : f.raiselower
+
+Button1 = : icon : f.function "move-or-iconify"
+Button2 = : icon : f.iconify
+
+Button1 = : iconmgr : f.iconify
+Button2 = : iconmgr : f.iconify
+
+
+
+menu "defops"
+{
+    "SHORKGUI"	        f.title
+    "Show Tasklist"	    f.showiconmgr
+    "Hide Tasklist"	    f.hideiconmgr
+    "--------------"    f.nop
+    "Minimise"	        f.iconify
+    "Close"	            f.delete
+    "Force Close"		f.destroy
+    "--------------"    f.nop
+    "Resize"	        f.resize
+    "Move"		        f.move
+    "Bring Forward"		f.raise
+    "Send Backward"		f.lower
+    "--------------"    f.nop
+    "Focus Window"		f.focus
+    "Unfocus Window"    f.unfocus
+    "--------------"    f.nop
+    "Terminal"          f.exec "exec /usr/bin/st &"
+    "--------------"    f.nop
+    "Calculator"        f.exec "exec /usr/bin/xcalc &"
+    "Clock"             f.exec "exec /usr/bin/xclock -name Clock &"
+    "Eyes"              f.exec "exec /usr/bin/xeyes -name Eyes &"
+    "Load Meter"        f.exec "exec /usr/bin/xload -name \"Load Meter\" -fn fixed &"
+    "Neko"              f.exec "exec /usr/bin/oneko &"
+    "--------------"    f.nop
+    "Exit"		        f.quit
+}
+
+
+
+DontIconify
+{
+    "Tasklist"
+    "TWM Icon Manager"
+}
+
+NoTitle
+{
+    "Tasklist"
+    "TWM Icon Manager"
+}

@@ -14,8 +14,26 @@ if [ ! -e /dev/fb0 ]; then
     exit 1
 fi
 
+cleanup()
+{
+    [ -n "$X_PID" ] && kill "$X_PID" 2>/dev/null
+    rm -f /tmp/shorkgui.twmrc 2>/dev/null
+}
+trap cleanup EXIT INT TERM
+
+
+
 FB_WIDTH=$(cat /sys/class/graphics/fb0/virtual_size | cut -d',' -f1)
 FONT_DIR="/usr/lib/X11/fonts/misc"
+MODE="dark"
+
+for arg in "$@"; do
+    case "$arg" in
+        --light|--passive)
+            MODE="light"
+            ;;
+    esac
+done
 
 export DISPLAY=:0
 export FONTCONFIG_PATH=/etc/fonts
@@ -24,25 +42,26 @@ export FONTCONFIG_FILE=/etc/fonts/fonts.conf
 Xfbdev :0 -mouse /dev/input/mice -mouse /dev/ttyS0 -fp $FONT_DIR 2>/dev/null &
 X_PID=$!
 
-# Make sure TWM doesn't start until we think TinyX is up and running
-while [ ! -S /tmp/.X11-unix/X0 ]; do
-    if ! kill -0 $X_PID 2>/dev/null; then
-        printf "ERROR: Xfbdev failed to start.\n" | fold -s -w "$TERM_WIDTH"
+MAX_RETRIES=15
+COUNT=0
+while ! xset -q >/dev/null 2>&1; do
+    sleep 1
+    COUNT=$((COUNT + 1))
+    if [ $COUNT -ge $MAX_RETRIES ]; then
+        printf "\nERROR: Xfbdev failed to respond after $MAX_RETRIES seconds.\n" | fold -s -w "$TERM_WIDTH"
+        exit 1
+    elif ! kill -0 $X_PID 2>/dev/null; then
+        printf "\nERROR: Xfbdev exited unexpectedly.\n" | fold -s -w "$TERM_WIDTH"
         exit 1
     fi
-    sleep 1
 done
 
-# Set default background image
-xli -onroot -center -border black -quiet /usr/share/backgrounds/shork-486.png &
+if [ $MODE == "light" ]; then 
+    xli -onroot -center -border white -quiet /usr/share/backgrounds/shork-486-light.png
+    sed "s/@FB_WIDTH@/$FB_WIDTH/g" /usr/share/X11/twm/light.twmrc > /tmp/shorkgui.twmrc
+else
+    xli -onroot -center -border black -quiet /usr/share/backgrounds/shork-486-dark.png
+    sed "s/@FB_WIDTH@/$FB_WIDTH/g" /usr/share/X11/twm/dark.twmrc > /tmp/shorkgui.twmrc
+fi
 
-# Create temporary twmrc that populates FB_WIDTH with current screen resolution
-sed "s/@FB_WIDTH@/$FB_WIDTH/g" /usr/share/X11/twm/system.twmrc > /tmp/shorkgui.twmrc
-
-twm -f /tmp/shorkgui.twmrc 2>/dev/null
-
-# Makes sure TinyX exists after TWM does
-kill $X_PID
-
-# Remove temporary twmrc if still present
-rm /tmp/shorkgui.twmrc 2>/dev/null
+twm -f /tmp/shorkgui.twmrc

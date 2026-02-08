@@ -13,6 +13,11 @@
 
 
 
+# Activate swap if present
+if [ -f /etc/fstab ] && grep -q swap /etc/fstab; then
+    swapon -a 2>/dev/null || true
+fi
+
 # Mount core file systems
 mount -t proc  proc  /proc
 mount -t sysfs sysfs /sys
@@ -29,11 +34,6 @@ chmod 666 /dev/pts
 [ -c /dev/tty1 ] || mknod -m 620 /dev/tty1 c 4 1
 
 [ -r /etc/hostname ] && hostname "$(cat /etc/hostname)"
-
-# Activate swap if present
-if [ -f /etc/fstab ] && grep -q swap /etc/fstab; then
-    swapon -a 2>/dev/null || true
-fi
 
 # Load persistent keymap (if present)
 if [ -f /etc/keymap ]; then

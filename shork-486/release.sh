@@ -42,9 +42,9 @@ fi
 
 
 
-NAME="${DATE}_SHORK-486_${VER}_x11"
+NAME="${DATE}_SHORK-486_${VER}_gui"
 if [[ ! -f "release/${NAME}.zip" ]]; then
-    ./build.sh --always-build --is-debian --target-swap=16 --enable-gui --enable-twm --fix-extlinux
+    ./build.sh --always-build --is-debian --target-swap=8 --enable-gui --fix-extlinux
     cp images/shork-486.img "release/${NAME}.img"
     cp images/report.txt "release/${NAME}.txt"
     cd release
@@ -57,7 +57,7 @@ fi
 
 NAME="${DATE}_SHORK-486_${VER}_maximal"
 if [[ ! -f "release/${NAME}.zip" ]]; then
-    ./build.sh --always-build --is-debian --target-swap=16 --maximal --fix-extlinux
+    ./build.sh --always-build --is-debian --target-swap=8 --maximal --fix-extlinux
     cp images/shork-486.img "release/${NAME}.img"
     cp images/report.txt "release/${NAME}.txt"
     cd release

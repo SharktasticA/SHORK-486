@@ -66,7 +66,7 @@ ed, emacs, git, nano, vi
 
 System & processes
 ------------------
-beep, blkid, clear, crontab, date, dd, df, dmesg, free, halt, hostname, kill, losetup, lsblk, lspci, lsusb, mdev, nice, nohup, nproc, pkill, sleep, stty, swapoff, swapon, top, uname, whoami
+beep, blkid, clear, crontab, date, dd, df, dmesg, free, halt, hostname, kill, losetup, lsblk, lspci, lsusb, mdev, nice, nohup, nproc, pkill, pstree, sleep, stty, swapoff, swapon, top, uname, whoami
 
 Networking & remote access
 --------------------------

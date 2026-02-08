@@ -59,7 +59,7 @@ DISK_CYLINDERS=0
 DISK_HEADS=16
 DISK_SECTORS_TRACK=63
 DONT_DEL_ROOT=false
-EST_MIN_RAM="16"
+EST_MIN_RAM="16MiB"
 EXCLUDED_FEATURES=""
 INCLUDED_FEATURES=""
 ROOT_PART_SIZE=""
@@ -213,7 +213,7 @@ done
 
 # Override build type to "X11" if not already "custom" and the "enable X11" parameter is used
 if [[ "$BUILD_TYPE" != "custom" && "$ENABLE_GUI" == true ]]; then
-    BUILD_TYPE="X11"
+    BUILD_TYPE="GUI"
 fi
 
 # Overrides to ensure "maximal" parameter always takes precedence
@@ -226,7 +226,7 @@ if $MAXIMAL; then
     ENABLE_SMP=true
     ENABLE_USB=true
     ENABLE_GUI=true
-    EST_MIN_RAM="24"
+    EST_MIN_RAM="24MiB or 16MiB + 8MiB swap"
     NO_MENU=false
     SKIP_BB=false
     SKIP_DROPBEAR=false
@@ -249,7 +249,7 @@ elif $MINIMAL; then
     ENABLE_SMP=false
     ENABLE_USB=false
     ENABLE_GUI=false
-    EST_MIN_RAM="10"
+    EST_MIN_RAM="10MiB or 8MiB + 2MiB swap"
     NO_MENU=true
     SKIP_BB=false
     SKIP_DROPBEAR=true
@@ -265,12 +265,15 @@ elif $MINIMAL; then
     USED_WM=""
 fi
 
-# Override to ensure the USED_WM is empty when the "use X11" parameter is not used
+# Override to ensure the USED_WM is empty when the "use GUI" parameter is not used
 if ! $ENABLE_GUI; then
     USED_WM=""
-# Otherwise, if USED_WM is empty but X11 is desired, ensure the default WM (TWM) is set
-elif [[ $USED_WM == "" ]]; then
-    USED_WM="TWM"
+else
+    EST_MIN_RAM="24MiB or 16MiB + 8MiB swap"
+    # If USED_WM is empty but GUI is desired, ensure the default WM (TWM) is set
+    if [[ $USED_WM == "" ]]; then
+        USED_WM="TWM"
+    fi
 fi
 
 # Override to ensure the "use GRUB" parameter is disabled when the "Fix EXTLINUX" parameter is used
@@ -297,7 +300,7 @@ if [ -n "$TARGET_SWAP" ]; then
         echo -e "${RED}ERROR: the \"target swap\" parameter value must be an integer (whole number) - exiting${RESET}"
         exit 1
     fi
-    if [ "$TARGET_SWAP" -lt 1 ] || [ "$TARGET_SWAP" -gt 24 ]; then
+    if [ "$TARGET_SWAP" -lt 1 ] || [ "$TARGET_SWAP" -gt 64 ]; then
         echo -e "${RED}ERROR: the \"target swap\" parameter value must be between 1 and 24 - exiting${RESET}"
         exit 1
     fi
@@ -346,6 +349,7 @@ LIBEVENT_VER="release-2.1.12-stable"
 MG_VER="3.7"
 NANO_VER="8.7"
 NCURSES_VER="6.4"
+NEDIT_VER="NEDIT-CLASSIC-END"
 OPENSSL_VER="3.6.0"
 ROVER_VER="v1.0.1"
 TMUX_VER="3.6a"
@@ -509,7 +513,7 @@ install_debian_prerequisites()
     PACKAGES="autopoint bc bison bzip2 e2fsprogs fdisk flex git kpartx libtool make python3 python-is-python3 qemu-utils syslinux wget xz-utils"
 
     if $ENABLE_GUI; then
-        PACKAGES+=" fontconfig unzip xfonts-utils"
+        PACKAGES+=" fontconfig gettext unzip xfonts-utils"
     fi
 
     if $FIX_EXTLINUX; then
@@ -832,9 +836,6 @@ get_busybox()
         cd busybox
     fi
 
-    # Compile and install
-    echo -e "${GREEN}Compiling BusyBox...${RESET}"
-    make ARCH=x86 allnoconfig
     sed -i 's/main() {}/int main() {}/' scripts/kconfig/lxdialog/check-lxdialog.sh
 
     # Patch BusyBox to suppress banner and help message
@@ -843,21 +844,23 @@ get_busybox()
     echo -e "${GREEN}Copying base SHORK 486 BusyBox .config file...${RESET}"
     cp $CURR_DIR/configs/busybox.config .config
 
-    if $ENABLE_USB; then
-        echo -e "${GREEN}Enabling BusyBox's lsusb implementation...${RESET}"
-        sed -i 's/# CONFIG_LSUSB is not set/CONFIG_LSUSB=y/' .config
-    fi
-
     # Ensure BusyBox behaves with our toolchain
     sed -i "s|^CONFIG_CROSS_COMPILER_PREFIX=.*|CONFIG_CROSS_COMPILER_PREFIX=\"${PREFIX}/bin/i486-linux-musl-\"|" .config
     sed -i "s|^CONFIG_SYSROOT=.*|CONFIG_SYSROOT=\"${CURR_DIR}/build/i486-linux-musl-cross\"|" .config
     sed -i "s|^CONFIG_EXTRA_CFLAGS=.*|CONFIG_EXTRA_CFLAGS=\"-I${PREFIX}/include\"|" .config
     sed -i "s|^CONFIG_EXTRA_LDFLAGS=.*|CONFIG_EXTRA_LDFLAGS=\"-L${PREFIX}/lib\"|" .config
 
+    if $ENABLE_USB; then
+        echo -e "${GREEN}Enabling BusyBox's lsusb implementation...${RESET}"
+        sed -i 's/# CONFIG_LSUSB is not set/CONFIG_LSUSB=y/' .config
+    fi
+    
+    # Compile and install
+    echo -e "${GREEN}Compiling BusyBox...${RESET}"
     make ARCH=x86 -j$(nproc)
     make ARCH=x86 install
 
-    echo -e "${GREEN}Install BusyBox compilation as the basis for the root file system...${RESET}"
+    echo -e "${GREEN}Installing BusyBox as the basis of our root file system...${RESET}"
     if [ -d "${DESTDIR}" ]; then
         sudo rm -r "${DESTDIR}"
     fi
@@ -969,7 +972,6 @@ configure_kernel()
     
     if [ -n "$FRAGS" ]; then
         ./scripts/kconfig/merge_config.sh -m $CURR_DIR/configs/linux.config $FRAGS
-        make olddefconfig
     fi
 }
 
@@ -1050,14 +1052,14 @@ get_kernel_features()
     fi
 
     if $ENABLE_HIGHMEM; then
-        EST_MIN_RAM="24"
+        EST_MIN_RAM="24MiB or 16MiB + 8MiB swap"
         INCLUDED_FEATURES+="\n  * kernel-level high memory support"
     else
         EXCLUDED_FEATURES+="\n  * kernel-level high memory support"
     fi
 
     if $ENABLE_SATA; then
-        EST_MIN_RAM="24"
+        EST_MIN_RAM="24MiB or 16MiB + 8MiB swap"
         INCLUDED_FEATURES+="\n  * kernel-level SATA support"
     else
         EXCLUDED_FEATURES+="\n  * kernel-level SATA support"
@@ -1442,7 +1444,7 @@ get_libxfixes()
 
     # Extract source
     if [ -d $LIBXFIXES ]; then
-        echo -e "${YELLOW}libXfixes's source archive is already present, re-extracting before proceeding...${RESET}"
+        echo -e "${YELLOW}libXfixes' source archive is already present, re-extracting before proceeding...${RESET}"
         rm -rf $LIBXFIXES
     fi
     tar xf $LIBXFIXES_ARC
@@ -1776,7 +1778,7 @@ get_utilmacros()
 
     # Extract source
     if [ -d $UTILMACROS ]; then
-        echo -e "${YELLOW}util-macros's source archive is already present, re-extracting before proceeding...${RESET}"
+        echo -e "${YELLOW}util-macros' source archive is already present, re-extracting before proceeding...${RESET}"
         rm -rf $UTILMACROS
     fi
     tar xf $UTILMACROS_ARC
@@ -2193,6 +2195,43 @@ get_libxaw()
     make install DESTDIR="$SYSROOT"
 }
 
+get_libxkbfile()
+{
+    # Prevent hard-coded paths poisoning the cross-compilation linker
+    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+
+    cd "$CURR_DIR/build"
+
+    # Skip if already built
+    if [ -f "$SYSROOT/usr/lib/libxkbfile.a" ]; then
+        echo -e "${LIGHT_RED}libxkbfile already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading libxkbfile...${RESET}"
+
+    LIBXKBFILE="libxkbfile-1.1.3"
+    LIBXKBFILE_ARC="${LIBXKBFILE}.tar.xz"
+    LIBXKBFILE_URI="https://www.x.org/releases/individual/lib/${LIBXKBFILE_ARC}"
+
+    # Download source
+    [ -f $LIBXKBFILE_ARC ] || wget $LIBXKBFILE_URI
+
+    # Extract source
+    if [ -d $LIBXKBFILE ]; then
+        echo -e "${YELLOW}libxkbfile's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -r $LIBXKBFILE
+    fi
+    tar xf $LIBXKBFILE_ARC
+    cd $LIBXKBFILE
+
+    # Compile and install
+    echo -e "${GREEN}Compiling libxkbfile...${RESET}"
+    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    make -j$(nproc)
+    make install DESTDIR="$SYSROOT"
+}
+
 get_xbitmaps()
 {
     # Prevent hard-coded paths poisoning the cross-compilation linker
@@ -2217,7 +2256,7 @@ get_xbitmaps()
 
     # Extract source
     if [ -d $XBITMAPS ]; then
-        echo -e "${YELLOW}xbitmaps's source archive is already present, re-extracting before proceeding...${RESET}"
+        echo -e "${YELLOW}xbitmaps' source archive is already present, re-extracting before proceeding...${RESET}"
         rm -r $XBITMAPS
     fi
     tar xf $XBITMAPS_ARC
@@ -2227,7 +2266,60 @@ get_xbitmaps()
     echo -e "${GREEN}Compiling xbitmaps...${RESET}"
     ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
     make -j$(nproc)
-    make install DESTDIR="$DESTDIR"
+    make install DESTDIR="$SYSROOT"
+}
+
+get_openmotif()
+{
+    # Prevent hard-coded paths poisoning the cross-compilation linker
+    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+
+    cd "$CURR_DIR/build"
+
+    # Skip if already built
+    if [ -f "$SYSROOT/usr/include/Xm/Xm.h" ]; then
+        echo -e "${LIGHT_RED}OpenMotif already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading OpenMotif...${RESET}"
+
+    OPENMOTIF="motif-2.3.8"
+    OPENMOTIF_ARC="${OPENMOTIF}.tar.gz"
+    OPENMOTIF_URI="https://deac-fra.dl.sourceforge.net/project/motif/Motif%202.3.8%20Source%20Code/${OPENMOTIF_ARC}"
+
+    # Download source
+    [ -f $OPENMOTIF_ARC ] || wget $OPENMOTIF_URI
+
+    # Extract source
+    if [ -d $OPENMOTIF ]; then
+        echo -e "${YELLOW}OpenMotif's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -r $OPENMOTIF
+    fi
+    tar xzf $OPENMOTIF_ARC
+    cd $OPENMOTIF
+
+    # Compile and install
+    echo -e "${GREEN}Compiling OpenMotif...${RESET}"
+    ./configure --host="$HOST" \
+        --prefix=/usr \
+        --with-x \
+        --enable-static \
+        --disable-shared \
+        CC="$CC_STATIC" \
+        AR="$AR" \
+        RANLIB="$RANLIB" \
+        STRIP="$STRIP" \
+        CFLAGS="--sysroot=${SYSROOT} -O2 -march=i486 -I${SYSROOT}/usr/include -Wno-error -Wno-maybe-uninitialized -Wno-array-bounds -Wno-int-in-bool-context"
+
+    # Patch for "undefined reference to 'main'"
+    sudo sed -i 's/^LEX =.*/LEX = flex/' tools/wml/Makefile
+    echo "int main(int argc, char **argv) { return 0; }" | sudo tee -a tools/wml/wmluiltok.l
+
+    make -j"$(nproc)" -C lib
+    make -j"$(nproc)" -C include 
+    make -C lib install DESTDIR="$SYSROOT"
+    make -C include install DESTDIR="$SYSROOT"
 }
 
 get_xbiff()
@@ -2267,133 +2359,6 @@ get_xbiff()
     make DESTDIR="$DESTDIR" install
 }
 
-get_xeyes()
-{
-    # Prevent hard-coded paths poisoning the cross-compilation linker
-    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
-
-    cd "$CURR_DIR/build"
-
-    # Skip if already built
-    if [ -f "$DESTDIR/usr/bin/xeyes" ]; then
-        echo -e "${LIGHT_RED}xeyes already compiled, skipping...${RESET}"
-        return
-    fi
-
-    echo -e "${GREEN}Downloading xeyes...${RESET}"
-
-    XEYES="xeyes-1.3.1"
-    XEYES_ARC="${XEYES}.tar.gz"
-    XEYES_URI="https://www.x.org/archive/individual/app/${XEYES_ARC}"
-
-    # Download source
-    [ -f $XEYES_ARC ] || wget $XEYES_URI
-
-    # Extract source
-    if [ -d $XEYES ]; then
-        echo -e "${YELLOW}xeyes's source archive is already present, re-extracting before proceeding...${RESET}"
-        rm -r $XEYES
-    fi
-    tar xf $XEYES_ARC
-    cd $XEYES
-
-    # Compile and install
-    echo -e "${GREEN}Compiling xeyes...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static --x-includes="$SYSROOT/usr/include" --x-libraries="$SYSROOT/usr/lib" CC="$CC_STATIC" LIBS="-lXaw7 -lXmu -lXpm -lXt -lSM -lICE -lXext -lX11 -lxcb -lXau -lXdmcp"
-    make -j$(nproc)
-    make DESTDIR="$DESTDIR" install
-}
-
-get_xload()
-{
-    # Prevent hard-coded paths poisoning the cross-compilation linker
-    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
-
-    cd "$CURR_DIR/build"
-
-    # Skip if already built
-    if [ -f "$DESTDIR/usr/bin/xload" ]; then
-        echo -e "${LIGHT_RED}xload already compiled, skipping...${RESET}"
-        return
-    fi
-
-    echo -e "${GREEN}Downloading xload...${RESET}"
-
-    XLOAD="xload-1.2.0"
-    XLOAD_ARC="${XLOAD}.tar.gz"
-    XLOAD_URI="https://www.x.org/archive/individual/app/${XLOAD_ARC}"
-
-    # Download source
-    [ -f $XLOAD_ARC ] || wget $XLOAD_URI
-
-    # Extract source
-    if [ -d $XLOAD ]; then
-        echo -e "${YELLOW}xload's source archive is already present, re-extracting before proceeding...${RESET}"
-        rm -r $XLOAD
-    fi
-    tar xf $XLOAD_ARC
-    cd $XLOAD
-
-    # Compile and install
-    echo -e "${GREEN}Compiling xload...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static --x-includes="$SYSROOT/usr/include" --x-libraries="$SYSROOT/usr/lib" CC="$CC_STATIC" LIBS="-lXaw7 -lXmu -lXpm -lXt -lSM -lICE -lXext -lX11 -lxcb -lXau -lXdmcp"
-    make -j$(nproc)
-    make DESTDIR="$DESTDIR" install
-}
-
-get_xli()
-{
-    # Prevent hard-coded paths poisoning the cross-compilation linker
-    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
-
-    cd "$CURR_DIR/build"
-
-    # Skip if already built
-    if [ -f "$DESTDIR/usr/bin/xli" ]; then
-        echo -e "${LIGHT_RED}xli already compiled, skipping...${RESET}"
-        return
-    fi
-
-    # Download source
-    if [ -d xli ]; then
-        echo -e "${YELLOW}xli source already present, resetting...${RESET}"
-        git config --global --add safe.directory "$CURR_DIR/build/xli"
-        cd xli
-        git reset --hard
-        git clean -fdx
-    else
-        echo -e "${GREEN}Downloading xli...${RESET}"
-        git clone https://github.com/openSUSE/xli.git
-        cd xli
-    fi
-
-    # Patch to remove JPEG support
-    sudo sed -i -e 's/jpeg\.c//g' -e 's/jpeg\.o//g' -e 's/rle\.c//g' -e 's/rle\.o//g' -e 's/rlelib\.c//g' -e 's/rlelib\.o//g' Makefile.std
-    sudo sed -i '/jpegIdent/d' imagetypes.c
-    sudo sed -i '/jpegLoad/d' imagetypes.c
-    sudo sed -i '/rleIdent/d' imagetypes.c
-    sudo sed -i '/rleLoad/d' imagetypes.c
-
-    # Patch to add missing string.h headers in various files
-    sudo sed -i '1i #include <string.h>' ddxli.c pcd.c png.c zoom.c
-
-    # Patch to disable gamma correction logic
-    sudo sed -i 's/make_gamma(/ \/\/ make_gamma(/g' bright.c send.c
-    sudo sed -i 's/gammacorrect(/ \/\/ gammacorrect(/g' xli.c
-
-    # Patch to add explicit linking of X11 components
-    sudo sed -i -e 's/^LIBS=.*/LIBS= -lX11 -lXext -lxcb -lXau -lXdmcp -lpng -lz -lm/' Makefile.std
-    sudo sed -i -e 's/^\t$(MAKE) all CC=/\t$(MAKE) CC=/' Makefile.std
-  
-    # Compile and install
-    echo -e "${GREEN}Compiling xli...${RESET}"
-    make -f Makefile.std all CC="${CC_STATIC}" CFLAGS="-I${PREFIX}/include -DSYSPATHFILE=\\\"/usr/lib/X11/Xli\\\" -DNO_JPEG" LDFLAGS="-L${PREFIX}/lib"
-    install -Dm755 xli "$DESTDIR/usr/bin/xli"
-
-    # Copy licence file
-    cp LICENSE $CURR_DIR/build/LICENCES/xli.txt
-}
-
 prepare_x11()
 {
     export PKG_CONFIG_DIR=""
@@ -2415,7 +2380,7 @@ prepare_x11()
     get_libsm
     get_libxt
     get_libpng
-    #get_libxpm
+    get_libxpm
     get_libxmu
     get_utilmacros
     get_freetype
@@ -2427,12 +2392,11 @@ prepare_x11()
     get_libxfont
     get_fontutil
     get_fonts
-    #get_libxaw
-    #get_xbitmaps
+    get_libxaw
+    get_libxkbfile
+    get_xbitmaps
+    get_openmotif
     #get_xbiff
-    #get_xeyes
-    #get_xload
-    get_xli
 }
 
 get_tinyx()
@@ -2460,7 +2424,7 @@ get_tinyx()
         git clone https://github.com/tinycorelinux/tinyx.git
         cd tinyx
     fi
-    
+
     export ACLOCAL_PATH="$SYSROOT/usr/share/aclocal"
 
     LINK_LIBS="-lXtst -lXi -lXext -lXfixes -lXfont -lfontenc -lX11 -lxcb -lXau -lXdmcp -lfreetype -lpng -lz -lm"
@@ -2518,6 +2482,86 @@ get_twm()
     cp COPYING $CURR_DIR/build/LICENCES/twm.txt
 }
 
+get_nedit()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already built
+    if [ -f "$DESTDIR/usr/bin/nedit" ]; then
+        echo -e "${LIGHT_RED}NEdit already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d nedit-git ]; then
+        echo -e "${YELLOW}NEdit source already present, resetting...${RESET}"
+        git config --global --add safe.directory "$CURR_DIR/build/nedit-git"
+        cd nedit-git
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading NEdit...${RESET}"
+        git clone https://git.code.sf.net/p/nedit/git nedit-git
+        cd nedit-git
+        git checkout $NEDIT_VER
+    fi
+
+    sudo sed -i 's|-I../Microline||g' makefiles/Makefile.linux
+    sudo sed -i 's|../Microline/XmL/libXmL.a||g' makefiles/Makefile.linux
+
+    export CFLAGS="--sysroot=${SYSROOT} -O2 -march=i486 -I${SYSROOT}/usr/include"
+    export LDFLAGS="--sysroot=${SYSROOT} -L${SYSROOT}/usr/lib"
+
+    # Compile and install
+    echo -e "${GREEN}Compiling NEdit...${RESET}"
+
+    sudo cp makefiles/Makefile.linux util/Makefile
+    sudo cp makefiles/Makefile.linux source/Makefile
+    cd util
+    make CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}" CFLAGS="${CFLAGS}" LDFLAGS="${LDFLAGS}"
+
+    cd ../source
+    make clean
+    make CC="${CC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}" CFLAGS="${CFLAGS}" LDFLAGS="${LDFLAGS}" PREFIX=/usr
+
+    make install PREFIX=/usr
+    
+    # Copy licence file
+    cp COPYRIGHT $CURR_DIR/build/LICENCES/nedit.txt
+}
+
+get_oneko()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already built
+    if [ -f "$DESTDIR/usr/bin/oneko" ]; then
+        echo -e "${LIGHT_RED}oneko already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d oneko ]; then
+        echo -e "${YELLOW}oneko source already present, resetting...${RESET}"
+        git config --global --add safe.directory "$CURR_DIR/build/oneko"
+        cd oneko
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading oneko...${RESET}"
+        git clone https://github.com/tie/oneko.git
+        cd oneko
+    fi
+
+    # Compile and install
+    echo -e "${GREEN}Compiling oneko...${RESET}"
+    "$CC_STATIC" -Wno-parentheses -std=c11 -pedantic -D_DEFAULT_SOURCE -I"$SYSROOT/usr/include" "$CURR_DIR/build/oneko/oneko.c" -L"$SYSROOT/usr/lib" -lX11 -lxcb -lXau -lXdmcp -lXext -lc -lm -o oneko
+    sudo cp oneko $DESTDIR/usr/bin/
+
+    # Create "licence" file
+    echo "Public domain" | sudo tee "$CURR_DIR/build/LICENCES/oneko.txt" > /dev/null
+}
+
 get_st()
 {
     cd "$CURR_DIR/build"
@@ -2558,6 +2602,266 @@ get_st()
 
     # Copy licence file
     cp LICENSE $CURR_DIR/build/LICENCES/st.txt
+}
+
+get_xcalc()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already built
+    if [ -f "$DESTDIR/usr/bin/xcalc" ]; then
+        echo -e "${LIGHT_RED}xcalc already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading xcalc...${RESET}"
+
+    XCALC="xcalc-1.1.2"
+    XCALC_ARC="${XCALC}.tar.gz"
+    XCALC_URI="https://www.x.org/archive/individual/app/${XCALC_ARC}"
+
+    # Download source
+    [ -f $XCALC_ARC ] || wget $XCALC_URI
+
+    # Extract source
+    if [ -d $XCALC ]; then
+        echo -e "${YELLOW}xcalc's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -r $XCALC
+    fi
+    tar xf $XCALC_ARC
+    cd $XCALC
+
+    # Compile and install
+    echo -e "${GREEN}Compiling xcalc...${RESET}"
+    ./configure --host="$HOST" --prefix=/usr --x-includes="$SYSROOT/usr/include" --x-libraries="$SYSROOT/usr/lib" CC="$CC_STATIC" LIBS="-lXaw7 -lXmu -lXt -lXpm -lXft -lfontconfig -lfreetype -lpng -lexpat -lXrender -lXext -lxcb -lXau -lXdmcp -lSM -lICE -lX11 -lz"
+    make -j$(nproc)
+    make DESTDIR="$DESTDIR" install
+}
+
+get_xclock()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already built
+    if [ -f "$DESTDIR/usr/bin/xclock" ]; then
+        echo -e "${LIGHT_RED}xclock already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading xclock...${RESET}"
+
+    XCLOCK="xclock-1.1.1"
+    XCLOCK_ARC="${XCLOCK}.tar.gz"
+    XCLOCK_URI="https://www.x.org/archive/individual/app/${XCLOCK_ARC}"
+
+    # Download source
+    [ -f $XCLOCK_ARC ] || wget $XCLOCK_URI
+
+    # Extract source
+    if [ -d $XCLOCK ]; then
+        echo -e "${YELLOW}xclock's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -r $XCLOCK
+    fi
+    tar xf $XCLOCK_ARC
+    cd $XCLOCK
+
+    # Compile and install
+    echo -e "${GREEN}Compiling xclock...${RESET}"
+    ./configure --host="$HOST" --prefix=/usr --x-includes="$SYSROOT/usr/include" --x-libraries="$SYSROOT/usr/lib" CC="$CC_STATIC" LIBS="-lXaw7 -lXmu -lXt -lXpm -lXft -lfontconfig -lfreetype -lpng -lexpat -lXrender -lXext -lxcb -lXau -lXdmcp -lSM -lICE -lX11 -lz"
+    make -j$(nproc)
+    make DESTDIR="$DESTDIR" install
+}
+
+get_xedit()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already built
+    if [ -f "$DESTDIR/usr/bin/xedit" ]; then
+        echo -e "${LIGHT_RED}xedit already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading xedit...${RESET}"
+
+    XEDIT="xedit-1.2.4"
+    XEDIT_ARC="${XEDIT}.tar.gz"
+    XEDIT_URI="https://www.x.org/archive/individual/app/${XEDIT_ARC}"
+
+    # Download source
+    [ -f $XEDIT_ARC ] || wget $XEDIT_URI
+
+    # Extract source
+    if [ -d $XEDIT ]; then
+        echo -e "${YELLOW}xedit's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -r $XEDIT
+    fi
+    tar xf $XEDIT_ARC
+    cd $XEDIT
+
+    # Compile and install
+    echo -e "${GREEN}Compiling xedit...${RESET}"
+    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static --x-includes="$SYSROOT/usr/include" --x-libraries="$SYSROOT/usr/lib" CC="$CC_STATIC" LIBS="-lXaw7 -lXmu -lXt -lXpm -lXext -lSM -lICE -lX11 -lxcb -lXau -lXdmcp"
+    make -j$(nproc)
+    make DESTDIR="$DESTDIR" install
+}
+
+get_xeyes()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already built
+    if [ -f "$DESTDIR/usr/bin/xeyes" ]; then
+        echo -e "${LIGHT_RED}xeyes already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading xeyes...${RESET}"
+
+    XEYES="xeyes-1.3.1"
+    XEYES_ARC="${XEYES}.tar.gz"
+    XEYES_URI="https://www.x.org/archive/individual/app/${XEYES_ARC}"
+
+    # Download source
+    [ -f $XEYES_ARC ] || wget $XEYES_URI
+
+    # Extract source
+    if [ -d $XEYES ]; then
+        echo -e "${YELLOW}xeyes' source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -r $XEYES
+    fi
+    tar xf $XEYES_ARC
+    cd $XEYES
+
+    # Compile and install
+    echo -e "${GREEN}Compiling xeyes...${RESET}"
+    ./configure --host="$HOST" --prefix=/usr --x-includes="$SYSROOT/usr/include" --x-libraries="$SYSROOT/usr/lib" CC="$CC_STATIC" LIBS="-lXaw7 -lXmu -lXpm -lXt -lSM -lICE -lXext -lX11 -lxcb -lXau -lXdmcp"
+    make -j$(nproc)
+    make DESTDIR="$DESTDIR" install
+}
+
+get_xli()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already built
+    if [ -f "$DESTDIR/usr/bin/xli" ]; then
+        echo -e "${LIGHT_RED}xli already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d xli ]; then
+        echo -e "${YELLOW}xli source already present, resetting...${RESET}"
+        git config --global --add safe.directory "$CURR_DIR/build/xli"
+        cd xli
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading xli...${RESET}"
+        git clone https://github.com/openSUSE/xli.git
+        cd xli
+    fi
+
+    # Patch to remove JPEG support
+    sudo sed -i -e 's/jpeg\.c//g' -e 's/jpeg\.o//g' -e 's/rle\.c//g' -e 's/rle\.o//g' -e 's/rlelib\.c//g' -e 's/rlelib\.o//g' Makefile.std
+    sudo sed -i '/jpegIdent/d' imagetypes.c
+    sudo sed -i '/jpegLoad/d' imagetypes.c
+    sudo sed -i '/rleIdent/d' imagetypes.c
+    sudo sed -i '/rleLoad/d' imagetypes.c
+
+    # Patch to add missing string.h headers in various files
+    sudo sed -i '1i #include <string.h>' ddxli.c pcd.c png.c zoom.c
+
+    # Patch to disable gamma correction logic
+    sudo sed -i 's/make_gamma(/ \/\/ make_gamma(/g' bright.c send.c
+    sudo sed -i 's/gammacorrect(/ \/\/ gammacorrect(/g' xli.c
+
+    # Patch to add explicit linking of X11 components
+    sudo sed -i -e 's/^LIBS=.*/LIBS= -lX11 -lXext -lxcb -lXau -lXdmcp -lpng -lz -lm/' Makefile.std
+    sudo sed -i -e 's/^\t$(MAKE) all CC=/\t$(MAKE) CC=/' Makefile.std
+  
+    # Compile and install
+    echo -e "${GREEN}Compiling xli...${RESET}"
+    make -f Makefile.std all CC="${CC_STATIC}" CFLAGS="-I${PREFIX}/include -DSYSPATHFILE=\\\"/usr/lib/X11/Xli\\\" -DNO_JPEG" LDFLAGS="-L${PREFIX}/lib"
+    install -Dm755 xli "$DESTDIR/usr/bin/xli"
+
+    # Copy licence file
+    cp LICENSE $CURR_DIR/build/LICENCES/xli.txt
+}
+
+get_xload()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already built
+    if [ -f "$DESTDIR/usr/bin/xload" ]; then
+        echo -e "${LIGHT_RED}xload already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading xload...${RESET}"
+
+    XLOAD="xload-1.2.0"
+    XLOAD_ARC="${XLOAD}.tar.gz"
+    XLOAD_URI="https://www.x.org/archive/individual/app/${XLOAD_ARC}"
+
+    # Download source
+    [ -f $XLOAD_ARC ] || wget $XLOAD_URI
+
+    # Extract source
+    if [ -d $XLOAD ]; then
+        echo -e "${YELLOW}xload's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -r $XLOAD
+    fi
+    tar xf $XLOAD_ARC
+    cd $XLOAD
+
+    # Patch to avoid "setgid failed: function not implemented" error
+    sudo sed -i '/^#if !defined(_WIN32) || defined(__CYGWIN__)/,/^#endif/d' xload.c
+
+    # Compile and install
+    echo -e "${GREEN}Compiling xload...${RESET}"
+    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static --x-includes="$SYSROOT/usr/include" --x-libraries="$SYSROOT/usr/lib" CC="$CC_STATIC" LIBS="-lXaw7 -lXmu -lXpm -lXt -lSM -lICE -lXext -lX11 -lxcb -lXau -lXdmcp"
+    make -j$(nproc)
+    make DESTDIR="$DESTDIR" install
+}
+
+get_xset()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already built
+    if [ -f "$DESTDIR/usr/bin/xset" ]; then
+        echo -e "${LIGHT_RED}xset already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading xset...${RESET}"
+
+    XSET="xset-1.2.5"
+    XSET_ARC="${XSET}.tar.gz"
+    XSET_URI="https://www.x.org/archive/individual/app/${XSET_ARC}"
+
+    # Download source
+    [ -f $XSET_ARC ] || wget $XSET_URI
+
+    # Extract source
+    if [ -d $XSET ]; then
+        echo -e "${YELLOW}xset' source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -r $XSET
+    fi
+    tar xf $XSET_ARC
+    cd $XSET
+
+    # Compile and install
+    echo -e "${GREEN}Compiling xset...${RESET}"
+    ./configure --host="$HOST" --prefix=/usr --x-includes="$SYSROOT/usr/include" --x-libraries="$SYSROOT/usr/lib" CC="$CC_STATIC" LIBS="-lxcb -lXau -lXdmcp"
+    make -j$(nproc)
+    make DESTDIR="$DESTDIR" install
+
+    # Copy licence file
+    cp COPYING $CURR_DIR/build/LICENCES/xset.txt
 }
 
 
@@ -2967,7 +3271,7 @@ build_file_system()
     cd "${DESTDIR}"
 
     echo -e "${GREEN}Creating required directories...${RESET}"
-    sudo mkdir -p {dev,proc,etc/init.d,sys,tmp,home,usr/share/backgrounds,usr/share/udhcpc,usr/libexec,banners}
+    sudo mkdir -p {dev,proc,etc/init.d,sys,tmp,home,usr/share/udhcpc,usr/libexec,banners}
 
     echo -e "${GREEN}Configure permissions...${RESET}"
     chmod +x $CURR_DIR/sysfiles/rc
@@ -3028,12 +3332,16 @@ build_file_system()
 
     if $ENABLE_GUI; then
         echo -e "${GREEN}Installing files needed for SHORKGUI...${RESET}"
+        sudo mkdir -p {usr/share/backgrounds,usr/share/X11/app-defaults}
         copy_sysfile $CURR_DIR/shorkutils/shorkgui $DESTDIR/usr/bin/shorkgui
-        copy_sysfile $CURR_DIR/sysfiles/shork-486.png $DESTDIR/usr/share/backgrounds/shork-486.png
+        copy_sysfile $CURR_DIR/sysfiles/shork-486-dark.png $DESTDIR/usr/share/backgrounds/shork-486-dark.png
+        copy_sysfile $CURR_DIR/sysfiles/shork-486-light.png $DESTDIR/usr/share/backgrounds/shork-486-light.png
+        copy_sysfile $CURR_DIR/sysfiles/XCalc $DESTDIR/usr/share/X11/app-defaults/XCalc
         INCLUDED_FEATURES+="\n  * shorkgui"
         if [[ $USED_WM == "TWM" ]]; then 
-            echo -e "${GREEN}Installing SHORKGUI-specific TWM configuration...${RESET}"
-            copy_sysfile $CURR_DIR/sysfiles/system.twmrc $DESTDIR/usr/share/X11/twm/system.twmrc
+            echo -e "${GREEN}Installing SHORKGUI-specific configuration...${RESET}"
+            copy_sysfile $CURR_DIR/sysfiles/dark.twmrc $DESTDIR/usr/share/X11/twm/dark.twmrc
+            copy_sysfile $CURR_DIR/sysfiles/light.twmrc $DESTDIR/usr/share/X11/twm/light.twmrc
         fi
     else
         EXCLUDED_FEATURES+="\n  * shorkgui"
@@ -3358,7 +3666,7 @@ generate_report()
 
     lines+=(
         ""
-        "Est. minimum RAM: ${EST_MIN_RAM}MiB"
+        "Est. minimum RAM: ${EST_MIN_RAM}"
         "Total disk size: ${TOTAL_DISK_SIZE}MiB"
         "Root partition size: ${ROOT_PART_SIZE}MiB"
     )
@@ -3441,16 +3749,33 @@ if $ENABLE_GUI; then
     prepare_x11
     get_tinyx
     INCLUDED_FEATURES+="\n  * TinyX"
-    INCLUDED_FEATURES+="\n  * xli"
     if [[ $USED_WM == "TWM" ]]; then
         get_twm
     fi
+    get_oneko
     get_st
+    get_xcalc
+    get_xclock
+    get_xeyes
+    get_xli
+    get_xload
+    get_xset
+    INCLUDED_FEATURES+="\n  * oneko"
     INCLUDED_FEATURES+="\n  * st"
+    INCLUDED_FEATURES+="\n  * xcalc"
+    INCLUDED_FEATURES+="\n  * xclock"
+    INCLUDED_FEATURES+="\n  * xeyes"
+    INCLUDED_FEATURES+="\n  * xli"
+    INCLUDED_FEATURES+="\n  * xset"
 else
     EXCLUDED_FEATURES+="\n  * TinyX"
-    EXCLUDED_FEATURES+="\n  * xli"
+    EXCLUDED_FEATURES+="\n  * oneko"
     EXCLUDED_FEATURES+="\n  * st"
+    EXCLUDED_FEATURES+="\n  * xcalc"
+    EXCLUDED_FEATURES+="\n  * xclock"
+    EXCLUDED_FEATURES+="\n  * xeyes"
+    EXCLUDED_FEATURES+="\n  * xli"
+    EXCLUDED_FEATURES+="\n  * xset"
 fi
 
 if ! $SKIP_DROPBEAR; then

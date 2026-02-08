@@ -18,7 +18,7 @@ See [GALLERY](GALLERY.md) for more photos and screenshots!
 
 ### Core commands (BusyBox & util-linux)
 
-awk, basename, beep, blkid, cat, chmod, chown, chroot, clear, cp, crontab, cut, date, dd, df, dmesg, dirname, expr, find, fold, free, ftpget, ftpput, gzip, halt, head, hostname, ifconfig, kill, less, ln, ls, losetup, lsblk, lspci, loadkmap, man, mdev, mkdir, mknod, mount, mv, nice, nohup, nproc, paste, pkill, ping, printf, pwd, readlink, rev, rm, rmdir, route, sed, seq, showkey, sleep, stat, stty, swapoff, swapon, sync, tar, tee, test, top, touch, tr, udhcpc, umount, uname, unzip, whoami, wget, whereis, which, xz
+awk, basename, beep, blkid, cat, chmod, chown, chroot, clear, cp, crontab, cut, date, dd, df, dmesg, dirname, expr, find, fold, free, ftpget, ftpput, gzip, halt, head, hostname, ifconfig, kill, less, ln, ls, losetup, lsblk, lspci, loadkmap, man, mdev, mkdir, mknod, mount, mv, nice, nohup, nproc, paste, pkill, ping, printf, pstree, pwd, readlink, rev, rm, rmdir, route, sed, seq, showkey, sleep, stat, stty, swapoff, swapon, sync, tar, tee, test, top, touch, tr, udhcpc, umount, uname, unzip, whoami, wget, whereis, which, xz
 
 ### Bundled software
 
@@ -59,7 +59,7 @@ An **Intel 486SX** is the minimum processor requirement. Math emulation is enabl
 
 ### RAM
 
-**16MiB** is the minimum system memory for a default SHORK 486 build. **24MiB** is the recommended amount for some comfortable headroom for programs. Default SHORK 486 is bootable with **as little as 10MiB**, but there will be very little free memory for programs. If you are constrained to that amount, using the "minimal" build parameter to lower that minimum memory requirement from **8MiB** (extreme minimum) to **10MiB** (realistic minimum), or at least using build parameters to skip including network-based programs and features is recommended. To help with tight memory situations, the "target swap" build parameter is available so you can enable and specify a swap partition size between 1 and 24MiB, but note its use may be very slow on period-correct hardware. 
+**16MiB** is the minimum system memory for a default SHORK 486 build. **24MiB** is the recommended amount for some comfortable headroom for programs. Default SHORK 486 is bootable with **as little as 10MiB**, but there will be very little free memory for programs. If you are constrained to that amount, using the "minimal" build parameter to lower that minimum memory requirement from **8MiB** (extreme minimum) to **10MiB** (realistic minimum), or at least using build parameters to skip including network-based programs and features is recommended. To help with tight memory situations, the "target swap" build parameter is available so you can enable and specify a swap partition size between 1 and 64MiB, but note its use may be very slow on period-correct hardware. 
 
 ### Hard drive
 
@@ -75,9 +75,9 @@ SHORK 486 can be used on newer hardware if you so desire, but there are some con
 
 * SHORK 486 can work with newer x86 processors, although a default SHORK 486 build will not recognise more than 1 core/thread. An "enable SMP" build parameter is available to enable symmetric multiprocessing support. Whilst SHORK 486 can work on an x86-64 processor, the system is still limited to supporting 32-bit software.
 
-* A default SHORK 486 system will not recognise more than ~875MiB of memory. An "enable high memory" build parameter is available to address this, though the minimum system memory requirement is raised to **24MiB**.
+* A default SHORK 486 system will not recognise more than ~875MiB of memory. An "enable high memory" build parameter is available to address this, though the minimum system memory requirement is raised to **24MiB** or 16MiB with 8MiB swap.
 
-* A default SHORK 486 system only supports IDE hard drives. An "enable SATA" build parameter is available to address this, though the recommended system memory amount is raised to **24MiB**.
+* A default SHORK 486 system only supports IDE hard drives. An "enable SATA" build parameter is available to address this, though the recommended system memory amount is raised to **24MiB** or 16MiB with 8MiB swap.
 
 * The "maximal" build parameter is available as a shortcut to enable all three parameters mentioned above (as well as all possible software).
 
@@ -151,7 +151,7 @@ It is recommended to move or copy the images out of this directory before extens
     * This is like using the "enable GUI", "enable high memory", "enable SATA", "enable SMP" and "enable USB & HID" parameters together.
     * All skip bundled program/feature, "minimal", "skip kernel" and "skip BusyBox" parameters will be overridden if also used.
     * The "use GRUB" parameter is the one major feature control that is still optional.
-    * The minimum system memory requirement is raised to 24MiB.
+    * The minimum system memory requirement is raised to 24MiB or 16MiB with 8MiB swap.
 
 * **Set keymap** (`--set-keymap`): can be used to specify SHORK 486's default keyboard layout (keymap). 
     * Example usage: `--keymap=de` to specify a German QWERTZ keyboard layout. Possible keymaps can be found in the `sysfiles/keymaps` directory (just exclude the `.kmap.bin` extension).
@@ -194,7 +194,7 @@ These parameters can be used to include, exclude (skip) or select specific bundl
     * **This is an experimental feature - expect quirks and incompleteness!**
     * As this feature is subject to big changes, the system requirements are not set in stone. But the following should provide a usable experience for now:
         * Intel486 DX2 (ideally; 486SX, 486DX, etc. works but are very slow)
-        * 20MiB system memory
+        * 24MiB system memory without swap, or 16MiB with 8MiB swap
         * A graphics card supported by `vesafb`
 
 * **No boot menu** (`--no-menu`): can be used to remove SHORK 486's boot menu.
@@ -254,11 +254,11 @@ These parameters can be used to include, exclude (skip) or select specific bundl
 These parameters enable kernel-level support for features required by modern hardware. SHORK 486 is not intended to be used on such, but given some interest in using it as a minimal Linux environment on modern hardware, these are provided to help accommodate such. :)
 
 * **Enable high memory** (`--enable-highmem`): can be used to enable high memory support in the Linux kernel and declares that non-reserved physical memory starts at 16MiB instead of 1MiB. In general, this is provided in case someone wanted to try SHORK 486 on a more modern system with >875MiB RAM (it is not normally needed for any 486-era (or indeed '90s) hardware), or if reserved physical memory for any system exceeds 1MB for some reason.
-    * The minimum system memory requirement is raised to 24MiB.
+    * The minimum system memory requirement is raised to 24MiB or 16MiB with 8MiB swap.
     * This does nothing if the "minimal" or "skip kernel" parameters are also used.
 
 * **Enable SATA** (`--enable-sata`): can be used to enable SATA AHCI support in the Linux kernel. This is provided in case someone wanted to try SHORK 486 on a more modern system with SATA devices - it is not needed for any 486-era (or indeed '90s) hardware.
-    * This may add ~5-7MiB to idle RAM usage. Whilst SHORK 486 with SATA support should still be bootable with 16MiB system memory, very little will be left for programs, thus 24MiB or more is now recommended.
+    * This may add ~5-7MiB to idle RAM usage. Whilst SHORK 486 with SATA support should still be bootable with 16MiB system memory, very little will be left for programs, thus 24MiB or 16MiB with 8MiB swap is now recommended.
     * This does nothing if the "minimal" or "skip kernel" parameters are also used.
 
 * **Enable SMP** (`--enable-smp`): can be used to enable symmetric multiprocessing (e.g., multi-core) support in the Linux kernel. This is provided in case someone wanted to try SHORK 486 on a more modern system with a multi-core processor - it is not needed for any 486-era (or indeed '90s) hardware.
