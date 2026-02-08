@@ -414,7 +414,7 @@ fix_perms()
 # Cleans up any stale mounts and block-device mappings left by image builds
 clean_stale_mounts()
 {
-    echo -e "${GREEN}Cleaning up any stale mounts and block-device mappings left by image builds ...${RESET}"
+    echo -e "${GREEN}Cleaning up any stale mounts and block-device mappings left by image builds...${RESET}"
     sudo umount -lf /mnt/shork-486 2>/dev/null || true
     sudo losetup -a | grep shork-486 | cut -d: -f1 | xargs -r sudo losetup -d || true
     sudo dmsetup remove_all 2>/dev/null || true
@@ -2240,7 +2240,7 @@ get_xbitmaps()
     cd "$CURR_DIR/build"
 
     # Skip if already built
-    if [ -f "$DESTDIR/usr/share/pkgconfig/xbitmaps.pc" ]; then
+    if [ -f "$SYSROOT/usr/share/pkgconfig/xbitmaps.pc" ]; then
         echo -e "${LIGHT_RED}xbitmaps already compiled, skipping...${RESET}"
         return
     fi
@@ -2267,6 +2267,10 @@ get_xbitmaps()
     ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
     make -j$(nproc)
     make install DESTDIR="$SYSROOT"
+
+    # Also install bitmaps to root file system
+    sudo mkdir -p $DESTDIR/usr/include/X11/bitmaps
+    sudo cp $SYSROOT/usr/include/X11/bitmaps/* $DESTDIR/usr/include/X11/bitmaps
 }
 
 get_openmotif()

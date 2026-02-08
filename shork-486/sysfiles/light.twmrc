@@ -72,28 +72,18 @@ menu "defops"
     "SHORKGUI"	        f.title
     "Show Tasklist"	    f.showiconmgr
     "Hide Tasklist"	    f.hideiconmgr
-    "--------------"    f.nop
-    "Minimise"	        f.iconify
-    "Close"	            f.delete
     "Force Close"		f.destroy
-    "--------------"    f.nop
-    "Resize"	        f.resize
-    "Move"		        f.move
-    "Bring Forward"		f.raise
-    "Send Backward"		f.lower
-    "--------------"    f.nop
-    "Focus Window"		f.focus
-    "Unfocus Window"    f.unfocus
-    "--------------"    f.nop
-    "Terminal"          f.exec "exec /usr/bin/st &"
-    "--------------"    f.nop
-    "Calculator"        f.exec "exec /usr/bin/xcalc &"
-    "Clock"             f.exec "exec /usr/bin/xclock -name Clock &"
-    "Eyes"              f.exec "exec /usr/bin/xeyes -name Eyes &"
-    "Load Meter"        f.exec "exec /usr/bin/xload -name \"Load Meter\" -fn fixed &"
-    "Neko"              f.exec "exec /usr/bin/oneko &"
-    "--------------"    f.nop
-    "Exit"		        f.quit
+    "----------------"  f.nop
+    "Terminal (60x18)"  f.exec "st -g 60x18 &"
+    "Terminal (80x24)"  f.exec "st -g 80x24 &"
+    "----------------"  f.nop
+    "Calculator"        f.exec "xcalc &"
+    "Clock"             f.exec "xclock -name Clock &"
+    "CPU Load"          f.exec "xload -name \"CPU Load\" -fn fixed &"
+    "Eyes"              f.exec "xeyes -name Eyes &"
+    "Neko"              f.exec "oneko &"
+    "----------------"  f.nop
+    "Quit"		        f.quit
 }
 
 
@@ -109,3 +99,9 @@ NoTitle
     "Tasklist"
     "TWM Icon Manager"
 }
+
+
+NoDefaults
+RightTitleButton ":iconify" = f.iconify
+RightTitleButton ":resize"  = f.resize
+RightTitleButton ":delete"  = f.delete
