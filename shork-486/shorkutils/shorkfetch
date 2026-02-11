@@ -9,6 +9,11 @@
 
 
 
+PCI_IDS="/usr/share/misc/pci.ids"
+[ -f /usr/share/hwdata/pci.ids ] && [ ! -f "$PCI_IDS" ] && PCI_IDS="/usr/share/hwdata/pci.ids"
+
+
+
 convert_bytes()
 {
     BYTES=$1
@@ -218,7 +223,7 @@ CPU="${CPU_NAME} (${CPU_STR})"
 
 # Find GPU name
 GPU=""
-if lspci >/dev/null 2>&1 && [ -r /usr/share/misc/pci.ids ]; then
+if lspci >/dev/null 2>&1 && [ -r "$PCI_IDS" ]; then
     VID=""
     DID=""
 
@@ -249,7 +254,7 @@ if lspci >/dev/null 2>&1 && [ -r /usr/share/misc/pci.ids ]; then
                     print
                     exit
                 }
-            ' /usr/share/misc/pci.ids
+            ' "$PCI_IDS"
         )"
 
         DEVICE="$(
@@ -266,7 +271,7 @@ if lspci >/dev/null 2>&1 && [ -r /usr/share/misc/pci.ids ]; then
                     print
                     exit
                 }
-            ' /usr/share/misc/pci.ids
+            ' "$PCI_IDS"
         )"
     fi
 
