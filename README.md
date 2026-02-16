@@ -6,7 +6,7 @@ Member of the SHORK family: **SHORK 486** | [SHORK DISKETTE](https://github.com/
 
 SHORK 486 is a minimal Linux distribution for vintage PCs. The aim is to produce an operating system that is very lean but functional for PCs with 486SX-class or better processors, often with my '90s IBM ThinkPads in mind. It was based on [FLOPPINUX's build instructions](https://github.com/w84death/floppinux) and inspired by [Action Retro's demonstration of it](https://www.youtube.com/watch?v=SiHZbnFrHOY), first developed as an automated build script for achieving something similar but can be Dockerised for building on a wider range of systems, then used as the basis for an operating system with additional functionality and tailored to my usage. Whilst still small for a modern operating system, it exceeds the size of a typical floppy diskette, so it requires being written to a hard disk.
 
-A default SHORK 486 system aims to work with at least 16MiB system memory and take up no more than ~72MiB on the disk. Despite those constraints, the default SHORK 486 experience includes a modern Linux kernel from 2025, many typical Linux commands, custom SHORK utilities, an FTP, SCP and SSH client, a Git source control client, the ed, Mg (Emacs-style), nano and vi editors, the Rover file browser, basic IDE CD-ROM and DVD-ROM support, basic ISA, PCI and PCMCIA NIC support, support for most major national keyboard layouts, and a cute ASCII shark welcome screen! The build script supports many parameters to alter a SHORK 486 build to your liking. For example, if making a "minimal" build, the RAM requirement and disk size can both be brought down to ~10MiB, whilst still including most typical commands as before, some custom SHORK utilities, the ed and vi editors, and basic networking support. Some people have expressed support for using SHORK 486 on newer hardware for a minimalist Linux environment, and as such, build parameters for enabling high memory, SATA and SMP support are provided if you so desire them!
+A default SHORK 486 system aims to work with at least 16MiB system memory and take up no more than ~72MiB on the disk. Despite those constraints, the default SHORK 486 experience includes a modern Linux kernel from 2025, many typical Linux commands, custom SHORK utilities, an FTP, SCP and SSH client, a Git source control client, the ed, Mg (Emacs-style), nano and vi editors, the Rover file browser, basic IDE CD-ROM and DVD-ROM support, basic ISA, PCI and PCMCIA NIC support, support for most major national keyboard layouts, and a cute ASCII shark welcome screen! The build script supports many parameters to alter a SHORK 486 build to your liking. For example, if making a "minimal" build, the RAM requirement and disk size can both be brought down to 8-10MiB and 12MiB (respectively), whilst still including most typical commands as before, some custom SHORK utilities, and the ed and vi editors. Some people have expressed support for using SHORK 486 on newer hardware for a minimalist Linux environment, and as such, build parameters for enabling high memory, SATA and SMP support are provided if you so desire them!
 
 <p align="center"><img alt="A screenshot of SHORK 486 running on an 86Box virtual machine after a cold boot" src="photos/20260126_365ed_first_boot_crop.jpg" width="640"></p>
 
@@ -63,7 +63,7 @@ An **Intel 486SX** is the minimum processor requirement. Math emulation is enabl
 
 ### Hard drive
 
-Even the most complete SHORK 486 system with all optional features enabled will require no more than a **~72MiB** disk. Using the "minimal" build parameter and not including a swap partition will reduce this requirement to **~10MiB**, or selectively using skip bundled program or feature parameters can produce a system in between those two numbers.
+Even the most complete SHORK 486 system with all optional features enabled will require no more than a **~72MiB** disk. Using the "minimal" build parameter and not including a swap partition will reduce this requirement to **12MiB**, or selectively using skip bundled program or feature parameters can produce a system in between those two numbers.
 
 ### Graphics
 
@@ -141,11 +141,11 @@ It is recommended to move or copy the images out of this directory before extens
 
 #### Core configuration
 
-* **Minimal** (`--minimal`): can be used to skip building and including all non-essential features, producing a ~10MiB or less disk image and a potentially less memory-hungry SHORK 486 system.
+* **Minimal** (`--minimal`): can be used to skip building and including all non-essential features, producing a 12MiB or less disk image and a potentially less memory-hungry SHORK 486 system.
     * This is like using the "no boot menu", "skip Dropbear", "skip file", "skip Emacs", "skip Git", "skip nano", "skip pci.ids", "skip Rover", and "skip tnftp" parameters together.
     * Framebuffer, VESA and enhanced VGA support will be reduced and `shorkres` will not be included.
     * The "enable GUI", "enable high memory", "enable SATA", "enable SMP", "enable USB & HID", "skip kernel", "skip BusyBox", and "use GRUB" parameters will be overridden if also used.
-    * The minimum system memory requirement is lowered to 8MiB (extreme minimum) to 10MiB (realistic minimum).
+    * The minimum system memory requirement is lowered to 8-10MiB.
 
 * **Maximal** (`--maximal`): can be used to force building and including all bundled programs and features.
     * This is like using the "enable GUI", "enable high memory", "enable SATA", "enable SMP" and "enable USB & HID" parameters together.

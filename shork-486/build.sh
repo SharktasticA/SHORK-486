@@ -72,6 +72,7 @@ ALWAYS_BUILD=false
 ENABLE_FB=true
 ENABLE_GUI=false
 ENABLE_HIGHMEM=false
+ENABLE_NET=true
 ENABLE_PCMCIA=true
 ENABLE_SATA=false
 ENABLE_SMP=false
@@ -224,6 +225,7 @@ if $MAXIMAL; then
     ENABLE_FB=true
     ENABLE_GUI=true
     ENABLE_HIGHMEM=true
+    ENABLE_NET=true
     ENABLE_PCMCIA=true
     ENABLE_SATA=true
     ENABLE_SMP=true
@@ -248,6 +250,7 @@ elif $MINIMAL; then
     ENABLE_FB=false
     ENABLE_GUI=false
     ENABLE_HIGHMEM=false
+    ENABLE_NET=false
     ENABLE_PCMCIA=false
     ENABLE_SATA=false
     ENABLE_SMP=false
@@ -277,6 +280,11 @@ else
     if [[ $USED_WM == "" ]]; then
         USED_WM="TWM"
     fi
+fi
+
+# Override to ensure PCMCIA support (for PCMCIA NICs) is enabled when networking support is also desired
+if $ENABLE_NET; then
+    ENABLE_PCMCIA=true
 fi
 
 # Override to ensure the "use GRUB" parameter is disabled when the "Fix EXTLINUX" parameter is used
@@ -952,6 +960,11 @@ configure_kernel()
     if $ENABLE_PCMCIA; then
         echo -e "${GREEN}Enabling kernel PCMCIA support...${RESET}"
         FRAGS+="$CURR_DIR/configs/linux.config.pcmcia.frag "
+    fi
+
+    if $ENABLE_NET; then
+        echo -e "${GREEN}Enabling kernel networking support...${RESET}"
+        FRAGS+="$CURR_DIR/configs/linux.config.net.frag "
     fi
 
     if $ENABLE_SATA; then
@@ -3509,13 +3522,14 @@ build_disk_img()
     KERNEL_BYTES=$(stat -c %s bzImage)
     ROOT_BYTES=$(du -sb root/ | cut -f1)
     OVERHEAD_BYTES=0
-    if [[ $ROOT_BYTES -lt 10485760 ]]; then
-        OVERHEAD_BYTES=$ROOT_BYTES
-    else
-        OVERHEAD_BYTES=$((ROOT_BYTES / 2))
-    fi
+    OVERHEAD_BYTES=$((ROOT_BYTES / 2))
     TOTAL_BYTES=$((KERNEL_BYTES + ROOT_BYTES + OVERHEAD_BYTES))
     TOTAL_MIB=$((TOTAL_BYTES / 1048576))
+    if $MINIMAL; then
+        if [ "$TOTAL_MIB" -lt 12 ]; then
+            TOTAL_MIB=12
+        fi
+    fi
     TOTAL_DISK_SIZE=$((((TOTAL_MIB + 3) / 4) * 4))
 
     # Factor in target swap if provided
@@ -3629,6 +3643,11 @@ get_installed_programs_features()
         INCLUDED_FEATURES+="\n  * kernel-level high memory support"
     else
         EXCLUDED_FEATURES+="\n  * kernel-level high memory support"
+    fi
+    if $ENABLE_NET; then
+        INCLUDED_FEATURES+="\n  * kernel-level networking support"
+    else
+        EXCLUDED_FEATURES+="\n  * kernel-level networking support"
     fi
     if $ENABLE_PCMCIA; then
         INCLUDED_FEATURES+="\n  * kernel-level PCMCIA support"
