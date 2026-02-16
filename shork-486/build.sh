@@ -106,6 +106,14 @@ while [ $# -gt 0 ]; do
         --always-build)
             ALWAYS_BUILD=true
             ;;
+        --disable-networking)
+            ENABLE_NET=false
+            BUILD_TYPE="custom"
+            ;;
+        --disable-pcmcia)
+            ENABLE_PCMCIA=false
+            BUILD_TYPE="custom"
+            ;;
         --enable-gui)
             ENABLE_GUI=true
             ;;
@@ -285,6 +293,11 @@ fi
 # Override to ensure PCMCIA support (for PCMCIA NICs) is enabled when networking support is also desired
 if $ENABLE_NET; then
     ENABLE_PCMCIA=true
+# If networking support is disabled, make sure networking-based programs are also skipped
+else
+    SKIP_DROPBEAR=true
+    SKIP_GIT=true
+    SKIP_TNFTP=true
 fi
 
 # Override to ensure the "use GRUB" parameter is disabled when the "Fix EXTLINUX" parameter is used
@@ -400,21 +413,25 @@ delete_root_dir()
     fi
 }
 
-# Fixes directory and disk image file permissions after root build
+# Fixes directory and file permissions after root build
 fix_perms()
 {
     if [ "$(id -u)" -eq 0 ]; then
-        echo -e "${GREEN}Fixing directory and disk image file permissions so they can be accessed by a non-root user/program after a root build...${RESET}"
+        echo -e "${GREEN}Tidying up and fixing directory and file permissions for non-root access...${RESET}"
 
         HOST_GID=${HOST_GID:-1000}
         HOST_UID=${HOST_UID:-1000}
 
-        if [ -d . ]; then
-            sudo chown -R "$HOST_UID:$HOST_GID" .
-            sudo chmod 755 .
-        fi
+        sudo chown -R "$HOST_UID:$HOST_GID" $CURR_DIR/build || true
+        sudo chmod 755 $CURR_DIR/build || true
 
-        for f in shork-486.img shork-486.vmdk; do
+        sudo chown -R "$HOST_UID:$HOST_GID" $CURR_DIR/images || true
+        sudo chmod 755 $CURR_DIR/images || true
+
+        sudo chown -R "$HOST_UID:$HOST_GID" $CURR_DIR/__pycache__ || true
+        sudo chmod 755 $CURR_DIR/__pycache__ || true
+
+        for f in $CURR_DIR/images/shork-486.img $CURR_DIR/images/shork-486.vmdk; do
             [ -f "$f" ] || continue
             sudo chown "$HOST_UID:$HOST_GID" "$f"
             sudo chmod 644 "$f"
@@ -858,6 +875,36 @@ get_busybox()
     sed -i "s|^CONFIG_SYSROOT=.*|CONFIG_SYSROOT=\"${CURR_DIR}/build/i486-linux-musl-cross\"|" .config
     sed -i "s|^CONFIG_EXTRA_CFLAGS=.*|CONFIG_EXTRA_CFLAGS=\"-I${PREFIX}/include\"|" .config
     sed -i "s|^CONFIG_EXTRA_LDFLAGS=.*|CONFIG_EXTRA_LDFLAGS=\"-L${PREFIX}/lib\"|" .config
+
+    if $ENABLE_NET; then
+        echo -e "${GREEN}Enabling BusyBox's ftpget, ftpput, ifconfig, ip, ping, route, telnet, traceroute, udhcpc, wget and whois implementations...${RESET}"
+        sed -i 's/# CONFIG_FEATURE_FANCY_PING is not set/CONFIG_FEATURE_FANCY_PING=y/' .config
+        sed -i 's/# CONFIG_FEATURE_IFCONFIG_BROADCAST_PLUS is not set/CONFIG_FEATURE_IFCONFIG_BROADCAST_PLUS=y/' .config
+        sed -i 's/# CONFIG_FEATURE_IFCONFIG_HW is not set/CONFIG_FEATURE_IFCONFIG_HW=y/' .config
+        sed -i 's/# CONFIG_FEATURE_IFCONFIG_MEMSTART_IOADDR_IRQ is not set/CONFIG_FEATURE_IFCONFIG_MEMSTART_IOADDR_IRQ=y/' .config
+        sed -i 's/# CONFIG_FEATURE_IFCONFIG_SLIP is not set/CONFIG_FEATURE_IFCONFIG_SLIP=y/' .config
+        sed -i 's/# CONFIG_FEATURE_IFCONFIG_STATUS is not set/CONFIG_FEATURE_IFCONFIG_STATUS=y/' .config
+        sed -i 's/# CONFIG_FEATURE_TELNET_AUTOLOGIN is not set/CONFIG_FEATURE_TELNET_AUTOLOGIN=y/' .config
+        sed -i 's/# CONFIG_FEATURE_TELNET_TTYPE is not set/CONFIG_FEATURE_TELNET_TTYPE=y/' .config
+        sed -i 's/# CONFIG_FEATURE_TELNET_WIDTH is not set/CONFIG_FEATURE_TELNET_WIDTH=y/' .config
+        sed -i 's/# CONFIG_FEATURE_WGET_AUTHENTICATION is not set/CONFIG_FEATURE_WGET_AUTHENTICATION=y/' .config
+        sed -i 's/# CONFIG_FEATURE_WGET_FTP is not set/CONFIG_FEATURE_WGET_FTP=y/' .config
+        sed -i 's/# CONFIG_FEATURE_WGET_HTTPS is not set/CONFIG_FEATURE_WGET_HTTPS=y/' .config
+        sed -i 's/# CONFIG_FEATURE_WGET_OPENSSL is not set/CONFIG_FEATURE_WGET_OPENSSL=y/' .config
+        sed -i 's/# CONFIG_FEATURE_WGET_STATUSBAR is not set/CONFIG_FEATURE_WGET_STATUSBAR=y/' .config
+        sed -i 's/# CONFIG_FEATURE_WGET_TIMEOUT is not set/CONFIG_FEATURE_WGET_TIMEOUT=y/' .config
+        sed -i 's/# CONFIG_FTPGET is not set/CONFIG_FTPGET=y/' .config
+        sed -i 's/# CONFIG_FTPPUT is not set/CONFIG_FTPPUT=y/' .config
+        sed -i 's/# CONFIG_IFCONFIG is not set/CONFIG_IFCONFIG=y/' .config
+        sed -i 's/# CONFIG_IP is not set/CONFIG_IP=y/' .config
+        sed -i 's/# CONFIG_PING is not set/CONFIG_PING=y/' .config
+        sed -i 's/# CONFIG_ROUTE is not set/CONFIG_ROUTE=y/' .config
+        sed -i 's/# CONFIG_TELNET is not set/CONFIG_TELNET=y/' .config
+        sed -i 's/# CONFIG_TRACEROUTE is not set/CONFIG_TRACEROUTE=y/' .config
+        sed -i 's/# CONFIG_UDHCPC is not set/CONFIG_UDHCPC=y/' .config
+        sed -i 's/# CONFIG_WGET is not set/CONFIG_WGET=y/' .config
+        sed -i 's/# CONFIG_WHOIS is not set/CONFIG_WHOIS=y/' .config
+    fi
 
     if $ENABLE_USB; then
         echo -e "${GREEN}Enabling BusyBox's lsusb implementation...${RESET}"

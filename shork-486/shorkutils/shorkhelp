@@ -15,6 +15,7 @@ EMACS_PRESENT=true
 GIT_PRESENT=true
 LSUSB_PRESENT=true
 NANO_PRESENT=true
+NETWORKING_PRESENT=true
 SHORKMAP_PRESENT=true
 SHORKRES_PRESENT=true
 TNFTP_PRESENT=true
@@ -39,6 +40,9 @@ if [ ! -x /usr/bin/lsusb ]; then
 fi
 if [ ! -x /usr/bin/nano ]; then
     NANO_PRESENT=false
+fi
+if [ ! -L /sbin/ip ]; then
+    NETWORKING_PRESENT=false
 fi
 if [ ! -x /usr/bin/shorkmap ]; then
     SHORKMAP_PRESENT=false
@@ -70,11 +74,7 @@ beep, blkid, clear, crontab, date, dd, df, dmesg, free, halt, hostname, kill, lo
 
 Networking & remote access
 --------------------------
-ftp, ftpget, ftpput, ifconfig, ping, route, scp, ssh, udhcpc, wget
-
-SHORK utilities
----------------
-shorkcol, shorkfetch, shorkhelp, shorkmap, shorkoff, shorkres"
+ftp, ftpget, ftpput, ip, ifconfig, ping, route, scp, ssh, telnet, traceroute, udhcpc, wget, whois"
 
     if ! $DROPBEAR_PRESENT; then
        OUTPUT=$(echo "$OUTPUT" |  sed -e "s|, scp, ssh||g")
@@ -91,14 +91,11 @@ shorkcol, shorkfetch, shorkhelp, shorkmap, shorkoff, shorkres"
     if ! $LSUSB_PRESENT; then
         OUTPUT=$(echo "$OUTPUT" | sed -e "s|lsusb, ||g")
     fi
+    if ! $NETWORKING_PRESENT; then
+        OUTPUT=$(echo "$OUTPUT" | sed '$d' | sed '$d' | sed '$d' | sed '$d')
+    fi
     if ! $NANO_PRESENT; then
         OUTPUT=$(echo "$OUTPUT" | sed -e "s|, nano||g")
-    fi
-    if ! $SHORKMAP_PRESENT; then
-        OUTPUT=$(echo "$OUTPUT" | sed -e "s|, shorkmap||g")
-    fi
-    if ! $SHORKRES_PRESENT; then
-        OUTPUT=$(echo "$OUTPUT" | sed -e "s|, shorkres||g")
     fi
     if ! $TNFTP_PRESENT; then
         OUTPUT=$(echo "$OUTPUT" | sed -e "s|ftp, ||g")

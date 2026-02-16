@@ -18,7 +18,7 @@ See [GALLERY](GALLERY.md) for more photos and screenshots!
 
 ### Core commands (BusyBox & util-linux)
 
-awk, basename, beep, blkid, cat, chmod, chown, chroot, clear, cp, crontab, cut, date, dd, df, dmesg, dirname, expr, find, fold, free, ftpget, ftpput, gzip, halt, head, hostname, ifconfig, kill, less, ln, ls, losetup, lsblk, lspci, loadkmap, man, mdev, mkdir, mknod, mount, mv, nice, nohup, nproc, paste, pkill, ping, printf, pstree, pwd, readlink, rev, rm, rmdir, route, sed, seq, showkey, sleep, stat, stty, swapoff, swapon, sync, tar, tee, test, top, touch, tr, udhcpc, umount, uname, unzip, whoami, wget, whereis, which, xz
+awk, basename, beep, blkid, cat, chmod, chown, chroot, clear, cp, crontab, cut, date, dd, df, dmesg, dirname, expr, find, fold, free, ftpget, ftpput, gzip, halt, head, hostname, ifconfig, kill, less, ln, ls, losetup, lsblk, lspci, loadkmap, man, mdev, mkdir, mknod, mount, mv, nice, nohup, nproc, paste, ping, pkill, printf, pstree, pwd, readlink, rev, rm, rmdir, route, sed, seq, showkey, sleep, stat, stty, swapoff, swapon, sync, tar, tee, test, top, touch, tr, udhcpc, umount, uname, unzip, whoami, wget, whereis, which, whois, traceroute, telnet, xz
 
 ### Bundled software
 
@@ -36,7 +36,7 @@ awk, basename, beep, blkid, cat, chmod, chown, chroot, clear, cp, crontab, cut, 
 * **shorkcol** - Persistently changes the terminal's foreground (text) colour. Takes one argument (a colour name); running it without an argument shows a list of possible colours.
 * **shorkfetch** - Displays basic system and environment information. Similar to fastfetch, neofetch, etc. Takes no arguments.
 * **shorkhelp** - Provides help with using SHORK 486 via command lists, guides and cheatsheets. Requires one of five parameters:
-    * `--commands`: Shows a command list including core commands, utilities, bundled software, and bundled SHORK utilities.
+    * `--commands`: Shows a command list including core commands, utilities and bundled software.
     * `--emacs`: Shows an Emacs (Mg) cheatsheet.
     * `--git`: Shows a list of supported Git commands.
     * `--intro`: Shows an introductory paragraph for SHORK 486 and a simple getting started guide.
@@ -141,16 +141,16 @@ It is recommended to move or copy the images out of this directory before extens
 
 #### Core configuration
 
-* **Minimal** (`--minimal`): can be used to skip building and including all non-essential features, producing a 12MiB or less disk image and a potentially less memory-hungry SHORK 486 system.
-    * This is like using the "no boot menu", "skip Dropbear", "skip file", "skip Emacs", "skip Git", "skip nano", "skip pci.ids", "skip Rover", and "skip tnftp" parameters together.
+* **Minimal** (`--minimal`): can be used to skip building and including all non-essential features, producing a 12MiB disk image by default and a less memory-hungry SHORK 486 system.
+    * This is like using the "disable networking", "disable PCMCIA", "no boot menu", "skip Dropbear", "skip file", "skip Emacs", "skip Git", "skip nano", "skip pci.ids", "skip Rover", and "skip tnftp" parameters together.
     * Framebuffer, VESA and enhanced VGA support will be reduced and `shorkres` will not be included.
     * The "enable GUI", "enable high memory", "enable SATA", "enable SMP", "enable USB & HID", "skip kernel", "skip BusyBox", and "use GRUB" parameters will be overridden if also used.
     * The minimum system memory requirement is lowered to 8-10MiB.
 
 * **Maximal** (`--maximal`): can be used to force building and including all bundled programs and features.
     * This is like using the "enable GUI", "enable high memory", "enable SATA", "enable SMP" and "enable USB & HID" parameters together.
-    * All skip bundled program/feature, "minimal", "skip kernel" and "skip BusyBox" parameters will be overridden if also used.
-    * The "use GRUB" parameter is the one major feature control that is still optional.
+    * All skip bundled program/feature, "disable networking", "disable PCMCIA", "minimal", "skip kernel" and "skip BusyBox" parameters will be overridden if also used.
+    * Only the "use GRUB" parameter is still available as an option.
     * The minimum system memory requirement is raised to 24MiB or 16MiB with 8MiB swap.
 
 * **Set keymap** (`--set-keymap`): can be used to specify SHORK 486's default keyboard layout (keymap). 
@@ -159,13 +159,13 @@ It is recommended to move or copy the images out of this directory before extens
     * This does nothing if the "skip keymaps" parameter is also used.
 
 * **Target disk** (`--target-disk`): can be used to specify a target total size in mebibytes for SHORK 486's disk images.
-    * Example usage: `--target-disk=75` to specify a 72MiB disk size.
-    * The build script will always calculate the minimum required disk image size, and if the target is below that, it will default to using this calculated size.
-    * Whilst the raw image (`.img`) will be created to this size, the VMware virtual machine disk (`.vmdk`) dynamically expands, so it may initially take up less space.
+    * Example usage: `--target-disk=72` to specify a 72MiB disk size.
+    * The build script will always calculate the minimum required disk image size and has a predefined 12MiB floor; if the target is less than either, it will default to using those instead.
+    * Whilst the raw disk image will be created to this size, the VMware virtual machine disk dynamically expands, so it may initially take up less space.
 
 * **Target swap** (`--target-swap`): can be used to specify a target size in mebibytes for a swap partition. Excluding this parameter will disable including a swap partition. 
-    * Example usage: `--target-swap=16` to specify a 16MiB swap partition size.
-    * The value must be between 1 and 24.
+    * Example usage: `--target-swap=8` to specify a 8MiB swap partition.
+    * The value must be between 1 and 64.
 
 #### Build automation
 
@@ -180,41 +180,50 @@ These parameters help automate the use of the build script, especially for succe
 
 * **Skip kernel** (`--skip-kernel`): can be used to skip recompiling the kernel.
     * This parameter requires at least one complete build.
-    * This does nothing if the "minimal" Aparameter is also used.
+    * This does nothing if the "minimal" or "maximal" parameters are also used.
 
 * **Skip BusyBox** (`--skip-busybox`): can be used to skip recompiling BusyBox.
     * This parameter requires at least one complete build.
-    * This does nothing if the "minimal" parameter is also used.
+    * This does nothing if the "minimal" or "maximal" parameters are also used.
 
 #### Bundled programs and features
 
 These parameters can be used to include, exclude (skip) or select specific bundled programs and features.
+
+* **Disable networking** (`--disable-networking`): can be used to disable kernel-level networking support. All network-related commands and software will also be skipped.
+    * This can save ~20MiB and 218 files on the root file system. This may also slightly reduce the kernel's size and system memory usage. SHORK 486 will lose FTP, Git, SCP and SSH capabilities, and the ftpget, ftpput, ifconfig, ip, ping, route, telnet, traceroute, udhcpc, wget and whois commands.
+    * This does nothing if the "minimal", "maximal" or "skip kernel" parameters are also used.
+
+* **Disable PCMCIA** (`--disable-pcmcia`): can be used to disable kernel-level CardBus/PCMCIA/PC Card support.
+    * This may slightly reduce the kernel's size and system memory usage.
+    * This does nothing if the "minimal", "maximal" or "skip kernel" parameters are also used, or if networking support is enabled (to support PCMCIA network cards).
 
 * **Enable GUI** (`--enable-gui`): can be used to enable SHORK 486's graphical user interface ("SHORKGUI"). This includes kernel-level framebuffer, VESA and enhanced VGA support, TinyX display sever, TWM window manager, st terminal emulator, and `shorkgui` utility.
     * **This is an experimental feature - expect quirks and incompleteness!**
     * As this feature is subject to big changes, the system requirements are not set in stone. But the following should provide a usable experience for now:
         * Intel486 DX2 (ideally; 486SX, 486DX, etc. works but are very slow)
         * 24MiB system memory without swap, or 16MiB with 8MiB swap
-        * A graphics card supported by `vesafb`
+        * A PCI graphics card supported by `vesafb`
+    * This does nothing if the "minimal", "maximal" or "skip kernel" parameters are also used.
 
 * **No boot menu** (`--no-menu`): can be used to remove SHORK 486's boot menu.
     * This will save ~512KiB to the boot file system. SHORK 486 will no longer provide the option to boot in a debug/verbose mode.
 
 * **Skip Dropbear** (`--skip-dropbear`): can be used to skip downloading and compiling Dropbear.
     * This will save ~404KiB and 2 files on the root file system. SHORK 486 will lose SCP and SSH capabilities.
-    * This does nothing if the "skip BusyBox" parameters are also used.
+    * This does nothing if the "skip BusyBox" parameter is also used.
 
 * **Skip file** (`--skip-file`): can be used to skip downloading and compiling file.
     * This will save ~10MiB and 4 files on the root file system. SHORK 486 will lose the file command.
-    * This does nothing if the "skip BusyBox" parameters are also used.
+    * This does nothing if the "skip BusyBox" parameter is also used.
 
 * **Skip Emacs** (`--skip-emacs`): can be used to skip downloading and compiling Mg ("Micro (GNU) Emacs"-like text editor).
     * This will save ~329KiB and 3 files on the root file system. `ed`, `vi` (always) or nano (can also be removed) are available are alternative editors.
-    * This does nothing if the "skip BusyBox" parameters are also used.
+    * This does nothing if the "skip BusyBox" parameter is also used.
 
 * **Skip Git** (`--skip-git`): can be used to skip downloading and compiling Git and its prerequisites (zlib, OpenSSL and curl).
     * This will save ~19MiB and 192 files on the root file system. SHORK 486 will lose its git client.
-    * This does nothing if the "skip BusyBox" parameters are also used.
+    * This does nothing if the "skip BusyBox" parameter is also used.
 
 * **Skip keymaps** (`--skip-keymaps`): can be used to skip installing keymaps.
     * This will save ~64KiB and 26 files on the root file system. SHORK 486 will stop supporting keyboard layouts other than ANSI U.S. English. `shorkmap` will not be included.
@@ -222,7 +231,7 @@ These parameters can be used to include, exclude (skip) or select specific bundl
 
 * **Skip nano** (`--skip-nano`): can be used to skip downloading and compiling nano.
     * This will save ~902KiB and 53 files on the root file system. `ed`, `vi` (always) or Mg (can also be removed) are available are alternative editors.
-    * This does nothing if the "skip BusyBox" parameters are also used.
+    * This does nothing if the "skip BusyBox" parameter is also used.
 
 * **Skip pci.ids** (`--skip-pciids`): can be used to skip building and including a `pci.ids` file.
     * This will save ~115-125KiB and one file on the root file system. `shorkfetch` will lose its "GPU" field.
@@ -230,13 +239,13 @@ These parameters can be used to include, exclude (skip) or select specific bundl
 
 * **Skip Rover** (`--skip-rover`): can be used to skip downloading and compiling Rover.
     * This will save ~402KiB and 2 files on the root file system. SHORK 486 will lose having a terminal-based file browser.
-    * This does nothing if the "skip BusyBox" parameters are also used.
+    * This does nothing if the "skip BusyBox" parameter is also used.
 
 * **Skip tnftp** (`--skip-tnftp`): can be used to skip downloading and compiling tnftp.
     * This will save ~304KiB and 3 files on the root file system. SHORK 486 will lose FTP capabilities.
-    * This does nothing if the "skip BusyBox" parameters are also used.
+    * This does nothing if the "skip BusyBox" parameter is also used.
 
-* **Use GRUB** (`--use-grub`): can be used to install a GRUB 2.x bootloader instead of EXTLINUX. This is intended as a diagnostic step when EXTLINUX fails to boot on certain systems.
+* **Use GRUB** (`--use-grub`): can be used to install a GRUB 2.x bootloader instead of EXTLINUX.
     * This will add ~13MB to the boot file system.
     * This does nothing if the "fix EXTLINUX" or "minimal" parameters are also used.
 
