@@ -72,6 +72,7 @@ ALWAYS_BUILD=false
 ENABLE_FB=true
 ENABLE_GUI=false
 ENABLE_HIGHMEM=false
+ENABLE_PCMCIA=true
 ENABLE_SATA=false
 ENABLE_SMP=false
 ENABLE_USB=false
@@ -221,11 +222,12 @@ if $MAXIMAL; then
     echo -e "${GREEN}Configuring for a maximal build...${RESET}"
     BUILD_TYPE="maximal"
     ENABLE_FB=true
+    ENABLE_GUI=true
     ENABLE_HIGHMEM=true
+    ENABLE_PCMCIA=true
     ENABLE_SATA=true
     ENABLE_SMP=true
     ENABLE_USB=true
-    ENABLE_GUI=true
     EST_MIN_RAM="24MiB or 16MiB + 8MiB swap"
     NO_MENU=false
     SKIP_BB=false
@@ -244,11 +246,12 @@ elif $MINIMAL; then
     echo -e "${GREEN}Configuring for a minimal build...${RESET}"
     BUILD_TYPE="minimal"
     ENABLE_FB=false
+    ENABLE_GUI=false
     ENABLE_HIGHMEM=false
+    ENABLE_PCMCIA=false
     ENABLE_SATA=false
     ENABLE_SMP=false
     ENABLE_USB=false
-    ENABLE_GUI=false
     EST_MIN_RAM="10MiB or 8MiB + 2MiB swap"
     NO_MENU=true
     SKIP_BB=false
@@ -930,20 +933,25 @@ configure_kernel()
     cp $CURR_DIR/configs/linux.config .config
 
     FRAGS=""
-
-    if $ENABLE_GUI; then
-        echo -e "${GREEN}Enabling kernel event interface support...${RESET}"
-        FRAGS+="$CURR_DIR/configs/linux.config.x11.frag "
-    fi
     
     if $ENABLE_FB; then
         echo -e "${GREEN}Enabling kernel framebuffer, VESA and enhanced VGA support...${RESET}"
         FRAGS+="$CURR_DIR/configs/linux.config.fb.frag "
     fi
 
+    if $ENABLE_GUI; then
+        echo -e "${GREEN}Enabling kernel event interface support...${RESET}"
+        FRAGS+="$CURR_DIR/configs/linux.config.x11.frag "
+    fi
+
     if $ENABLE_HIGHMEM; then
         echo -e "${GREEN}Enabling kernel high memory support...${RESET}"
         FRAGS+="$CURR_DIR/configs/linux.config.highmem.frag "
+    fi
+
+    if $ENABLE_PCMCIA; then
+        echo -e "${GREEN}Enabling kernel PCMCIA support...${RESET}"
+        FRAGS+="$CURR_DIR/configs/linux.config.pcmcia.frag "
     fi
 
     if $ENABLE_SATA; then
@@ -3621,6 +3629,11 @@ get_installed_programs_features()
         INCLUDED_FEATURES+="\n  * kernel-level high memory support"
     else
         EXCLUDED_FEATURES+="\n  * kernel-level high memory support"
+    fi
+    if $ENABLE_PCMCIA; then
+        INCLUDED_FEATURES+="\n  * kernel-level PCMCIA support"
+    else
+        EXCLUDED_FEATURES+="\n  * kernel-level PCMCIA support"
     fi
     if $ENABLE_SATA; then
         EST_MIN_RAM="24MiB or 16MiB + 8MiB swap"
