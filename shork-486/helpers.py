@@ -16,6 +16,7 @@ def build_pci_ids():
 
     replacements = {
         "Advanced Micro Devices, Inc. [AMD/ATI]": "AMD/ATI",
+        "Chips and Technologies": "C&T",
         " Corporation": "",
         "GPU (Graphics Processing Unit)": "GPU",
         "DC (Display Controller)": "Display Controller",
@@ -26,7 +27,7 @@ def build_pci_ids():
     }
 
     term_whitelist = [
-        "gpu", "graphics", "vga", " 3d ", "display", "radeon", "geforce", "quadro", "tesla", "instinct", "firepro", "arc ", "iris", "uhd", "xe ", "framebuffer"
+        "gpu", "graphics", "vga", " 3d ", "display", "radeon", "geforce", "quadro", "tesla", "instinct", "firepro", "arc ", "iris", "uhd", "xe ", "framebuffer", "hiqvideo"
     ]
 
     term_blacklist = [
@@ -34,7 +35,7 @@ def build_pci_ids():
     ]
 
     vendor_whitelist = [
-        "3dfx interactive", "advanced micro devices", "alliance semiconductor corporation", "ambarella", "aspeed technology", "cirrus logic", "google", "hangzhou hikvision digital technology", "intel corporation", "kinetic technologies", "matrox electronics systems", "neomagic corporation", "nvidia corporation", "number nine visual technology", "red hat", "s3 graphics", "sgs thomson microelectronics", "silicon integrated systems", "trident microsystems", "via technologies", "vmware", "western digital", "wch.cn", "zhaoxin", "loongson technology", "display controller", "unclassified device", "amp", "datacube", "ziatech", "rdc semiconductor", "xdx computing technology", "3dlabs", "microsoft"
+        "3dfx interactive", "advanced micro devices", "alliance semiconductor corporation", "ambarella", "aspeed technology", "cirrus logic", "google", "hangzhou hikvision digital technology", "intel corporation", "kinetic technologies", "matrox electronics systems", "neomagic corporation", "nvidia corporation", "number nine visual technology", "red hat", "s3 graphics", "sgs thomson microelectronics", "silicon integrated systems", "trident microsystems", "via technologies", "vmware", "western digital", "wch.cn", "zhaoxin", "loongson technology", "display controller", "unclassified device", "amp", "datacube", "ziatech", "rdc semiconductor", "xdx computing technology", "3dlabs", "microsoft", "tseng labs", "chips and technologies"
     ]
 
     for path in ("/usr/share/misc/pci.ids", "/usr/share/hwdata/pci.ids"):
