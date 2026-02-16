@@ -3830,6 +3830,11 @@ get_installed_programs_features()
     else
         EXCLUDED_FEATURES+="\n  * st"
     fi
+    if [ -f "$DESTDIR/usr/bin/twm" ]; then
+        INCLUDED_FEATURES+="\n  * twm"
+    else
+        EXCLUDED_FEATURES+="\n  * twm"
+    fi
     if [ -f "$DESTDIR/usr/bin/xcalc" ]; then
         INCLUDED_FEATURES+="\n  * xcalc"
     else
@@ -3915,12 +3920,11 @@ generate_report()
         lines+=("Boot style: menu")
     fi
 
-    if [ -n "$USED_WM" ]; then
-        lines+=(
-            ""
-            "Included WM: $USED_WM"
-        )
-    fi
+    lines+=(
+        ""
+        "Kernel: $KERNEL_VER"
+        "BusyBox: $BUSYBOX_VER"
+    )
 
     if [ -n "$INCLUDED_FEATURES" ]; then
         lines+=(
