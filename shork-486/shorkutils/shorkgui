@@ -64,4 +64,5 @@ else
     sed "s/@FB_WIDTH@/$FB_WIDTH/g" /usr/share/X11/twm/dark.twmrc > /tmp/shorkgui.twmrc
 fi
 
+sleep 1
 twm -f /tmp/shorkgui.twmrc
