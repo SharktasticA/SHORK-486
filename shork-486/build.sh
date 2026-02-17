@@ -375,10 +375,12 @@ NANO_VER="8.7"
 NCURSES_VER="6.4"
 NEDIT_VER="NEDIT-CLASSIC-END"
 OPENSSL_VER="3.6.0"
-ROVER_VER="v1.0.1"
+ROVER_VER="1.0.1"
+STRACE_VER="6.19"
 TMUX_VER="3.6a"
 TNFTP_VER="20230507"
 TWM_VER="1.0.13.1"
+UTIL_LINUX_VER="2.41.3"
 ZLIB_VER="1.3.1.2"
 
 # MBR binary
@@ -926,7 +928,41 @@ get_busybox()
     cp LICENSE $CURR_DIR/build/LICENCES/busybox.txt
 }
 
-# Download and compile some extra tools from util-linux (lsblk and whereis)
+# Download and compile strace
+get_strace()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "${DESTDIR}/usr/bin/strace" ]; then
+        echo -e "${LIGHT_RED}strace already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d strace ]; then
+        echo -e "${YELLOW}strace source already present, resetting...${RESET}"
+        cd strace
+        git config --global --add safe.directory $CURR_DIR/build/strace
+        git reset --hard
+    else
+        echo -e "${GREEN}Downloading strace...${RESET}"
+        git clone --branch v$STRACE_VER https://github.com/strace/strace.git
+        cd strace
+    fi
+
+    # Compile and install
+    echo -e "${GREEN}Compiling strace...${RESET}"
+    ./bootstrap
+    ./configure --host=${HOST} --prefix=/usr --disable-shared --enable-static CC="${CC_STATIC}" CFLAGS="-Os -march=i486" LDFLAGS="-static"
+    make -j$(nproc)
+    make install DESTDIR="$DESTDIR"
+
+    # Copy licence file
+    cp COPYING $CURR_DIR/build/LICENCES/strace.txt
+}
+
+# Download and compile util-linux (lsblk and whereis)
 get_util_linux()
 {
     cd "$CURR_DIR/build"
@@ -945,7 +981,7 @@ get_util_linux()
         git reset --hard
     else
         echo -e "${GREEN}Downloading util-linux...${RESET}"
-        git clone https://github.com/util-linux/util-linux.git
+        git clone --depth=1 --branch v$UTIL_LINUX_VER https://github.com/util-linux/util-linux.git
         cd util-linux
     fi
 
@@ -3114,7 +3150,7 @@ get_rover()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading Rover...${RESET}"
-        git clone --branch $ROVER_VER https://github.com/lecram/rover.git
+        git clone --branch v$ROVER_VER https://github.com/lecram/rover.git
         cd rover
     fi
 
@@ -3958,6 +3994,7 @@ get_i486_musl_cc
 if ! $SKIP_BB; then
     get_busybox
 fi
+get_strace
 get_util_linux
 
 if ! $SKIP_KRN; then
