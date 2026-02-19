@@ -201,7 +201,7 @@ These parameters can be used to include, exclude (skip) or select specific bundl
 * **Enable GUI** (`--enable-gui`): can be used to enable SHORK 486's graphical user interface ("SHORKGUI"). This includes kernel-level framebuffer, VESA and enhanced VGA support, TinyX display sever, TWM window manager, st terminal emulator, and `shorkgui` utility.
     * **This is an experimental feature - expect quirks and incompleteness!**
     * As this feature is subject to big changes, the system requirements are not set in stone. But the following should provide a usable experience for now:
-        * Intel486 DX2 (ideally; 486SX, 486DX, etc. works but are very slow)
+        * IntelDX4 (ideally; 486SX, 486DX, etc. works but are very slow)
         * 24MiB system memory without swap, or 16MiB with 8MiB swap
         * A PCI graphics card supported by `vesafb`
     * This does nothing if the "minimal", "maximal" or "skip kernel" parameters are also used.
@@ -311,7 +311,7 @@ TODO.
     * **FPU:** any option
     * **Memory:** at least 16MB for default build (24MB or more recommended)
 * Display
-    * **Video:** [ISA] IBM VGA
+    * **Video:** [ISA] IBM VGA 
 * Input
     * **Keyboard:** AT Keyboard
 * Network

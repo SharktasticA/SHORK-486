@@ -1,6 +1,6 @@
 # SHORK 486 Gallery
 
-* Updated 15th February 2026
+* Updated 18th February 2026
 
 ## Photos
 
@@ -111,7 +111,7 @@
     <td style="width: 50%; text-align: center;"></td>
   </tr>
   <tr>
-    <td>SHORKGUI</td>
+    <td>SHORKGUI (experimental)</td>
     <td></td>
   </tr>
 </table>
@@ -126,16 +126,5 @@
   <tr>
     <td>FTP</td>
     <td>Git clone</td>
-  </tr>
-</table>
-
-<table style="table-layout: fixed; width: 100%;">
-  <tr>
-    <td style="width: 50%; text-align: center;"><img src="screenshots/vmware_shorkgui.png" style="width: 100%;" /></td>
-    <td style="width: 50%; text-align: center;"></td>
-  </tr>
-  <tr>
-    <td>SHORKGUI</td>
-    <td></td>
   </tr>
 </table>
