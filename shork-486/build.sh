@@ -93,7 +93,6 @@ SKIP_KRN=false
 SKIP_FILE=false
 SKIP_NANO=false
 SKIP_PCIIDS=false
-SKIP_ROVER=false
 SKIP_TMUX=true
 SKIP_TNFTP=false
 TARGET_DISK=""
@@ -193,10 +192,6 @@ while [ $# -gt 0 ]; do
             SKIP_PCIIDS=true
             BUILD_TYPE="custom"
             ;;
-        --skip-rover)
-            SKIP_ROVER=true
-            BUILD_TYPE="custom"
-            ;;
         --skip-tnftp)
             SKIP_TNFTP=true
             BUILD_TYPE="custom"
@@ -249,7 +244,6 @@ if $MAXIMAL; then
     SKIP_FILE=false
     SKIP_NANO=false
     SKIP_PCIIDS=false
-    SKIP_ROVER=false
     SKIP_TNFTP=false
 # Overrides to ensure "minimal" parameter always takes precedence (if not maximal)
 elif $MINIMAL; then
@@ -273,7 +267,6 @@ elif $MINIMAL; then
     SKIP_FILE=true
     SKIP_NANO=true
     SKIP_PCIIDS=true
-    SKIP_ROVER=true
     SKIP_TNFTP=true
     USE_GRUB=false
     USED_WM=""
@@ -3254,6 +3247,36 @@ get_tnftp()
 
 
 
+# Download and compile shorkdir
+get_shorkdir()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "${DESTDIR}/usr/bin/shorkdir" ]; then
+        echo -e "${LIGHT_RED}shorkdir already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d shorkdir ]; then
+        echo -e "${YELLOW}shorkdir source already present, resetting...${RESET}"
+        cd shorkdir
+        git config --global --add safe.directory "$CURR_DIR/build/shorkdir"
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading shorkdir...${RESET}"
+        git clone https://github.com/SharktasticA/shorkdir.git
+        cd shorkdir
+    fi
+
+    # Compile and install
+    echo -e "${GREEN}Compiling shorkdir...${RESET}"
+    make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+    sudo make DESTDIR="${DESTDIR}" install
+}
+
 # Download and compile shorkfetch
 get_shorkfetch()
 {
@@ -3308,12 +3331,6 @@ trim_fat()
     fi
 
     if ! $SKIP_FILE; then
-        sudo rm -rf "${DESTDIR}/usr/include/magic.h"
-        sudo rm -rf "${DESTDIR}/usr/lib/libmagic.a"
-        sudo rm -rf "${DESTDIR}/usr/lib/libmagic.la"
-    fi
-
-    if ! $SKIP_ROVER; then
         sudo rm -rf "${DESTDIR}/usr/include/magic.h"
         sudo rm -rf "${DESTDIR}/usr/lib/libmagic.a"
         sudo rm -rf "${DESTDIR}/usr/lib/libmagic.la"
@@ -3777,6 +3794,11 @@ get_installed_programs_features()
     else
         EXCLUDED_FEATURES+="\n  * shorkcol"
     fi
+    if [ -f "$DESTDIR/usr/bin/shorkdir" ]; then
+        INCLUDED_FEATURES+="\n  * shorkdir"
+    else
+        EXCLUDED_FEATURES+="\n  * shorkdir"
+    fi
     if [ -f "$DESTDIR/usr/bin/shorkfetch" ]; then
         INCLUDED_FEATURES+="\n  * shorkfetch"
     else
@@ -3833,11 +3855,6 @@ get_installed_programs_features()
         INCLUDED_FEATURES+="\n  * nano"
     else
         EXCLUDED_FEATURES+="\n  * nano"
-    fi
-    if [ -f "$DESTDIR/usr/bin/rover" ]; then
-        INCLUDED_FEATURES+="\n  * rover"
-    else
-        EXCLUDED_FEATURES+="\n  * rover"
     fi
     if [ -f "$DESTDIR/usr/bin/scp" ]; then
         INCLUDED_FEATURES+="\n  * scp (Dropbear)"
@@ -4045,13 +4062,11 @@ fi
 if ! $SKIP_NANO; then
     get_nano
 fi
-if ! $SKIP_ROVER; then
-    get_rover
-fi
 if ! $SKIP_TNFTP; then
     get_tnftp
 fi
 
+get_shorkdir
 get_shorkfetch
 
 trim_fat

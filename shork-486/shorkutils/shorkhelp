@@ -162,17 +162,19 @@ print_utilities()
     OUTPUT="SHORK utilities
 ---------------
 
-shorkcol - Persistently changes the terminal's foreground (text) colour. This utility takes one argument (a colour name); running it without an argument shows a list of possible colours.
+shorkcol - Changes the terminal's foreground (text) colour. Takes one argument (a colour name); no arguments show a list of possible colours.
 
-shorkfetch - Displays basic system and environment information. Similar to fastfetch, neofetch, etc. This utility takes no arguments.
+shorkdir - Terminal-based file browser and file inspector (if file is installed).
 
-shorkhelp - Provides help with using @NAME@ via command lists, guides and cheatsheets. This utility requires the use of one of five parameters.
+shorkfetch - Displays basic system and environment information. Similar to fastfetch, neofetch, etc.
 
-shorkmap - Persistently changes the system's keymap. This utility takes one argument (a keymap name); running it without an argument shows a list of possible keymaps.
+shorkhelp - Provides help with using @NAME@ via command lists, guides and cheatsheets. Requires the use of one of five parameters.
 
-shorkoff - Brings the system to a halt and syncs the write cache, allowing the computer to be safely turned off. Similar to poweroff or shutdown -h. This utility takes no arguments.
+shorkmap - Changes the system's keyboard map. Takes takes one argument (a keymap name); no arguments show a list of possible keymaps.
 
-shorkres - Persistently changes the system's display resolution (provided the hardware is compatible). This utility takes one argument (a resolution name); running it without an argument shows a list of possible resolution names."
+shorkoff - Brings the system to a halt and syncs the write cache, allowing the computer to be safely turned off. Similar to poweroff or shutdown -h.
+
+shorkres - Changes the system's display resolution (provided hardware is compatible). Takes one argument (a resolution name); no arguments show a list of possible resolution names."
 
     if ! $SHORKMAP_PRESENT; then
         OUTPUT=$(echo "$OUTPUT" | awk '/^shorkmap -/ {f=1; next} f && /^$/ {f=0; next} !f')
