@@ -6,8 +6,8 @@
 
 <table style="table-layout: fixed; width: 100%;">
   <tr>
-    <td style="width: 33%; text-align: center;"><img src="photos/20260126_365ed_boot_menu_2.jpg" style="width: 100%;" /></td>
-    <td style="width: 33%; text-align: center;"><img src="photos/20260126_365ed_first_boot.jpg" style="width: 100%;" /></td>
+    <td style="width: 33%; text-align: center;"><img src="photos/20260223_365ed_boot_menu.jpg" style="width: 100%;" /></td>
+    <td style="width: 33%; text-align: center;"><img src="photos/20260223_365ed.jpg" style="width: 100%;" /></td>
   </tr>
   <tr>
     <td>Boot menu</td>
@@ -18,7 +18,7 @@
 <table style="table-layout: fixed; width: 100%;">
   <tr>
     <td style="width: 33%; text-align: center;"><img src="photos/20260126_365ed_shorkhelp_intro.jpg" style="width: 100%;" /></td>
-    <td style="width: 33%; text-align: center;"><img src="photos/20260126_365ed_shorkhelp_commands.jpg" style="width: 100%;" /></td>
+    <td style="width: 33%; text-align: center;"><img src="photos/20260223_365ed_shorkhelp_commands.jpg" style="width: 100%;" /></td>
   </tr>
   <tr>
     <td>shorkhelp --intro</td>
@@ -28,8 +28,8 @@
 
 <table style="table-layout: fixed; width: 100%;">
   <tr>
-    <td style="width: 33%; text-align: center;"><img src="photos/20260126_365ed_shorkfetch.jpg" style="width: 100%;" /></td>
-    <td style="width: 33%; text-align: center;"><img src="photos/20260126_365ed_lsblk_df_free.jpg" style="width: 100%;" /></td>
+    <td style="width: 33%; text-align: center;"><img src="photos/20260223_365ed_shorkfetch.jpg" style="width: 100%;" /></td>
+    <td style="width: 33%; text-align: center;"><img src="photos/20260223_365ed_lsblk_df_free.jpg" style="width: 100%;" /></td>
   </tr>
   <tr>
     <td>shorkfetch</td>
@@ -39,8 +39,8 @@
 
 <table style="table-layout: fixed; width: 100%;">
   <tr>
-    <td style="width: 33%; text-align: center;"><img src="photos/20260126_365ed_ed.jpg" style="width: 100%;" /></td>
-    <td style="width: 33%; text-align: center;"><img src="photos/20260126_365ed_mg.jpg" style="width: 100%;" /></td>
+    <td style="width: 33%; text-align: center;"><img src="photos/20260223_365ed_ed.jpg" style="width: 100%;" /></td>
+    <td style="width: 33%; text-align: center;"><img src="photos/20260223_365ed_mg.jpg" style="width: 100%;" /></td>
   </tr>
   <tr>
     <td>ed</td>
@@ -50,7 +50,7 @@
 
 <table style="table-layout: fixed; width: 100%;">
   <tr>
-    <td style="width: 33%; text-align: center;"><img src="photos/20260126_365ed_nano.jpg" style="width: 100%;" /></td>
+    <td style="width: 33%; text-align: center;"><img src="photos/20260223_365ed_nano.jpg" style="width: 100%;" /></td>
     <td style="width: 33%; text-align: center;"><img src="photos/20260126_365ed_git_init_1.jpg" style="width: 100%;" /></td>
   </tr>
   <tr>
@@ -62,7 +62,7 @@
 <table style="table-layout: fixed; width: 100%;">
   <tr>
     <td style="width: 33%; text-align: center;"><img src="photos/20260126_365ed_shorkcol.jpg" style="width: 100%;" /></td>
-    <td style="width: 33%; text-align: center;"><img src="photos/20260126_365ed_shorkoff.jpg" style="width: 100%;" /></td>
+    <td style="width: 33%; text-align: center;"><img src="photos/20260223_365ed_shorkoff.jpg" style="width: 100%;" /></td>
   </tr>
   <tr>
     <td>shorkcol</td>
