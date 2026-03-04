@@ -284,10 +284,15 @@ done
 # Overrides to ensure the correct build type if not custom but one or more of the major enable parameters are used
 if [[ "$BUILD_TYPE" != "custom" ]]; then
     if [[ "$ENABLE_GUI" == true && "$ENABLE_GCC" == true ]]; then
+        EST_MIN_RAM="24MiB"
         BUILD_TYPE="developer + GUI"
     elif [[ "$ENABLE_GUI" == false && "$ENABLE_GCC" == true ]]; then
+        EST_MIN_RAM="24MiB"
         BUILD_TYPE="developer"
     elif [[ "$ENABLE_GUI" == true && "$ENABLE_GCC" == false ]]; then
+        if [[ "$EST_MIN_RAM" != "24MiB" ]]; then
+            EST_MIN_RAM="24MiB or 16MiB + 8MiB swap"
+        fi
         BUILD_TYPE="GUI"
     fi
 fi
@@ -305,7 +310,7 @@ if $MAXIMAL; then
     ENABLE_SATA=true
     ENABLE_SMP=true
     ENABLE_USB=true
-    EST_MIN_RAM="24MiB or 16MiB + 8MiB swap"
+    EST_MIN_RAM="24MiB"
     NO_MENU=false
     SKIP_BB=false
     SKIP_DROPBEAR=false
@@ -351,7 +356,6 @@ fi
 if ! $ENABLE_GUI; then
     USED_WM=""
 else
-    EST_MIN_RAM="24MiB or 16MiB + 8MiB swap"
     # If USED_WM is empty but GUI is desired, ensure the default WM (TWM) is set
     if [[ $USED_WM == "" ]]; then
         USED_WM="TWM"
@@ -3943,7 +3947,9 @@ get_installed_programs_features()
         EXCLUDED_FEATURES+="\n  * kernel-level framebuffer, VESA & enhanced VGA support"
     fi
     if $ENABLE_HIGHMEM; then
-        EST_MIN_RAM="24MiB or 16MiB + 8MiB swap"
+        if [[ "$EST_MIN_RAM" != "24MiB" ]]; then
+            EST_MIN_RAM="24MiB or 16MiB + 8MiB swap"
+        fi
         INCLUDED_FEATURES+="\n  * kernel-level high memory support"
     else
         EXCLUDED_FEATURES+="\n  * kernel-level high memory support"
@@ -3959,7 +3965,9 @@ get_installed_programs_features()
         EXCLUDED_FEATURES+="\n  * kernel-level PCMCIA support"
     fi
     if $ENABLE_SATA; then
-        EST_MIN_RAM="24MiB or 16MiB + 8MiB swap"
+        if [[ "$EST_MIN_RAM" != "24MiB" ]]; then
+            EST_MIN_RAM="24MiB or 16MiB + 8MiB swap"
+        fi
         INCLUDED_FEATURES+="\n  * kernel-level SATA support"
     else
         EXCLUDED_FEATURES+="\n  * kernel-level SATA support"
