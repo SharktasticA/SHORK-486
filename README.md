@@ -6,7 +6,7 @@ Member of the SHORK family: **SHORK 486** | [SHORK DISKETTE](https://github.com/
 
 SHORK 486 is a minimal Linux distribution for vintage PCs! The aim is to produce an operating system that is very lean but functional for PCs with 486SX-class or better processors, often with my '90s IBM ThinkPads in mind. It was based on [FLOPPINUX's build instructions](https://github.com/w84death/floppinux) and inspired by [Action Retro's demonstration of it](https://www.youtube.com/watch?v=SiHZbnFrHOY), first developed as an automated build script for achieving something similar but can be Dockerised for building on a wider range of systems, then used as the basis for an operating system with additional functionality and tailored to my usage. Whilst still small for a modern operating system, it exceeds the size of a typical floppy diskette, so it requires being written to a hard disk.
 
-A default SHORK 486 system aims to work with at least 16MiB system memory and take up no more than ~72MiB on the disk. Despite those constraints, the default SHORK 486 experience includes a modern Linux kernel from 2025, many typical Linux commands, custom SHORK utilities such as shorkdir (TUI file browser) and shorkfetch (*fetch clone), an FTP, SCP and SSH client, a Git source control client, the ed, Mg (Emacs-style), nano and vi editors, basic IDE CD-ROM and DVD-ROM support, basic ISA, PCI and PCMCIA NIC support, support for most major national keyboard layouts, and a cute ASCII shark welcome screen! The build script supports many parameters to alter a SHORK 486 build to your liking. For example, if making a "minimal" build, the RAM requirement and disk size can both be brought down to 8-10MiB and 12MiB (respectively), whilst still including most typical commands as before, some custom SHORK utilities, and the ed and vi editors. Some people have expressed support for using SHORK 486 on newer hardware for a minimalist Linux environment, and as such, build parameters for enabling high memory, SATA and SMP support are provided if you so desire them!
+A default SHORK 486 system aims to work with at least 16MiB system memory and take up no more than ~72MiB on the disk. Despite those constraints, the default SHORK 486 experience includes a modern Linux kernel from 2025, many typical Linux commands, custom SHORK utilities such as shorkdir (TUI file browser) and shorkfetch (*fetch clone), a C compiler, an FTP, SCP and SSH client, a Git source control client, the ed, Mg (Emacs-style), nano and vi editors, basic IDE CD-ROM and DVD-ROM support, basic ISA, PCI and PCMCIA NIC support, support for most major national keyboard layouts, and a cute ASCII shark welcome screen! The build script supports many parameters to alter a SHORK 486 build to your liking. For example, if making a "minimal" build, the RAM requirement and disk size can both be brought down to 8-10MiB and 12MiB (respectively), whilst still including most typical commands as before, some custom SHORK utilities, and the ed and vi editors. Some people have expressed support for using SHORK 486 on newer hardware for a minimalist Linux environment, and as such, build parameters for enabling high memory, SATA and SMP support are provided if you so desire them!
 
 <p align="center"><img alt="A photo of SHORK 486 running on an IBM ThinkPad 365ED after a cold boot" src="photos/20260223_365ed.jpg" width="512"></p>
 
@@ -29,11 +29,12 @@ awk, basename, bc, beep, blkid, cat, chmod, chown, chroot, clear, cp, crontab, c
 * [nano](https://www.nano-editor.org) (text editor)
 * scp (SCP client, [Dropbear](https://github.com/mkj/dropbear))
 * ssh (SSH client, [Dropbear](https://github.com/mkj/dropbear))
+* [tcc](https://bellard.org/tcc/) and [musl](https://musl.libc.org/) (C compiler)
 
 ### Custom utilities 
 
 * **shorkcol** - Persistently changes the terminal's foreground (text) colour. Takes one argument (a colour name); running it without an argument shows a list of possible colours.
-* **[shorkdir](https://github.com/SharktasticA/shorkdir)** - Lightweight terminal-based file brwoser.
+* **[shorkdir](https://github.com/SharktasticA/shorkdir)** - Lightweight terminal-based file browser.
 * **[shorkfetch](https://github.com/SharktasticA/shorkfetch)** - Displays basic system and environment information. Similar to fastfetch, neofetch, etc.
 * **shorkhelp** - Provides help with using SHORK 486 via command lists, guides and cheatsheets. Requires one of five parameters:
     * `--commands`: Shows a command list including core commands, utilities and bundled software.
@@ -142,13 +143,13 @@ It is recommended to move or copy the images out of this directory before extens
 #### Core configuration
 
 * **Minimal** (`--minimal`): can be used to skip building and including all non-essential features, producing a 12MiB disk image by default and a less memory-hungry SHORK 486 system.
-    * This is like using the "disable networking", "disable PCMCIA", "no boot menu", "skip Dropbear", "skip file", "skip Emacs", "skip Git", "skip nano", "skip pci.ids", and "skip tnftp" parameters together.
+    * This is like using the "disable networking", "disable PCMCIA", "no boot menu", "skip Dropbear", "skip file", "skip Emacs", "skip Git", "skip nano", "skip pci.ids", "skip TCC", and "skip tnftp" parameters together.
     * Framebuffer, VESA and enhanced VGA support will be reduced and `shorkres` will not be included.
-    * The "enable C/C++ compiler", "enable GUI", "enable high memory", "enable SATA", "enable SMP", "enable USB & HID", "skip kernel", "skip BusyBox", and "use GRUB" parameters will be overridden if also used.
+    * The "enable GCC", "enable GUI", "enable high memory", "enable SATA", "enable SMP", "enable USB & HID", "skip kernel", "skip BusyBox", and "use GRUB" parameters will be overridden if also used.
     * The minimum system memory requirement is lowered to 8-10MiB.
 
 * **Maximal** (`--maximal`): can be used to force building and including all bundled programs and features.
-    * This is like using the "enable C/C++ compiler", "enable GUI", "enable high memory", "enable SATA", "enable SMP" and "enable USB & HID" parameters together.
+    * This is like using the "enable GCC", "enable GUI", "enable high memory", "enable SATA", "enable SMP" and "enable USB & HID" parameters together.
     * All skip bundled program/feature, "disable networking", "disable PCMCIA", "minimal", "skip kernel" and "skip BusyBox" parameters will be overridden if also used.
     * Only the "use GRUB" parameter is still available as an option.
     * The minimum system memory requirement is raised to 24MiB or 16MiB with 8MiB swap.
@@ -198,9 +199,10 @@ These parameters can be used to include, exclude (skip) or select specific bundl
     * This may slightly reduce the kernel's size and system memory usage.
     * This does nothing if the "minimal", "maximal" or "skip kernel" parameters are also used, or if networking support is enabled (to support PCMCIA network cards).
 
-* **Enable C/C++ compiler** (`--enable-cc`): can be used to include a C and C++ compiler (GCC 11.2.1 with musl).
+* **Enable GCC** (`--enable-gcc`): can be used to include GNU Assembler, GCC's C, C++ and Fortran* compiler and musl C standard library.
     * This will add ~215MiB and 2,430 files on the root file system.
     * This does nothing if the "minimal" or "maximal" parameters are also used.
+    * \* *GFortran does not presently work correctly and requires further work.*
 
 * **Enable GUI** (`--enable-gui`): can be used to enable SHORK 486's graphical user interface ("SHORKGUI"). This includes kernel-level framebuffer, VESA and enhanced VGA support, TinyX display sever, TWM window manager, st terminal emulator, and `shorkgui` utility.
     * **This is an experimental feature - expect quirks and incompleteness!**
@@ -240,6 +242,10 @@ These parameters can be used to include, exclude (skip) or select specific bundl
 * **Skip pci.ids** (`--skip-pciids`): can be used to skip building and including a `pci.ids` file.
     * This will save ~115-125KiB and one file on the root file system. `shorkfetch` will lose its "GPU" field.
     * GPU identification on some 486SX configurations can take a while, so excluding this may be desirable to speed up `shorkfetch` significantly in such scenarios.
+
+* **Skip TCC** (`--skip-tcc`): can be used to skip downloading and compiling the Tiny C Compiler and musl C standard library.
+    * This will save ~4MiB and 266 files on the root file system. SHORK 486 will lose C compiling capabilities if the "enable GCC" parameter is not also used.
+    * This does nothing if the "skip BusyBox" parameter is also used.
 
 * **Skip tnftp** (`--skip-tnftp`): can be used to skip downloading and compiling tnftp.
     * This will save ~304KiB and 3 files on the root file system. SHORK 486 will lose FTP capabilities.

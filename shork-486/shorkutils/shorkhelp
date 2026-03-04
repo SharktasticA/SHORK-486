@@ -9,21 +9,19 @@
 
 
 
-CC_PRESENT=true
 DROPBEAR_PRESENT=true
 FILE_PRESENT=true
 EMACS_PRESENT=true
+GCC_PRESENT=true
 GIT_PRESENT=true
 LSUSB_PRESENT=true
 NANO_PRESENT=true
 NETWORKING_PRESENT=true
 SHORKMAP_PRESENT=true
 SHORKRES_PRESENT=true
+TCC_PRESENT=true
 TNFTP_PRESENT=true
 
-if [ ! -d /opt/i486-linux-musl-native ]; then
-    CC_PRESENT=false
-fi
 if [ ! -x /usr/bin/scp ]; then
     DROPBEAR_PRESENT=false
 fi
@@ -35,6 +33,9 @@ if [ ! -x /usr/bin/file ]; then
 fi
 if [ ! -x /usr/bin/mg ]; then
     EMACS_PRESENT=false
+fi
+if [ ! -d /opt/i486-linux-musl-native ]; then
+    GCC_PRESENT=false
 fi
 if [ ! -x /usr/bin/git ]; then
     GIT_PRESENT=false
@@ -54,6 +55,9 @@ fi
 if [ ! -x /usr/bin/shorkres ]; then
     SHORKRES_PRESENT=false
 fi
+if [ ! -x /usr/local/bin/i386-tcc ]; then
+    TCC_PRESENT=false
+fi
 if [ ! -x /usr/bin/ftp ]; then
     TNFTP_PRESENT=false
 fi
@@ -70,7 +74,7 @@ awk, basename, bc, cat, chmod, chown, chroot, cp, cut, dc, dirname, expr, file, 
 
 Editors & development tools
 ---------------------------
-ed, emacs, g++, gcc, git, nano, vi
+as, ed, emacs, g++, gcc, git, nano, tcc, vi
 
 System & processes
 ------------------
@@ -80,14 +84,16 @@ Networking & remote access
 --------------------------
 ftp, ftpget, ftpput, ip, ifconfig, ping, route, scp, ssh, telnet, traceroute, udhcpc, wget, whois"
 
-    if ! $CC_PRESENT; then
-       OUTPUT=$(echo "$OUTPUT" |  sed -e "s|, g++, gcc||g")
-    fi
+
     if ! $DROPBEAR_PRESENT; then
        OUTPUT=$(echo "$OUTPUT" |  sed -e "s|, scp, ssh||g")
     fi
     if ! $FILE_PRESENT; then
        OUTPUT=$(echo "$OUTPUT" |  sed -e "s|, file||g")
+    fi
+    if ! $GCC_PRESENT; then
+       OUTPUT=$(echo "$OUTPUT" |  sed -e "s|as, ||g")
+       OUTPUT=$(echo "$OUTPUT" |  sed -e "s|, g++, gcc||g")
     fi
     if ! $EMACS_PRESENT; then
         OUTPUT=$(echo "$OUTPUT" | sed -e "s|, emacs||g")
@@ -103,6 +109,9 @@ ftp, ftpget, ftpput, ip, ifconfig, ping, route, scp, ssh, telnet, traceroute, ud
     fi
     if ! $NANO_PRESENT; then
         OUTPUT=$(echo "$OUTPUT" | sed -e "s|, nano||g")
+    fi
+    if ! $TCC_PRESENT; then
+       OUTPUT=$(echo "$OUTPUT" |  sed -e "s|tcc, ||g")
     fi
     if ! $TNFTP_PRESENT; then
         OUTPUT=$(echo "$OUTPUT" | sed -e "s|ftp, ||g")

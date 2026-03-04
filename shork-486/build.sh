@@ -98,6 +98,7 @@ GIT_VER="2.52.0"
 KERNEL_VER="6.14.11"
 LIBEVENT_VER="release-2.1.12-stable"
 MG_VER="3.7"
+MUSL_VER="1.2.5"
 NANO_VER="8.7"
 NCURSES_VER="6.4"
 NEDIT_VER="NEDIT-CLASSIC-END"
@@ -115,8 +116,8 @@ MBR_BIN=""
 
 # Build parameters/arguments
 ALWAYS_BUILD=false
-ENABLE_CC=false
 ENABLE_FB=true
+ENABLE_GCC=false
 ENABLE_GUI=false
 ENABLE_HIGHMEM=false
 ENABLE_NET=true
@@ -142,6 +143,7 @@ SKIP_KRN=false
 SKIP_FILE=false
 SKIP_NANO=false
 SKIP_PCIIDS=false
+SKIP_TCC=false
 SKIP_TMUX=true
 SKIP_TNFTP=false
 TARGET_DISK=""
@@ -162,8 +164,8 @@ while [ $# -gt 0 ]; do
             ENABLE_PCMCIA=false
             BUILD_TYPE="custom"
             ;;
-        --enable-cc)
-            ENABLE_CC=true
+        --enable-gcc)
+            ENABLE_GCC=true
             ;;
         --enable-gui)
             ENABLE_GUI=true
@@ -247,6 +249,10 @@ while [ $# -gt 0 ]; do
             SKIP_PCIIDS=true
             BUILD_TYPE="custom"
             ;;
+        --skip-tcc)
+            SKIP_TCC=true
+            BUILD_TYPE="custom"
+            ;;
         --skip-tnftp)
             SKIP_TNFTP=true
             BUILD_TYPE="custom"
@@ -273,11 +279,11 @@ done
 
 # Overrides to ensure the correct build type if not custom but one or more of the major enable parameters are used
 if [[ "$BUILD_TYPE" != "custom" ]]; then
-    if [[ "$ENABLE_GUI" == true && "$ENABLE_CC" == true ]]; then
+    if [[ "$ENABLE_GUI" == true && "$ENABLE_GCC" == true ]]; then
         BUILD_TYPE="developer + GUI"
-    elif [[ "$ENABLE_GUI" == false && "$ENABLE_CC" == true ]]; then
+    elif [[ "$ENABLE_GUI" == false && "$ENABLE_GCC" == true ]]; then
         BUILD_TYPE="developer"
-    elif [[ "$ENABLE_GUI" == true && "$ENABLE_CC" == false ]]; then
+    elif [[ "$ENABLE_GUI" == true && "$ENABLE_GCC" == false ]]; then
         BUILD_TYPE="GUI"
     fi
 fi
@@ -286,8 +292,8 @@ fi
 if $MAXIMAL; then
     echo -e "${GREEN}Configuring for a maximal build...${RESET}"
     BUILD_TYPE="maximal"
-    ENABLE_CC=true
     ENABLE_FB=true
+    ENABLE_GCC=true
     ENABLE_GUI=true
     ENABLE_HIGHMEM=true
     ENABLE_NET=true
@@ -306,13 +312,14 @@ if $MAXIMAL; then
     SKIP_FILE=false
     SKIP_NANO=false
     SKIP_PCIIDS=false
+    SKIP_TCC=false
     SKIP_TNFTP=false
 # Overrides to ensure "minimal" parameter always takes precedence (if not maximal)
 elif $MINIMAL; then
     echo -e "${GREEN}Configuring for a minimal build...${RESET}"
     BUILD_TYPE="minimal"
-    ENABLE_CC=false
     ENABLE_FB=false
+    ENABLE_GCC=false
     ENABLE_GUI=false
     ENABLE_HIGHMEM=false
     ENABLE_NET=false
@@ -330,6 +337,7 @@ elif $MINIMAL; then
     SKIP_FILE=true
     SKIP_NANO=true
     SKIP_PCIIDS=true
+    SKIP_TCC=true
     SKIP_TNFTP=true
     USE_GRUB=false
     USED_WM=""
@@ -2963,45 +2971,6 @@ get_xset()
 
 
 ######################################################
-## C compiler and toolchain building                ##
-######################################################
-
-get_musl_native()
-{
-    cd "$CURR_DIR/build"
-
-    # Skip if already extracted
-    if [ -d "${DESTDIR}/opt/i486-linux-musl-native" ]; then
-        echo -e "${LIGHT_RED}i486-linux-musl-native already extracted, skipping...${RESET}"
-        return
-    fi
-
-    echo -e "${GREEN}Downloading i486-linux-musl-native...${RESET}"
-
-    DIR="i486-linux-musl-native"
-    ARC="${DIR}.tgz"
-    URI="https://musl.cc/${ARC}"
-
-    # Download
-    [ -f $ARC ] || wget $URI
-
-    # Extract
-    if [ -d "$DESTDIR/opt/$DIR" ]; then
-        echo -e "${YELLOW}i486-linux-musl-native's archive is already present, re-extracting...${RESET}"
-        sudo rm -rf "$DESTDIR/opt/$DIR"
-    fi
-    mkdir -p $DESTDIR/opt
-    tar xzf $ARC -C $DESTDIR/opt
-    mkdir -p $DESTDIR/lib
-    ln -s /opt/i486-linux-musl-native/lib/libc.so $DESTDIR/lib/ld-musl-i386.so.1 || true
-
-    # Copy licence file
-    #cp TODO $CURR_DIR/build/LICENCES/i486-linux-musl-native.txt
-}
-
-
-
-######################################################
 ## Packaged software building                       ##
 ######################################################
 
@@ -3078,7 +3047,7 @@ get_emacs()
     sudo make DESTDIR="${DESTDIR}" install
 
     # Allow running "emacs" to run mg
-    sudo ln -sf mg "${DESTDIR}/usr/bin/emacs"
+    ln -sf mg "${DESTDIR}/usr/bin/emacs"
 
     # Copy licence file
     cp UNLICENSE $CURR_DIR/build/LICENCES/mg.txt
@@ -3126,6 +3095,40 @@ get_file()
     cp COPYING $CURR_DIR/build/LICENCES/file.txt
 }
 
+# Download and extract GCC + musl
+get_gcc()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already extracted
+    if [ -d "${DESTDIR}/opt/i486-linux-musl-native" ]; then
+        echo -e "${LIGHT_RED}i486-linux-musl-native already extracted, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading i486-linux-musl-native...${RESET}"
+
+    DIR="i486-linux-musl-native"
+    ARC="${DIR}.tgz"
+    URI="https://musl.cc/${ARC}"
+
+    # Download
+    [ -f $ARC ] || wget $URI
+
+    # Extract
+    if [ -d "$DESTDIR/opt/$DIR" ]; then
+        echo -e "${YELLOW}i486-linux-musl-native's archive is already present, re-extracting...${RESET}"
+        sudo rm -rf "$DESTDIR/opt/$DIR"
+    fi
+    mkdir -p $DESTDIR/opt
+    tar xzf $ARC -C $DESTDIR/opt
+    mkdir -p $DESTDIR/lib
+    ln -s /opt/i486-linux-musl-native/lib/libc.so $DESTDIR/lib/ld-musl-i386.so.1 || true
+
+    # Copy licence file
+    #cp TODO $CURR_DIR/build/LICENCES/i486-linux-musl-native.txt
+}
+
 # Download and compile Git
 get_git()
 {
@@ -3159,6 +3162,45 @@ get_git()
 
     # Copy licence file
     cp COPYING $CURR_DIR/build/LICENCES/git.txt
+}
+
+# Download and compile musl
+get_musl()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "${DESTDIR}/usr/local/musl/lib/libc.so" ]; then
+        echo -e "${LIGHT_RED}musl already compile, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading musl...${RESET}"
+
+    MUSL="musl-${MUSL_VER}"
+    MUSL_ARC="${MUSL}.tar.gz"
+    MUSL_URI="https://musl.libc.org/releases/${MUSL_ARC}"
+
+    # Download source
+    [ -f $MUSL_ARC ] || wget $MUSL_URI
+
+    # Extract source
+    if [ -d $MUSL ]; then
+        echo -e "${YELLOW}musl's source archive is already present, re-extracting before proceeding...${RESET}"
+        sudo rm -rf $MUSL
+    fi
+    tar xzf $MUSL_ARC
+    cd $MUSL
+
+    # Compile and install
+    echo -e "${GREEN}Compiling musl...${RESET}"
+    make configure
+    ./configure --host=${HOST} CC=$CC_STATIC AR=$AR RANLIB=$RANLIB
+    make -j$(nproc)
+    sudo make DESTDIR="${DESTDIR}" install
+
+    # Copy licence file
+    cp COPYRIGHT $CURR_DIR/build/LICENCES/musl.txt
 }
 
 # Download and compile nano
@@ -3257,6 +3299,47 @@ get_rover()
 
     # Create "licence" file
     echo "Public domain" | sudo tee "$CURR_DIR/build/LICENCES/rover.txt" > /dev/null
+}
+
+# Download and compile Tiny C Compiler
+get_tcc()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "${DESTDIR}/usr/local/bin/i386-tcc" ]; then
+        echo -e "${LIGHT_RED}Tiny C Compiler already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d tinycc-mirror-repository ]; then
+        echo -e "${YELLOW}Tiny C Compiler source already present, resetting...${RESET}"
+        cd tinycc-mirror-repository
+        git config --global --add safe.directory "$CURR_DIR/build/tinycc-mirror-repository"
+        git reset --hard
+    else
+        echo -e "${GREEN}Downloading Tiny C Compiler...${RESET}"
+        git clone --branch latest-version https://github.com/Tiny-C-Compiler/tinycc-mirror-repository.git
+        cd tinycc-mirror-repository
+    fi
+
+    sed -i 's|i386-linux-gnu|local/musl|g' Makefile
+    sed -i 's|/lib/ld-linux.so.2|/lib/ld-musl-i386.so.1|g' tcc.h
+
+    # Patch to fix "undefined symbol '__udivmoddi4'"" error
+    sed -i 's/^static[[:space:]]\+UDWtype __udivmoddi4/UDWtype __udivmoddi4/' lib/libtcc1.c
+    
+    # Compile and install
+    echo -e "${GREEN}Compiling Tiny C Compiler...${RESET}"
+    ./configure --cpu=i386 --cc=$CC_STATIC --enable-cross --enable-static
+    make cross-i386 -j$(nproc)
+    make DESTDIR="${DESTDIR}" install
+    
+    ln -sf /usr/local/bin/i386-tcc $DESTDIR/usr/bin/tcc || true
+
+    # Copy licence file
+    cp COPYING $CURR_DIR/build/LICENCES/tcc.txt
 }
 
 # Download and compile tmux
@@ -3402,12 +3485,11 @@ trim_fat()
 {
     echo -e "${GREEN}Trimming any possible fat...${RESET}"
 
-    sudo rm -rf "${DESTDIR}/usr/lib/pkgconfig" "$DESTDIR/usr/man" "$DESTDIR/usr/share/bash-completion" "$DESTDIR/usr/share/doc" "$DESTDIR/usr/share/man"
+    sudo rm -rf "${DESTDIR}/usr/lib/pkgconfig" "$DESTDIR/usr/man" "$DESTDIR/usr/share/bash-completion" "$DESTDIR/usr/share/doc" "$DESTDIR/usr/share/info" "$DESTDIR/usr/share/man"
 
-    if $ENABLE_CC; then
+    if $ENABLE_GCC; then
         sudo rm -rf "${DESTDIR}/opt/i486-linux-musl-native/share/man"
         sudo rm -rf "${DESTDIR}/opt/i486-linux-musl-native/share/locale"
-        sudo rm -rf "${DESTDIR}/opt/i486-linux-musl-native/share/man"
         for bin in "$DESTDIR"/opt/i486-linux-musl-native/bin/*; do
             if [ -f "$bin" ]; then
                 sudo $STRIP $bin 2>/dev/null || true
@@ -3929,17 +4011,6 @@ get_installed_programs_features()
         EXCLUDED_FEATURES+="\n  * shorkres"
     fi
 
-    # C/C++
-    if $ENABLE_CC; then
-        INCLUDED_FEATURES+="\n  * gcc"
-        INCLUDED_FEATURES+="\n  * g++"
-        INCLUDED_FEATURES+="\n  * musl"
-    else
-        EXCLUDED_FEATURES+="\n  * gcc"
-        EXCLUDED_FEATURES+="\n  * g++"
-        EXCLUDED_FEATURES+="\n  * musl"
-    fi
-
     # SHORKGUI
     if [ -f "$DESTDIR/usr/bin/oneko" ]; then
         INCLUDED_FEATURES+="\n  * oneko"
@@ -3993,6 +4064,15 @@ get_installed_programs_features()
     fi
 
     # SHORKTUI
+    if $ENABLE_GCC; then
+        INCLUDED_FEATURES+="\n  * as"
+        INCLUDED_FEATURES+="\n  * gcc"
+        INCLUDED_FEATURES+="\n  * g++"
+    else
+        EXCLUDED_FEATURES+="\n  * as"
+        EXCLUDED_FEATURES+="\n  * gcc"
+        EXCLUDED_FEATURES+="\n  * g++"
+    fi
     if [ -f "$DESTDIR/usr/bin/emacs" ]; then
         INCLUDED_FEATURES+="\n  * emacs (Mg)"
     else
@@ -4027,6 +4107,11 @@ get_installed_programs_features()
         INCLUDED_FEATURES+="\n  * ssh (Dropbear)"
     else
         EXCLUDED_FEATURES+="\n  * ssh (Dropbear)"
+    fi
+    if [ -f "$DESTDIR/usr/local/bin/i386-tcc" ]; then
+        INCLUDED_FEATURES+="\n  * tcc"
+    else
+        EXCLUDED_FEATURES+="\n  * tcc"
     fi
     if [ -f "$DESTDIR/usr/bin/tic" ]; then
         INCLUDED_FEATURES+="\n  * tic"
@@ -4159,10 +4244,6 @@ if $ENABLE_GUI; then
     get_xset
 fi
 
-if $ENABLE_CC; then
-    get_musl_native
-fi
-
 if ! $SKIP_DROPBEAR; then
     get_dropbear
 fi
@@ -4172,11 +4253,18 @@ fi
 if ! $SKIP_FILE; then
     get_file
 fi
+if $ENABLE_GCC; then
+    get_gcc
+fi
 if ! $SKIP_GIT; then
     get_git
 fi
 if ! $SKIP_NANO; then
     get_nano
+fi
+if ! $SKIP_TCC; then
+    get_musl
+    get_tcc
 fi
 if ! $SKIP_TNFTP; then
     get_tnftp
