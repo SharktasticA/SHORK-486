@@ -74,7 +74,7 @@ awk, basename, bc, cat, chmod, chown, chroot, cp, cut, dc, dirname, expr, file, 
 
 Editors & development tools
 ---------------------------
-as, ed, emacs, g++, gcc, git, nano, tcc, vi
+as, ed, emacs, g++, gcc, git, gfortran, nano, tcc, vi
 
 System & processes
 ------------------
@@ -94,6 +94,7 @@ ftp, ftpget, ftpput, ip, ifconfig, ping, route, scp, ssh, telnet, traceroute, ud
     if ! $GCC_PRESENT; then
        OUTPUT=$(echo "$OUTPUT" |  sed -e "s|as, ||g")
        OUTPUT=$(echo "$OUTPUT" |  sed -e "s|, g++, gcc||g")
+       OUTPUT=$(echo "$OUTPUT" |  sed -e "s|gfortran, ||g")
     fi
     if ! $EMACS_PRESENT; then
         OUTPUT=$(echo "$OUTPUT" | sed -e "s|, emacs||g")
