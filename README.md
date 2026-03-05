@@ -16,9 +16,9 @@ See [GALLERY](GALLERY.md) for more photos and screenshots!
 
 ## Capabilities
 
-### Core commands (BusyBox, util-linux, etc.)
+### BusyBox, util-linux, etc.
 
-awk, basename, bc, beep, blkid, cat, chmod, chown, chroot, clear, cp, crontab, cut, date, dc, dd, df, dmesg, dirname, ed, expr, find, fold, free, ftpget, ftpput, gzip, halt, head, hostname, ifconfig, kill, less, ln, ls, losetup, lsblk, lspci, loadkmap, man, mdev, mkdir, mknod, mount, mv, nice, nohup, nproc, paste, ping, pkill, printf, pstree, pwd, readlink, rev, rm, rmdir, route, sed, seq, showkey, sleep, stat, strace, stty, swapoff, swapon, sync, tar, tee, test, top, touch, tr, udhcpc, umount, uname, unzip, vi, whoami, wget, whereis, which, whois, traceroute, telnet, xz
+ar, arch, awk, basename, bc, beep, blkid, cat, chmod, chown, chroot, clear, cp, crontab, cut, date, dc, dd, df, dirname, dmesg, ed, expand, expr, false, find, fold, free, ftpget, ftpput, gzip, halt, head, hostname, ifconfig, kill, less, ln, loadkmap, losetup, ls, lsblk, lspci, man, mdev, mkdir, mknod, mount, mv, nice, nohup, nproc, paste, ping, pkill, printf, pstree, pwd, readlink, rev, rm, rmdir, route, sed, seq, showkey, sleep, stat, strace, stty, swapoff, swapon, sync, tar, tee, telnet, test, top, touch, tr, traceroute, true, truncate, udhcpc, umount, uname, unexpand, unzip, usleep, vi, wc, wget, whereis, which, whoami, whois, xz
 
 ### Bundled software
 
