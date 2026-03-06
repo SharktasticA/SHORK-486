@@ -4102,12 +4102,14 @@ get_installed_programs_features()
     # SHORKTUI
     if $ENABLE_GCC; then
         INCLUDED_FEATURES+="\n  * as"
-        INCLUDED_FEATURES+="\n  * gcc"
         INCLUDED_FEATURES+="\n  * g++"
+        INCLUDED_FEATURES+="\n  * gcc"
+        INCLUDED_FEATURES+="\n  * gfortran"
     else
         EXCLUDED_FEATURES+="\n  * as"
-        EXCLUDED_FEATURES+="\n  * gcc"
         EXCLUDED_FEATURES+="\n  * g++"
+        EXCLUDED_FEATURES+="\n  * gcc"
+        EXCLUDED_FEATURES+="\n  * gfortran"
     fi
     if [ -f "$DESTDIR/usr/bin/emacs" ]; then
         INCLUDED_FEATURES+="\n  * emacs (Mg)"
