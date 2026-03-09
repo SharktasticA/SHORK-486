@@ -3085,7 +3085,7 @@ get_file()
     fi
 
     # Prune magic database of "non-essential" categories to save space
-    CULL_LIST="acorn adi adventure algol68 amigaos apple aria asf bioinformatics blackberry c64 claris clojure console convex dolby epoc erlang forth frame freebsd geo hp ispell lif macintosh map mathematica mercurial mips nasa netbsd netscape ole2compounddocs pc98 pdp scientific spectrum statistics ti-8x tplink vacuum-cleaner wordpress xenix zyxel"
+    CULL_LIST="acorn adi adventure algol68 amigaos apple aria asf bioinformatics blackberry c64 claris clojure console convex dolby epoc erlang forth frame freebsd games geo hp ispell lif mach macintosh map mathematica mercurial mips nasa netbsd netscape ole2compounddocs pc98 pdp scientific sniffer spectrum statistics sun sysex ti-8x tplink vacuum-cleaner wordpress xenix zyxel"
     for TO_CULL in $CULL_LIST; do
         if [ -f "$CURR_DIR/build/file/magic/Magdir/$TO_CULL" ]; then
             truncate -s 0 "$CURR_DIR/build/file/magic/Magdir/$TO_CULL"
