@@ -42,7 +42,7 @@ ar, arch, awk, basename, bc, beep, blkid, cat, chmod, chown, chroot, clear, cp, 
     * `--git`: Shows a list of supported Git commands.
     * `--intro`: Shows an introductory paragraph on SHORK 486 and a simple getting started guide.
     * `--shorkutils`: Shows a list of SHORK utilities with a brief explanation of what they do.
-* **shorkmap** - Persistently changes the system's keyboard layout (keymap). Takes one argument (a keymap name); running it without an argument shows a list of possible keymaps.
+* **[shorkmap](https://github.com/SharktasticA/shorkmap)** - Changes the system's keyboard layout (keymap). Takes one argument (a keymap name); running it without an argument shows a list of possible keymaps.
 * **[shorkoff](https://github.com/SharktasticA/shorkoff)** - A shutdown helper that safely brings the system to a controlled halt before a manual power off.
 * **shorkres** - Persistently changes the system's display resolution (provided the hardware is compatible). Takes one argument (a resolution name); running it without an argument shows a list of possible resolution names.
 

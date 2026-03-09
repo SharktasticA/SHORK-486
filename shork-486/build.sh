@@ -3553,6 +3553,36 @@ get_shorkhelp()
     sudo make DESTDIR="${DESTDIR}" install
 }
 
+# Download and copy shorkmap
+get_shorkmap()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already copied
+    if [ -f "${DESTDIR}/usr/bin/shorkmap" ]; then
+        echo -e "${LIGHT_RED}shorkmap already copied, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d shorkmap ]; then
+        echo -e "${YELLOW}shorkmap source already present, resetting...${RESET}"
+        cd shorkmap
+        git config --global --add safe.directory "$CURR_DIR/build/shorkmap"
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading shorkmap...${RESET}"
+        git clone https://github.com/SharktasticA/shorkmap.git
+        cd shorkmap
+    fi
+
+    # Copy
+    echo -e "${GREEN}Copying shorkmap...${RESET}"
+    cp shorkmap.486 $DESTDIR/usr/bin/shorkmap
+    chmod +x $DESTDIR/usr/bin/shorkmap
+}
+
 # Download and copy shorkoff
 get_shorkoff()
 {
@@ -3686,7 +3716,6 @@ build_file_system()
     chmod +x $CURR_DIR/sysfiles/poweroff
     chmod +x $CURR_DIR/sysfiles/shutdown
     chmod +x $CURR_DIR/shorkutils/shorkcol
-    chmod +x $CURR_DIR/shorkutils/shorkmap
     chmod +x $CURR_DIR/shorkutils/shorkres
     chmod +x $CURR_DIR/shorkutils/shorkgui
 
@@ -3747,9 +3776,6 @@ build_file_system()
         sudo mkdir -p $DESTDIR/usr/share/keymaps/
         sudo cp $CURR_DIR/sysfiles/keymaps/*.kmap.bin "$DESTDIR/usr/share/keymaps/"
         sudo chmod 644 "$DESTDIR/usr/share/keymaps/"*.kmap.bin
-
-        echo -e "${GREEN}Installing shorkmap utility...${RESET}"
-        copy_sysfile $CURR_DIR/shorkutils/shorkmap $DESTDIR/usr/bin/shorkmap
 
         if [ -n "$SET_KEYMAP" ]; then
             echo -e "${GREEN}Setting default keymap...${RESET}"
@@ -4401,6 +4427,9 @@ get_shorkcommon_sh
 get_shorkdir
 get_shorkfetch
 get_shorkhelp
+if ! $SKIP_KEYMAPS; then
+    get_shorkmap
+fi
 get_shorkoff
 
 trim_fat
