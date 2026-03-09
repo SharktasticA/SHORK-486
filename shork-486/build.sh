@@ -2707,6 +2707,9 @@ get_st()
     # Patch to make sure st uses our fixed font
     sudo sed -i 's/^static char \*font.*/static char *font = "fixed:pixelsize=14";/' config.def.h
 
+    # Patch to change default TERM value
+    sudo sed -i 's|st-256color|linux|g' config.def.h
+
     # Compile and install
     echo -e "${GREEN}Compiling st...${RESET}"
     make -j$(nproc) CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP" LIBS="-lXft -lfontconfig -lfreetype -lXrender -lX11 -lxcb -lXau -lXdmcp -lexpat -lpng -lz -lm"
