@@ -3345,8 +3345,8 @@ get_tcc()
     # Compile and install
     echo -e "${GREEN}Compiling Tiny C Compiler...${RESET}"
     ./configure --cpu=i386 --cc=$CC_STATIC --enable-cross --enable-static
-    make cross-i386 -j$(nproc)
-    make DESTDIR="${DESTDIR}" install
+    sudo make cross-i386 -j$(nproc)
+    sudo make DESTDIR="${DESTDIR}" install
     
     ln -sf /usr/local/bin/i386-tcc $DESTDIR/usr/bin/tcc || true
 
@@ -3430,6 +3430,35 @@ get_tnftp()
 
 
 
+# Download and copy shorkcommon-sh
+get_shorkcommon_sh()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already copied
+    if [ -f "${DESTDIR}/usr/bin/shorkcommon.sh" ]; then
+        echo -e "${LIGHT_RED}shorkcommon-sh already copied, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d shorkcommon-sh ]; then
+        echo -e "${YELLOW}shorkcommon-sh source already present, resetting...${RESET}"
+        cd shorkcommon-sh
+        git config --global --add safe.directory "$CURR_DIR/build/shorkcommon-sh"
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading shorkcommon-sh...${RESET}"
+        git clone https://github.com/SharktasticA/shorkcommon-sh.git
+        cd shorkcommon-sh
+    fi
+
+    # Copy
+    echo -e "${GREEN}Copying shorkcommon-sh...${RESET}"
+    cp shorkcommon.sh $DESTDIR/usr/bin/shorkcommon.sh
+}
+
 # Download and compile shorkdir
 get_shorkdir()
 {
@@ -3486,6 +3515,36 @@ get_shorkfetch()
 
     # Compile and install
     echo -e "${GREEN}Compiling shorkfetch...${RESET}"
+    make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+    sudo make DESTDIR="${DESTDIR}" install
+}
+
+# Download and compile shorkhelp
+get_shorkhelp()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "${DESTDIR}/usr/bin/shorkhelp" ]; then
+        echo -e "${LIGHT_RED}shorkhelp already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d shorkhelp ]; then
+        echo -e "${YELLOW}shorkhelp source already present, resetting...${RESET}"
+        cd shorkhelp
+        git config --global --add safe.directory "$CURR_DIR/build/shorkhelp"
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading shorkhelp...${RESET}"
+        git clone https://github.com/SharktasticA/shorkhelp.git
+        cd shorkhelp
+    fi
+
+    # Compile and install
+    echo -e "${GREEN}Compiling shorkhelp...${RESET}"
     make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
     sudo make DESTDIR="${DESTDIR}" install
 }
@@ -3594,7 +3653,6 @@ build_file_system()
     chmod +x $CURR_DIR/sysfiles/shutdown
     chmod +x $CURR_DIR/shorkutils/shorkoff
     chmod +x $CURR_DIR/shorkutils/shorkcol
-    chmod +x $CURR_DIR/shorkutils/shorkhelp
     chmod +x $CURR_DIR/shorkutils/shorkmap
     chmod +x $CURR_DIR/shorkutils/shorkres
     chmod +x $CURR_DIR/shorkutils/shorkgui
@@ -3626,7 +3684,6 @@ build_file_system()
     echo -e "${GREEN}Copying shorkutils...${RESET}"
     copy_sysfile $CURR_DIR/shorkutils/shorkcol $DESTDIR/usr/libexec/shorkcol
     copy_sysfile $CURR_DIR/sysfiles/shorkcol.conf $DESTDIR/etc/shorkcol.conf
-    copy_sysfile $CURR_DIR/shorkutils/shorkhelp $DESTDIR/usr/bin/shorkhelp
     copy_sysfile $CURR_DIR/shorkutils/shorkoff $DESTDIR/sbin/shorkoff
 
     echo -e "${GREEN}Copying and compiling terminfo database...${RESET}"
@@ -4310,6 +4367,7 @@ fi
 
 get_shorkdir
 get_shorkfetch
+get_shorkhelp
 
 trim_fat
 copy_licences

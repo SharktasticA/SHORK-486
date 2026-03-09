@@ -36,7 +36,7 @@ ar, arch, awk, basename, bc, beep, blkid, cat, chmod, chown, chroot, clear, cp, 
 * **shorkcol** - Persistently changes the terminal's foreground (text) colour. Takes one argument (a colour name); running it without an argument shows a list of possible colours.
 * **[shorkdir](https://github.com/SharktasticA/shorkdir)** - Lightweight terminal-based file browser.
 * **[shorkfetch](https://github.com/SharktasticA/shorkfetch)** - Displays basic system and environment information. Similar to fastfetch, neofetch, etc.
-* **shorkhelp** - Provides help with using SHORK 486 via command lists, guides and cheatsheets. Requires one of five parameters:
+* **[shorkhelp](https://github.com/SharktasticA/shorkhelp)** - Informs of SHORK 486's capabilities and provides guidance. Requires one of up to five parameters:
     * `--commands`: Shows a command list including core commands, utilities and bundled software.
     * `--emacs`: Shows an Emacs (Mg) cheatsheet.
     * `--git`: Shows a list of supported Git commands.

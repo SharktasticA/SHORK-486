@@ -16,7 +16,7 @@ export LOGNAME=root
 export SHELL=/bin/sh
 export PS1='$(sync)\033[0;37m\033[40m\w$ '
 
-export PATH=/sbin:/bin:/usr/sbin:/usr/bin
+export PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin
 if [ -d /opt/i486-linux-musl-native/bin ]; then
     PATH="/opt/i486-linux-musl-native/bin:$PATH"
 fi
