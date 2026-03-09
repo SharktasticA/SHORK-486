@@ -10,5 +10,7 @@
 
 ::sysinit:/etc/init.d/rc
 tty1::respawn:/bin/sh -l -c 'cd "$HOME" || cd /home; exec /bin/sh -l'
+tty2::respawn:/bin/sh -l -c 'if [ ! -f /tmp/.tty2_seen ]; then echo "@NAME@ on tty2"; touch /tmp/.tty2_seen; fi; cd "$HOME" || cd /home; exec /bin/sh -l'
+tty3::respawn:/bin/sh -l -c 'if [ ! -f /tmp/.tty3_seen ]; then echo "@NAME@ on tty3"; touch /tmp/.tty3_seen; fi; cd "$HOME" || cd /home; exec /bin/sh -l'
 ::ctrlaltdel:/sbin/reboot
 ::shutdown:/bin/umount -a -r

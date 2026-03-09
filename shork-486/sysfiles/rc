@@ -56,6 +56,9 @@ fi
 # Set up PC speaker
 modprobe pcspkr 2>/dev/null || true
 
+# Flush any ttyx seen flags
+rm -f /tmp/.tty*_seen
+
 # Show welcome banner
 clear
 
