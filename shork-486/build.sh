@@ -3434,6 +3434,37 @@ get_tnftp()
 ## SHORK Utilities building & copying               ##
 ######################################################
 
+# Download and copy shorkcol
+get_shorkcol()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already copied
+    if [ -f "${DESTDIR}/sbin/shorkcol" ]; then
+        echo -e "${LIGHT_RED}shorkcol already copied, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d shorkcol ]; then
+        echo -e "${YELLOW}shorkcol source already present, resetting...${RESET}"
+        cd shorkcol
+        git config --global --add safe.directory "$CURR_DIR/build/shorkcol"
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading shorkcol...${RESET}"
+        git clone https://github.com/SharktasticA/shorkcol.git
+        cd shorkcol
+    fi
+
+    # Copy
+    echo -e "${GREEN}Copying shorkcol...${RESET}"
+    cp shorkcol.486 $DESTDIR/usr/libexec/shorkcol
+    chmod +x $DESTDIR/usr/libexec/shorkcol
+    copy_sysfile $CURR_DIR/sysfiles/shorkcol.conf $DESTDIR/etc/shorkcol.conf
+}
+
 # Download and copy shorkcommon-sh
 get_shorkcommon_sh()
 {
@@ -3715,7 +3746,6 @@ build_file_system()
     chmod +x $CURR_DIR/sysfiles/default.script
     chmod +x $CURR_DIR/sysfiles/poweroff
     chmod +x $CURR_DIR/sysfiles/shutdown
-    chmod +x $CURR_DIR/shorkutils/shorkcol
     chmod +x $CURR_DIR/shorkutils/shorkres
     chmod +x $CURR_DIR/shorkutils/shorkgui
 
@@ -3742,10 +3772,6 @@ build_file_system()
     if $ENABLE_TESTS; then
         copy_tests
     fi
-
-    echo -e "${GREEN}Copying shorkutils...${RESET}"
-    copy_sysfile $CURR_DIR/shorkutils/shorkcol $DESTDIR/usr/libexec/shorkcol
-    copy_sysfile $CURR_DIR/sysfiles/shorkcol.conf $DESTDIR/etc/shorkcol.conf
 
     echo -e "${GREEN}Copying and compiling terminfo database...${RESET}"
     sudo mkdir -p $DESTDIR/usr/share/terminfo/src/
@@ -4423,6 +4449,7 @@ if ! $SKIP_TNFTP; then
     get_tnftp
 fi
 
+get_shorkcol
 get_shorkcommon_sh
 get_shorkdir
 get_shorkfetch
