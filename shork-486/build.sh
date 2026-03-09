@@ -3430,6 +3430,10 @@ get_tnftp()
 
 
 
+######################################################
+## SHORK Utilities building & copying               ##
+######################################################
+
 # Download and copy shorkcommon-sh
 get_shorkcommon_sh()
 {
@@ -3549,6 +3553,36 @@ get_shorkhelp()
     sudo make DESTDIR="${DESTDIR}" install
 }
 
+# Download and copy shorkoff
+get_shorkoff()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already copied
+    if [ -f "${DESTDIR}/sbin/shorkoff" ]; then
+        echo -e "${LIGHT_RED}shorkoff already copied, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d shorkoff ]; then
+        echo -e "${YELLOW}shorkoff source already present, resetting...${RESET}"
+        cd shorkoff
+        git config --global --add safe.directory "$CURR_DIR/build/shorkoff"
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading shorkoff...${RESET}"
+        git clone https://github.com/SharktasticA/shorkoff.git
+        cd shorkoff
+    fi
+
+    # Copy
+    echo -e "${GREEN}Copying shorkoff...${RESET}"
+    cp shorkoff.486 $DESTDIR/sbin/shorkoff
+    chmod +x $DESTDIR/sbin/shorkoff
+}
+
 
 
 # Removes anything I've seemed unnecessary in the name of space saving 
@@ -3651,7 +3685,6 @@ build_file_system()
     chmod +x $CURR_DIR/sysfiles/default.script
     chmod +x $CURR_DIR/sysfiles/poweroff
     chmod +x $CURR_DIR/sysfiles/shutdown
-    chmod +x $CURR_DIR/shorkutils/shorkoff
     chmod +x $CURR_DIR/shorkutils/shorkcol
     chmod +x $CURR_DIR/shorkutils/shorkmap
     chmod +x $CURR_DIR/shorkutils/shorkres
@@ -3684,7 +3717,6 @@ build_file_system()
     echo -e "${GREEN}Copying shorkutils...${RESET}"
     copy_sysfile $CURR_DIR/shorkutils/shorkcol $DESTDIR/usr/libexec/shorkcol
     copy_sysfile $CURR_DIR/sysfiles/shorkcol.conf $DESTDIR/etc/shorkcol.conf
-    copy_sysfile $CURR_DIR/shorkutils/shorkoff $DESTDIR/sbin/shorkoff
 
     echo -e "${GREEN}Copying and compiling terminfo database...${RESET}"
     sudo mkdir -p $DESTDIR/usr/share/terminfo/src/
@@ -4365,9 +4397,11 @@ if ! $SKIP_TNFTP; then
     get_tnftp
 fi
 
+get_shorkcommon_sh
 get_shorkdir
 get_shorkfetch
 get_shorkhelp
+get_shorkoff
 
 trim_fat
 copy_licences
