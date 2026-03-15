@@ -92,6 +92,10 @@ Whilst you *can* build SHORK 486 immediately, it is recommended to first run the
 
 If you are using an Arch or Debian-based Linux, run `build.sh` whilst in the `shork-486` directory. If you have not used the configurator, you will be prompted some questions to answer throughout the process. 
 
+### WSL building
+
+If you are using Windows, SHORK 486 can be built under Windows Subsystem for Linux 2 if you install and use Debian as the distribution choice. WSL1 is not supported as it cannot run 32-bit binaries (which is needed as the cross-compiler SHORK 486 uses is 32-bit).
+
 ### Dockerised building
 
 If you are using Windows, macOS (x86-64), a Linux distribution that has not been tested with native building, or want some kind of "sandbox" around the build process, you can try Dockerised building instead. It will create a Docker container with a minimal Debian 13 installation that is active for just the lifetime of the build process. You simply run `docker-compose up`.
