@@ -417,7 +417,10 @@ if [ -n "$TARGET_SWAP" ]; then
         echo -e "${RED}ERROR: the \"target swap\" parameter value must be an integer (whole number) - exiting${RESET}"
         exit 1
     fi
-    if [ "$TARGET_SWAP" -lt 1 ] || [ "$TARGET_SWAP" -gt 64 ]; then
+
+    if [ "$TARGET_SWAP" == 0 ]; then
+        TARGET_SWAP=""
+    elif [ "$TARGET_SWAP" -lt 0 ] || [ "$TARGET_SWAP" -gt 64 ]; then
         echo -e "${RED}ERROR: the \"target swap\" parameter value must be between 1 and 64 - exiting${RESET}"
         exit 1
     fi
