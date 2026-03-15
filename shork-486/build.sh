@@ -59,6 +59,7 @@ echo -e "${BLUE}============================${RESET}"
 # General global vars
 BUILD_TYPE="default"
 BOOTLDR_USED=""
+DOTENV_USED=false
 DISK_CYLINDERS=0
 DISK_HEADS=16
 DISK_SECTORS_TRACK=63
@@ -275,6 +276,12 @@ while [ $# -gt 0 ]; do
     shift
 done
 
+# Import build configuration if config.sh was used
+if [[ -f .env ]]; then
+    DOTENV_USED=true
+    source .env
+fi
+
 
 
 ######################################################
@@ -411,7 +418,7 @@ if [ -n "$TARGET_SWAP" ]; then
         exit 1
     fi
     if [ "$TARGET_SWAP" -lt 1 ] || [ "$TARGET_SWAP" -gt 64 ]; then
-        echo -e "${RED}ERROR: the \"target swap\" parameter value must be between 1 and 24 - exiting${RESET}"
+        echo -e "${RED}ERROR: the \"target swap\" parameter value must be between 1 and 64 - exiting${RESET}"
         exit 1
     fi
 fi
@@ -4351,6 +4358,12 @@ generate_report()
         lines+=(
             "Build parameters: $USED_PARAMS"
         )
+    fi
+    
+    if $DOTENV_USED; then
+        lines+=(".env used: yes")
+    else
+        lines+=(".env used: no")
     fi
 
     lines+=(

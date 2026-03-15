@@ -6,7 +6,7 @@ Member of the SHORK family: **SHORK 486** | [SHORK DISKETTE](https://github.com/
 
 SHORK 486 is a minimal Linux distribution for vintage PCs! The aim is to produce an operating system that is very lean but functional for PCs with 486SX-class or better processors, often with my '90s IBM ThinkPads in mind. It was based on [FLOPPINUX's build instructions](https://github.com/w84death/floppinux) and inspired by [Action Retro's demonstration of it](https://www.youtube.com/watch?v=SiHZbnFrHOY), first developed as an automated build script for achieving something similar but can be Dockerised for building on a wider range of systems, then used as the basis for an operating system with additional functionality and tailored to my usage. Whilst still small for a modern operating system, it exceeds the size of a typical floppy diskette, so it requires being written to a hard disk.
 
-A default SHORK 486 system aims to work with at least 16MiB system memory and take up no more than ~72MiB on the disk. Despite those constraints, the default SHORK 486 experience includes a modern Linux kernel from 2025, many typical Linux commands, custom SHORK utilities such as shorkdir (TUI file browser) and shorkfetch (*fetch clone), a C compiler, an FTP, SCP and SSH client, a Git source control client, the ed, Mg (Emacs-style), nano and vi editors, basic IDE CD-ROM and DVD-ROM support, basic ISA, PCI and PCMCIA NIC support, support for most major national keyboard layouts, and a cute ASCII shark welcome screen! The build script supports many parameters to alter a SHORK 486 build to your liking. For example, if making a "minimal" build, the RAM requirement and disk size can both be brought down to 8-10MiB and 12MiB (respectively), whilst still including most typical commands as before, some custom SHORK utilities, and the ed and vi editors. Some people have expressed support for using SHORK 486 on newer hardware for a minimalist Linux environment, and as such, build parameters for enabling high memory, SATA and SMP support are provided if you so desire them!
+A default SHORK 486 system aims to work with at least 16MiB system memory and take up no more than ~72MiB on the disk. Despite those constraints, the default SHORK 486 experience includes a modern Linux kernel from 2025, many typical Linux commands, custom SHORK utilities such as shorkdir (TUI file browser) and shorkfetch (*fetch clone), a C compiler, an FTP, SCP and SSH client, a Git source control client, the ed, Mg (Emacs-style), nano and vi editors, basic IDE CD-ROM and DVD-ROM support, basic ISA, PCI and PCMCIA NIC support, support for most major national keyboard layouts, and a cute ASCII shark welcome screen! A build configurator is available to alter SHORK 486 to your liking. For example, you can select the "minimal" build type that requires just 8MiB RAM and ~12MiB disk space, whilst still including most typical commands as before, some custom SHORK utilities, and the ed and vi editors. Some people have expressed support for using SHORK 486 on newer hardware for a minimalist Linux environment, and as such, build options for enabling high memory, SATA and SMP support are available if you so desire them!
 
 <p align="center"><img alt="A photo of SHORK 486 running on an IBM ThinkPad 365ED after a cold boot" src="photos/20260223_365ed.jpg" width="512"></p>
 
@@ -50,239 +50,164 @@ ar, arch, awk, basename, bc, beep, blkid, cat, chmod, chown, chroot, clear, cp, 
 
 ## Hardware requirements
 
-### What is "default"?
+### Processor
 
-A "default SHORK 486 build" or "default SHORK 486 system" mentioned in various sections following refers to when the build script is run without any parameters that add or remove programs or features. Essentially, its a typical build.
-
-### CPU
-
-An **Intel 486SX** is the minimum processor requirement. Math emulation is enabled, so a 486DX or a separate co-processor is not required (although still supported and desirable).
+An **Intel 486SX or compatible** is the minimum processor requirement. Math emulation is enabled, so a 486DX or a separate FPU is not required, but are still supported and desireable. 
 
 ### RAM
 
-**16MiB** is the minimum system memory for a default SHORK 486 build. **24MiB** is the recommended amount for some comfortable headroom for programs. Default SHORK 486 is bootable with **as little as 10MiB**, but there will be very little free memory for programs. If you are constrained to that amount, using the "minimal" build parameter to lower that minimum memory requirement from **8MiB** (extreme minimum) to **10MiB** (realistic minimum), or at least using build parameters to skip including network-based programs and features is recommended. To help with tight memory situations, the "target swap" build parameter is available so you can enable and specify a swap partition size between 1 and 64MiB, but note its use may be very slow on period-correct hardware. 
+**16MiB** and **24MiB** are the respective minimum and recommended system memory for a default SHORK 486 build. SHORK 486 can be built using the "minimal" build type option to reduce the RAM requirement to around 8MiB (extreme minimum) to 10MiB (realistic minimum). To help with such tight memory situations, SHORK 486 can also be built with a 1 to 64MiB swap partition, but note its use may be very slow to use on period-correct hardware.
 
-### Hard drive
+### Storage
 
-Even the most complete SHORK 486 system with all optional features enabled will require no more than a **~72MiB** disk. Using the "minimal" build parameter and not including a swap partition will reduce this requirement to **12MiB**, or selectively using skip bundled program or feature parameters can produce a system in between those two numbers.
+Without GUI enabled, SHORK 486 requires no more than a **~72MiB disk**. Using the "minimal" build type option and not including a swap partition will reduce this requirement to 12MiB. Potential options such as including GCC and SHORKGUI require an extra 215MiB and 46MiB, respectively.
 
 ### Graphics
 
-Only a basic **IBM VGA display card or compatible** is required for using SHORK 486. If a more capable card is present though, the `shorkres` utility can offer SVGA or XGA resolution support.
+Only a basic **IBM VGA or compatible graphics card** is required for booting, and using SHORK 486 without a GUI. `shorkgui` and `shorkres` require a vesafb-compatible graphics card. 
 
-### Modern hardware
+### SHORK 486 on modern hardware
 
-SHORK 486 can be used on newer hardware if you so desire, but there are some considerations and some optional build parameters that may be required for the best experience:
+SHORK 486 _can_ be used on some newer hardware if you so desire, but there are some considerations.
 
-* SHORK 486 can work with newer x86 processors, although a default SHORK 486 build will not recognise more than 1 core/thread. An "enable SMP" build parameter is available to enable symmetric multiprocessing support. Whilst SHORK 486 can work on an x86-64 processor, the system is still limited to supporting 32-bit software.
+* SHORK 486 can work with newer x86 processors, although a default SHORK 486 build will not recognise more than 1 core/thread. The "smp" configuration option is available to enable symmetric multiprocessing support. Whilst SHORK 486 can work on an x86-64 processor, the system is still limited to supporting 32-bit software.
 
-* A default SHORK 486 system will not recognise more than ~875MiB of memory. An "enable high memory" build parameter is available to address this, though the minimum system memory requirement is raised to **24MiB** or 16MiB with 8MiB swap.
+* A default SHORK 486 system will not recognise more than ~875MiB of memory. The "highmem" configuration option is available to address this, though the minimum system memory requirement is raised to 24MiB/16MiB + 8MiB swap.
 
-* A default SHORK 486 system only supports IDE hard drives. An "enable SATA" build parameter is available to address this, though the recommended system memory amount is raised to **24MiB** or 16MiB with 8MiB swap.
+* A default SHORK 486 system only supports IDE hard drives. The "sata" configuration option is available to address this, though the recommended system memory amount is raised to 24MiB/16MiB + 8MiB swap.
 
-* The "maximal" build parameter is available as a shortcut to enable all three parameters mentioned above (as well as all possible software).
+_The planned SHORK 686 will make these modern system-orientated options obsolete in the future._
 
 
 
 ## Usage
 
-Please read "Notice & disclaimers" at the end of this readme before proceeding. Building SHORK 486 may require up to 5GiB of disk space.
+SHORK 486 does not presently have or produce installation media, it must be compiled. The result are raw hard disk drive images you can write to real hardware or use as-is in emulation or virtualisation software. Building SHORK 486 may require up to 5GiB of disk space. Please read "Notice & disclaimers" at the end of this readme before proceeding. 
+
+### Configuration
+
+Whilst you *can* build SHORK 486 immediately, it is recommended to first run the SHORK 486 Build Configurator (`config.sh`) whilst in the `shork-486` directory to tailor SHORK 486 to your liking.
 
 ### Native building
 
-If you are using an Arch or Debian-based Linux, run `build.sh` whilst in the `shork-486` directory and answer any prompts given throughout the process. Build parameters are listed in the "Scripts & parameters" section of this readme that can be used to reduce the need for the aforementioned prompts.
+If you are using an Arch or Debian-based Linux, run `build.sh` whilst in the `shork-486` directory. If you have not used the configurator, you will be prompted some questions to answer throughout the process. 
 
 ### Dockerised building
 
 If you are using Windows, macOS (x86-64), a Linux distribution that has not been tested with native building, or want some kind of "sandbox" around the build process, you can try Dockerised building instead. It will create a Docker container with a minimal Debian 13 installation that is active for just the lifetime of the build process. You simply run `docker-compose up`.
 
-Build parameters as seen in the "Scripts & parameters" section can also be used for Dockerised building, placed in a list under `services` -> `shork-486-build` -> `command` inside `docker-compose.yml`. If a build run has already been made, you may need to run `docker-compose up --build` instead before any changes are applied.
-
-### Build process
-
-The following describes the build process as it is by default (no build parameters used).
-
-1. The user is prompted to choose if their host environment is Arch or Debian-based. Packages required for the build process are installed based on the host environment choice.
-
-2. An i486 musl cross-compiler is downloaded and extracted.
-
-3. BusyBox is downloaded and compiled. BusyBox provides SHORK 486 with Unix-style utilities and an init system in one executable. BusyBox's compilation is used as the basis for SHORK 486's root file system in `build/root`.
-
-4. The Linux kernel is downloaded and compiled. `configs/linux.config` is copied during this process, which provides a minimal configuration tailored to support 486SX, PATA/IDE storage devices and basic networking without any further modification or build parameters. The output is `build/bzImage`.
-
-5. ncurses and tic are downloaded and compiled. These are prerequisites required for further program compilation and for SHORK utilities.
-
-6. All bundled software and their required libraries are downloaded and compiled.
-
-7. After compilation, any possible fat (documentation, man pages, templates, etc.) will be trimmed to save space, and licences for all bundled software are gathered and copied to the root file system. 
-
-8. Building the root file system is continued. This involves creating all required subdirectories, copying all of `sysfiles` contents and SHORK utilities from `shorkutils` to their relevant places within the root file system. Keymaps, the PCI IDs database and any configuration files for bundled software are also installed at this point.
-
-9. A raw disk image (`images/shork-486.img`) is created, and the kernel image, root file system and bootloader are installed to it.
-
-10. `qemu-img` is used to produce a VMware virtual machine disk (`images/shork-486.vmdk`) based on the raw disk image.
-
-11. An after-build report (`images/report.txt`) is generated to help confirm if the build was completed as intended. It confirms the type of build made, the time it took to create, the minimum system memory requirement, handy disk image statistics, and which programs or features are included or excluded.
-
 ### After building
 
-Once built, two disk images - `shork-486.img` and `shork-486.vmdk` - and an after-build report (`report.txt`) should be present in the `images` folder. The former raw disk image can be used as-is with emulation software like 86Box or written to a real drive using (e.g.) `dd`, and the latter VMware virtual machine disk can be used as-is with VMware Workstation or Player. Please refer to the "Running" section for suggested virtual machine configurations to get started with SHORK 486.
+Once built, two disk images - `shork-486.img` and `shork-486.vmdk` - and an after-build report (`report.txt`) should be present in the `images` folder.  The former raw disk image can be used as-is with emulation software like 86Box or written to a real drive using (e.g.) `dd`, and the latter VMware virtual machine disk can be used as-is with VMware Workstation or Player. It is recommended to move or copy the images out of this directory before extensive or serious use because they will be replaced if the build process is rerun.
 
-It is recommended to move or copy the images out of this directory before extensive or serious use because they will be replaced if the build process is rerun.
+The after-build report is provided to confirm whether the build was completed as intended. It confirms the type of build made, the time it took to create, the minimum system memory requirement, handy disk image statistics, and which programs or features are included or excluded.
 
 
 
-## Scripts & parameters
+## Scripts & configuration
 
-* `build.sh`: Contains the complete download and compilation process that reproduces a working SHORK 486 system on two disk images.
+* `build.sh`: Contains the complete download and compilation process that produces a working SHORK 486 system on two disk images.
+
+* `config.sh`: Used to configure SHORK 486 to your liking before building.
 
 * `clean.sh`: Deletes anything that was downloaded, created or generated by `build.sh`.
 
-### Build parameters
+### Build configuration
 
-#### Core configuration
+When running the SHORK 486 Build Configurator, you will be prompted to select the following:
 
-* **Minimal** (`--minimal`): can be used to skip building and including all non-essential features, producing a 12MiB disk image by default and a less memory-hungry SHORK 486 system.
-    * This is like using the "disable networking", "disable PCMCIA", "no boot menu", "skip Dropbear", "skip file", "skip Emacs", "skip Git", "skip nano", "skip pci.ids", "skip TCC", and "skip tnftp" parameters together.
-    * Framebuffer, VESA and enhanced VGA support will be reduced and `shorkres` will not be included.
-    * The "enable GCC", "enable GUI", "enable high memory", "enable SATA", "enable SMP", "enable USB & HID", "skip kernel", "skip BusyBox", and "use GRUB" parameters will be overridden if also used.
-    * The minimum system memory requirement is lowered to 8-10MiB.
+* Build environment (Arch native or Debian native/Dockerised)
+* Build type (default, minimal, maximal or custom)
+* Target disk size (size in MiB for the disk image containing SHORK 486)
+* Swap partition size (size in MiB for a swap partition)
+* If not "Minimal" build type selected:
+    * Keyboard layout (keymap)
+* Patched EXTLINUX (yes/no)
+* If "Custom" build type selected:
+    * Networking support
+    * Bundled software
+    * Options (all other configuration)
 
-* **Maximal** (`--maximal`): can be used to force building and including all bundled programs and features.
-    * This is like using the "enable GCC", "enable GUI", "enable high memory", "enable SATA", "enable SMP" and "enable USB & HID" parameters together.
-    * All skip bundled program/feature, "disable networking", "disable PCMCIA", "minimal", "skip kernel" and "skip BusyBox" parameters will be overridden if also used.
-    * Only the "use GRUB" parameter is still available as an option.
-    * The minimum system memory requirement is raised to 24MiB + 8MiB swap/16MiB + 16MiB swap.
+Below are further explanations for options that could not fit into the configurator itself.
 
-* **Set keymap** (`--set-keymap`): can be used to specify SHORK 486's default keyboard layout (keymap). 
-    * Example usage: `--keymap=de` to specify a German QWERTZ keyboard layout. Possible keymaps can be found in the `sysfiles/keymaps` directory (just exclude the `.kmap.bin` extension).
-    * If absent, U.S. English is used as the default keyboard layout.
-    * This does nothing if the "skip keymaps" parameter is also used.
+#### Build Type
 
-* **Target disk** (`--target-disk`): can be used to specify a target total size in mebibytes for SHORK 486's disk images.
-    * Example usage: `--target-disk=72` to specify a 72MiB disk size.
-    * The build script will always calculate the minimum required disk image size and has a predefined 12MiB floor; if the target is less than either, it will default to using those instead.
-    * Whilst the raw disk image will be created to this size, the VMware virtual machine disk dynamically expands, so it may initially take up less space.
+* **Default**: Builds SHORK 486 to the author's recommended configuration, trying to balance features with RAM requirements. It includes all bundled software except GCC. A default build requires 16MiB system memory and ~72MiB disk size.
 
-* **Target swap** (`--target-swap`): can be used to specify a target size in mebibytes for a swap partition. Excluding this parameter will disable including a swap partition. 
-    * Example usage: `--target-swap=8` to specify a 8MiB swap partition.
-    * The value must be between 1 and 64.
+* **Minimal**: Builds SHORK 486 to its most minimal configuration. All bundled software and additional features are excluded, and networking support and non-US keyboard layout support are disabled. A minimal build requires 8MiB system memory and ~12MiB disk size.
 
-#### Build automation
+* **Maximal**: Builds SHORK 486 with every bundled software or additional feature option enabled. It is provided as a curiosity for more modern hardware; it is not recommended for 486 and Pentium (P5)-era hardware. A maximal build requires 24MiB system memory and ~480MiB disk size.
 
-These parameters help automate the use of the build script, especially for successive runs. Note that some of these should be used wisely! The "skip kernel" and "skip BusyBox" parameters are useful for speeding up successive builds that differ only by their sysfiles and recompiling previously bundled programs, but any changes to their respective `.config` files or any manual patches made in the build script will not be applied and "stale" compilations will be used, and any skip bundled program parameters will not have an effect.
+* **Custom**: You will later be asked to pick and choose bundled software and additional features. System memory and disk size requirements depend on what you choose.
 
-* **Always (re)build** (`--always-build`): can be used to ensure the kernel is always (re)built. This will skip the prompt that appears if the kernel is already downloaded and built, acting like the user selected the "Reset & clean" option.
+
+
+#### Patched EXTLINUX
+
+Selecting "Yes" here will tell the build script to use [my forked SYSLINUX/EXTLINUX repository](github.com/SharktasticA/syslinux) instead of your host Linux distribution's maintained packaged version. This version addresses a memory detection error to resolve the "Booting kernel failed: Invalid argument" or boot menu looping issue that the stock EXTLINUX may encounter with some BIOSes when attempting to boot the kernel with.
+
+* Some people need this, some people do not - see the list below, or try without first, then enable this if this error or something like it occurs.
+* Known hardware that need this includes: Chicony NB5 ([derivatives]((www.macdat.net/laptops/chicony/nb5.php))), IBM 2625 ThinkPad 365E/ED, IBM 6381 PS/ValuePoint
+    * If you discover more hardware that needs this, please get in touch so I can update this list for future users!
+* This may significantly increase total build time, but it does not affect system requirements.
+* The patch was discovered by akeym - thank you!
+* _Note: If enabled, the option to use GRUB 2.x instead of EXTLINUX offered later for custom builds will be ignored._
+
+
+
+#### Networking Support
+
+Selecting "Yes" here will enable networking support in SHORK 486. BusyBox will include implementations for the `ftpget`, `ftpput`, `ifconfig`, `ip`, `ping`, `route`, `telnet`, `traceroute`, `udhcpc`, `wget` and `whois` commands. You will be allowed to select bundled software and options that require an internet connection in the subsequent prompts.
+
+
+
+#### Bundled Software
+
+* **gcc**: Adds the GNU Assembler, GCC's C, C++ and Fortran compiler and musl C standard library. Using `g++` requires more system memory than usual, hence it is not included by default. RAM requirements are ideally 32MiB if no swap partition, 24MiB with 8MiB swap or 16MiB with 16MiB swap.
+
+#### Options
+
+* **grub**: Uses a GRUB 2.x bootloader instead of EXTLINUX. The build script overrides this if you said "Yes" to using SHORK's patched fork of EXTLINUX.
+
+* **gui**: Includes SHORK 486's graphical environment ("SHORKGUI"). This includes kernel-level framebuffer, VESA and enhanced VGA support, TinyX display server, TWM window manager, various supporting X11 utilities, st terminal emulator, and the `shorkgui` utility.
+    * **SHORKGUI is an experimental feature - expect quirks and incompleteness!**
+    * As it is subject to big changes, the system requirements are not set in stone. But the following should provide a usable experience for now:
+        * IntelDX4 (ideally; 486SX, 486DX, etc. works but are very slow)
+        * 24MiB system memory with no swap partition, or 16MiB with 8MiB swap
+        * A PCI graphics card supported by `vesafb`
+
+* **highmem**: Adds kernel-level high memory support and declares that non-reserved physical memory starts at 16MiB instead of 1MiB. In general, this is provided in case someone wanted to try SHORK 486 on a more modern system with more than 875MiB RAM. **It is not needed for most '90s hardware**. Its RAM requirements are 24MiB with no swap partition or 16MiB with 8MiB swap.
+
+* **pci.ids**: Includes a database of graphics card PCI vendor and device IDs. It is safe to exclude it, but `shorkfetch` will not be able to identify any installed graphics cards.
+
+* **pcmcia**: Adds kernel-level CardBus/PCMCIA/PC Card support. It is primarily needed to support PCMCIA-based network controllers for laptops or unique desktop PCs like the IBM PS/2 E. For most desktop PCs, it is safe to exclude it.
+
+* **sata**: Adds kernel-level SATA AHCI support. This is provided in case someone wanted to try SHORK 486 on a more modern system with SATA devices, or has installed a PCI-based SATA controller in a '90s system. **It is not needed for most '90s hardware**. Its RAM requirements are 24MiB with no swap partition or 16MiB with 8MiB swap.
+
+* **smp**: Adds kernel-level symmetric multiprocessing (e.g., multi-core) support. This is provided in case someone wanted to try SHORK 486 on a more modern system with a multi-core processor. **It is not needed for any '90s hardware**. It may add ~1-2MiB to idle RAM usage.
+
+* **usb**: Adds kernel-level USB and HID support and enables BusyBox's `lsusb` implementation. This is provided in case someone wanted to try SHORK 486 on a system with USB peripherals and/or mass storage devices.
+
+### Build automation
+
+These build script parameters are provided to help automate its use, especially for successive runs. It is useful if you want to rebuild SHORK 486 when the only differences are changes to sysfiles or the target disk image and swap partition sizes, and not to the kernel, selected bundled programs or features. Using some of these can lead to using stale compilations though, so it is recommended not to use the "skip BusyBox" or "skip kernel" parameters when making a build after running the build configurator or pulling any updates from the SHORK 486 GitHub repository.
+
+* **Always (re)build** (`--always-build`): Used to ensure the kernel is always (re)built. This will skip the prompt that appears if the kernel is already downloaded and built, acting like the user selected the "Reset & clean" option.
     * This does nothing if the "skip kernel" parameter is also used.
 
-* **Is Arch** (`--is-arch`): can be used skip the host Linux distribution selection prompt and the build script will assume it is running on an Arch-based system.
+* **Is Arch** (`--is-arch`): Used to skip the host Linux distribution selection prompt and the build script will assume it is running on an Arch-based system.
 
-* **Is Debian** (`--is-debian`): can be used skip the host Linux distribution selection prompt and the build script will assume it is running on a Debian-based system.
+* **Is Debian** (`--is-debian`): Used to skip the host Linux distribution selection prompt and the build script will assume it is running on a Debian-based system.
 
-* **Skip kernel** (`--skip-kernel`): can be used to skip recompiling the kernel.
+* **Skip BusyBox** (`--skip-busybox`): Used to skip recompiling BusyBox.
     * This parameter requires at least one complete build.
-    * This does nothing if the "minimal" or "maximal" parameters are also used.
+    * This does nothing if the build type is "minimal" or "maximal".
 
-* **Skip BusyBox** (`--skip-busybox`): can be used to skip recompiling BusyBox.
+* **Skip kernel** (`--skip-kernel`): Used to skip recompiling the kernel.
     * This parameter requires at least one complete build.
-    * This does nothing if the "minimal" or "maximal" parameters are also used.
+    * This does nothing if the build type is "minimal" or "maximal".
 
-#### Bundled programs and features
 
-These parameters can be used to include, exclude (skip) or select specific bundled programs and features.
-
-* **Disable networking** (`--disable-networking`): can be used to disable kernel-level networking support. All network-related commands and software will also be skipped.
-    * This can save ~20MiB and 218 files on the root file system. This may also slightly reduce the kernel's size and system memory usage. SHORK 486 will lose FTP, Git, SCP and SSH capabilities, and the ftpget, ftpput, ifconfig, ip, ping, route, telnet, traceroute, udhcpc, wget and whois commands.
-    * This does nothing if the "minimal", "maximal" or "skip kernel" parameters are also used.
-
-* **Disable PCMCIA** (`--disable-pcmcia`): can be used to disable kernel-level CardBus/PCMCIA/PC Card support.
-    * This may slightly reduce the kernel's size and system memory usage.
-    * This does nothing if the "minimal", "maximal" or "skip kernel" parameters are also used, or if networking support is enabled (to support PCMCIA network cards).
-
-* **Enable GCC** (`--enable-gcc`): can be used to include GNU Assembler, GCC's C, C++ and Fortran compiler and musl C standard library.
-    * This will add ~215MiB and 2,430 files on the root file system.
-    * The minimum system memory requirement is raised to 24MiB + 8MiB swap/16MiB + 16MiB swap.
-    * This does nothing if the "minimal" or "maximal" parameters are also used.
-
-* **Enable GUI** (`--enable-gui`): can be used to enable SHORK 486's graphical user interface ("SHORKGUI"). This includes kernel-level framebuffer, VESA and enhanced VGA support, TinyX display sever, TWM window manager, st terminal emulator, and `shorkgui` utility.
-    * **This is an experimental feature - expect quirks and incompleteness!**
-    * As this feature is subject to big changes, the system requirements are not set in stone. But the following should provide a usable experience for now:
-        * IntelDX4 (ideally; 486SX, 486DX, etc. works but are very slow)
-        * 24MiB system memory without swap, or 16MiB + 8MiB swap
-        * A PCI graphics card supported by `vesafb`
-    * This does nothing if the "minimal", "maximal" or "skip kernel" parameters are also used.
-
-* **No boot menu** (`--no-menu`): can be used to remove SHORK 486's boot menu.
-    * This will save ~512KiB to the boot file system. SHORK 486 will no longer provide the option to boot in a debug/verbose mode.
-
-* **Skip Dropbear** (`--skip-dropbear`): can be used to skip downloading and compiling Dropbear.
-    * This will save ~404KiB and 2 files on the root file system. SHORK 486 will lose SCP and SSH capabilities.
-    * This does nothing if the "skip BusyBox" parameter is also used.
-
-* **Skip file** (`--skip-file`): can be used to skip downloading and compiling file.
-    * This will save ~10MiB and 4 files on the root file system. SHORK 486 will lose the file command.
-    * This does nothing if the "skip BusyBox" parameter is also used.
-
-* **Skip Emacs** (`--skip-emacs`): can be used to skip downloading and compiling Mg ("Micro (GNU) Emacs"-like text editor).
-    * This will save ~329KiB and 3 files on the root file system. `ed`, `vi` (always) or nano (can also be removed) are available are alternative editors.
-    * This does nothing if the "skip BusyBox" parameter is also used.
-
-* **Skip Git** (`--skip-git`): can be used to skip downloading and compiling Git and its prerequisites (zlib, OpenSSL and curl).
-    * This will save ~19MiB and 192 files on the root file system. SHORK 486 will lose its git client.
-    * This does nothing if the "skip BusyBox" parameter is also used.
-
-* **Skip keymaps** (`--skip-keymaps`): can be used to skip installing keymaps.
-    * This will save ~64KiB and 26 files on the root file system. SHORK 486 will stop supporting keyboard layouts other than ANSI U.S. English. `shorkmap` will not be included.
-    * This does nothing if the "skip BusyBox" parameter is also used.
-
-* **Skip nano** (`--skip-nano`): can be used to skip downloading and compiling nano.
-    * This will save ~902KiB and 53 files on the root file system. `ed`, `vi` (always) or Mg (can also be removed) are available are alternative editors.
-    * This does nothing if the "skip BusyBox" parameter is also used.
-
-* **Skip pci.ids** (`--skip-pciids`): can be used to skip building and including a `pci.ids` file.
-    * This will save ~115-125KiB and one file on the root file system. `shorkfetch` will lose its "GPU" field.
-    * GPU identification on some 486SX configurations can take a while, so excluding this may be desirable to speed up `shorkfetch` significantly in such scenarios.
-
-* **Skip TCC** (`--skip-tcc`): can be used to skip downloading and compiling the Tiny C Compiler and musl C standard library.
-    * This will save ~4MiB and 266 files on the root file system. SHORK 486 will lose C compiling capabilities if the "enable GCC" parameter is not also used.
-    * This does nothing if the "skip BusyBox" parameter is also used.
-
-* **Skip tnftp** (`--skip-tnftp`): can be used to skip downloading and compiling tnftp.
-    * This will save ~304KiB and 3 files on the root file system. SHORK 486 will lose FTP capabilities.
-    * This does nothing if the "skip BusyBox" parameter is also used.
-
-* **Use GRUB** (`--use-grub`): can be used to install a GRUB 2.x bootloader instead of EXTLINUX.
-    * This will add ~13MB to the boot file system.
-    * This does nothing if the "fix EXTLINUX" or "minimal" parameters are also used.
-
-#### Fixes
-
-* **Fix EXTLINUX** (`--fix-extlinux`): can be used to force using my forked SYSLINUX repository instead of the host Linux distro's maintained packaged version. This version addresses a memory detection error to resolve the "Booting kernel failed: Invalid argument" or boot menu looping issue that the stock EXTLINUX may encounter when attempting to boot the kernel.
-    * Some people need this, some people do not - see the list below, or try without first, then enable this if this error or something like it occurs.
-    * Known hardware that need this include: Chicony NB5 ([derivatives]((www.macdat.net/laptops/chicony/nb5.php))), IBM 2625 ThinkPad 365E/ED, IBM 6381 PS/ValuePoint
-        * If you discover more hardware that needs this, please get in touch so I can update this list for future users!
-    * This may significantly increase total build time.
-    * The patch was discovered by akeym - thank you!
-
-#### Modern kernel features
-
-These parameters enable kernel-level support for features required by modern hardware. SHORK 486 is not intended to be used on such, but given some interest in using it as a minimal Linux environment on modern hardware, these are provided to help accommodate such. :)
-
-* **Enable high memory** (`--enable-highmem`): can be used to enable high memory support in the Linux kernel and declares that non-reserved physical memory starts at 16MiB instead of 1MiB. In general, this is provided in case someone wanted to try SHORK 486 on a more modern system with >875MiB RAM (it is not normally needed for any 486-era (or indeed '90s) hardware), or if reserved physical memory for any system exceeds 1MB for some reason.
-    * The minimum system memory requirement is raised to 24MiB/16MiB + 8MiB swap.
-    * This does nothing if the "minimal" or "skip kernel" parameters are also used.
-
-* **Enable SATA** (`--enable-sata`): can be used to enable SATA AHCI support in the Linux kernel. This is provided in case someone wanted to try SHORK 486 on a more modern system with SATA devices - it is not needed for any 486-era (or indeed '90s) hardware.
-    * This may add ~5-7MiB to idle RAM usage. Whilst SHORK 486 with SATA support should still be bootable with 16MiB system memory, very little will be left for programs, thus 24MiB/16MiB + 8MiB swap is now recommended.
-    * This does nothing if the "minimal" or "skip kernel" parameters are also used.
-
-* **Enable SMP** (`--enable-smp`): can be used to enable symmetric multiprocessing (e.g., multi-core) support in the Linux kernel. This is provided in case someone wanted to try SHORK 486 on a more modern system with a multi-core processor - it is not needed for any 486-era (or indeed '90s) hardware.
-    * This may add ~1-2MiB to idle RAM usage.
-    * This does nothing if the "minimal" or "skip kernel" parameters are also used.
-
-* **Enable USB & HID** (`--enable-usb`): can be used to enable USB and HID support in the kernel and for lsusb to be included with BusyBox. This is provided in case someone wanted to try SHORK 486 on a system with USB peripherals and/or mass storage devices.
-    * This will add ~156KiB and 1 file on the root file system.
-    * This does nothing if the "minimal", "skip BusyBox" or "skip kernel" parameters are also used.
 
 ## Directories
 
@@ -299,63 +224,17 @@ These parameters enable kernel-level support for features required by modern har
 
 * `sysfiles`: Contains important system files to be copied into the root file system.
 
-## Running
-
-### Real hardware
-
-TODO.
-
-### 86Box
-
-86Box should be able to create many vintage machine configurations to test with. Below is a suggested configuration for the lowest-end machine SHORK 486 should be able to run on:
-
-* Machine
-    * **Machine type:** [1994] i486 (Socket 3 PCI)
-    * **Machine:** [i420EX] Intel Classic/PCI ED (Ninja)
-    * **CPU type:** Intel i486SX
-    * **Frequency:** any option
-    * **FPU:** any option
-    * **Memory:** at least 16MB for default build (24MB or more recommended)
-* Display
-    * **Video:** [ISA] IBM VGA 
-* Input
-    * **Keyboard:** AT Keyboard
-* Network
-    * Network Card #1
-        * **Mode:** SLiRP
-        * **Adapter:** [ISA16] AMD PCnet-ISA
-* Storage controllers
-    * Hard disk
-        * **Controller 1:** Internal device
-* Hard disks
-    * Existing...
-        * **Bus:** IDE
-        * **Channel:** 0:0
-        * **Model:** any [Generic] should be fine
-
-You can configure sound, ports, floppy and CD-ROM drives however you wish. Just avoid any SCSI components.
-
-### VMware Workstation
-
-SHORK 486 should work with VMware Workstation without issue. Below is a suggested virtual machine configuration:
-
-* **Hardware compatibility:** any option
-* **Install operating system from:** later
-* **Guest Operating System:** Linux (Other Linux 6.x kernel)
-* **Number of processers:** 1
-* **Number of cores per processor:** 1 (technically any option, extra will not be utilised)
-* **Memory:** at least 16MB for default build (24MB or more recommended)
-* **Network Connection:** any option (only NAT presently tested though)
-* **I/O Controller Types:** BusLogic
-* **Virtual Disk Type:** IDE
-* **Disk:** Use an existing virtual disk
-
 
 
 ## Notice & disclaimers
 
-Running `build.sh` for native compilation will automatically perform several tasks on the host computer and operating system, including enabling 32-bit packages (Debian), installing prerequisite packages, modifying PATH, and creating some environment variables. If you intend to use this yourself, please note that this is tailored for my personal usage. Please review what the script does to ensure it does not conflict with your existing configuration. Alternatively, consider Dockerised compilation to minimise impact to your host operating system.
+### Building SHORK 486
 
-Running `clean.sh` will delete everything `build.sh` has downloaded, created or generated, including the `build` folder and its contents. `.gitingore` indicates what would be deleted. If you made any manual changes to or in a file or directory covered by that, they will be lost.
+Running `build.sh` directly for natively building SHORK 486 will automatically perform several tasks on the host computer and operating system, including enabling 32-bit packages (Debian), installing prerequisite packages, modifying `PATH`, and creating some environment variables. I would advice you review what the script does to ensure it does not conflict with your existing configuration. Consider Dockerised building to minimise impact to your host operating system.
 
-At present, you are always the root user when using SHORK 486. Make sure to act and use it considerately and responsibly.
+Running `clean.sh` will delete everything `build.sh` has downloaded, created or generated; the `build` and `images` directories and their contents. If you have made any manual changes to anything inside those directories, they will be lost when running this shell script.
+
+### Using SHORK 486
+
+At present, you are always the root user when using SHORK 486. Make sure to act accordingly, and use it considerately and responsibly.
+
