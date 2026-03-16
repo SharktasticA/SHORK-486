@@ -148,7 +148,7 @@ Below are further explanations for options that could not fit into the configura
 
 #### Patched EXTLINUX
 
-Selecting "Yes" here will tell the build script to use [my forked SYSLINUX/EXTLINUX repository](github.com/SharktasticA/syslinux) instead of your host Linux distribution's maintained packaged version. This version addresses a memory detection error to resolve the "Booting kernel failed: Invalid argument" or boot menu looping issue that the stock EXTLINUX may encounter with some BIOSes when attempting to boot the kernel with.
+Selecting "Yes" here will tell the build script to use [my forked SYSLINUX/EXTLINUX repository](https://github.com/SharktasticA/syslinux) instead of your host Linux distribution's maintained packaged version. This version addresses a memory detection error to resolve the "Booting kernel failed: Invalid argument" or boot menu looping issue that the stock EXTLINUX may encounter with some BIOSes when attempting to boot the kernel with.
 
 * Some people need this, some people do not - see the list below, or try without first, then enable this if this error or something like it occurs.
 * Known hardware that need this includes: Chicony NB5 ([derivatives]((www.macdat.net/laptops/chicony/nb5.php))), IBM 2625 ThinkPad 365E/ED, IBM 6381 PS/ValuePoint
