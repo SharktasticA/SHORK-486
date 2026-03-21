@@ -131,6 +131,7 @@ ENABLE_USB=false
 FIX_EXTLINUX=false
 IS_ARCH=false
 IS_DEBIAN=false
+IS_FEDORA=false
 MAXIMAL=false
 MINIMAL=false
 NO_MENU=false
@@ -198,10 +199,17 @@ while [ $# -gt 0 ]; do
         --is-arch)
             IS_ARCH=true
             IS_DEBIAN=false
+            IS_FEDORA=false
             ;;
         --is-debian)
             IS_ARCH=false
             IS_DEBIAN=true
+            IS_FEDORA=false
+            ;;
+        --is-fedora)
+            IS_ARCH=false
+            IS_DEBIAN=false
+            IS_FEDORA=true
             ;;
         --maximal)
             MAXIMAL=true
@@ -573,7 +581,7 @@ install_arch_prerequisites()
     PACKAGES="autoconf bc base-devel bison bzip2 ca-certificates cpio dosfstools e2fsprogs flex gettext git libtool make multipath-tools ncurses pciutils python qemu-img systemd texinfo util-linux wget xz"
 
     if $ENABLE_GUI; then
-        PACKAGES+=" fontconfig unzip xorg-bdftopcf xorg-font-util xorg-mkfontscale"
+        PACKAGES+=" fontconfig gperf unzip xorg-bdftopcf xorg-font-util xorg-mkfontscale"
     fi
 
     if $FIX_EXTLINUX; then
@@ -590,10 +598,6 @@ install_arch_prerequisites()
         PACKAGES+=" syslinux"
     fi
 
-    if [[ $USED_WM == "TWM" ]]; then
-        PACKAGES+=" gperf"
-    fi
-
     sudo pacman -Syu --noconfirm --needed $PACKAGES
 }
 
@@ -603,10 +607,10 @@ install_debian_prerequisites()
     sudo dpkg --add-architecture i386
     sudo apt-get update
 
-    PACKAGES="autopoint bc bison bzip2 e2fsprogs fdisk flex git kpartx libtool make pkg-config python3 python-is-python3 qemu-utils syslinux wget xz-utils"
+    PACKAGES="autopoint bc bison bzip2 e2fsprogs extlinux fdisk flex git kpartx libtool make pkg-config python3 python-is-python3 qemu-utils syslinux wget xz-utils"
 
     if $ENABLE_GUI; then
-        PACKAGES+=" fontconfig gettext unzip xfonts-utils"
+        PACKAGES+=" fontconfig gettext gperf unzip xfonts-utils"
     fi
 
     if $FIX_EXTLINUX; then
@@ -625,17 +629,41 @@ install_debian_prerequisites()
 
     if $USE_GRUB; then
         PACKAGES+=" grub-common grub-pc"
-    else
-        PACKAGES+=" extlinux"
-    fi
-
-    if [[ $USED_WM == "TWM" ]]; then
-        PACKAGES+=" gperf"
     fi
 
     sudo apt-get install -y $PACKAGES
 
     export PATH="$PATH:/usr/sbin:/sbin"
+}
+
+install_fedora_prerequisites()
+{
+    echo -e "${GREEN}Installing prerequisite packages for a Fedora-based system...${RESET}"
+    sudo dnf -y update
+
+    PACKAGES="autoconf automake bison flex gcc gettext git libtool make perl python3 syslinux-extlinux qemu-img"
+
+    if $ENABLE_GUI; then
+        PACKAGES+=" bdftopcf fontconfig gperf mkfontscale xorg-x11-font-utils"
+    fi
+
+    if $FIX_EXTLINUX; then
+        PACKAGES+=" libuuid-devel nasm"
+    fi
+
+    if ! $SKIP_PCIIDS; then
+        PACKAGES+=" pciutils"
+    fi
+
+    if ! $SKIP_NANO; then
+        PACKAGES+=" texinfo"
+    fi
+
+    if $USE_GRUB; then
+        PACKAGES+=" grub2-common grub2-pc"
+    fi
+
+    sudo dnf install -y $PACKAGES || true
 }
 
 # Installs needed packages to host computer
@@ -646,15 +674,20 @@ get_prerequisites()
             install_arch_prerequisites
         elif $IS_DEBIAN; then
             install_debian_prerequisites
+        elif $IS_FEDORA; then
+            install_fedora_prerequisites
         else
             echo -e "${YELLOW}Select host Linux distribution:${RESET}"
-            select host in "Arch based" "Debian based"; do
+            select host in "Arch based" "Debian based" "Fedora based"; do
                 case $host in
                     "Arch based")
                         install_arch_prerequisites
                         break ;;
                     "Debian based")
                         install_debian_prerequisites
+                        break ;;
+                    "Fedora based")
+                        install_fedora_prerequisites
                         break ;;
                     *)
                 esac
@@ -3996,7 +4029,11 @@ install_grub_bootloader()
     sudo mount --bind /proc /mnt/shork-486/proc
     sudo mount --bind /sys  /mnt/shork-486/sys
 
-    sudo grub-install --target=i386-pc --boot-directory=/mnt/shork-486/boot --modules="ext2 part_msdos biosdisk" "$1"
+    GRUB_CMD="grub-install"
+    if ! command -v "$GRUB_CMD" >/dev/null 2>&1; then
+        GRUB_CMD="/usr/sbin/grub2-install"
+    fi
+    sudo $GRUB_CMD --target=i386-pc --boot-directory=/mnt/shork-486/boot --modules="ext2 part_msdos biosdisk" --force "$1"
 
     sudo umount /mnt/shork-486/dev
     sudo umount /mnt/shork-486/proc

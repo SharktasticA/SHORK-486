@@ -90,7 +90,7 @@ Whilst you *can* build SHORK 486 immediately, it is recommended to first run the
 
 ### Native building
 
-If you are using an Arch or Debian-based Linux, run `build.sh` whilst in the `shork-486` directory. If you have not used the configurator, you will be prompted some questions to answer throughout the process. 
+If you are using an Arch, Debian or Fedora-based Linux distribution, run `build.sh` whilst in the `shork-486` directory. If you have not used the configurator, you will be prompted some questions to answer throughout the process. 
 
 ### WSL building
 
@@ -120,7 +120,7 @@ The after-build report is provided to confirm whether the build was completed as
 
 When running the SHORK 486 Build Configurator, you will be prompted to select the following:
 
-* Build environment (Arch native or Debian native/Dockerised)
+* Build environment (Arch native, Debian native/Dockerised or Fedora native)
 * Build type (default, minimal, maximal or custom)
 * Target disk size (size in MiB for the disk image containing SHORK 486)
 * Swap partition size (size in MiB for a swap partition)
@@ -202,6 +202,8 @@ These build script parameters are provided to help automate its use, especially 
 * **Is Arch** (`--is-arch`): Used to skip the host Linux distribution selection prompt and the build script will assume it is running on an Arch-based system.
 
 * **Is Debian** (`--is-debian`): Used to skip the host Linux distribution selection prompt and the build script will assume it is running on a Debian-based system.
+
+* **Is Fedora** (`--is-fedora`): Used to skip the host Linux distribution selection prompt and the build script will assume it is running on a Fedora-based system.
 
 * **Skip BusyBox** (`--skip-busybox`): Used to skip recompiling BusyBox.
     * This parameter requires at least one complete build.

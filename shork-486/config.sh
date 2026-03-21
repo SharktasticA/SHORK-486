@@ -10,7 +10,7 @@
 
 # Check if dialog is present
 if ! command -v dialog &> /dev/null; then
-    echo "SHORK 486 Build Configurator requires the dialog utility to be installed."
+    echo "SHORK 486 Build Configurator requires the dialog utility to be installed. The package containing it is most likely simply \"dialog\"."
     exit 1
 fi
 
@@ -24,6 +24,7 @@ HEIGHT=16
 
 ALWAYS_BUILD=true
 IS_ARCH=false
+IS_FEDORA=false
 IS_DEBIAN=true
 BUILD_TYPE="default"
 DEFAULT=true
@@ -105,6 +106,7 @@ save_env()
 ALWAYS_BUILD=$ALWAYS_BUILD
 IS_ARCH=$IS_ARCH
 IS_DEBIAN=$IS_DEBIAN
+IS_FEDORA=$IS_FEDORA
 BUILD_TYPE="$BUILD_TYPE"
 DEFAULT=$DEFAULT
 MINIMAL=$MINIMAL
@@ -164,16 +166,23 @@ ENV=$(dialog --clear \
     --radiolist "Select the host environment you plan to build SHORK 486 with." $HEIGHT $WIDTH 3 \
     "Arch"    "Native building on Arch"                         $(val $IS_ARCH) \
     "Debian"  "Native building on Debian/Dockerised building"   $(val $IS_DEBIAN) \
+    "Fedora"  "Native building on Fedora"                       $(val $IS_FEDORA) \
     2>&1 >/dev/tty)
 
 if [[ ! -n "$ENV" ]]; then
     exit 0
-elif [ "$ENV" == "Arch" ]; then
-    IS_ARCH=true
-    IS_DEBIAN=false
 else
     IS_ARCH=false
-    IS_DEBIAN=true
+    IS_DEBIAN=false
+    IS_FEDORA=false
+
+    if [ "$ENV" == "Arch" ]; then
+        IS_ARCH=true
+    elif [ "$ENV" == "Debian" ]; then
+        IS_DEBIAN=true
+    elif [ "$ENV" == "Fedora" ]; then
+        IS_FEDORA=true
+    fi
 fi
 
 
@@ -459,7 +468,7 @@ else
     if [[ $OPTIONS =~ "grub" ]];       then USE_GRUB=true;         else USE_GRUB=false;        fi
     if [[ $OPTIONS =~ "gui" ]];        then ENABLE_GUI=true;       else ENABLE_GUI=false;      fi
     if [[ $OPTIONS =~ "highmem" ]];    then ENABLE_HIGHMEM=true;   else ENABLE_HIGHMEM=false;  fi
-    if [[ $OPTIONS =~ "keymaps" ]];    then SKIP_KEYMAPS=false;    else SKIP_KEYMAPS=true;     fi
+    #if [[ $OPTIONS =~ "keymaps" ]];    then SKIP_KEYMAPS=false;    else SKIP_KEYMAPS=true;     fi
     if [[ $OPTIONS =~ "pci.ids" ]];    then SKIP_PCIIDS=false;     else SKIP_PCIIDS=true;      fi
     if [[ $OPTIONS =~ "pcmcia" ]];     then ENABLE_PCMCIA=true;    else ENABLE_PCMCIA=false;   fi
     if [[ $OPTIONS =~ "sata" ]];       then ENABLE_SATA=true;      else ENABLE_SATA=false;     fi
