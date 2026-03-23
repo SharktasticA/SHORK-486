@@ -35,6 +35,14 @@ chmod 666 /dev/pts
 
 [ -r /etc/hostname ] && hostname "$(cat /etc/hostname)"
 
+# Load custom console font (if applicable)
+if [ -f /etc/shorkfont.conf ]; then
+    . /etc/shorkfont.conf
+    if [ "$FONT" != "default" ] && [ -c /dev/tty1 ]; then
+        setfont -C /dev/tty1 $FONT
+    fi
+fi
+
 # Load persistent keymap (if present)
 if [ -f /etc/keymap ]; then
     KM="$(cat /etc/keymap)"
@@ -59,9 +67,10 @@ modprobe pcspkr 2>/dev/null || true
 # Flush any ttyx seen flags
 rm -f /tmp/.tty*_seen
 
-# Show welcome banner
+# Prepare to show the welcome banner
 clear
 
+# Show welcome banner
 COLS=$(stty size 2>/dev/null | awk '{print $2}')
 BANNER=""
 
@@ -82,7 +91,6 @@ fi
 printf "\n\n"
 
 # Show welcome tip (if first boot)
-# First‑boot hint
 if [ ! -f /etc/.past_first_boot ]; then
     printf "Welcome! If this is your first time using @NAME@, please check out \033[32mshorkhelp\033[0m!"
     echo "1" > /etc/.past_first_boot

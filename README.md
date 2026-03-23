@@ -33,9 +33,9 @@ ar, arch, ascii, awk, basename, bc, beep, blkid, cal, cat, chmod, chown, chroot,
 
 ### Custom utilities 
 
-* **[shorkcol](https://github.com/SharktasticA/shorkcol)** - Changes the terminal's foreground (text) colour. Takes one argument (a colour name); running it without an argument shows a list of possible colours.
 * **[shorkdir](https://github.com/SharktasticA/shorkdir)** - Lightweight terminal-based file browser.
 * **[shorkfetch](https://github.com/SharktasticA/shorkfetch)** - Displays basic system and environment information. Similar to fastfetch, neofetch, etc.
+* **[shorkfont](https://github.com/SharktasticA/shorkfont)** - Changes the terminal's PSF font or colour. Takes two arguments (type of change and name); running it without an argument shows how to use and a list of possible colours.
 * **[shorkhelp](https://github.com/SharktasticA/shorkhelp)** - Informs of SHORK 486's capabilities and provides guidance. Requires one of up to five parameters:
     * `--commands`: Shows a command list including core commands, utilities and bundled software.
     * `--emacs`: Shows an Emacs (Mg) cheatsheet.

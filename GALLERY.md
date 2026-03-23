@@ -65,7 +65,7 @@
     <td style="width: 33%; text-align: center;"><img src="photos/20260223_365ed_shorkoff.jpg" style="width: 100%;" /></td>
   </tr>
   <tr>
-    <td>shorkcol</td>
+    <td>shorkcol (outdated photo)</td>
     <td>shorkoff</td>
   </tr>
 </table>

@@ -881,7 +881,7 @@ get_curl()
     make install
 }
 
-# Download and build tic (required for shorkcol)
+# Download and build tic (required for shorkfont)
 get_tic()
 {
     cd "$CURR_DIR/build"
@@ -3505,38 +3505,6 @@ get_tnftp()
 ## SHORK Utilities building & copying               ##
 ######################################################
 
-# Download and copy shorkcol
-get_shorkcol()
-{
-    cd "$CURR_DIR/build"
-
-    # Skip if already copied
-    if [ -f "$DESTDIR/usr/libexec/shorkcol" ]; then
-        echo -e "${LIGHT_RED}shorkcol already copied, skipping...${RESET}"
-        return
-    fi
-
-    # Download source
-    if [ -d shorkcol ]; then
-        echo -e "${YELLOW}shorkcol source already present, resetting...${RESET}"
-        cd shorkcol
-        git config --global --add safe.directory "$CURR_DIR/build/shorkcol"
-        git reset --hard
-        git clean -fdx
-    else
-        echo -e "${GREEN}Downloading shorkcol...${RESET}"
-        git clone https://github.com/SharktasticA/shorkcol.git
-        cd shorkcol
-    fi
-
-    # Compile and install
-    echo -e "${GREEN}Compiling shorkcol...${RESET}"
-    make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
-    sudo make DESTDIR=$DESTDIR install
-    mkdir -p $DESTDIR/etc
-    copy_sysfile $CURR_DIR/sysfiles/shorkcol.conf $DESTDIR/etc/shorkcol.conf
-}
-
 # Download and copy shorkcommon-sh
 get_shorkcommon_sh()
 {
@@ -3624,6 +3592,38 @@ get_shorkfetch()
     echo -e "${GREEN}Compiling shorkfetch...${RESET}"
     make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
     sudo make DESTDIR=$DESTDIR install
+}
+
+# Download and compile shorkfont
+get_shorkfont()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already copied
+    if [ -f "$DESTDIR/usr/libexec/shorkfont" ]; then
+        echo -e "${LIGHT_RED}shorkfont already copied, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d shorkfont ]; then
+        echo -e "${YELLOW}shorkfont source already present, resetting...${RESET}"
+        cd shorkfont
+        git config --global --add safe.directory "$CURR_DIR/build/shorkfont"
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading shorkfont...${RESET}"
+        git clone https://github.com/SharktasticA/shorkfont.git
+        cd shorkfont
+    fi
+
+    # Compile and install
+    echo -e "${GREEN}Compiling shorkfont...${RESET}"
+    make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+    sudo make DESTDIR=$DESTDIR install
+    mkdir -p $DESTDIR/etc
+    copy_sysfile $CURR_DIR/sysfiles/shorkfont.conf $DESTDIR/etc/shorkfont.conf
 }
 
 # Download and compile shorkhelp
@@ -4298,11 +4298,6 @@ get_installed_programs_features()
     fi
 
     # SHORK Utilities
-    if [ -f "$DESTDIR/usr/libexec/shorkcol" ]; then
-        INCLUDED_FEATURES+="\n  * shorkcol"
-    else
-        EXCLUDED_FEATURES+="\n  * shorkcol"
-    fi
     if [ -f "$DESTDIR/usr/bin/shorkdir" ]; then
         INCLUDED_FEATURES+="\n  * shorkdir"
     else
@@ -4312,6 +4307,11 @@ get_installed_programs_features()
         INCLUDED_FEATURES+="\n  * shorkfetch"
     else
         EXCLUDED_FEATURES+="\n  * shorkfetch"
+    fi
+    if [ -f "$DESTDIR/usr/libexec/shorkfont" ]; then
+        INCLUDED_FEATURES+="\n  * shorkfont"
+    else
+        EXCLUDED_FEATURES+="\n  * shorkfont"
     fi
     if [ -f "$DESTDIR/usr/bin/shorkgui" ]; then
         INCLUDED_FEATURES+="\n  * shorkgui"
@@ -4608,10 +4608,10 @@ if ! $SKIP_TNFTP; then
     get_tnftp
 fi
 
-get_shorkcol
 get_shorkcommon_sh
 get_shorkdir
 get_shorkfetch
+get_shorkfont
 get_shorkhelp
 if ! $SKIP_KEYMAPS; then
     get_shorkmap
