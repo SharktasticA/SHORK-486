@@ -3172,7 +3172,7 @@ get_emacs()
     make -j$(nproc)
     sudo make DESTDIR=$DESTDIR install
 
-    # Allow running "emacs" to run mg
+    # Symlink emacs to mg
     ln -sf mg "$DESTDIR/usr/bin/emacs"
 
     # Copy licence file
@@ -3603,7 +3603,7 @@ get_shorkdir()
 
     # Compile and install
     echo -e "${GREEN}Compiling shorkdir...${RESET}"
-    make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}" WITH_COL=1
+    make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
     sudo make DESTDIR=$DESTDIR install
 }
 
@@ -3691,6 +3691,37 @@ get_shorkhelp()
     echo -e "${GREEN}Compiling shorkhelp...${RESET}"
     make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
     sudo make DESTDIR=$DESTDIR install
+}
+
+# Download and compile shorklocomotive
+get_shorklocomotive()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$DESTDIR/usr/bin/sl" ]; then
+        echo -e "${LIGHT_RED}shorklocomotive already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Delete if present
+    if [ -d shorklocomotive ]; then
+        echo -e "${YELLOW}shorklocomotive source already present, recloning...${RESET}"
+        sudo rm -r shorklocomotive
+    fi
+
+    # Download source
+    echo -e "${GREEN}Downloading shorklocomotive...${RESET}"
+    git clone https://github.com/SharktasticA/shorklocomotive.git
+    cd shorklocomotive
+
+    # Compile and install
+    echo -e "${GREEN}Compiling shorklocomotive...${RESET}"
+    make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+    sudo make DESTDIR=$DESTDIR install
+
+    # Symlink shorklocomotive to sl
+    sudo ln -sf sl "$DESTDIR/usr/bin/shorklocomotive"
 }
 
 # Download and copy shorkmap
@@ -4422,6 +4453,11 @@ get_installed_programs_features()
     else
         EXCLUDED_FEATURES+="\n * scp (Dropbear)"
     fi
+    if [ -f "$DESTDIR/usr/bin/sl" ]; then
+        INCLUDED_FEATURES+="\n * sl"
+    else
+        EXCLUDED_FEATURES+="\n * sl"
+    fi
     if [ -f "$DESTDIR/usr/bin/ssh" ]; then
         INCLUDED_FEATURES+="\n * ssh (Dropbear)"
     else
@@ -4618,6 +4654,7 @@ get_shorkdir
 get_shorkfetch
 get_shorkfont
 get_shorkhelp
+get_shorklocomotive
 if ! $SKIP_KEYMAPS; then
     get_shorkmap
 fi

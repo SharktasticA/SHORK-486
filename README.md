@@ -31,7 +31,7 @@ ar, arch, ascii, awk, basename, bc, beep, blkid, cal, cat, chmod, chown, chroot,
 * ssh (SSH client, [Dropbear](https://github.com/mkj/dropbear))
 * [tcc](https://bellard.org/tcc/) and [musl](https://musl.libc.org/) (C compiler)
 
-### Custom utilities 
+### SHORK Utilities 
 
 * **[shorkdir](https://github.com/SharktasticA/shorkdir)** - Lightweight terminal-based file browser.
 * **[shorkfetch](https://github.com/SharktasticA/shorkfetch)** - Displays basic system and environment information. Similar to fastfetch, neofetch, etc.
@@ -42,6 +42,7 @@ ar, arch, ascii, awk, basename, bc, beep, blkid, cal, cat, chmod, chown, chroot,
     * `--git`: Shows a list of supported Git commands.
     * `--intro`: Shows an introductory paragraph on SHORK 486 and a simple getting started guide.
     * `--shorkutils`: Shows a list of SHORK utilities with a brief explanation of what they do.
+* **[shorklocomotive](https://github.com/SharktasticA/shorklocomotive)** - A shark-themed take on the `sl` (Steam Locomotive) command that kindly pokes fun at making typos when trying to type `ls`.
 * **[shorkmap](https://github.com/SharktasticA/shorkmap)** - Changes the system's keyboard layout (keymap). Takes one argument (a keymap name); running it without an argument shows a list of possible keymaps.
 * **[shorkoff](https://github.com/SharktasticA/shorkoff)** - A shutdown helper that safely brings the system to a controlled halt before a manual power off.
 * **[shorkres](https://github.com/SharktasticA/shokres)** - Changes the system's display resolution (provided the hardware is compatible). Takes one argument (a resolution name); running it without an argument shows a list of possible resolution names.
