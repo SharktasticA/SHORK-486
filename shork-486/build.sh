@@ -126,6 +126,7 @@ ENABLE_HIGHMEM=false
 ENABLE_NET=true
 ENABLE_PCMCIA=true
 ENABLE_SATA=false
+ENABLE_SL=true
 ENABLE_SMP=false
 ENABLE_TESTS=false
 ENABLE_USB=false
@@ -316,55 +317,14 @@ fi
 
 # Overrides to ensure "maximal" parameter always takes precedence
 if $MAXIMAL; then
-    echo -e "${GREEN}Configuring for a maximal build...${RESET}"
-    BUILD_TYPE="maximal"
-    ENABLE_CFONTS=true
+    echo -e "${GREEN}Configuring for a maximal build...${RESET}"=
     ENABLE_FB=true
-    ENABLE_GCC=true
-    ENABLE_GUI=true
-    ENABLE_HIGHMEM=true
-    ENABLE_NET=true
-    ENABLE_PCMCIA=true
-    ENABLE_SATA=true
-    ENABLE_SMP=true
-    ENABLE_USB=true
     EST_MIN_RAM="24MiB + 8MiB swap"
-    NO_MENU=false
-    SKIP_DROPBEAR=false
-    SKIP_EMACS=false
-    SKIP_GIT=false
-    SKIP_KEYMAPS=false
-    SKIP_FILE=false
-    SKIP_NANO=false
-    SKIP_PCIIDS=false
-    SKIP_TCC=false
-    SKIP_TNFTP=false
 # Overrides to ensure "minimal" parameter always takes precedence (if not maximal)
 elif $MINIMAL; then
-    echo -e "${GREEN}Configuring for a minimal build...${RESET}"
-    BUILD_TYPE="minimal"
-    ENABLE_CFONTS=false
+    echo -e "${GREEN}Configuring for a minimal build...${RESET}"=
     ENABLE_FB=false
-    ENABLE_GCC=false
-    ENABLE_GUI=false
-    ENABLE_HIGHMEM=false
-    ENABLE_NET=false
-    ENABLE_PCMCIA=false
-    ENABLE_SATA=false
-    ENABLE_SMP=false
-    ENABLE_USB=false
     EST_MIN_RAM="10MiB/8MiB + 2MiB swap"
-    NO_MENU=true
-    SKIP_DROPBEAR=true
-    SKIP_EMACS=true
-    SKIP_GIT=true
-    SKIP_FILE=true
-    SKIP_NANO=true
-    SKIP_PCIIDS=true
-    SKIP_TCC=true
-    SKIP_TNFTP=true
-    USE_GRUB=false
-    USED_WM=""
 fi
 
 # Override to ensure the USED_WM is empty when the "use GUI" parameter is not used
@@ -4654,7 +4614,9 @@ get_shorkdir
 get_shorkfetch
 get_shorkfont
 get_shorkhelp
-get_shorklocomotive
+if $ENABLE_SL; then
+    get_shorklocomotive
+fi
 if ! $SKIP_KEYMAPS; then
     get_shorkmap
 fi

@@ -54,6 +54,7 @@ SKIP_KEYMAPS=false
 SKIP_PCIIDS=false
 ENABLE_PCMCIA=true
 ENABLE_SATA=false
+ENABLE_SL=true
 ENABLE_SMP=false
 ENABLE_USB=false
 
@@ -136,6 +137,7 @@ SKIP_KEYMAPS=$SKIP_KEYMAPS
 SKIP_PCIIDS=$SKIP_PCIIDS
 ENABLE_PCMCIA=$ENABLE_PCMCIA
 ENABLE_SATA=$ENABLE_SATA
+ENABLE_SL=$ENABLE_SL
 ENABLE_SMP=$ENABLE_SMP
 ENABLE_USB=$ENABLE_USB
 EOF
@@ -227,6 +229,7 @@ elif [ "$TYPE" == "Default" ]; then
     SKIP_PCIIDS=false
     ENABLE_PCMCIA=true
     ENABLE_SATA=false
+    ENABLE_SL=true
     ENABLE_SMP=false
     ENABLE_USB=false
 elif [ "$TYPE" == "Minimal" ]; then
@@ -235,12 +238,54 @@ elif [ "$TYPE" == "Minimal" ]; then
     MINIMAL=true
     MAXIMAL=false
     CUSTOM=false
+    ENABLE_NET=false
+    SKIP_DROPBEAR=true
+    SKIP_FILE=true
+    SKIP_GIT=true
+    SKIP_EMACS=true
+    SKIP_NANO=true
+    SKIP_TCC=true
+    SKIP_TNFTP=true
+    NO_MENU=true
+    ENABLE_GCC=false
+    USE_GRUB=false
+    ENABLE_GUI=false
+    ENABLE_CFONTS=false
+    ENABLE_HIGHMEM=false
+    SKIP_KEYMAPS=true
+    SKIP_PCIIDS=true
+    ENABLE_PCMCIA=false
+    ENABLE_SATA=false
+    ENABLE_SL=false
+    ENABLE_SMP=false
+    ENABLE_USB=false
 elif [ "$TYPE" == "Maximal" ]; then
     BUILD_TYPE="maximal"
     DEFAULT=false
     MINIMAL=false
     MAXIMAL=true
     CUSTOM=false
+    ENABLE_NET=true
+    SKIP_DROPBEAR=false
+    SKIP_FILE=false
+    SKIP_GIT=false
+    SKIP_EMACS=false
+    SKIP_NANO=false
+    SKIP_TCC=false
+    SKIP_TNFTP=false
+    NO_MENU=false
+    ENABLE_GCC=true
+    USE_GRUB=false
+    ENABLE_GUI=true
+    ENABLE_CFONTS=true
+    ENABLE_HIGHMEM=true
+    SKIP_KEYMAPS=false
+    SKIP_PCIIDS=false
+    ENABLE_PCMCIA=true
+    ENABLE_SATA=true
+    ENABLE_SL=true
+    ENABLE_SMP=true
+    ENABLE_USB=true
 elif [ "$TYPE" == "Custom" ]; then
     BUILD_TYPE="custom"
     DEFAULT=false
@@ -466,6 +511,7 @@ OPTIONS=$(dialog --clear \
     "pci.ids"   "PCI IDs database (+0.1MiB)"                $(val_inv $SKIP_PCIIDS) \
     "pcmcia"    "Kernel-level PCMCIA support"               $(val $ENABLE_PCMCIA) \
     "sata"      "*Kernel-level SATA support"                $(val $ENABLE_SATA) \
+    "sl"        "shorklocomotive (+0.03MiB)"                $(val $ENABLE_SL) \
     "smp"       "*Kernel-level SMP support"                 $(val $ENABLE_SMP) \
     "usb"       "Kernel-level USB & HID support (+0.2MiB)"  $(val $ENABLE_USB) \
     2>&1 >/dev/tty)
@@ -478,13 +524,13 @@ if [[ $SKIPPED -eq 1 ]]; then
 else
     if [[ $OPTIONS =~ "cfonts" ]];     then ENABLE_CFONTS=true;     else ENABLE_CFONTS=false;  fi
     if [[ $OPTIONS =~ "grub" ]];       then USE_GRUB=true;         else USE_GRUB=false;        fi
-    if [[ $OPTIONS =~ "grub" ]];       then USE_GRUB=true;         else USE_GRUB=false;        fi
     if [[ $OPTIONS =~ "gui" ]];        then ENABLE_GUI=true;       else ENABLE_GUI=false;      fi
     if [[ $OPTIONS =~ "highmem" ]];    then ENABLE_HIGHMEM=true;   else ENABLE_HIGHMEM=false;  fi
     #if [[ $OPTIONS =~ "keymaps" ]];    then SKIP_KEYMAPS=false;    else SKIP_KEYMAPS=true;     fi
     if [[ $OPTIONS =~ "pci.ids" ]];    then SKIP_PCIIDS=false;     else SKIP_PCIIDS=true;      fi
     if [[ $OPTIONS =~ "pcmcia" ]];     then ENABLE_PCMCIA=true;    else ENABLE_PCMCIA=false;   fi
     if [[ $OPTIONS =~ "sata" ]];       then ENABLE_SATA=true;      else ENABLE_SATA=false;     fi
+    if [[ $OPTIONS =~ "sl" ]];         then ENABLE_SL=true;        else ENABLE_SL=false;       fi
     if [[ $OPTIONS =~ "smp" ]];        then ENABLE_SMP=true;       else ENABLE_SMP=false;      fi
     if [[ $OPTIONS =~ "usb" ]];        then ENABLE_USB=true;       else ENABLE_USB=false;      fi
 fi
