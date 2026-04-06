@@ -54,7 +54,7 @@ SKIP_KEYMAPS=false
 SKIP_PCIIDS=false
 ENABLE_PCMCIA=true
 ENABLE_SATA=false
-ENABLE_SL=true
+ENABLE_SHORKTAINMENT=true
 ENABLE_SMP=false
 ENABLE_USB=false
 
@@ -137,7 +137,7 @@ SKIP_KEYMAPS=$SKIP_KEYMAPS
 SKIP_PCIIDS=$SKIP_PCIIDS
 ENABLE_PCMCIA=$ENABLE_PCMCIA
 ENABLE_SATA=$ENABLE_SATA
-ENABLE_SL=$ENABLE_SL
+ENABLE_SHORKTAINMENT=$ENABLE_SHORKTAINMENT
 ENABLE_SMP=$ENABLE_SMP
 ENABLE_USB=$ENABLE_USB
 EOF
@@ -229,7 +229,7 @@ elif [ "$TYPE" == "Default" ]; then
     SKIP_PCIIDS=false
     ENABLE_PCMCIA=true
     ENABLE_SATA=false
-    ENABLE_SL=true
+    ENABLE_SHORKTAINMENT=true
     ENABLE_SMP=false
     ENABLE_USB=false
 elif [ "$TYPE" == "Minimal" ]; then
@@ -256,7 +256,7 @@ elif [ "$TYPE" == "Minimal" ]; then
     SKIP_PCIIDS=true
     ENABLE_PCMCIA=false
     ENABLE_SATA=false
-    ENABLE_SL=false
+    ENABLE_SHORKTAINMENT=false
     ENABLE_SMP=false
     ENABLE_USB=false
 elif [ "$TYPE" == "Maximal" ]; then
@@ -283,7 +283,7 @@ elif [ "$TYPE" == "Maximal" ]; then
     SKIP_PCIIDS=false
     ENABLE_PCMCIA=true
     ENABLE_SATA=true
-    ENABLE_SL=true
+    ENABLE_SHORKTAINMENT=true
     ENABLE_SMP=true
     ENABLE_USB=true
 elif [ "$TYPE" == "Custom" ]; then
@@ -503,17 +503,17 @@ OPTIONS=$(dialog --clear \
     --title "Options" \
     --cancel-label "Skip" \
     --checklist "Select what other options to include. Some of these are benign, some may increase the RAM and disk space requirement considerably, some are experimental. Options marked with \"*\" particularly affect RAM requirements." $HEIGHT $WIDTH 9 \
-    "cfonts"    "Alternative console fonts (+0.05MiB)"      $(val $ENABLE_CFONTS) \
-    "grub"      "GRUB 2.x instead of EXTLINUX (+4MiB)"      $(val $USE_GRUB) \
-    "gui"       "*SHORKGUI (+46MiB, EXPERIMENTAL)"          $(val $ENABLE_GUI) \
-    "highmem"   "*Kernel-level high memory support"         $(val $ENABLE_HIGHMEM) \
-    "menu"      "Menu-based bootloader (+0.5MiB)"           $(val_inv $NO_MENU) \
-    "pci.ids"   "PCI IDs database (+0.1MiB)"                $(val_inv $SKIP_PCIIDS) \
-    "pcmcia"    "Kernel-level PCMCIA support"               $(val $ENABLE_PCMCIA) \
-    "sata"      "*Kernel-level SATA support"                $(val $ENABLE_SATA) \
-    "sl"        "shorklocomotive (+0.03MiB)"                $(val $ENABLE_SL) \
-    "smp"       "*Kernel-level SMP support"                 $(val $ENABLE_SMP) \
-    "usb"       "Kernel-level USB & HID support (+0.2MiB)"  $(val $ENABLE_USB) \
+    "cfonts"        "Alternative console fonts (+0.05MiB)"      $(val $ENABLE_CFONTS) \
+    "grub"          "GRUB 2.x instead of EXTLINUX (+4MiB)"      $(val $USE_GRUB) \
+    "gui"           "*SHORKGUI (+46MiB, EXPERIMENTAL)"          $(val $ENABLE_GUI) \
+    "highmem"       "*Kernel-level high memory support"         $(val $ENABLE_HIGHMEM) \
+    "menu"          "Menu-based bootloader (+0.5MiB)"           $(val_inv $NO_MENU) \
+    "pci.ids"       "PCI IDs database (+0.1MiB)"                $(val_inv $SKIP_PCIIDS) \
+    "pcmcia"        "Kernel-level PCMCIA support"               $(val $ENABLE_PCMCIA) \
+    "sata"          "*Kernel-level SATA support"                $(val $ENABLE_SATA) \
+    "shorktainment" "shorksay & sl (+0.06MiB)"                  $(val $ENABLE_SHORKTAINMENT) \
+    "smp"           "*Kernel-level SMP support"                 $(val $ENABLE_SMP) \
+    "usb"           "Kernel-level USB & HID support (+0.2MiB)"  $(val $ENABLE_USB) \
     2>&1 >/dev/tty)
     #"keymaps"   "Keymaps & shorkmap (+0.06MiB)"             $(val_inv $SKIP_KEYMAPS) \
     
@@ -522,15 +522,15 @@ SKIPPED=$?
 if [[ $SKIPPED -eq 1 ]]; then
     :
 else
-    if [[ $OPTIONS =~ "cfonts" ]];     then ENABLE_CFONTS=true;     else ENABLE_CFONTS=false;  fi
-    if [[ $OPTIONS =~ "grub" ]];       then USE_GRUB=true;         else USE_GRUB=false;        fi
-    if [[ $OPTIONS =~ "gui" ]];        then ENABLE_GUI=true;       else ENABLE_GUI=false;      fi
-    if [[ $OPTIONS =~ "highmem" ]];    then ENABLE_HIGHMEM=true;   else ENABLE_HIGHMEM=false;  fi
-    #if [[ $OPTIONS =~ "keymaps" ]];    then SKIP_KEYMAPS=false;    else SKIP_KEYMAPS=true;     fi
-    if [[ $OPTIONS =~ "pci.ids" ]];    then SKIP_PCIIDS=false;     else SKIP_PCIIDS=true;      fi
-    if [[ $OPTIONS =~ "pcmcia" ]];     then ENABLE_PCMCIA=true;    else ENABLE_PCMCIA=false;   fi
-    if [[ $OPTIONS =~ "sata" ]];       then ENABLE_SATA=true;      else ENABLE_SATA=false;     fi
-    if [[ $OPTIONS =~ "sl" ]];         then ENABLE_SL=true;        else ENABLE_SL=false;       fi
-    if [[ $OPTIONS =~ "smp" ]];        then ENABLE_SMP=true;       else ENABLE_SMP=false;      fi
-    if [[ $OPTIONS =~ "usb" ]];        then ENABLE_USB=true;       else ENABLE_USB=false;      fi
+    if [[ $OPTIONS =~ "cfonts" ]];     then ENABLE_CFONTS=true;         else ENABLE_CFONTS=false;           fi
+    if [[ $OPTIONS =~ "grub" ]];       then USE_GRUB=true;              else USE_GRUB=false;                fi
+    if [[ $OPTIONS =~ "gui" ]];        then ENABLE_GUI=true;            else ENABLE_GUI=false;              fi
+    if [[ $OPTIONS =~ "highmem" ]];    then ENABLE_HIGHMEM=true;        else ENABLE_HIGHMEM=false;          fi
+    #if [[ $OPTIONS =~ "keymaps" ]];    then SKIP_KEYMAPS=false;         else SKIP_KEYMAPS=true;             fi
+    if [[ $OPTIONS =~ "pci.ids" ]];    then SKIP_PCIIDS=false;          else SKIP_PCIIDS=true;              fi
+    if [[ $OPTIONS =~ "pcmcia" ]];     then ENABLE_PCMCIA=true;         else ENABLE_PCMCIA=false;           fi
+    if [[ $OPTIONS =~ "sata" ]];       then ENABLE_SATA=true;           else ENABLE_SATA=false;             fi
+    if [[ $OPTIONS =~ "sl" ]];         then ENABLE_SHORKTAINMENT=true;  else ENABLE_SHORKTAINMENT=false;    fi
+    if [[ $OPTIONS =~ "smp" ]];        then ENABLE_SMP=true;            else ENABLE_SMP=false;              fi
+    if [[ $OPTIONS =~ "usb" ]];        then ENABLE_USB=true;            else ENABLE_USB=false;              fi
 fi

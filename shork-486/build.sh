@@ -126,7 +126,7 @@ ENABLE_HIGHMEM=false
 ENABLE_NET=true
 ENABLE_PCMCIA=true
 ENABLE_SATA=false
-ENABLE_SL=true
+ENABLE_SHORKTAINMENT=true
 ENABLE_SMP=false
 ENABLE_TESTS=false
 ENABLE_USB=false
@@ -3653,37 +3653,6 @@ get_shorkhelp()
     sudo make DESTDIR=$DESTDIR install
 }
 
-# Download and compile shorklocomotive
-get_shorklocomotive()
-{
-    cd "$CURR_DIR/build"
-
-    # Skip if already compiled
-    if [ -f "$DESTDIR/usr/bin/sl" ]; then
-        echo -e "${LIGHT_RED}shorklocomotive already compiled, skipping...${RESET}"
-        return
-    fi
-
-    # Delete if present
-    if [ -d shorklocomotive ]; then
-        echo -e "${YELLOW}shorklocomotive source already present, recloning...${RESET}"
-        sudo rm -r shorklocomotive
-    fi
-
-    # Download source
-    echo -e "${GREEN}Downloading shorklocomotive...${RESET}"
-    git clone https://github.com/SharktasticA/shorklocomotive.git
-    cd shorklocomotive
-
-    # Compile and install
-    echo -e "${GREEN}Compiling shorklocomotive...${RESET}"
-    make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
-    sudo make DESTDIR=$DESTDIR install
-
-    # Symlink shorklocomotive to sl
-    sudo ln -sf sl "$DESTDIR/usr/bin/shorklocomotive"
-}
-
 # Download and copy shorkmap
 get_shorkmap()
 {
@@ -3766,6 +3735,74 @@ get_shorkres()
     echo -e "${GREEN}Copying shorkres...${RESET}"
     cp shorkres.486 $DESTDIR/usr/bin/shorkres
     chmod +x $DESTDIR/usr/bin/shorkres
+}
+
+
+
+######################################################
+## SHORK Entertainment building & copying           ##
+######################################################
+
+# Download and compile shorklocomotive
+get_shorklocomotive()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$DESTDIR/usr/bin/sl" ]; then
+        echo -e "${LIGHT_RED}shorklocomotive already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Delete if present
+    if [ -d shorklocomotive ]; then
+        echo -e "${YELLOW}shorklocomotive source already present, recloning...${RESET}"
+        sudo rm -r shorklocomotive
+    fi
+
+    # Download source
+    echo -e "${GREEN}Downloading shorklocomotive...${RESET}"
+    git clone https://github.com/SharktasticA/shorklocomotive.git
+    cd shorklocomotive
+
+    # Compile and install
+    echo -e "${GREEN}Compiling shorklocomotive...${RESET}"
+    make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+    sudo make DESTDIR=$DESTDIR install
+
+    # Symlink shorklocomotive to sl
+    sudo ln -sf sl "$DESTDIR/usr/bin/shorklocomotive"
+}
+
+# Download and compile shorksay
+get_shorksay()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$DESTDIR/usr/bin/shorksay" ]; then
+        echo -e "${LIGHT_RED}shorksay already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Delete if present
+    if [ -d shorksay ]; then
+        echo -e "${YELLOW}shorksay source already present, recloning...${RESET}"
+        sudo rm -r shorksay
+    fi
+
+    # Download source
+    echo -e "${GREEN}Downloading shorksay...${RESET}"
+    git clone https://github.com/SharktasticA/shorksay.git
+    cd shorksay
+
+    # Compile and install
+    echo -e "${GREEN}Compiling shorksay...${RESET}"
+    make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+    sudo make DESTDIR=$DESTDIR install
+
+    # Symlink shorksay to cowsay
+    sudo ln -sf shorksay "$DESTDIR/usr/bin/cowsay"
 }
 
 
@@ -4319,6 +4356,18 @@ get_installed_programs_features()
         EXCLUDED_FEATURES+="\n * shorkres"
     fi
 
+    # SHORK Entertainment
+    if [ -f "$DESTDIR/usr/bin/sl" ]; then
+        INCLUDED_FEATURES+="\n * shorklocomotive/sl"
+    else
+        EXCLUDED_FEATURES+="\n * shorklocomotive/sl"
+    fi
+    if [ -f "$DESTDIR/usr/bin/shorksay" ]; then
+        INCLUDED_FEATURES+="\n * shorksay"
+    else
+        EXCLUDED_FEATURES+="\n * shorksay"
+    fi
+
     # SHORKGUI
     if [ -f "$DESTDIR/usr/bin/oneko" ]; then
         INCLUDED_FEATURES+="\n * oneko"
@@ -4412,11 +4461,6 @@ get_installed_programs_features()
         INCLUDED_FEATURES+="\n * scp (Dropbear)"
     else
         EXCLUDED_FEATURES+="\n * scp (Dropbear)"
-    fi
-    if [ -f "$DESTDIR/usr/bin/sl" ]; then
-        INCLUDED_FEATURES+="\n * sl"
-    else
-        EXCLUDED_FEATURES+="\n * sl"
     fi
     if [ -f "$DESTDIR/usr/bin/ssh" ]; then
         INCLUDED_FEATURES+="\n * ssh (Dropbear)"
@@ -4614,15 +4658,17 @@ get_shorkdir
 get_shorkfetch
 get_shorkfont
 get_shorkhelp
-if $ENABLE_SL; then
-    get_shorklocomotive
-fi
 if ! $SKIP_KEYMAPS; then
     get_shorkmap
 fi
 get_shorkoff
 if $ENABLE_FB; then
     get_shorkres
+fi
+
+if $ENABLE_SHORKTAINMENT; then
+    get_shorklocomotive
+    get_shorksay
 fi
 
 trim_fat

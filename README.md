@@ -31,7 +31,7 @@ ar, arch, ascii, awk, basename, bc, beep, blkid, cal, cat, chmod, chown, chroot,
 * ssh (SSH client, [Dropbear](https://github.com/mkj/dropbear))
 * [tcc](https://bellard.org/tcc/) and [musl](https://musl.libc.org/) (C compiler)
 
-### SHORK Utilities 
+### SHORK Utilities (shorkutils)
 
 * **[shorkdir](https://github.com/SharktasticA/shorkdir)** - Lightweight terminal-based file browser.
 * **[shorkfetch](https://github.com/SharktasticA/shorkfetch)** - Displays basic system and environment information. Similar to fastfetch, neofetch, etc.
@@ -42,10 +42,15 @@ ar, arch, ascii, awk, basename, bc, beep, blkid, cal, cat, chmod, chown, chroot,
     * `--git`: Shows a list of supported Git commands.
     * `--intro`: Shows an introductory paragraph on SHORK 486 and a simple getting started guide.
     * `--shorkutils`: Shows a list of SHORK utilities with a brief explanation of what they do.
-* **[shorklocomotive](https://github.com/SharktasticA/shorklocomotive)** - A shark-themed take on the `sl` (Steam Locomotive) command that kindly pokes fun at making typos when trying to type `ls`.
 * **[shorkmap](https://github.com/SharktasticA/shorkmap)** - Changes the system's keyboard layout (keymap). Takes one argument (a keymap name); running it without an argument shows a list of possible keymaps.
 * **[shorkoff](https://github.com/SharktasticA/shorkoff)** - A shutdown helper that safely brings the system to a controlled halt before a manual power off.
 * **[shorkres](https://github.com/SharktasticA/shokres)** - Changes the system's display resolution (provided the hardware is compatible). Takes one argument (a resolution name); running it without an argument shows a list of possible resolution names.
+
+### SHORK Entertainment (shorktainment)
+
+* **[shorklocomotive](https://github.com/SharktasticA/shorklocomotive)** - A shark-themed take on [sl (Steam Locomotive)](https://github.com/mtoyoda/sl) that kindly pokes fun at making typos when trying to type `ls`. Available as `sl` and `shorklocomotive`.
+
+* **[shorksay](https://github.com/SharktasticA/shorksay)** - A shark-themed take on [cowsay](https://github.com/cowsay-org/cowsay), a "simple and silly" program that outputs an ASCII art shark and speech bubble containing a message of your choice. Available as `shorksay` and `cowsay`.
 
 
 
@@ -188,6 +193,8 @@ Selecting "Yes" here will enable networking support in SHORK 486. BusyBox will i
 * **pcmcia**: Adds kernel-level CardBus/PCMCIA/PC Card support. It is primarily needed to support PCMCIA-based network controllers for laptops or unique desktop PCs like the IBM PS/2 E. For most desktop PCs, it is safe to exclude it.
 
 * **sata**: Adds kernel-level SATA AHCI support. This is provided in case someone wanted to try SHORK 486 on a more modern system with SATA devices, or has installed a PCI-based SATA controller in a '90s system. **It is not needed for most '90s hardware**. Its RAM requirements are 24MiB with no swap partition or 16MiB with 8MiB swap.
+
+* **shorktainment**: Includes the SHORK Entertainment programs; shorklocomotive and shorksay.
 
 * **smp**: Adds kernel-level symmetric multiprocessing (e.g., multi-core) support. This is provided in case someone wanted to try SHORK 486 on a more modern system with a multi-core processor. **It is not needed for any '90s hardware**. It may add ~1-2MiB to idle RAM usage.
 
