@@ -1183,9 +1183,18 @@ reclone_kernel()
 compile_kernel()
 {   
     cd "$CURR_DIR/build/linux/"
+
+    # Remove "-dirty" suffix until I can clone the kernel to my own
+    # repo
+    sudo sed -i "s/printf '%s' -dirty/printf '%s'/" scripts/setlocalversion
+    
+    echo -e "${GREEN}Applying E820 patch...${RESET}"
+    patch -p1 < "$CURR_DIR/patches/7.0.0_6.14.11-e820.patch"
+
     echo -e "${GREEN}Compiling Linux kernel...${RESET}"
     make ARCH=x86 olddefconfig
     make ARCH=x86 bzImage -j$(nproc)
+
     sudo mv arch/x86/boot/bzImage "$CURR_DIR/build" || true
     cp COPYING $CURR_DIR/build/LICENCES/linux.txt
 }
