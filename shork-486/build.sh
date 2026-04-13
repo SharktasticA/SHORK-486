@@ -97,7 +97,7 @@ CURL_VER="8.19.0"
 DROPBEAR_VER="2025.89"
 FILE_VER="FILE5_47"
 GIT_VER="2.53.0"
-KERNEL_VER="6.14.11"
+KERNEL_VER="7.0"
 LIBEVENT_VER="release-2.1.12-stable"
 MG_VER="3.7"
 MUSL_VER="1.2.5"
@@ -321,12 +321,12 @@ fi
 
 # Overrides to ensure "maximal" parameter always takes precedence
 if $MAXIMAL; then
-    echo -e "${GREEN}Configuring for a maximal build...${RESET}"=
+    echo -e "${GREEN}Configuring for a maximal build...${RESET}"
     ENABLE_FB=true
     EST_MIN_RAM="24MiB + 8MiB swap"
 # Overrides to ensure "minimal" parameter always takes precedence (if not maximal)
 elif $MINIMAL; then
-    echo -e "${GREEN}Configuring for a minimal build...${RESET}"=
+    echo -e "${GREEN}Configuring for a minimal build...${RESET}"
     ENABLE_FB=false
     EST_MIN_RAM="10MiB/8MiB + 2MiB swap"
 fi
@@ -1141,11 +1141,6 @@ configure_kernel()
         echo -e "${GREEN}Enabling kernel SATA support...${RESET}"
         FRAGS+="$CURR_DIR/configs/linux.config.sata.frag "
     fi
-    
-    #if [ -n "$TARGET_SWAP" ]; then
-    echo -e "${GREEN}Enabling kernel swap support...${RESET}"
-    FRAGS+="$CURR_DIR/configs/linux.config.swap.frag "
-    #fi
 
     if $ENABLE_SMP; then
         echo -e "${GREEN}Enabling kernel symmetric multiprocessing (SMP) support...${RESET}"
