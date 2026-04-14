@@ -42,6 +42,7 @@ SKIP_FILE=false
 SKIP_GIT=false
 SKIP_EMACS=false
 SKIP_NANO=false
+ENABLE_SHORKTAINMENT=true
 SKIP_TCC=false
 SKIP_TNFTP=false
 NO_MENU=false
@@ -54,7 +55,6 @@ SKIP_KEYMAPS=false
 SKIP_PCIIDS=false
 ENABLE_PCMCIA=true
 ENABLE_SATA=false
-ENABLE_SHORKTAINMENT=true
 ENABLE_SMP=false
 ENABLE_USB=false
 
@@ -126,6 +126,7 @@ ENABLE_GCC=$ENABLE_GCC
 SKIP_GIT=$SKIP_GIT
 SKIP_EMACS=$SKIP_EMACS
 SKIP_NANO=$SKIP_NANO
+ENABLE_SHORKTAINMENT=$ENABLE_SHORKTAINMENT
 SKIP_TCC=$SKIP_TCC
 SKIP_TNFTP=$SKIP_TNFTP
 NO_MENU=$NO_MENU
@@ -137,7 +138,6 @@ SKIP_KEYMAPS=$SKIP_KEYMAPS
 SKIP_PCIIDS=$SKIP_PCIIDS
 ENABLE_PCMCIA=$ENABLE_PCMCIA
 ENABLE_SATA=$ENABLE_SATA
-ENABLE_SHORKTAINMENT=$ENABLE_SHORKTAINMENT
 ENABLE_SMP=$ENABLE_SMP
 ENABLE_USB=$ENABLE_USB
 EOF
@@ -217,6 +217,7 @@ elif [ "$TYPE" == "Default" ]; then
     SKIP_GIT=false
     SKIP_EMACS=false
     SKIP_NANO=false
+    ENABLE_SHORKTAINMENT=true
     SKIP_TCC=false
     SKIP_TNFTP=false
     NO_MENU=false
@@ -229,7 +230,6 @@ elif [ "$TYPE" == "Default" ]; then
     SKIP_PCIIDS=false
     ENABLE_PCMCIA=true
     ENABLE_SATA=false
-    ENABLE_SHORKTAINMENT=true
     ENABLE_SMP=false
     ENABLE_USB=false
 elif [ "$TYPE" == "Minimal" ]; then
@@ -244,6 +244,7 @@ elif [ "$TYPE" == "Minimal" ]; then
     SKIP_GIT=true
     SKIP_EMACS=true
     SKIP_NANO=true
+    ENABLE_SHORKTAINMENT=false
     SKIP_TCC=true
     SKIP_TNFTP=true
     NO_MENU=true
@@ -256,7 +257,6 @@ elif [ "$TYPE" == "Minimal" ]; then
     SKIP_PCIIDS=true
     ENABLE_PCMCIA=false
     ENABLE_SATA=false
-    ENABLE_SHORKTAINMENT=false
     ENABLE_SMP=false
     ENABLE_USB=false
 elif [ "$TYPE" == "Maximal" ]; then
@@ -271,6 +271,7 @@ elif [ "$TYPE" == "Maximal" ]; then
     SKIP_GIT=false
     SKIP_EMACS=false
     SKIP_NANO=false
+    ENABLE_SHORKTAINMENT=true
     SKIP_TCC=false
     SKIP_TNFTP=false
     NO_MENU=false
@@ -283,7 +284,6 @@ elif [ "$TYPE" == "Maximal" ]; then
     SKIP_PCIIDS=false
     ENABLE_PCMCIA=true
     ENABLE_SATA=true
-    ENABLE_SHORKTAINMENT=true
     ENABLE_SMP=true
     ENABLE_USB=true
 elif [ "$TYPE" == "Custom" ]; then
@@ -453,22 +453,24 @@ BUNDLED_ITEMS=()
 
 if [ "$ENABLE_NET" == true ]; then
     BUNDLED_ITEMS+=(
-        "dropbear"  "SCP & SSH client (+0.4MiB)"                        "$(val_inv "$SKIP_DROPBEAR")"
-        "file"      "File type identification (+10MiB)"                 "$(val_inv "$SKIP_FILE")"
-        "gcc"       "*GCC (as, g++, gcc, gfortran) + musl (+215MiB)"    "$(val "$ENABLE_GCC")"
-        "git"       "Source control client (+19MiB)"                    "$(val_inv "$SKIP_GIT")"
-        "mg"        "Emacs-style text editor (+0.3MiB)"                 "$(val_inv "$SKIP_EMACS")"
-        "nano"      "Text editor (+1MiB)"                               "$(val_inv "$SKIP_NANO")"
-        "tcc"       "Tiny C Compiler & musl (+4MiB)"                    "$(val_inv "$SKIP_TCC")"
-        "tnftp"     "FTP client (+0.3MiB)"                              "$(val_inv "$SKIP_TNFTP")"
+        "dropbear"      "SCP & SSH client (+0.4MiB)"                        "$(val_inv "$SKIP_DROPBEAR")"
+        "file"          "File type identification (+10MiB)"                 "$(val_inv "$SKIP_FILE")"
+        "gcc"           "*GCC (as, g++, gcc, gfortran) + musl (+215MiB)"    "$(val "$ENABLE_GCC")"
+        "git"           "Source control client (+19MiB)"                    "$(val_inv "$SKIP_GIT")"
+        "mg"            "Emacs-style text editor (+0.3MiB)"                 "$(val_inv "$SKIP_EMACS")"
+        "nano"          "Text editor (+1MiB)"                               "$(val_inv "$SKIP_NANO")"
+        "shorktainment" "shorksay & sl (+0.06MiB)"                          "$(val "$ENABLE_SHORKTAINMENT")"
+        "tcc"           "Tiny C Compiler & musl (+4MiB)"                    "$(val_inv "$SKIP_TCC")"
+        "tnftp"         "FTP client (+0.3MiB)"                              "$(val_inv "$SKIP_TNFTP")"
     )
 else
     BUNDLED_ITEMS+=(
-        "file"      "File type identification (+10MiB)"                 "$(val_inv "$SKIP_FILE")"
-        "gcc"       "*GCC (as, g++, gcc, gfortran) + musl (+215MiB)"    "$(val "$ENABLE_GCC")"
-        "mg"        "Emacs-style text editor (+0.3MiB)"                 "$(val_inv "$SKIP_EMACS")"
-        "nano"      "Text editor (+1MiB)"                               "$(val_inv "$SKIP_NANO")"
-        "tcc"       "Tiny C Compiler & musl (+4MiB)"                    "$(val_inv "$SKIP_TCC")"
+        "file"          "File type identification (+10MiB)"                 "$(val_inv "$SKIP_FILE")"
+        "gcc"           "*GCC (as, g++, gcc, gfortran) + musl (+215MiB)"    "$(val "$ENABLE_GCC")"
+        "mg"            "Emacs-style text editor (+0.3MiB)"                 "$(val_inv "$SKIP_EMACS")"
+        "nano"          "Text editor (+1MiB)"                               "$(val_inv "$SKIP_NANO")"
+        "shorktainment" "shorksay & sl (+0.06MiB)"                          "$(val "$ENABLE_SHORKTAINMENT")"
+        "tcc"           "Tiny C Compiler & musl (+4MiB)"                    "$(val_inv "$SKIP_TCC")"
     )
 fi
 
@@ -485,14 +487,15 @@ SKIPPED=$?
 if [[ $SKIPPED -eq 1 ]]; then
     :
 else
-    if [[ $BUNDLED =~ "dropbear" ]];    then SKIP_DROPBEAR=false;   else SKIP_DROPBEAR=true;    fi
-    if [[ $BUNDLED =~ "file" ]];        then SKIP_FILE=false;       else SKIP_FILE=true;        fi
-    if [[ $BUNDLED =~ "gcc" ]];         then ENABLE_GCC=true;       else ENABLE_GCC=false;      fi
-    if [[ $BUNDLED =~ "git" ]];         then SKIP_GIT=false;        else SKIP_GIT=true;         fi
-    if [[ $BUNDLED =~ "mg" ]];          then SKIP_EMACS=false;      else SKIP_EMACS=true;       fi
-    if [[ $BUNDLED =~ "nano" ]];        then SKIP_NANO=false;       else SKIP_NANO=true;        fi
-    if [[ $BUNDLED =~ "tcc" ]];         then SKIP_TCC=false;        else SKIP_TCC=true;         fi
-    if [[ $BUNDLED =~ "tnftp" ]];       then SKIP_TNFTP=false;      else SKIP_TNFTP=true;       fi
+    if [[ $BUNDLED =~ "dropbear" ]];        then SKIP_DROPBEAR=false;           else SKIP_DROPBEAR=true;            fi
+    if [[ $BUNDLED =~ "file" ]];            then SKIP_FILE=false;               else SKIP_FILE=true;                fi
+    if [[ $BUNDLED =~ "gcc" ]];             then ENABLE_GCC=true;               else ENABLE_GCC=false;              fi
+    if [[ $BUNDLED =~ "git" ]];             then SKIP_GIT=false;                else SKIP_GIT=true;                 fi
+    if [[ $BUNDLED =~ "mg" ]];              then SKIP_EMACS=false;              else SKIP_EMACS=true;               fi
+    if [[ $BUNDLED =~ "nano" ]];            then SKIP_NANO=false;               else SKIP_NANO=true;                fi
+    if [[ $BUNDLED =~ "shorktainment" ]];   then ENABLE_SHORKTAINMENT=true;     else ENABLE_SHORKTAINMENT=false;    fi
+    if [[ $BUNDLED =~ "tcc" ]];             then SKIP_TCC=false;                else SKIP_TCC=true;                 fi
+    if [[ $BUNDLED =~ "tnftp" ]];           then SKIP_TNFTP=false;              else SKIP_TNFTP=true;               fi
 fi
 
 
@@ -511,7 +514,6 @@ OPTIONS=$(dialog --clear \
     "pci.ids"       "PCI IDs database (+0.1MiB)"                $(val_inv $SKIP_PCIIDS) \
     "pcmcia"        "Kernel-level PCMCIA support"               $(val $ENABLE_PCMCIA) \
     "sata"          "*Kernel-level SATA support"                $(val $ENABLE_SATA) \
-    "shorktainment" "shorksay & sl (+0.06MiB)"                  $(val $ENABLE_SHORKTAINMENT) \
     "smp"           "*Kernel-level SMP support"                 $(val $ENABLE_SMP) \
     "usb"           "Kernel-level USB & HID support (+0.2MiB)"  $(val $ENABLE_USB) \
     2>&1 >/dev/tty)
@@ -530,7 +532,6 @@ else
     if [[ $OPTIONS =~ "pci.ids" ]];         then SKIP_PCIIDS=false;          else SKIP_PCIIDS=true;              fi
     if [[ $OPTIONS =~ "pcmcia" ]];          then ENABLE_PCMCIA=true;         else ENABLE_PCMCIA=false;           fi
     if [[ $OPTIONS =~ "sata" ]];            then ENABLE_SATA=true;           else ENABLE_SATA=false;             fi
-    if [[ $OPTIONS =~ "shorktainment" ]];   then ENABLE_SHORKTAINMENT=true;  else ENABLE_SHORKTAINMENT=false;    fi
     if [[ $OPTIONS =~ "smp" ]];             then ENABLE_SMP=true;            else ENABLE_SMP=false;              fi
     if [[ $OPTIONS =~ "usb" ]];             then ENABLE_USB=true;            else ENABLE_USB=false;              fi
 fi

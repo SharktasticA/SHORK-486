@@ -170,6 +170,8 @@ Selecting "Yes" here will enable networking support in SHORK 486. BusyBox will i
 
 * **gcc**: Adds the GNU Assembler, GCC's C, C++ and Fortran compiler and musl C standard library. Using `g++` requires more system memory than usual, hence it is not included by default. RAM requirements are ideally 32MiB if no swap partition, 24MiB with 8MiB swap or 16MiB with 16MiB swap.
 
+* **shorktainment**: Includes the SHORK Entertainment programs bundle; shorklocomotive and shorksay.
+
 #### Options
 
 * **grub**: Uses a GRUB 2.x bootloader instead of EXTLINUX. The build script overrides this if you said "Yes" to using SHORK's patched fork of EXTLINUX.
@@ -188,8 +190,6 @@ Selecting "Yes" here will enable networking support in SHORK 486. BusyBox will i
 * **pcmcia**: Adds kernel-level CardBus/PCMCIA/PC Card support. It is primarily needed to support PCMCIA-based network controllers for laptops or unique desktop PCs like the IBM PS/2 E. For most desktop PCs, it is safe to exclude it.
 
 * **sata**: Adds kernel-level SATA AHCI support. This is provided in case someone wanted to try SHORK 486 on a more modern system with SATA devices, or has installed a PCI-based SATA controller in a '90s system. **It is not needed for most '90s hardware**. Its RAM requirements are 24MiB with no swap partition or 16MiB with 8MiB swap.
-
-* **shorktainment**: Includes the SHORK Entertainment programs; shorklocomotive and shorksay.
 
 * **smp**: Adds kernel-level symmetric multiprocessing (e.g., multi-core) support. This is provided in case someone wanted to try SHORK 486 on a more modern system with a multi-core processor. **It is not needed for any '90s hardware**. It may add ~1-2MiB to idle RAM usage.
 
