@@ -1188,8 +1188,8 @@ compile_kernel()
     sudo sed -i "s/printf '%s' -dirty/printf '%s'/" scripts/setlocalversion
 
     # Apply our patches
-    echo -e "${GREEN}Applying E820 patch...${RESET}"
-    patch -p1 < "$CURR_DIR/patches/7.0.0_6.14.11-e820.patch"
+    echo -e "${GREEN}Applying 7.0.0_6.14.11-e820-v2 patch...${RESET}"
+    patch -p1 < "$CURR_DIR/patches/7.0.0_6.14.11-e820-v2.patch"
 
     echo -e "${GREEN}Compiling Linux kernel...${RESET}"
     make ARCH=x86 olddefconfig

@@ -1,0 +1,14 @@
+diff --git a/arch/x86/kernel/e820.c b/arch/x86/kernel/e820.c
+index 2a9992758..1f968b483 100644
+--- a/arch/x86/kernel/e820.c
++++ b/arch/x86/kernel/e820.c
+@@ -450,6 +450,9 @@ __init static int append_e820_table(struct boot_e820_entry *entries, u32 nr_entr
+ {
+ 	struct boot_e820_entry *entry = entries;
+ 
++	if (nr_entries < 2)
++		return -1;
++
+ 	while (nr_entries) {
+ 		u64 start = entry->addr;
+ 		u64 size  = entry->size;
