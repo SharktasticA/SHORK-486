@@ -17,7 +17,7 @@ fi
 
 
 CURR_DIR=$(pwd)
-WIDTH=66
+WIDTH=72
 HEIGHT=16
 
 
@@ -506,16 +506,16 @@ OPTIONS=$(dialog --clear \
     --title "Options" \
     --cancel-label "Skip" \
     --checklist "Select what other options to include. Some of these are benign, some may increase the RAM and disk space requirement considerably, some are experimental. Options marked with \"*\" particularly affect RAM requirements." $HEIGHT $WIDTH 9 \
-    "cfonts"        "Alternative console fonts (+0.05MiB)"      $(val $ENABLE_CFONTS) \
-    "grub"          "GRUB 2.x instead of EXTLINUX (+4MiB)"      $(val $USE_GRUB) \
-    "gui"           "*SHORKGUI (+46MiB, EXPERIMENTAL)"          $(val $ENABLE_GUI) \
-    "highmem"       "*Kernel-level high memory support"         $(val $ENABLE_HIGHMEM) \
-    "menu"          "Menu-based bootloader (+0.5MiB)"           $(val_inv $NO_MENU) \
-    "pci.ids"       "PCI IDs database (+0.1MiB)"                $(val_inv $SKIP_PCIIDS) \
-    "pcmcia"        "Kernel-level PCMCIA support"               $(val $ENABLE_PCMCIA) \
-    "sata"          "*Kernel-level SATA support"                $(val $ENABLE_SATA) \
-    "smp"           "*Kernel-level SMP support"                 $(val $ENABLE_SMP) \
-    "usb"           "Kernel-level USB & HID support (+0.2MiB)"  $(val $ENABLE_USB) \
+    "cfonts"        "Alternative console fonts (+0.05MiB)"              $(val $ENABLE_CFONTS) \
+    "grub"          "GRUB 2.x instead of EXTLINUX (+4MiB)"              $(val $USE_GRUB) \
+    "gui"           "*SHORKGUI (+46MiB, EXPERIMENTAL)"                  $(val $ENABLE_GUI) \
+    "highmem"       "*Kernel-level high memory support"                 $(val $ENABLE_HIGHMEM) \
+    "menu"          "Menu-based bootloader (+0.5MiB)"                   $(val_inv $NO_MENU) \
+    "pci.ids"       "PCI IDs database (+0.1MiB)"                        $(val_inv $SKIP_PCIIDS) \
+    "pcmcia"        "Kernel-level PCMCIA support"                       $(val $ENABLE_PCMCIA) \
+    "sata"          "*Kernel-level SATA support"                        $(val $ENABLE_SATA) \
+    "smp"           "*Kernel-level SMP support"                         $(val $ENABLE_SMP) \
+    "usb"           "Kernel-level USB & HID support & lsusb (+0.2MiB)"  $(val $ENABLE_USB) \
     2>&1 >/dev/tty)
     #"keymaps"   "Keymaps & shorkmap (+0.06MiB)"             $(val_inv $SKIP_KEYMAPS) \
     
