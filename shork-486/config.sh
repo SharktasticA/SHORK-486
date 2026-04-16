@@ -37,24 +37,24 @@ SET_KEYMAP="en_us"
 HOSTNAME="shork-486"
 FIX_EXTLINUX=true
 ENABLE_NET_ETH=true
-SKIP_DROPBEAR=false
-SKIP_FILE=false
-SKIP_GIT=false
-SKIP_EMACS=false
+ENABLE_DROPBEAR=true
+ENABLE_FILE=true
+ENABLE_GIT=true
 ENABLE_HTOP=true
-SKIP_NANO=false
+ENABLE_MG=true
+ENABLE_NANO=true
 ENABLE_SHORKTAINMENT=true
-SKIP_TCC=false
-SKIP_TNFTP=false
+ENABLE_TCC=true
+ENABLE_TNFTP=true
 ENABLE_TMUX=true
-NO_MENU=false
 ENABLE_GCC=false
 USE_GRUB=false
 ENABLE_CFONTS=true
 ENABLE_GUI=false
 ENABLE_HIGHMEM=false
-SKIP_KEYMAPS=false
-SKIP_PCIIDS=false
+ENABLE_KEYMAPS=true
+ENABLE_MENU=true
+ENABLE_PCIIDS=true
 ENABLE_PCMCIA=true
 ENABLE_SATA=false
 ENABLE_SMP=false
@@ -122,24 +122,24 @@ SET_KEYMAP="$SET_KEYMAP"
 HOSTNAME="$HOSTNAME"
 FIX_EXTLINUX=$FIX_EXTLINUX
 ENABLE_NET_ETH=$ENABLE_NET_ETH
-SKIP_DROPBEAR=$SKIP_DROPBEAR
-SKIP_FILE=$SKIP_FILE
+ENABLE_DROPBEAR=$ENABLE_DROPBEAR
+ENABLE_FILE=$ENABLE_FILE
 ENABLE_GCC=$ENABLE_GCC
-SKIP_GIT=$SKIP_GIT
-SKIP_EMACS=$SKIP_EMACS
+ENABLE_GIT=$ENABLE_GIT
 ENABLE_HTOP=$ENABLE_HTOP
-SKIP_NANO=$SKIP_NANO
+ENABLE_MG=$ENABLE_MG
+ENABLE_NANO=$ENABLE_NANO
 ENABLE_SHORKTAINMENT=$ENABLE_SHORKTAINMENT
-SKIP_TCC=$SKIP_TCC
-SKIP_TNFTP=$SKIP_TNFTP
+ENABLE_TCC=$ENABLE_TCC
+ENABLE_TNFTP=$ENABLE_TNFTP
 ENABLE_TMUX=$ENABLE_TMUX
-NO_MENU=$NO_MENU
 USE_GRUB=$USE_GRUB
 ENABLE_CFONTS=$ENABLE_CFONTS
 ENABLE_GUI=$ENABLE_GUI
 ENABLE_HIGHMEM=$ENABLE_HIGHMEM
-SKIP_KEYMAPS=$SKIP_KEYMAPS
-SKIP_PCIIDS=$SKIP_PCIIDS
+ENABLE_KEYMAPS=$ENABLE_KEYMAPS
+ENABLE_MENU=$ENABLE_MENU
+ENABLE_PCIIDS=$ENABLE_PCIIDS
 ENABLE_PCMCIA=$ENABLE_PCMCIA
 ENABLE_SATA=$ENABLE_SATA
 ENABLE_SMP=$ENABLE_SMP
@@ -216,24 +216,24 @@ elif [ "$TYPE" == "Default" ]; then
     MAXIMAL=false
     CUSTOM=false
     ENABLE_NET_ETH=true
-    SKIP_DROPBEAR=false
-    SKIP_FILE=false
-    SKIP_GIT=false
-    SKIP_EMACS=false
+    ENABLE_DROPBEAR=true
+    ENABLE_FILE=true
+    ENABLE_GIT=true
     ENABLE_HTOP=true
-    SKIP_NANO=false
+    ENABLE_MG=true
+    ENABLE_NANO=true
     ENABLE_SHORKTAINMENT=true
-    SKIP_TCC=false
-    SKIP_TNFTP=false
+    ENABLE_TCC=true
+    ENABLE_TNFTP=true
     ENABLE_TMUX=true
-    NO_MENU=false
     ENABLE_GCC=false
     USE_GRUB=false
     ENABLE_GUI=false
     ENABLE_CFONTS=true
     ENABLE_HIGHMEM=false
-    SKIP_KEYMAPS=false
-    SKIP_PCIIDS=false
+    ENABLE_KEYMAPS=true
+    ENABLE_MENU=true
+    ENABLE_PCIIDS=true
     ENABLE_PCMCIA=true
     ENABLE_SATA=false
     ENABLE_SMP=false
@@ -245,24 +245,24 @@ elif [ "$TYPE" == "Minimal" ]; then
     MAXIMAL=false
     CUSTOM=false
     ENABLE_NET_ETH=false
-    SKIP_DROPBEAR=true
-    SKIP_FILE=true
-    SKIP_GIT=true
-    SKIP_EMACS=true
+    ENABLE_DROPBEAR=false
+    ENABLE_FILE=false
+    ENABLE_GIT=false
     ENABLE_HTOP=false
-    SKIP_NANO=true
+    ENABLE_MG=false
+    ENABLE_NANO=false
     ENABLE_SHORKTAINMENT=false
-    SKIP_TCC=true
-    SKIP_TNFTP=true
+    ENABLE_TCC=false
+    ENABLE_TNFTP=false
     ENABLE_TMUX=false
-    NO_MENU=true
     ENABLE_GCC=false
     USE_GRUB=false
     ENABLE_GUI=false
     ENABLE_CFONTS=false
     ENABLE_HIGHMEM=false
-    SKIP_KEYMAPS=true
-    SKIP_PCIIDS=true
+    ENABLE_KEYMAPS=false
+    ENABLE_MENU=false
+    ENABLE_PCIIDS=false
     ENABLE_PCMCIA=false
     ENABLE_SATA=false
     ENABLE_SMP=false
@@ -274,24 +274,24 @@ elif [ "$TYPE" == "Maximal" ]; then
     MAXIMAL=true
     CUSTOM=false
     ENABLE_NET_ETH=true
-    SKIP_DROPBEAR=false
-    SKIP_FILE=false
-    SKIP_GIT=false
-    SKIP_EMACS=false
+    ENABLE_DROPBEAR=true
+    ENABLE_FILE=true
+    ENABLE_GIT=true
     ENABLE_HTOP=true
-    SKIP_NANO=false
+    ENABLE_MG=true
+    ENABLE_NANO=true
     ENABLE_SHORKTAINMENT=true
-    SKIP_TCC=false
-    SKIP_TNFTP=false
+    ENABLE_TCC=true
+    ENABLE_TNFTP=true
     ENABLE_TMUX=true
-    NO_MENU=false
     ENABLE_GCC=true
     USE_GRUB=false
     ENABLE_GUI=true
     ENABLE_CFONTS=true
     ENABLE_HIGHMEM=true
-    SKIP_KEYMAPS=false
-    SKIP_PCIIDS=false
+    ENABLE_KEYMAPS=true
+    ENABLE_MENU=true
+    ENABLE_PCIIDS=true
     ENABLE_PCMCIA=true
     ENABLE_SATA=true
     ENABLE_SMP=true
@@ -302,6 +302,7 @@ elif [ "$TYPE" == "Custom" ]; then
     MINIMAL=false
     MAXIMAL=false
     CUSTOM=true
+    ENABLE_KEYMAPS=true
 fi
 
 
@@ -451,9 +452,9 @@ if [[ $CHOICE -eq 0 ]]; then
     ENABLE_NET_ETH=true
 elif [[ $CHOICE -eq 1 ]]; then
     ENABLE_NET_ETH=false
-    SKIP_DROPBEAR=true
-    SKIP_GIT=true
-    SKIP_TNFTP=true
+    ENABLE_DROPBEAR=false
+    ENABLE_GIT=false
+    ENABLE_TNFTP=false
 fi
 
 
@@ -463,27 +464,27 @@ BUNDLED_ITEMS=()
 
 if [ "$ENABLE_NET_ETH" == true ]; then
     BUNDLED_ITEMS+=(
-        "dropbear"      "SCP & SSH client (+0.4MiB)"                        "$(val_inv "$SKIP_DROPBEAR")"
-        "file"          "File type identification (+10MiB)"                 "$(val_inv "$SKIP_FILE")"
+        "dropbear"      "SCP & SSH client (+0.4MiB)"                        "$(val "$ENABLE_DROPBEAR")"
+        "file"          "File type identification (+10MiB)"                 "$(val "$ENABLE_FILE")"
         "gcc"           "*GCC (as, g++, gcc, gfortran) + musl (+215MiB)"    "$(val "$ENABLE_GCC")"
-        "git"           "Source control client (+19MiB)"                    "$(val_inv "$SKIP_GIT")"
-        "htop"          "htop (+0.6MiB)"                                    "$(val "$ENABLE_HTOP")"
-        "mg"            "Emacs-style text editor (+0.3MiB)"                 "$(val_inv "$SKIP_EMACS")"
-        "nano"          "Text editor (+1MiB)"                               "$(val_inv "$SKIP_NANO")"
+        "git"           "Source control client (+19MiB)"                    "$(val "$ENABLE_GIT")"
+        "htop"          "Interactive process viewer (+0.6MiB)"              "$(val "$ENABLE_HTOP")"
+        "mg"            "Emacs-style text editor (+0.3MiB)"                 "$(val "$ENABLE_MG")"
+        "nano"          "Text editor (+1MiB)"                               "$(val "$ENABLE_NANO")"
         "shorktainment" "shorksay & sl (+0.06MiB)"                          "$(val "$ENABLE_SHORKTAINMENT")"
-        "tcc"           "Tiny C Compiler + musl (+4MiB)"                    "$(val_inv "$SKIP_TCC")"
-        "tnftp"         "FTP client (+0.3MiB)"                              "$(val_inv "$SKIP_TNFTP")"
+        "tcc"           "Tiny C Compiler + musl (+4MiB)"                    "$(val "$ENABLE_TCC")"
+        "tnftp"         "FTP client (+0.3MiB)"                              "$(val "$ENABLE_TNFTP")"
         "tmux"          "tmux (+1.7MiB)"                                    "$(val "$ENABLE_TMUX")"
     )
 else
     BUNDLED_ITEMS+=(
-        "file"          "File type identification (+10MiB)"                 "$(val_inv "$SKIP_FILE")"
+        "file"          "File type identification (+10MiB)"                 "$(val "$ENABLE_FILE")"
         "gcc"           "*GCC (as, g++, gcc, gfortran) + musl (+215MiB)"    "$(val "$ENABLE_GCC")"
         "htop"          "htop (+0.6MiB)"                                    "$(val "$ENABLE_HTOP")"
-        "mg"            "Emacs-style text editor (+0.3MiB)"                 "$(val_inv "$SKIP_EMACS")"
-        "nano"          "Text editor (+1MiB)"                               "$(val_inv "$SKIP_NANO")"
+        "mg"            "Emacs-style text editor (+0.3MiB)"                 "$(val "$ENABLE_MG")"
+        "nano"          "Text editor (+1MiB)"                               "$(val "$ENABLE_NANO")"
         "shorktainment" "shorksay & sl (+0.06MiB)"                          "$(val "$ENABLE_SHORKTAINMENT")"
-        "tcc"           "Tiny C Compiler + musl (+4MiB)"                    "$(val_inv "$SKIP_TCC")"
+        "tcc"           "Tiny C Compiler + musl (+4MiB)"                    "$(val "$ENABLE_TCC")"
         "tmux"          "tmux (+1.7MiB)"                                    "$(val "$ENABLE_TMUX")"
     )
 fi
@@ -501,17 +502,17 @@ SKIPPED=$?
 if [[ $SKIPPED -eq 1 ]]; then
     :
 else
-    if [[ $BUNDLED =~ "dropbear" ]];        then SKIP_DROPBEAR=false;           else SKIP_DROPBEAR=true;            fi
-    if [[ $BUNDLED =~ "file" ]];            then SKIP_FILE=false;               else SKIP_FILE=true;                fi
+    if [[ $BUNDLED =~ "dropbear" ]];        then ENABLE_DROPBEAR=true;          else ENABLE_DROPBEAR=false;         fi
+    if [[ $BUNDLED =~ "file" ]];            then ENABLE_FILE=true;              else ENABLE_FILE=false;             fi
     if [[ $BUNDLED =~ "gcc" ]];             then ENABLE_GCC=true;               else ENABLE_GCC=false;              fi
-    if [[ $BUNDLED =~ "git" ]];             then SKIP_GIT=false;                else SKIP_GIT=true;                 fi
+    if [[ $BUNDLED =~ "git" ]];             then ENABLE_GIT=true;               else ENABLE_GIT=false;              fi
     if [[ $BUNDLED =~ "htop" ]];            then ENABLE_HTOP=true;              else ENABLE_HTOP=false;             fi
-    if [[ $BUNDLED =~ "mg" ]];              then SKIP_EMACS=false;              else SKIP_EMACS=true;               fi
-    if [[ $BUNDLED =~ "nano" ]];            then SKIP_NANO=false;               else SKIP_NANO=true;                fi
+    if [[ $BUNDLED =~ "mg" ]];              then ENABLE_MG=true;                else ENABLE_MG=false;               fi
+    if [[ $BUNDLED =~ "nano" ]];            then ENABLE_NANO=true;              else ENABLE_NANO=false;             fi
     if [[ $BUNDLED =~ "shorktainment" ]];   then ENABLE_SHORKTAINMENT=true;     else ENABLE_SHORKTAINMENT=false;    fi
-    if [[ $BUNDLED =~ "tcc" ]];             then SKIP_TCC=false;                else SKIP_TCC=true;                 fi
+    if [[ $BUNDLED =~ "tcc" ]];             then ENABLE_TCC=true;               else ENABLE_TCC=false;              fi
     if [[ $BUNDLED =~ "tmux" ]];            then ENABLE_TMUX=true;              else ENABLE_TMUX=false;             fi
-    if [[ $BUNDLED =~ "tnftp" ]];           then SKIP_TNFTP=false;              else SKIP_TNFTP=true;               fi
+    if [[ $BUNDLED =~ "tnftp" ]];           then ENABLE_TNFTP=true;             else ENABLE_TNFTP=false;            fi
 fi
 
 
@@ -526,28 +527,29 @@ OPTIONS=$(dialog --clear \
     "grub"          "GRUB 2.x instead of EXTLINUX (+4MiB)"              $(val $USE_GRUB) \
     "gui"           "*SHORKGUI (+46MiB, EXPERIMENTAL)"                  $(val $ENABLE_GUI) \
     "highmem"       "*Kernel-level high memory support"                 $(val $ENABLE_HIGHMEM) \
-    "menu"          "Menu-based bootloader (+0.5MiB)"                   $(val_inv $NO_MENU) \
-    "pci.ids"       "PCI IDs database (+0.1MiB)"                        $(val_inv $SKIP_PCIIDS) \
+    "menu"          "Menu-based bootloader (+0.5MiB)"                   $(val $ENABLE_MENU) \
+    "pci.ids"       "PCI IDs database (+0.1MiB)"                        $(val $ENABLE_PCIIDS) \
     "pcmcia"        "Kernel-level PCMCIA support"                       $(val $ENABLE_PCMCIA) \
     "sata"          "*Kernel-level SATA support"                        $(val $ENABLE_SATA) \
     "smp"           "*Kernel-level SMP support"                         $(val $ENABLE_SMP) \
     "usb"           "Kernel-level USB & HID support & lsusb (+0.2MiB)"  $(val $ENABLE_USB) \
     2>&1 >/dev/tty)
-    #"keymaps"   "Keymaps & shorkmap (+0.06MiB)"             $(val_inv $SKIP_KEYMAPS) \
+    #"keymaps"   "Keymaps & shorkmap (+0.06MiB)"             $(val $ENABLE_KEYMAPS) \
     
 SKIPPED=$?
 
 if [[ $SKIPPED -eq 1 ]]; then
     :
 else
-    if [[ $OPTIONS =~ "cfonts" ]];          then ENABLE_CFONTS=true;         else ENABLE_CFONTS=false;           fi
-    if [[ $OPTIONS =~ "grub" ]];            then USE_GRUB=true;              else USE_GRUB=false;                fi
-    if [[ $OPTIONS =~ "gui" ]];             then ENABLE_GUI=true;            else ENABLE_GUI=false;              fi
-    if [[ $OPTIONS =~ "highmem" ]];         then ENABLE_HIGHMEM=true;        else ENABLE_HIGHMEM=false;          fi
-    #if [[ $OPTIONS =~ "keymaps" ]];         then SKIP_KEYMAPS=false;         else SKIP_KEYMAPS=true;             fi
-    if [[ $OPTIONS =~ "pci.ids" ]];         then SKIP_PCIIDS=false;          else SKIP_PCIIDS=true;              fi
-    if [[ $OPTIONS =~ "pcmcia" ]];          then ENABLE_PCMCIA=true;         else ENABLE_PCMCIA=false;           fi
-    if [[ $OPTIONS =~ "sata" ]];            then ENABLE_SATA=true;           else ENABLE_SATA=false;             fi
-    if [[ $OPTIONS =~ "smp" ]];             then ENABLE_SMP=true;            else ENABLE_SMP=false;              fi
-    if [[ $OPTIONS =~ "usb" ]];             then ENABLE_USB=true;            else ENABLE_USB=false;              fi
+    if [[ $OPTIONS =~ "cfonts" ]];      then ENABLE_CFONTS=true;    else ENABLE_CFONTS=false;       fi
+    if [[ $OPTIONS =~ "grub" ]];        then USE_GRUB=true;         else USE_GRUB=false;            fi
+    if [[ $OPTIONS =~ "gui" ]];         then ENABLE_GUI=true;       else ENABLE_GUI=false;          fi
+    if [[ $OPTIONS =~ "highmem" ]];     then ENABLE_HIGHMEM=true;   else ENABLE_HIGHMEM=false;      fi
+    #if [[ $OPTIONS =~ "keymaps" ]];    then $ENABLE_KEYMAPS=true;  else $ENABLE_KEYMAPS=false;     fi
+    if [[ $OPTIONS =~ "menu" ]];        then ENABLE_MENU=true;      else ENABLE_MENU=false;         fi
+    if [[ $OPTIONS =~ "pci.ids" ]];     then ENABLE_PCIIDS=true;    else ENABLE_PCIIDS=false;       fi
+    if [[ $OPTIONS =~ "pcmcia" ]];      then ENABLE_PCMCIA=true;    else ENABLE_PCMCIA=false;       fi
+    if [[ $OPTIONS =~ "sata" ]];        then ENABLE_SATA=true;      else ENABLE_SATA=false;         fi
+    if [[ $OPTIONS =~ "smp" ]];         then ENABLE_SMP=true;       else ENABLE_SMP=false;          fi
+    if [[ $OPTIONS =~ "usb" ]];         then ENABLE_USB=true;       else ENABLE_USB=false;          fi
 fi

@@ -119,46 +119,48 @@ ZLIB_VER="1.3.1.2"
 MBR_BIN=""
 
 # Build parameters/arguments
-ALWAYS_BUILD=false
 ENABLE_CFONTS=true
+ENABLE_DROPBEAR=true
 ENABLE_FB=true
+ENABLE_FILE=true
 ENABLE_GCC=false
+ENABLE_GIT=true
 ENABLE_GUI=false
 ENABLE_HIGHMEM=false
 ENABLE_HTOP=true
+ENABLE_KEYMAPS=true
+ENABLE_MENU=true
+ENABLE_MG=true
 ENABLE_MULTIUSER=false
+ENABLE_NANO=true
 ENABLE_NET_BASE=false
 ENABLE_NET_ETH=false
+ENABLE_PCIIDS=true
 ENABLE_PCMCIA=true
 ENABLE_SATA=false
 ENABLE_SHORKTAINMENT=true
 ENABLE_SMP=false
 ENABLE_TASKSTATS=false
+ENABLE_TCC=true
 ENABLE_TESTS=false
 ENABLE_TMUX=true
+ENABLE_TNFTP=true
 ENABLE_USB=false
+
+ALWAYS_BUILD=false
 FIX_EXTLINUX=false
 IS_ARCH=false
 IS_DEBIAN=false
 IS_FEDORA=false
 MAXIMAL=false
 MINIMAL=false
-NO_MENU=false
 PHYSICAL_ALIGN=0x2000
 PHYSICAL_START=""
 SET_KEYMAP=""
 SHORKUTILS_RECLONE=false
 SKIP_BB=false
-SKIP_DROPBEAR=false
-SKIP_EMACS=false
-SKIP_GIT=false
-SKIP_KEYMAPS=false
 SKIP_KRN=false
-SKIP_FILE=false
-SKIP_NANO=false
-SKIP_PCIIDS=false
-SKIP_TCC=false
-SKIP_TNFTP=false
+
 TARGET_DISK=""
 TARGET_SWAP=""
 USE_GRUB=false
@@ -168,38 +170,6 @@ while [ $# -gt 0 ]; do
     case "$1" in
         --always-build)
             ALWAYS_BUILD=true
-            ;;
-        --disable-pcmcia)
-            ENABLE_PCMCIA=false
-            BUILD_TYPE="custom"
-            ;;
-        --enable-gcc)
-            ENABLE_GCC=true
-            ;;
-        --enable-gui)
-            ENABLE_GUI=true
-            ;;
-        --enable-highmem)
-            ENABLE_HIGHMEM=true
-            BUILD_TYPE="custom"
-            ;;
-        --enable-sata)
-            ENABLE_SATA=true
-            BUILD_TYPE="custom"
-            ;;
-        --enable-smp)
-            ENABLE_SMP=true
-            BUILD_TYPE="custom"
-            ;;
-        --enable-tests)
-            ENABLE_TESTS=true
-            ;;
-        --enable-usb)
-            ENABLE_USB=true
-            BUILD_TYPE="custom"
-            ;;
-        --fix-extlinux)
-            FIX_EXTLINUX=true
             ;;
         --is-arch)
             IS_ARCH=true
@@ -216,22 +186,6 @@ while [ $# -gt 0 ]; do
             IS_DEBIAN=false
             IS_FEDORA=true
             ;;
-        --maximal)
-            MAXIMAL=true
-            ;;
-        --minimal)
-            MINIMAL=true
-            ;;
-        --no-menu)
-            NO_MENU=true
-            BUILD_TYPE="custom"
-            ;;
-        --phys-start=*)
-            PHYSICAL_START="${1#*=}"
-            ;;
-        --set-keymap=*)
-            SET_KEYMAP="${1#*=}"
-            ;;
         --shorkutils-reclone)
             SHORKUTILS_RECLONE=true
             ;;
@@ -239,55 +193,9 @@ while [ $# -gt 0 ]; do
             SKIP_BB=true
             DONT_DEL_ROOT=true
             ;;
-        --skip-dropbear)
-            SKIP_DROPBEAR=true
-            BUILD_TYPE="custom"
-            ;;
-        --skip-emacs)
-            SKIP_EMACS=true
-            BUILD_TYPE="custom"
-            ;;
-        --skip-git)
-            SKIP_GIT=true
-            BUILD_TYPE="custom"
-            ;;
-        --skip-keymaps)
-            SKIP_KEYMAPS=true
-            BUILD_TYPE="custom"
-            ;;
         --skip-kernel)
             SKIP_KRN=true
             DONT_DEL_ROOT=true
-            ;;
-        --skip-file)
-            SKIP_FILE=true
-            BUILD_TYPE="custom"
-            ;;
-        --skip-nano)
-            SKIP_NANO=true
-            BUILD_TYPE="custom"
-            ;;
-        --skip-pciids)
-            SKIP_PCIIDS=true
-            BUILD_TYPE="custom"
-            ;;
-        --skip-tcc)
-            SKIP_TCC=true
-            BUILD_TYPE="custom"
-            ;;
-        --skip-tnftp)
-            SKIP_TNFTP=true
-            BUILD_TYPE="custom"
-            ;;
-        --target-disk=*)
-            TARGET_DISK="${1#*=}"
-            ;;
-        --target-swap=*)
-            TARGET_SWAP="${1#*=}"
-            ;;
-        --use-grub)
-            USE_GRUB=true
-            BUILD_TYPE="custom"
             ;;
     esac
     shift
@@ -348,9 +256,9 @@ if $ENABLE_NET_ETH; then
     ENABLE_PCMCIA=true
 # If networking support is disabled, make sure networking-based programs are also skipped
 else
-    SKIP_DROPBEAR=true
-    SKIP_GIT=true
-    SKIP_TNFTP=true
+    ENABLE_DROPBEAR=false
+    ENABLE_GIT=false
+    ENABLE_TNFTP=false
 fi
 
 # Override to ensure the "use GRUB" parameter is disabled when the "Fix EXTLINUX" parameter is used
@@ -431,7 +339,7 @@ if [ -n "$USED_WM" ]; then
     NEED_ZLIB=true
 fi
 
-if ! $SKIP_GIT; then
+if $ENABLE_GIT; then
     NEED_ZLIB=true
     NEED_OPENSSL=true
     NEED_CURL=true
@@ -595,13 +503,15 @@ install_debian_prerequisites()
         PACKAGES+=" nasm uuid-dev"
     fi
 
-    if ! $SKIP_GIT; then
+    if $ENABLE_GIT; then
         PACKAGES+=" autoconf"
     fi
-    if ! $SKIP_PCIIDS; then
+
+    if $ENABLE_PCIIDS; then
         PACKAGES+=" pciutils"
     fi
-    if ! $SKIP_NANO; then
+
+    if $ENABLE_NANO; then
         PACKAGES+=" texinfo"
     fi
 
@@ -629,11 +539,11 @@ install_fedora_prerequisites()
         PACKAGES+=" libuuid-devel nasm"
     fi
 
-    if ! $SKIP_PCIIDS; then
+    if $ENABLE_PCIIDS; then
         PACKAGES+=" pciutils"
     fi
 
-    if ! $SKIP_NANO; then
+    if $ENABLE_NANO; then
         PACKAGES+=" texinfo"
     fi
 
@@ -3927,6 +3837,12 @@ trim_fat()
 
     sudo rm -rf "$DESTDIR/usr/lib/pkgconfig" "$DESTDIR/usr/man" "$DESTDIR/usr/share/bash-completion" "$DESTDIR/usr/share/doc" "$DESTDIR/usr/share/info" "$DESTDIR/usr/share/man"
 
+    if $ENABLE_FILE; then
+        sudo rm -rf "$DESTDIR/usr/include/magic.h"
+        sudo rm -rf "$DESTDIR/usr/lib/libmagic.a"
+        sudo rm -rf "$DESTDIR/usr/lib/libmagic.la"
+    fi
+
     if $ENABLE_GCC; then
         sudo rm -rf "$DESTDIR/opt/i486-linux-musl-native/i486-linux-musl"
         sudo rm -rf "$DESTDIR/opt/i486-linux-musl-native/share"
@@ -3941,16 +3857,8 @@ trim_fat()
             fi
         done
     fi
-
-    if $ENABLE_GUI; then
-        sudo rm -rf "$DESTDIR/home/kali"
-    fi
-
-    if ! $SKIP_EMACS; then
-        sudo rm -rf "$DESTDIR/usr/share/mg"
-    fi
     
-    if ! $SKIP_GIT; then
+    if $ENABLE_GIT; then
         cd "$DESTDIR/usr/libexec/git-core"
         sudo rm -f git-imap-send git-http-fetch git-http-backend git-daemon git-p4 git-svn git-send-email
         cd "$DESTDIR/usr/bin"
@@ -3960,10 +3868,12 @@ trim_fat()
         sudo mkdir -p "$DESTDIR/usr/share/git-core/templates"
     fi
 
-    if ! $SKIP_FILE; then
-        sudo rm -rf "$DESTDIR/usr/include/magic.h"
-        sudo rm -rf "$DESTDIR/usr/lib/libmagic.a"
-        sudo rm -rf "$DESTDIR/usr/lib/libmagic.la"
+    if $ENABLE_GUI; then
+        sudo rm -rf "$DESTDIR/home/kali"
+    fi
+
+    if $ENABLE_MG; then
+        sudo rm -rf "$DESTDIR/usr/share/mg"
     fi
 
     for bin in "$DESTDIR"/usr/bin/*; do
@@ -4069,7 +3979,7 @@ build_file_system()
         fi
     fi
 
-    if ! $SKIP_KEYMAPS; then
+    if $ENABLE_KEYMAPS; then
         echo -e "${GREEN}Installing keymaps...${RESET}"
         sudo mkdir -p $DESTDIR/usr/share/keymaps/
         sudo cp $CURR_DIR/sysfiles/keymaps/*.kmap.bin "$DESTDIR/usr/share/keymaps/"
@@ -4081,7 +3991,7 @@ build_file_system()
         fi
     fi
 
-    if ! $SKIP_PCIIDS; then
+    if $ENABLE_PCIIDS; then
         # Include PCI IDs for shorkfetch's GPU identification
         # **Work offloaded to Python**
         echo -e "${GREEN}Generating pci.ids database...${RESET}"
@@ -4096,18 +4006,18 @@ build_file_system()
         copy_sysfile /etc/ssl/certs/ca-certificates.crt $DESTDIR/etc/ssl/cert.pem
     fi
 
-    if ! $SKIP_EMACS; then
-        echo -e "${GREEN}Copying pre-defined Mg settings...${RESET}"
-        copy_sysfile $CURR_DIR/sysfiles/mg $DESTDIR/etc/mg
-    fi
-
-    if ! $SKIP_GIT; then
+    if $ENABLE_GIT; then
         echo -e "${GREEN}Copying pre-defined Git settings...${RESET}"
         sudo mkdir -p $DESTDIR/usr/etc
         copy_sysfile $CURR_DIR/sysfiles/gitconfig $DESTDIR/usr/etc/gitconfig
     fi
 
-    if ! $SKIP_NANO; then
+    if $ENABLE_MG; then
+        echo -e "${GREEN}Copying pre-defined Mg settings...${RESET}"
+        copy_sysfile $CURR_DIR/sysfiles/mg $DESTDIR/etc/mg
+    fi
+
+    if $ENABLE_NANO; then
         echo -e "${GREEN}Copying pre-defined nano settings...${RESET}"
         sudo mkdir -p $DESTDIR/usr/etc
         copy_sysfile $CURR_DIR/sysfiles/nanorc $DESTDIR/usr/etc/nanorc
@@ -4146,7 +4056,7 @@ install_grub_bootloader()
 
     sudo mkdir -p /mnt/shork-486/boot/grub
 
-    if ! $NO_MENU; then
+    if $ENABLE_MENU; then
         echo -e "${GREEN}Installing menu-based GRUB bootloader...${RESET}"
         copy_sysfile $CURR_DIR/sysfiles/grub.cfg.menu /mnt/shork-486/boot/grub/grub.cfg
     else
@@ -4185,7 +4095,7 @@ install_extlinux_bootloader()
 
     sudo mkdir -p /mnt/shork-486/boot/syslinux
 
-    if ! $NO_MENU; then
+    if $ENABLE_MENU; then
         echo -e "${GREEN}Installing menu-based EXTLINUX bootloader...${RESET}"
         copy_sysfile $CURR_DIR/sysfiles/syslinux.cfg.menu  /mnt/shork-486/boot/syslinux/syslinux.cfg
         
@@ -4701,10 +4611,10 @@ generate_report()
         "CHS geometry:        $DISK_CYLINDERS/$DISK_HEADS/$DISK_SECTORS_TRACK"
     )
 
-    if $NO_MENU; then
-        lines+=("Boot style:          boot only")
-    else
+    if $ENABLE_MENU; then
         lines+=("Boot style:          menu")
+    else
+        lines+=("Boot style:          boot only")
     fi
 
     if [ -n "$INCLUDED_FEATURES" ]; then
@@ -4796,35 +4706,35 @@ if $ENABLE_CFONTS; then
     get_console_fonts
 fi
 
-if ! $SKIP_DROPBEAR; then
+if $ENABLE_DROPBEAR; then
     get_dropbear
 fi
-if ! $SKIP_EMACS; then
-    get_emacs
-fi
-if ! $SKIP_FILE; then
+if $ENABLE_FILE; then
     get_file
 fi
 if $ENABLE_GCC; then
     get_gcc
 fi
-if ! $SKIP_GIT; then
+if $ENABLE_GIT; then
     get_git
 fi
 if $ENABLE_HTOP; then
     get_htop
 fi
-if ! $SKIP_NANO; then
+if $ENABLE_MG; then
+    get_emacs
+fi
+if $ENABLE_NANO; then
     get_nano
 fi
-if ! $SKIP_TCC; then
+if $ENABLE_TCC; then
     get_musl
     get_tcc
 fi
 if $ENABLE_TMUX; then
     get_tmux
 fi
-if ! $SKIP_TNFTP; then
+if $ENABLE_TNFTP; then
     get_tnftp
 fi
 
@@ -4833,7 +4743,7 @@ get_shorkdir
 get_shorkfetch
 get_shorkfont
 get_shorkhelp
-if ! $SKIP_KEYMAPS; then
+if $ENABLE_KEYMAPS; then
     get_shorkmap
 fi
 get_shorkoff
