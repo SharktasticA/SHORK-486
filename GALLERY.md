@@ -78,12 +78,12 @@
 
 <table style="table-layout: fixed; width: 100%;">
   <tr>
-    <td style="width: 50%; text-align: center;"><img src="screenshots/86box_ed.png" style="width: 100%;" /></td>
-    <td style="width: 50%; text-align: center;"><img src="screenshots/86box_nano.png" style="width: 100%;" /></td>
+    <td style="width: 50%; text-align: center;"><img src="screenshots/86box_htop.png" style="width: 100%;" /></td>
+    <td style="width: 50%; text-align: center;"><img src="screenshots/86box_tmux.png" style="width: 100%;" /></td>
   </tr>
   <tr>
-    <td>ed</td>
-    <td>nano</td>
+    <td>htop</td>
+    <td>tmux</td>
   </tr>
 </table>
 
@@ -95,6 +95,17 @@
   <tr>
     <td>Mg</td>
     <td>git init</td>
+  </tr>
+</table>
+
+<table style="table-layout: fixed; width: 100%;">
+  <tr>
+    <td style="width: 50%; text-align: center;"><img src="screenshots/86box_ed.png" style="width: 100%;" /></td>
+    <td style="width: 50%; text-align: center;"><img src="screenshots/86box_nano.png" style="width: 100%;" /></td>
+  </tr>
+  <tr>
+    <td>ed</td>
+    <td>nano</td>
   </tr>
 </table>
 

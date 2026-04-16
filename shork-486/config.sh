@@ -46,6 +46,7 @@ SKIP_NANO=false
 ENABLE_SHORKTAINMENT=true
 SKIP_TCC=false
 SKIP_TNFTP=false
+ENABLE_TMUX=true
 NO_MENU=false
 ENABLE_GCC=false
 USE_GRUB=false
@@ -131,6 +132,7 @@ SKIP_NANO=$SKIP_NANO
 ENABLE_SHORKTAINMENT=$ENABLE_SHORKTAINMENT
 SKIP_TCC=$SKIP_TCC
 SKIP_TNFTP=$SKIP_TNFTP
+ENABLE_TMUX=$ENABLE_TMUX
 NO_MENU=$NO_MENU
 USE_GRUB=$USE_GRUB
 ENABLE_CFONTS=$ENABLE_CFONTS
@@ -223,6 +225,7 @@ elif [ "$TYPE" == "Default" ]; then
     ENABLE_SHORKTAINMENT=true
     SKIP_TCC=false
     SKIP_TNFTP=false
+    ENABLE_TMUX=true
     NO_MENU=false
     ENABLE_GCC=false
     USE_GRUB=false
@@ -251,6 +254,7 @@ elif [ "$TYPE" == "Minimal" ]; then
     ENABLE_SHORKTAINMENT=false
     SKIP_TCC=true
     SKIP_TNFTP=true
+    ENABLE_TMUX=false
     NO_MENU=true
     ENABLE_GCC=false
     USE_GRUB=false
@@ -279,6 +283,7 @@ elif [ "$TYPE" == "Maximal" ]; then
     ENABLE_SHORKTAINMENT=true
     SKIP_TCC=false
     SKIP_TNFTP=false
+    ENABLE_TMUX=true
     NO_MENU=false
     ENABLE_GCC=true
     USE_GRUB=false
@@ -466,8 +471,9 @@ if [ "$ENABLE_NET_ETH" == true ]; then
         "mg"            "Emacs-style text editor (+0.3MiB)"                 "$(val_inv "$SKIP_EMACS")"
         "nano"          "Text editor (+1MiB)"                               "$(val_inv "$SKIP_NANO")"
         "shorktainment" "shorksay & sl (+0.06MiB)"                          "$(val "$ENABLE_SHORKTAINMENT")"
-        "tcc"           "Tiny C Compiler & musl (+4MiB)"                    "$(val_inv "$SKIP_TCC")"
+        "tcc"           "Tiny C Compiler + musl (+4MiB)"                    "$(val_inv "$SKIP_TCC")"
         "tnftp"         "FTP client (+0.3MiB)"                              "$(val_inv "$SKIP_TNFTP")"
+        "tmux"          "tmux (+1.7MiB)"                                    "$(val "$ENABLE_TMUX")"
     )
 else
     BUNDLED_ITEMS+=(
@@ -477,7 +483,8 @@ else
         "mg"            "Emacs-style text editor (+0.3MiB)"                 "$(val_inv "$SKIP_EMACS")"
         "nano"          "Text editor (+1MiB)"                               "$(val_inv "$SKIP_NANO")"
         "shorktainment" "shorksay & sl (+0.06MiB)"                          "$(val "$ENABLE_SHORKTAINMENT")"
-        "tcc"           "Tiny C Compiler & musl (+4MiB)"                    "$(val_inv "$SKIP_TCC")"
+        "tcc"           "Tiny C Compiler + musl (+4MiB)"                    "$(val_inv "$SKIP_TCC")"
+        "tmux"          "tmux (+1.7MiB)"                                    "$(val "$ENABLE_TMUX")"
     )
 fi
 
@@ -503,6 +510,7 @@ else
     if [[ $BUNDLED =~ "nano" ]];            then SKIP_NANO=false;               else SKIP_NANO=true;                fi
     if [[ $BUNDLED =~ "shorktainment" ]];   then ENABLE_SHORKTAINMENT=true;     else ENABLE_SHORKTAINMENT=false;    fi
     if [[ $BUNDLED =~ "tcc" ]];             then SKIP_TCC=false;                else SKIP_TCC=true;                 fi
+    if [[ $BUNDLED =~ "tmux" ]];            then ENABLE_TMUX=true;              else ENABLE_TMUX=false;             fi
     if [[ $BUNDLED =~ "tnftp" ]];           then SKIP_TNFTP=false;              else SKIP_TNFTP=true;               fi
 fi
 

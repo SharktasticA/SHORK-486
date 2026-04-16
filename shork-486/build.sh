@@ -135,6 +135,7 @@ ENABLE_SHORKTAINMENT=true
 ENABLE_SMP=false
 ENABLE_TASKSTATS=false
 ENABLE_TESTS=false
+ENABLE_TMUX=true
 ENABLE_USB=false
 FIX_EXTLINUX=false
 IS_ARCH=false
@@ -157,7 +158,6 @@ SKIP_FILE=false
 SKIP_NANO=false
 SKIP_PCIIDS=false
 SKIP_TCC=false
-SKIP_TMUX=true
 SKIP_TNFTP=false
 TARGET_DISK=""
 TARGET_SWAP=""
@@ -425,6 +425,7 @@ fi
 NEED_ZLIB=false
 NEED_OPENSSL=false
 NEED_CURL=false
+NEED_LIBEVENT=false
 
 if [ -n "$USED_WM" ]; then
     NEED_ZLIB=true
@@ -434,6 +435,10 @@ if ! $SKIP_GIT; then
     NEED_ZLIB=true
     NEED_OPENSSL=true
     NEED_CURL=true
+fi
+
+if $ENABLE_TMUX; then
+    NEED_LIBEVENT=true
 fi
 
 
@@ -561,7 +566,7 @@ install_arch_prerequisites()
         PACKAGES+=" nasm"
     fi
 
-    if ! $SKIP_TMUX; then
+    if $ENABLE_TMUX; then
         PACKAGES+=" pkgconf"
     fi
 
@@ -688,7 +693,7 @@ get_i486_musl_cc()
     [ -d "i486-linux-musl-cross" ] || tar xvf i486-linux-musl-cross.tgz
 }
 
-# Download and compile ncurses (required for nano, tmux and tic)
+# Download and compile ncurses (required for nano, htop, tic and tmux)
 get_ncurses()
 {
     cd "$CURR_DIR/build"
@@ -713,10 +718,55 @@ get_ncurses()
 
     # Compile and install
     echo -e "${GREEN}Compiling ncurses...${RESET}"
-    ./configure --host=${HOST} --prefix="${PREFIX}" --with-normal --without-shared --without-debug --without-cxx --enable-widec --without-termlib --with-termlib=no --with-tinfo=no CC="${CC_STATIC}" CFLAGS="-fPIC"
+    ./configure \
+        --host=${HOST} \
+        --build=$(./config.guess) \
+        --prefix="${PREFIX}" \
+        --with-normal \
+        --without-shared \
+        --without-debug \
+        --without-cxx \
+        --enable-widec \
+        --without-termlib \
+        --with-termlib=no \
+        --with-tinfo=no \
+        CC="${CC_STATIC}" \
+        CFLAGS="-fPIC"
     make -j$(nproc)
     make install
+
     ln -sf "${PREFIX}/lib/libncursesw.a" "${PREFIX}/lib/libncurses.a"
+    ln -sf "${PREFIX}/lib/libncursesw.a" "${PREFIX}/lib/libtinfo.a"
+
+    # Copy licence file
+    cp COPYING $CURR_DIR/build/LICENCES/ncurses.txt
+}
+
+# Download and compile tic (required for shorkfont)
+get_tic()
+{
+    cd "$CURR_DIR/build/ncurses"
+
+    # Skip if already compiled
+    if [ -f "$DESTDIR/usr/bin/tic" ]; then
+        echo -e "${LIGHT_RED}tic already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Compile and install
+    echo -e "${GREEN}Compiling tic...${RESET}"
+    ./configure \
+        --host="${HOST}" \
+        --prefix=/usr \
+        --with-normal \
+        --without-shared \
+        --without-debug \
+        --without-cxx \
+        --enable-widec \
+        CC="${CC}" \
+        CFLAGS="-Os -static"
+    make -C progs tic -j$(nproc)
+    sudo install -D progs/tic "$DESTDIR/usr/bin/tic"
 
     # Copy licence file
     cp COPYING $CURR_DIR/build/LICENCES/ncurses.txt
@@ -3481,27 +3531,6 @@ get_tcc()
     cp COPYING $CURR_DIR/build/LICENCES/tcc.txt
 }
 
-# Download and compile tic
-get_tic()
-{
-    cd "$CURR_DIR/build/ncurses"
-
-    # Skip if already compiled
-    if [ -f "$DESTDIR/usr/bin/tic" ]; then
-        echo -e "${LIGHT_RED}tic already compiled, skipping...${RESET}"
-        return
-    fi
-
-    # Compile and install
-    echo -e "${GREEN}Compiling tic...${RESET}"
-    ./configure --host=${HOST} --prefix=/usr --with-normal --without-shared --without-debug --without-cxx --enable-widec CC="${CC_STATIC}" CFLAGS="-Os -static"
-    make -C progs tic -j$(nproc)
-    sudo install -D progs/tic "$DESTDIR/usr/bin/tic"
-
-    # Copy licence file
-    cp COPYING $CURR_DIR/build/LICENCES/ncurses.txt
-}
-
 # Download and compile tmux
 get_tmux()
 {
@@ -3525,15 +3554,29 @@ get_tmux()
         cd tmux
     fi
 
+    export ac_cv_func_forkpty=yes
+    export ac_cv_search_forkpty=-lutil
+
     # Compile and install
     echo -e "${GREEN}Compiling tmux...${RESET}"
     ./autogen.sh
-    ./configure --host=${HOST} --prefix=/usr CC="${CC_STATIC}" CFLAGS="-I${PREFIX}/include -I${PREFIX}/include/ncursesw -DHAVE_FORKPTY=1" LDFLAGS="-L${PREFIX}/lib -static" LIBEVENT_CFLAGS="-I${PREFIX}/include" LIBEVENT_LIBS="-L${PREFIX}/lib -levent" CURSES_CFLAGS="-I${PREFIX}/include" CURSES_LIBS="-L${PREFIX}/lib -lncursesw" LIBS="-levent -lutil -lrt -lpthread -lm"
+    ./configure \
+        --host=${HOST} \
+        --prefix=/usr \
+        CC="${CC}" \
+        CFLAGS="-I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
+        CPPFLAGS="-I${PREFIX}/include -DHAVE_FORKPTY" \
+        LDFLAGS="-L${PREFIX}/lib -static" \
+        LIBEVENT_CFLAGS="-I${PREFIX}/include" \
+        LIBEVENT_LIBS="-L${PREFIX}/lib -levent" \
+        CURSES_CFLAGS="-I${PREFIX}/include/ncursesw -I${PREFIX}/include" \
+        CURSES_LIBS="-L${PREFIX}/lib -lncursesw" \
+        LIBS="-levent -lncursesw -lutil -lrt -lpthread -lm"
     make -j$(nproc)
     sudo make DESTDIR=$DESTDIR install
 
     # Copy licence file
-    # TODO
+    cp COPYING $CURR_DIR/build/LICENCES/tmux.txt
 }
 
 # Download and compile tnftp
@@ -4591,6 +4634,11 @@ get_installed_programs_features()
     else
         EXCLUDED_FEATURES+="\n * tic"
     fi
+    if [ -f "$DESTDIR/usr/bin/tmux" ]; then
+        INCLUDED_FEATURES+="\n * tmux ($TMUX_VER)"
+    else
+        EXCLUDED_FEATURES+="\n * tmux"
+    fi
     if [ -f "$DESTDIR/usr/bin/whereis" ]; then
         INCLUDED_FEATURES+="\n * whereis (util-linux, $UTIL_LINUX_VER)"
     else
@@ -4705,6 +4753,7 @@ if ! $SKIP_BB; then
 fi
 
 get_ncurses
+get_tic
 
 get_strace
 get_util_linux
@@ -4722,6 +4771,9 @@ if $NEED_OPENSSL; then
 fi
 if $NEED_CURL; then
     get_curl
+fi
+if $NEED_LIBEVENT; then
+    get_libevent
 fi
 
 if $ENABLE_GUI; then
@@ -4769,7 +4821,9 @@ if ! $SKIP_TCC; then
     get_musl
     get_tcc
 fi
-get_tic
+if $ENABLE_TMUX; then
+    get_tmux
+fi
 if ! $SKIP_TNFTP; then
     get_tnftp
 fi
