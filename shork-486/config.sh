@@ -37,6 +37,7 @@ SET_KEYMAP="en_us"
 HOSTNAME="shork-486"
 FIX_EXTLINUX=true
 ENABLE_NET_ETH=true
+ENABLE_CMATRIX=true
 ENABLE_DROPBEAR=true
 ENABLE_FILE=true
 ENABLE_GIT=true
@@ -122,6 +123,7 @@ SET_KEYMAP="$SET_KEYMAP"
 HOSTNAME="$HOSTNAME"
 FIX_EXTLINUX=$FIX_EXTLINUX
 ENABLE_NET_ETH=$ENABLE_NET_ETH
+ENABLE_CMATRIX=$ENABLE_CMATRIX
 ENABLE_DROPBEAR=$ENABLE_DROPBEAR
 ENABLE_FILE=$ENABLE_FILE
 ENABLE_GCC=$ENABLE_GCC
@@ -216,6 +218,7 @@ elif [ "$TYPE" == "Default" ]; then
     MAXIMAL=false
     CUSTOM=false
     ENABLE_NET_ETH=true
+    ENABLE_CMATRIX=true
     ENABLE_DROPBEAR=true
     ENABLE_FILE=true
     ENABLE_GIT=true
@@ -245,6 +248,7 @@ elif [ "$TYPE" == "Minimal" ]; then
     MAXIMAL=false
     CUSTOM=false
     ENABLE_NET_ETH=false
+    ENABLE_CMATRIX=false
     ENABLE_DROPBEAR=false
     ENABLE_FILE=false
     ENABLE_GIT=false
@@ -274,6 +278,7 @@ elif [ "$TYPE" == "Maximal" ]; then
     MAXIMAL=true
     CUSTOM=false
     ENABLE_NET_ETH=true
+    ENABLE_CMATRIX=true
     ENABLE_DROPBEAR=true
     ENABLE_FILE=true
     ENABLE_GIT=true
@@ -464,6 +469,7 @@ BUNDLED_ITEMS=()
 
 if [ "$ENABLE_NET_ETH" == true ]; then
     BUNDLED_ITEMS+=(
+        "cmatrix"       "Scrolling text screensaver (+0.4MiB)"              "$(val "$ENABLE_CMATRIX")"
         "dropbear"      "SCP & SSH client (+0.4MiB)"                        "$(val "$ENABLE_DROPBEAR")"
         "file"          "File type identification (+10MiB)"                 "$(val "$ENABLE_FILE")"
         "gcc"           "*GCC (as, g++, gcc, gfortran) + musl (+215MiB)"    "$(val "$ENABLE_GCC")"
@@ -478,6 +484,7 @@ if [ "$ENABLE_NET_ETH" == true ]; then
     )
 else
     BUNDLED_ITEMS+=(
+        "cmatrix"       "Scrolling text screensaver (+0.4MiB)"              "$(val "$ENABLE_CMATRIX")"
         "file"          "File type identification (+10MiB)"                 "$(val "$ENABLE_FILE")"
         "gcc"           "*GCC (as, g++, gcc, gfortran) + musl (+215MiB)"    "$(val "$ENABLE_GCC")"
         "htop"          "htop (+0.6MiB)"                                    "$(val "$ENABLE_HTOP")"
@@ -502,6 +509,7 @@ SKIPPED=$?
 if [[ $SKIPPED -eq 1 ]]; then
     :
 else
+    if [[ $BUNDLED =~ "cmatrix" ]];         then ENABLE_CMATRIX=true;           else ENABLE_CMATRIX=false;          fi
     if [[ $BUNDLED =~ "dropbear" ]];        then ENABLE_DROPBEAR=true;          else ENABLE_DROPBEAR=false;         fi
     if [[ $BUNDLED =~ "file" ]];            then ENABLE_FILE=true;              else ENABLE_FILE=false;             fi
     if [[ $BUNDLED =~ "gcc" ]];             then ENABLE_GCC=true;               else ENABLE_GCC=false;              fi

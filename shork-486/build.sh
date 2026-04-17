@@ -93,6 +93,7 @@ SYSROOT="${PREFIX}/i486-linux-musl"
 
 # Desired versions
 BUSYBOX_VER="1_36_1"
+CMATRIX_VER="2.0"
 CURL_VER="8.19.0"
 DROPBEAR_VER="2025.89"
 FILE_VER="5_47"
@@ -120,6 +121,7 @@ MBR_BIN=""
 
 # Build parameters/arguments
 ENABLE_CFONTS=true
+ENABLE_CMATRIX=true
 ENABLE_DROPBEAR=true
 ENABLE_FB=true
 ENABLE_FILE=true
@@ -3034,7 +3036,48 @@ get_console_fonts()
 ## Packaged software building                       ##
 ######################################################
 
-# Download and compile Dropbear for its SCP and SSH clients
+# Download and compile CMatrix
+get_cmatrix()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$DESTDIR/usr/bin/cmatrix" ]; then
+        echo -e "${LIGHT_RED}CMatrix already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d cmatrix ]; then
+        echo -e "${YELLOW}CMatrix source already present, resetting...${RESET}"
+        cd cmatrix
+        git config --global --add safe.directory "$CURR_DIR/build/cmatrix"
+        git reset --hard
+    else
+        echo -e "${GREEN}Downloading CMatrix...${RESET}"
+        git clone --branch v${CMATRIX_VER} https://github.com/abishekvashok/cmatrix.git
+        cd cmatrix
+    fi
+
+    # Compile and install
+    echo -e "${GREEN}Compiling CMatrix...${RESET}"
+    autoreconf -i
+    ./configure \
+        --host=${HOST} \
+        --prefix=/usr \
+        CC="${CC_STATIC}" \
+        AR="${AR}" \
+        RANLIB="${RANLIB}" \
+        CFLAGS="-Os -march=i486 -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
+        LDFLAGS="-static -L${PREFIX}/lib"
+    make -j$(nproc)
+    sudo make DESTDIR=$DESTDIR install
+
+    # Copy licence file
+    cp COPYING $CURR_DIR/build/LICENCES/cmatrix.txt
+}
+
+# Download and compile Dropbear
 get_dropbear()
 {
     cd "$CURR_DIR/build"
@@ -3067,50 +3110,6 @@ get_dropbear()
 
     # Copy licence file
     cp LICENSE $CURR_DIR/build/LICENCES/dropbear.txt
-}
-
-# Download and compile Emacs (Mg)
-get_emacs()
-{
-    cd "$CURR_DIR/build"
-
-    # Skip if already compiled
-    if [ -f "$DESTDIR/usr/bin/mg" ]; then
-        echo -e "${LIGHT_RED}Mg already compiled, skipping...${RESET}"
-        return
-    fi
-
-    # Download source
-    if [ -d mg ]; then
-        echo -e "${YELLOW}Mg source already present, resetting...${RESET}"
-        cd mg
-        git config --global --add safe.directory $CURR_DIR/build/mg
-        git reset --hard
-        git clean -fdx
-    else
-        echo -e "${GREEN}Downloading Mg...${RESET}"
-        git clone --branch "v${MG_VER}" https://github.com/troglobit/mg.git
-        cd mg
-    fi
-
-    # Patch to prevent "~" backup files from spawning after saving
-    sudo sed -i 's/int	  	 nobackups = 0;/int	  	 nobackups = 1;/g' src/main.c
-
-    # Remove tutorial hint as we will delete the docs later to save space
-    sudo sed -i 's/| C-h t  tutorial//g' src/help.c
-
-    # Compile and install
-    echo -e "${GREEN}Compiling Mg...${RESET}"
-    ./autogen.sh
-    ./configure --host=${HOST} --prefix=/usr CC="${CC}" AR="${AR}" RANLIB="${RANLIB}" CFLAGS="-Os -march=i486 -static"
-    make -j$(nproc)
-    sudo make DESTDIR=$DESTDIR install
-
-    # Symlink emacs to mg
-    ln -sf mg "$DESTDIR/usr/bin/emacs"
-
-    # Copy licence file
-    cp UNLICENSE $CURR_DIR/build/LICENCES/mg.txt
 }
 
 # Download and compile file
@@ -3254,7 +3253,7 @@ get_htop()
     # Compile and install
     echo -e "${GREEN}Compiling htop...${RESET}"
     ./autogen.sh
-    ./configure --host=${HOST} --prefix=/usr CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}"  CFLAGS="-Os -march=i486 -I${PREFIX}/include -I${PREFIX}/include/ncursesw" LDFLAGS="-static -L${PREFIX}/lib"
+    ./configure --host=${HOST} --prefix=/usr CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" CFLAGS="-Os -march=i486 -I${PREFIX}/include -I${PREFIX}/include/ncursesw" LDFLAGS="-static -L${PREFIX}/lib"
     make -j$(nproc)
     sudo cp htop $DESTDIR/usr/bin
 
@@ -3299,6 +3298,50 @@ get_musl()
 
     # Copy licence file
     cp COPYRIGHT $CURR_DIR/build/LICENCES/musl.txt
+}
+
+# Download and compile Mg
+get_mg()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$DESTDIR/usr/bin/mg" ]; then
+        echo -e "${LIGHT_RED}Mg already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d mg ]; then
+        echo -e "${YELLOW}Mg source already present, resetting...${RESET}"
+        cd mg
+        git config --global --add safe.directory $CURR_DIR/build/mg
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading Mg...${RESET}"
+        git clone --branch "v${MG_VER}" https://github.com/troglobit/mg.git
+        cd mg
+    fi
+
+    # Patch to prevent "~" backup files from spawning after saving
+    sudo sed -i 's/int	  	 nobackups = 0;/int	  	 nobackups = 1;/g' src/main.c
+
+    # Remove tutorial hint as we will delete the docs later to save space
+    sudo sed -i 's/| C-h t  tutorial//g' src/help.c
+
+    # Compile and install
+    echo -e "${GREEN}Compiling Mg...${RESET}"
+    ./autogen.sh
+    ./configure --host=${HOST} --prefix=/usr CC="${CC}" AR="${AR}" RANLIB="${RANLIB}" CFLAGS="-Os -march=i486 -static"
+    make -j$(nproc)
+    sudo make DESTDIR=$DESTDIR install
+
+    # Symlink emacs to mg
+    ln -sf mg "$DESTDIR/usr/bin/emacs"
+
+    # Copy licence file
+    cp UNLICENSE $CURR_DIR/build/LICENCES/mg.txt
 }
 
 # Download and compile nano
@@ -4474,6 +4517,11 @@ get_installed_programs_features()
         EXCLUDED_FEATURES+="\n * gcc"
         EXCLUDED_FEATURES+="\n * gfortran"
     fi
+    if [ -f "$DESTDIR/usr/bin/cmatrix" ]; then
+        INCLUDED_FEATURES+="\n * cmatrix ($CMATRIX_VER)"
+    else
+        EXCLUDED_FEATURES+="\n * cmatrix"
+    fi
     if [ -f "$DESTDIR/usr/bin/file" ]; then
         INCLUDED_FEATURES+="\n * file ($FILE_VER)"
     else
@@ -4706,6 +4754,9 @@ if $ENABLE_CFONTS; then
     get_console_fonts
 fi
 
+if $ENABLE_CMATRIX; then
+    get_cmatrix
+fi
 if $ENABLE_DROPBEAR; then
     get_dropbear
 fi
@@ -4722,7 +4773,7 @@ if $ENABLE_HTOP; then
     get_htop
 fi
 if $ENABLE_MG; then
-    get_emacs
+    get_mg
 fi
 if $ENABLE_NANO; then
     get_nano
