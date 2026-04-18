@@ -121,7 +121,7 @@ MBR_BIN=""
 
 # Build parameters/arguments
 ENABLE_CFONTS=true
-ENABLE_CMATRIX=true
+ENABLE_CMATRIX=false
 ENABLE_DROPBEAR=true
 ENABLE_FB=true
 ENABLE_FILE=true
@@ -3840,6 +3840,39 @@ get_shorklocomotive()
     sudo ln -sf sl "$DESTDIR/usr/bin/shorklocomotive"
 }
 
+# Download and compile shorkmatrix
+get_shorkmatrix()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ "$SHORKUTILS_RECLONE" != "true" ] && [ -f "$DESTDIR/usr/bin/shorkmatrix" ]; then
+        echo -e "${LIGHT_RED}shorkmatrix already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Delete if present
+    if [ -d shorkmatrix ]; then
+        echo -e "${YELLOW}shorkmatrix source already present, recloning...${RESET}"
+        sudo rm -r shorkmatrix
+    fi
+
+    # Download source
+    echo -e "${GREEN}Downloading shorkmatrix...${RESET}"
+    git clone https://github.com/SharktasticA/shorkmatrix.git
+    cd shorkmatrix
+
+    # Compile and install
+    echo -e "${GREEN}Compiling shorkmatrix...${RESET}"
+    make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+    sudo make DESTDIR=$DESTDIR install
+
+    # Symlink shorkmatrix to cmatrix if CMatrix is not installed
+    if ! $ENABLE_CMATRIX; then
+        sudo ln -sf shorkmatrix "$DESTDIR/usr/bin/cmatrix"
+    fi
+}
+
 # Download and compile shorksay
 get_shorksay()
 {
@@ -4442,10 +4475,15 @@ get_installed_programs_features()
     fi
 
     # SHORK Entertainment
-    if [ -f "$DESTDIR/usr/bin/sl" ]; then
-        INCLUDED_FEATURES+="\n * shorklocomotive/sl"
+    if [ -f "$DESTDIR/usr/bin/shorklocomotive" ]; then
+        INCLUDED_FEATURES+="\n * shorklocomotive"
     else
-        EXCLUDED_FEATURES+="\n * shorklocomotive/sl"
+        EXCLUDED_FEATURES+="\n * shorklocomotive"
+    fi
+    if [ -f "$DESTDIR/usr/bin/shorkmatrix" ]; then
+        INCLUDED_FEATURES+="\n * shorkmatrix"
+    else
+        EXCLUDED_FEATURES+="\n * shorkmatrix"
     fi
     if [ -f "$DESTDIR/usr/bin/shorksay" ]; then
         INCLUDED_FEATURES+="\n * shorksay"
@@ -4804,6 +4842,7 @@ fi
 
 if $ENABLE_SHORKTAINMENT; then
     get_shorklocomotive
+    get_shorkmatrix
     get_shorksay
 fi
 

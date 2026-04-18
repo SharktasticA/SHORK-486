@@ -44,7 +44,6 @@ ar, arch, ascii, awk, basename, bc, beep, blkid, cal, cat, chmod, chown, chroot,
 
 #### Default
 
-* [cmatrix](https://github.com/abishekvashok/cmatrix) (scrolling text screensaver)
 * [file](https://github.com/file/file) (file identification)
 * ftp (FTP client, [tnftp](https://ftp.netbsd.org/pub/NetBSD/misc/tnftp/))
 * [git](https://git-scm.com/) (Git source control client)
@@ -78,6 +77,7 @@ ar, arch, ascii, awk, basename, bc, beep, blkid, cal, cat, chmod, chown, chroot,
 ### SHORK Entertainment (shorktainment)
 
 * **[shorklocomotive](https://github.com/SharktasticA/shorklocomotive)** - A shark-themed take on [sl (Steam Locomotive)](https://github.com/mtoyoda/sl) that kindly pokes fun at making typos when trying to type `ls`. Available as `sl` and `shorklocomotive`.
+* **[shorkmatrix](https://github.com/SharktasticA/shorkmatrix)** - A quick, blue-themed take on the [CMatrix](https://github.com/abishekvashok/cmatrix) "digital rain" vertical scrolling text screensaver.
 * **[shorksay](https://github.com/SharktasticA/shorksay)** - A shark-themed take on [cowsay](https://github.com/cowsay-org/cowsay), a "simple and silly" program that outputs an ASCII art shark and speech bubble containing a message of your choice. Available as `shorksay` and `cowsay`.
 
 
@@ -203,7 +203,7 @@ Selecting "Yes" here will enable ethernet networking support in SHORK 486. BusyB
 
 * **gcc**: Adds the GNU Assembler, GCC's C, C++ and Fortran compiler and musl C standard library. Using `g++` requires more system memory than usual, hence it is not included by default. RAM requirements are ideally 32MiB if no swap partition, 24MiB with 8MiB swap or 16MiB with 16MiB swap.
 
-* **shorktainment**: Includes the SHORK Entertainment programs bundle; shorklocomotive and shorksay.
+* **shorktainment**: Includes the SHORK Entertainment programs bundle: shorklocomotive, shorkmatrix, and shorksay.
 
 #### Options
 
