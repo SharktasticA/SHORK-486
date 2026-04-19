@@ -38,7 +38,7 @@ Depending on configuration, SHORK 486 requires between just 8-24MiB system memor
 
 ### BusyBox, util-linux, etc.
 
-ar, arch, ascii, awk, basename, bc, beep, blkid, cal, cat, chmod, chown, chroot, chvt, clear, cp, crontab, cut, date, dc, dd, df, dirname, dmesg, du, ed, eject, expand, expr, false, fdformat, fdisk, find, fold, free, ftpget, ftpput, grep, gzip, halt, head, hexdump, hostname, ifconfig, ip, kill, killall, less, ln, loadkmap, losetup, ls, lsblk, lspci, man, mdev, mkdir, mknod, mount, mountpoint, mv, nice, nohup, nproc, partprobe, partx, paste, ping, pkill, pmap, printf, ps, pstree, pwd, readlink, rev, rm, rmdir, route, sed, seq, setfont, sfdisk, showkey, sleep, stat, strace, stty, swapoff, swapon, sync, tar, taskset, tee, telnet, test, top, touch, tr, traceroute, tree, true, truncate, udhcpc, umount, uname, unexpand, unzip, usleep, vi, volname, wc, wget, whereis, which, whoami, whois, xxd, xz, yes
+ar, arch, ascii, awk, basename, bc, beep, blkid, cal, cat, chmod, chown, chroot, chvt, clear, cp, crontab, cut, date, dc, dd, df, diff, dirname, dmesg, du, ed, eject, expand, expr, false, fdformat, fdisk, find, fold, free, ftpget, ftpput, grep, gzip, halt, head, hexdump, hostname, ifconfig, ip, kill, killall, less, ln, loadkmap, losetup, ls, lsblk, lspci, man, mdev, mkdir, mknod, mount, mountpoint, mv, nice, nohup, nproc, partprobe, partx, paste, patch, ping, pkill, pmap, printf, ps, pstree, pwd, readlink, rev, rm, rmdir, route, sed, seq, setfont, sfdisk, showkey, sleep, stat, strace, stty, swapoff, swapon, sync, tar, taskset, tee, telnet, test, top, touch, tr, traceroute, tree, true, truncate, udhcpc, umount, uname, unexpand, unzip, usleep, vi, volname, wc, wget, whereis, which, whoami, whois, xxd, xz, yes
 
 ### Bundled software
 
