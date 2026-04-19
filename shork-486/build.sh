@@ -137,6 +137,7 @@ ENABLE_MULTIUSER=false
 ENABLE_NANO=true
 ENABLE_NET_BASE=false
 ENABLE_NET_ETH=false
+ENABLE_NET_PCMCIA=false
 ENABLE_PCIIDS=true
 ENABLE_PCMCIA=true
 ENABLE_SATA=false
@@ -253,11 +254,15 @@ else
     fi
 fi
 
-# Override to ensure PCMCIA support (for PCMCIA NICs) is enabled when networking support is also desired
-if $ENABLE_NET_ETH; then
-    ENABLE_PCMCIA=true
-# If networking support is disabled, make sure networking-based programs are also skipped
+# Networking-related overrides
+if [ "$ENABLE_NET_ETH" = true ]; then
+    # Ensure PCMCIA networking support is enabled if general PCMCIA support is also enabled
+    if [ "$ENABLE_PCMCIA" = true ]; then
+        ENABLE_NET_PCMCIA=true
+    fi
 else
+    # If networking support is disabled, make sure networking-based programs and features are also disabled
+    ENABLE_NET_PCMCIA=false
     ENABLE_DROPBEAR=false
     ENABLE_GIT=false
     ENABLE_TNFTP=false
@@ -275,7 +280,7 @@ if [ "$ENABLE_HTOP" = true ]; then
 fi
 
 # Override to ensure NET_MIN is enabled with HTOP or NET
-if [ "$ENABLE_HTOP" = true ] || [ "ENABLE_NET_ETH" = true ]; then
+if [ "$ENABLE_HTOP" = true ] || [ "$ENABLE_NET_ETH" = true ]; then
     ENABLE_NET_BASE=true
 fi
 
@@ -1097,6 +1102,11 @@ configure_kernel()
     if $ENABLE_NET_ETH; then
         echo -e "${GREEN}Enabling kernel-level networking support (ethernet)...${RESET}"
         FRAGS+="$CURR_DIR/configs/linux.config.net.eth.frag "
+    fi
+
+    if $ENABLE_NET_PCMCIA; then
+        echo -e "${GREEN}Enabling kernel-level networking support (PCMCIA)...${RESET}"
+        FRAGS+="$CURR_DIR/configs/linux.config.net.pcmcia.frag "
     fi
 
     if $ENABLE_SATA; then
@@ -4381,6 +4391,12 @@ get_installed_programs_features()
         INCLUDED_FEATURES+="\n * kernel-level networking support (ethernet)"
     else
         EXCLUDED_FEATURES+="\n * kernel-level networking support (ethernet)"
+    fi
+
+    if $ENABLE_NET_PCMCIA; then
+        INCLUDED_FEATURES+="\n * kernel-level networking support (PCMCIA)"
+    else
+        EXCLUDED_FEATURES+="\n * kernel-level networking support (PCMCIA)"
     fi
 
     if $ENABLE_PCMCIA; then
