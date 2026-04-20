@@ -80,6 +80,30 @@ ar, arch, ascii, awk, basename, bc, beep, blkid, cal, cat, chmod, chown, chroot,
 * **[shorkmatrix](https://github.com/SharktasticA/shorkmatrix)** - A quick, blue-themed take on the [CMatrix](https://github.com/abishekvashok/cmatrix) "digital rain" vertical scrolling text screensaver. Available as `cmatrix` and `shorkmatrix`.
 * **[shorksay](https://github.com/SharktasticA/shorksay)** - A shark-themed take on [cowsay](https://github.com/cowsay-org/cowsay), a "simple and silly" program that outputs an ASCII art shark and speech bubble containing a message of your choice. Available as `shorksay` and `cowsay`.
 
+### Planned, todo & under consideration
+
+#### shorkutils & shorktainment
+
+* Menu-based revamped shorkfont, shorkmap and shorkres
+* shorkchess (chess game)
+* shorkdisk (disk mounting, unmounting and ejecting)
+* shorknet (network connection management)
+* shorksnek (snake-like game)
+
+#### Bundled software
+
+* BASIC interpreter (exact one TBD)
+* cmake
+* cfdisk
+* cURL
+* dialog
+* IRC client (exact one TBD)
+* Lynx
+* make
+* MicroPython
+* mpc/MPD
+* w3m
+
 
 
 ## Hardware requirements
@@ -90,7 +114,7 @@ An **Intel 486SX or compatible** is the minimum processor requirement. Math emul
 
 ### RAM
 
-**16MiB** and **24MiB** are the respective minimum and recommended system memory for a default SHORK 486 build. SHORK 486 can be built using the "minimal" build type option to reduce the RAM requirement to around 8MiB (extreme minimum) to 10MiB (realistic minimum). To help with such tight memory situations, SHORK 486 can also be built with a 1 to 64MiB swap partition, but note its use may be very slow to use on period-correct hardware.
+**16MiB** and **24MiB** are the respective minimum and recommended system memory for a default SHORK 486 build. SHORK 486 can be built using the "minimal" build type option to reduce the RAM requirement to around 8MiB minimum, 10MiB recommended. To help with such tight memory situations, SHORK 486 can also be built with a 1 to 64MiB swap partition, but note its use may be very slow to use on period-correct hardware.
 
 ### Storage
 
@@ -185,7 +209,7 @@ Below are further explanations for options that could not fit into the configura
 Selecting "Yes" here will tell the build script to use [my forked SYSLINUX/EXTLINUX repository](https://github.com/SharktasticA/syslinux) instead of your host Linux distribution's maintained packaged version. This version addresses a memory detection error to resolve the "Booting kernel failed: Invalid argument" or boot menu looping issue that the stock EXTLINUX may encounter with some BIOSes when attempting to boot the kernel with.
 
 * Some people need this, some people do not - see the list below, or try without first, then enable this if this error or something like it occurs.
-* Known hardware that need this includes: Chicony NB5 ([derivatives](www.macdat.net/laptops/chicony/nb5.php)), HP OmniBook 800CT, IBM 2625 ThinkPad 365E/ED, IBM 6381 PS/ValuePoint
+* Known hardware that need this includes: Chicony NB5 & [derivatives](https://www.macdat.net/laptops/chicony/nb5.php), HP OmniBook 800CT, IBM 2625 ThinkPad 365E/365ED, IBM 6381 PS/ValuePoint
     * If you discover more hardware that needs this, please get in touch so I can update this list for future users!
 * This may significantly increase total build time, but it does not affect system requirements.
 * The patch was discovered by akeym - thank you!
