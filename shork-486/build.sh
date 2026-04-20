@@ -144,12 +144,14 @@ ENABLE_PCMCIA=true
 ENABLE_SATA=false
 ENABLE_SHORKTAINMENT=true
 ENABLE_SMP=false
+ENABLE_STRACE=true
 ENABLE_TASKSTATS=false
 ENABLE_TCC=true
 ENABLE_TESTS=false
 ENABLE_TMUX=true
 ENABLE_TNFTP=true
 ENABLE_USB=false
+ENABLE_UTIL_LINUX=true
 
 ALWAYS_BUILD=false
 FIX_EXTLINUX=false
@@ -4768,13 +4770,16 @@ fi
 get_ncurses
 get_tic
 
-get_strace
-get_util_linux
+if $ENABLE_STRACE; then
+    get_strace
+fi
+if $ENABLE_UTIL_LINUX; then
+    get_util_linux
+fi
 
 if ! $SKIP_KRN; then
     get_kernel
 fi
-
 
 if $NEED_ZLIB; then
     get_zlib
