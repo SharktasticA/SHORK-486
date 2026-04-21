@@ -152,6 +152,7 @@ ENABLE_TMUX=true
 ENABLE_TNFTP=true
 ENABLE_USB=false
 ENABLE_UTIL_LINUX=true
+ENABLE_ZSWAP=true
 
 ALWAYS_BUILD=false
 FIX_EXTLINUX=false
@@ -1140,6 +1141,11 @@ configure_kernel()
     if $ENABLE_USB; then
         echo -e "${GREEN}Enabling kernel-level USB & HID support...${RESET}"
         FRAGS+="$CURR_DIR/configs/linux.config.usb.frag "
+    fi
+
+    if $ENABLE_ZSWAP; then
+        echo -e "${GREEN}Enabling kernel-level zswap support...${RESET}"
+        FRAGS+="$CURR_DIR/configs/linux.config.zswap.frag "
     fi
 
     if [ -n "$PHYSICAL_START" ]; then
@@ -4441,6 +4447,12 @@ get_installed_programs_features()
         EXCLUDED_FEATURES+="\n * kernel-level USB & HID support"
     fi
 
+    if $ENABLE_ZSWAP; then
+        INCLUDED_FEATURES+="\n * kernel-level zswap support"
+    else
+        EXCLUDED_FEATURES+="\n * kernel-level zswap support"
+    fi
+
     # Misc features
     if [ -d "$DESTDIR/usr/share/consolefonts" ]; then
         INCLUDED_FEATURES+="\n * alternative console fonts"
@@ -4780,7 +4792,9 @@ if ! $SKIP_BB; then
 fi
 
 get_ncurses
-get_tic
+if $ENABLE_FB; then
+    get_tic
+fi
 
 if $ENABLE_STRACE; then
     get_strace

@@ -61,6 +61,7 @@ ENABLE_PCMCIA=true
 ENABLE_SATA=false
 ENABLE_SMP=false
 ENABLE_USB=false
+ENABLE_ZSWAP=true
 
 keymap_name()
 {
@@ -148,6 +149,7 @@ ENABLE_PCMCIA=$ENABLE_PCMCIA
 ENABLE_SATA=$ENABLE_SATA
 ENABLE_SMP=$ENABLE_SMP
 ENABLE_USB=$ENABLE_USB
+ENABLE_ZSWAP=$ENABLE_ZSWAP
 EOF
 
     echo "Your desired SHORK 486 build configuration has been saved to a .env file in the current directory. This configuration will automatically be used when SHORK 486 is next built. If you are using the \"--skip-busybox\" or \"--skip-kernel\" build parameters, you may need to build without them for some changes to take effect."
@@ -244,6 +246,7 @@ elif [ "$TYPE" == "Default" ]; then
     ENABLE_SATA=false
     ENABLE_SMP=false
     ENABLE_USB=false
+    ENABLE_ZSWAP=true
 elif [ "$TYPE" == "Minimal" ]; then
     BUILD_TYPE="minimal"
     DEFAULT=false
@@ -275,6 +278,7 @@ elif [ "$TYPE" == "Minimal" ]; then
     ENABLE_SATA=false
     ENABLE_SMP=false
     ENABLE_USB=false
+    ENABLE_ZSWAP=true
 elif [ "$TYPE" == "Maximal" ]; then
     BUILD_TYPE="maximal"
     DEFAULT=false
@@ -306,6 +310,7 @@ elif [ "$TYPE" == "Maximal" ]; then
     ENABLE_SATA=true
     ENABLE_SMP=true
     ENABLE_USB=true
+    ENABLE_ZSWAP=true
 elif [ "$TYPE" == "Custom" ]; then
     BUILD_TYPE="custom"
     DEFAULT=false
@@ -547,6 +552,7 @@ OPTIONS=$(dialog --clear \
     "sata"          "*Kernel-level SATA support"                        $(val $ENABLE_SATA) \
     "smp"           "*Kernel-level SMP support"                         $(val $ENABLE_SMP) \
     "usb"           "Kernel-level USB & HID support & lsusb (+0.2MiB)"  $(val $ENABLE_USB) \
+    "zswap"         "Kernel-level zswap support"                        $(val $ENABLE_ZSWAP) \
     2>&1 >/dev/tty)
     #"keymaps"   "Keymaps & shorkmap (+0.06MiB)"             $(val $ENABLE_KEYMAPS) \
     
@@ -566,4 +572,5 @@ else
     if [[ $OPTIONS =~ "sata" ]];        then ENABLE_SATA=true;      else ENABLE_SATA=false;         fi
     if [[ $OPTIONS =~ "smp" ]];         then ENABLE_SMP=true;       else ENABLE_SMP=false;          fi
     if [[ $OPTIONS =~ "usb" ]];         then ENABLE_USB=true;       else ENABLE_USB=false;          fi
+    if [[ $OPTIONS =~ "zswap" ]];       then ENABLE_ZSWAP=true;     else ENABLE_ZSWAP=false;        fi
 fi
