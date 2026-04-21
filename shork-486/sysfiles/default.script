@@ -11,12 +11,14 @@
 
 
 case "$1" in
-  bound|renew)
-    ifconfig "$interface" "$ip" netmask "$subnet" up
+    bound|renew)
+    ip addr flush dev "$interface"
+    ip addr add "$ip"/"$subnet" dev "$interface"
+    ip link set "$interface" up
 
     if [ -n "$router" ]; then
-      route del default 2>/dev/null
-      route add default gw "$router" dev "$interface"
+        ip route del default 2>/dev/null
+        ip route add default via "$router" dev "$interface"
     fi
     ;;
 esac

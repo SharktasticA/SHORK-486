@@ -857,6 +857,26 @@ get_patched_extlinux()
 ## BusyBox & core utilities building                ##
 ######################################################
 
+# Used to merge a BusyBox config fragment into .config
+merge_busybox_frag()
+{
+    frag="$1"
+    while IFS= read -r line; do
+        case "$line" in
+            CONFIG_*=y)
+                # Replace "# ... is not set"
+                name="${line%%=*}"
+                sed -i "s/^# $name is not set/$name=y/" .config
+
+                # If doesn't exist, let's append it
+                if ! grep -q "^$name=" .config && ! grep -q "^# $name is not set" .config; then
+                    echo "$name=y" >> .config
+                fi
+                ;;
+        esac
+    done < "$frag"
+}
+
 # Download and compile BusyBox
 get_busybox()
 {
@@ -893,38 +913,14 @@ get_busybox()
     sed -i "s|^CONFIG_EXTRA_LDFLAGS=.*|CONFIG_EXTRA_LDFLAGS=\"-L${PREFIX}/lib\"|" .config
 
     if $ENABLE_NET_ETH; then
-        echo -e "${GREEN}Enabling BusyBox's ftpget, ftpput, ifconfig, ip, ping, route, telnet, traceroute, udhcpc, wget and whois implementations...${RESET}"
-        sed -i 's/# CONFIG_FEATURE_FANCY_PING is not set/CONFIG_FEATURE_FANCY_PING=y/' .config
-        sed -i 's/# CONFIG_FEATURE_IFCONFIG_BROADCAST_PLUS is not set/CONFIG_FEATURE_IFCONFIG_BROADCAST_PLUS=y/' .config
-        sed -i 's/# CONFIG_FEATURE_IFCONFIG_HW is not set/CONFIG_FEATURE_IFCONFIG_HW=y/' .config
-        sed -i 's/# CONFIG_FEATURE_IFCONFIG_MEMSTART_IOADDR_IRQ is not set/CONFIG_FEATURE_IFCONFIG_MEMSTART_IOADDR_IRQ=y/' .config
-        sed -i 's/# CONFIG_FEATURE_IFCONFIG_SLIP is not set/CONFIG_FEATURE_IFCONFIG_SLIP=y/' .config
-        sed -i 's/# CONFIG_FEATURE_IFCONFIG_STATUS is not set/CONFIG_FEATURE_IFCONFIG_STATUS=y/' .config
-        sed -i 's/# CONFIG_FEATURE_TELNET_AUTOLOGIN is not set/CONFIG_FEATURE_TELNET_AUTOLOGIN=y/' .config
-        sed -i 's/# CONFIG_FEATURE_TELNET_TTYPE is not set/CONFIG_FEATURE_TELNET_TTYPE=y/' .config
-        sed -i 's/# CONFIG_FEATURE_TELNET_WIDTH is not set/CONFIG_FEATURE_TELNET_WIDTH=y/' .config
-        sed -i 's/# CONFIG_FEATURE_WGET_AUTHENTICATION is not set/CONFIG_FEATURE_WGET_AUTHENTICATION=y/' .config
-        sed -i 's/# CONFIG_FEATURE_WGET_FTP is not set/CONFIG_FEATURE_WGET_FTP=y/' .config
-        sed -i 's/# CONFIG_FEATURE_WGET_HTTPS is not set/CONFIG_FEATURE_WGET_HTTPS=y/' .config
-        sed -i 's/# CONFIG_FEATURE_WGET_OPENSSL is not set/CONFIG_FEATURE_WGET_OPENSSL=y/' .config
-        sed -i 's/# CONFIG_FEATURE_WGET_STATUSBAR is not set/CONFIG_FEATURE_WGET_STATUSBAR=y/' .config
-        sed -i 's/# CONFIG_FEATURE_WGET_TIMEOUT is not set/CONFIG_FEATURE_WGET_TIMEOUT=y/' .config
-        sed -i 's/# CONFIG_FTPGET is not set/CONFIG_FTPGET=y/' .config
-        sed -i 's/# CONFIG_FTPPUT is not set/CONFIG_FTPPUT=y/' .config
-        sed -i 's/# CONFIG_IFCONFIG is not set/CONFIG_IFCONFIG=y/' .config
-        sed -i 's/# CONFIG_IP is not set/CONFIG_IP=y/' .config
-        sed -i 's/# CONFIG_PING is not set/CONFIG_PING=y/' .config
-        sed -i 's/# CONFIG_ROUTE is not set/CONFIG_ROUTE=y/' .config
-        sed -i 's/# CONFIG_TELNET is not set/CONFIG_TELNET=y/' .config
-        sed -i 's/# CONFIG_TRACEROUTE is not set/CONFIG_TRACEROUTE=y/' .config
-        sed -i 's/# CONFIG_UDHCPC is not set/CONFIG_UDHCPC=y/' .config
-        sed -i 's/# CONFIG_WGET is not set/CONFIG_WGET=y/' .config
-        sed -i 's/# CONFIG_WHOIS is not set/CONFIG_WHOIS=y/' .config
+        echo -e "${GREEN}Enabling BusyBox's network-related util implementations...${RESET}"
+        merge_busybox_frag "$CURR_DIR/configs/busybox.config.net.frag"
     fi
 
     if $ENABLE_USB; then
-        echo -e "${GREEN}Enabling BusyBox's lsusb implementation...${RESET}"
-        sed -i 's/# CONFIG_LSUSB is not set/CONFIG_LSUSB=y/' .config
+        echo -e "${GREEN}Enabling BusyBox's USB-related util implementation...${RESET}"
+        merge_busybox_frag "$CURR_DIR/configs/busybox.config.usb.frag"
+        yes | make oldconfig
     fi
     
     # Compile and install
@@ -4030,7 +4026,7 @@ build_file_system()
     cd $DESTDIR
 
     echo -e "${GREEN}Creating required directories...${RESET}"
-    sudo mkdir -p {dev,proc,etc/init.d,sys,tmp,home,usr/share/udhcpc,usr/libexec,banners}
+    sudo mkdir -p {dev,proc,etc/init.d,sys,tmp,home,usr/share,usr/libexec,banners}
 
     echo -e "${GREEN}Configure permissions...${RESET}"
     chmod +x $CURR_DIR/sysfiles/rc
@@ -4052,21 +4048,16 @@ build_file_system()
     copy_sysfile $CURR_DIR/sysfiles/rc $DESTDIR/etc/init.d/rc
     copy_sysfile $CURR_DIR/sysfiles/inittab $DESTDIR/etc/inittab
     copy_sysfile $CURR_DIR/sysfiles/profile $DESTDIR/etc/profile
-    copy_sysfile $CURR_DIR/sysfiles/resolv.conf $DESTDIR/etc/resolv.conf
-    copy_sysfile $CURR_DIR/sysfiles/services $DESTDIR/etc/services
-    copy_sysfile $CURR_DIR/sysfiles/default.script $DESTDIR/usr/share/udhcpc/default.script
     copy_sysfile $CURR_DIR/sysfiles/passwd $DESTDIR/etc/passwd
     copy_sysfile $CURR_DIR/sysfiles/poweroff $DESTDIR/sbin/poweroff
     copy_sysfile $CURR_DIR/sysfiles/shutdown $DESTDIR/sbin/shutdown
 
-    if $ENABLE_TESTS; then
-        copy_tests
+    if $ENABLE_FB; then
+        echo -e "${GREEN}Copying and compiling terminfo database...${RESET}"
+        sudo mkdir -p $DESTDIR/usr/share/terminfo/src/
+        sudo cp $CURR_DIR/sysfiles/terminfo.src $DESTDIR/usr/share/terminfo/src/
+        sudo tic -x -1 -o $DESTDIR/usr/share/terminfo $DESTDIR/usr/share/terminfo/src/terminfo.src
     fi
-
-    echo -e "${GREEN}Copying and compiling terminfo database...${RESET}"
-    sudo mkdir -p $DESTDIR/usr/share/terminfo/src/
-    sudo cp $CURR_DIR/sysfiles/terminfo.src $DESTDIR/usr/share/terminfo/src/
-    sudo tic -x -1 -o $DESTDIR/usr/share/terminfo $DESTDIR/usr/share/terminfo/src/terminfo.src
 
     if $ENABLE_GUI; then
         echo -e "${GREEN}Installing files needed for SHORKGUI...${RESET}"
@@ -4082,6 +4073,12 @@ build_file_system()
         fi
     fi
 
+    if $ENABLE_GIT; then
+        echo -e "${GREEN}Copying pre-defined Git settings...${RESET}"
+        sudo mkdir -p $DESTDIR/usr/etc
+        copy_sysfile $CURR_DIR/sysfiles/gitconfig $DESTDIR/usr/etc/gitconfig
+    fi
+
     if $ENABLE_KEYMAPS; then
         echo -e "${GREEN}Installing keymaps...${RESET}"
         sudo mkdir -p $DESTDIR/usr/share/keymaps/
@@ -4094,6 +4091,26 @@ build_file_system()
         fi
     fi
 
+    if $ENABLE_MG; then
+        echo -e "${GREEN}Copying pre-defined Mg settings...${RESET}"
+        copy_sysfile $CURR_DIR/sysfiles/mg $DESTDIR/etc/mg
+    fi
+
+    if $ENABLE_NET_ETH; then
+        echo -e "${GREEN}Copying networking-related files...${RESET}"
+        sudo mkdir -p $DESTDIR/etc/iproute2
+        sudo mkdir -p $DESTDIR/usr/share/udhcpc
+        copy_sysfile $CURR_DIR/sysfiles/default.script $DESTDIR/usr/share/udhcpc/default.script
+        copy_sysfile $CURR_DIR/sysfiles/resolv.conf $DESTDIR/etc/resolv.conf
+        copy_sysfile $CURR_DIR/sysfiles/services $DESTDIR/etc/services
+    fi
+
+    if $ENABLE_NANO; then
+        echo -e "${GREEN}Copying pre-defined nano settings...${RESET}"
+        sudo mkdir -p $DESTDIR/usr/etc
+        copy_sysfile $CURR_DIR/sysfiles/nanorc $DESTDIR/usr/etc/nanorc
+    fi
+
     if $ENABLE_PCIIDS; then
         # Include PCI IDs for shorkfetch's GPU identification
         # **Work offloaded to Python**
@@ -4102,28 +4119,15 @@ build_file_system()
         sudo python3 -c "from helpers import *; build_pci_ids()"
     fi
 
+    if $ENABLE_TESTS; then
+        copy_tests
+    fi
+
     if $NEED_OPENSSL; then
         # Use host's CA certifications to get OpenSSL working
         echo -e "${GREEN}Installing CA certificates for OpenSSL...${RESET}"
         sudo mkdir -p $DESTDIR/etc/ssl
         copy_sysfile /etc/ssl/certs/ca-certificates.crt $DESTDIR/etc/ssl/cert.pem
-    fi
-
-    if $ENABLE_GIT; then
-        echo -e "${GREEN}Copying pre-defined Git settings...${RESET}"
-        sudo mkdir -p $DESTDIR/usr/etc
-        copy_sysfile $CURR_DIR/sysfiles/gitconfig $DESTDIR/usr/etc/gitconfig
-    fi
-
-    if $ENABLE_MG; then
-        echo -e "${GREEN}Copying pre-defined Mg settings...${RESET}"
-        copy_sysfile $CURR_DIR/sysfiles/mg $DESTDIR/etc/mg
-    fi
-
-    if $ENABLE_NANO; then
-        echo -e "${GREEN}Copying pre-defined nano settings...${RESET}"
-        sudo mkdir -p $DESTDIR/usr/etc
-        copy_sysfile $CURR_DIR/sysfiles/nanorc $DESTDIR/usr/etc/nanorc
     fi
 
     cd $DESTDIR
