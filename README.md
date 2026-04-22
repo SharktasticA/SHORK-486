@@ -4,7 +4,7 @@ Member of the SHORK family: **SHORK 486** | [SHORK DISKETTE](https://github.com/
 
 -----
 
-SHORK 486 is an operating system for 486 and Pentium (P5) era vintage PCs. The aim is to produce a Linux distribution that is very lean and functional but still capable on such PCs, often with my '90s IBM ThinkPads in mind. A default SHORK 486 system aims to work with at least 16MiB system memory and take up no more than ~72MiB on the disk. Despite those constraints, the default SHORK 486 experience includes Linux kernel 7.0.0, many typical Linux commands, custom SHORK utilities such as shorkdir (TUI file browser) and shorkfetch (*fetch clone), a terminal multiplexer, a C compiler, an FTP, SCP and SSH client, a Git source control client, the ed, Mg (Emacs-style), nano and vi editors, IDE CD-ROM and DVD-ROM support, ISA, PCI and PCMCIA ethernet support, support for most major national keyboard layouts, and a cute ASCII shark welcome screen!
+SHORK 486 is an operating system for 486 and Pentium (P5) era vintage PCs. The aim is to produce a Linux distribution that is very lean and functional but still capable on such PCs, often with my '90s IBM ThinkPads in mind. A default SHORK 486 system aims to work with at least 16MiB system memory and take up no more than ~72MiB on the disk. Despite those constraints, the default SHORK 486 experience includes Linux kernel 7.0.0, many typical Linux commands, custom SHORK utilities such as shorkdir (TUI file browser) and shorkfetch (*fetch clone), a terminal multiplexer, a C compiler, an FTP, SCP and SSH client, a Git source control client, the ed, Mg (Emacs-style), nano and vi editors, IDE CD-ROM and DVD-ROM support, SCSI tape drive support, ISA, PCI and PCMCIA ethernet support, support for most major national keyboard layouts, and a cute ASCII shark welcome screen!
 
 A build configurator is available to alter SHORK 486 to your liking. For example, you can select the "minimal" build type that requires just 8MiB RAM and ~16MiB disk space, whilst still including most typical commands as before, some custom SHORK utilities, and the ed and vi editors.  You can also select the "custom" build type, allowing you pick and choose specific software and features. Some people have expressed support for using SHORK 486 on newer hardware for a minimalist Linux environment - whilst SHORK 486 does not focus on such, options for enabling high memory, SATA, SMP and USB support are available if you so desire!
 
@@ -49,6 +49,7 @@ ar, arch, ascii, awk, basename, bc, beep, blkid, cal, cat, chmod, chown, chroot,
 * [git](https://git-scm.com/) (Git source control client)
 * [htop](https://github.com/htop-dev) (interactive process viewer)
 * [mg](https://github.com/troglobit/mg) (Emacs-style text editor)
+* [mt-st](https://github.com/iustin/mt-st) (tape drive tools)
 * [nano](https://www.nano-editor.org) (text editor)
 * scp (SCP client, [Dropbear](https://github.com/mkj/dropbear))
 * ssh (SSH client, [Dropbear](https://github.com/mkj/dropbear))

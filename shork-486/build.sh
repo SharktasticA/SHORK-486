@@ -102,6 +102,7 @@ HTOP_VER="3.5.0"
 KERNEL_VER="7.0"
 LIBEVENT_VER="release-2.1.12-stable"
 MG_VER="3.7"
+MT_ST_VER="1.8"
 MUSL_VER="1.2.5"
 NANO_DIST="v9"
 NANO_VER="9.0"
@@ -134,6 +135,7 @@ ENABLE_HTOP=true
 ENABLE_KEYMAPS=true
 ENABLE_MENU=true
 ENABLE_MG=true
+ENABLE_MT_ST=true
 ENABLE_MULTIUSER=false
 ENABLE_NANO=true
 ENABLE_NET_BASE=false
@@ -142,6 +144,7 @@ ENABLE_NET_PCMCIA=false
 ENABLE_PCIIDS=true
 ENABLE_PCMCIA=true
 ENABLE_SATA=false
+ENABLE_SCSI_EXP=true
 ENABLE_SHORKTAINMENT=true
 ENABLE_SMP=false
 ENABLE_STRACE=true
@@ -215,7 +218,7 @@ fi
 
 
 ######################################################
-## Parameter overrides                              ##
+## Overrides                                        ##
 ######################################################
 
 # Overrides to ensure the correct estimated RAM requirement is shown in the after-build report
@@ -272,6 +275,11 @@ fi
 # Override to ensure NET_MIN is enabled with HTOP or NET
 if [ "$ENABLE_HTOP" = true ] || [ "$ENABLE_NET_ETH" = true ]; then
     ENABLE_NET_BASE=true
+fi
+
+# Ensure SCSI_EXT is enabled with MT_ST
+if [ "$ENABLE_MT_ST" = true ]; then
+    ENABLE_SCSI_EXP=true
 fi
 
 
@@ -1126,6 +1134,11 @@ configure_kernel()
     if $ENABLE_SATA; then
         echo -e "${GREEN}Enabling kernel-level SATA support...${RESET}"
         FRAGS+="$CURR_DIR/configs/linux.config.sata.frag "
+    fi
+
+    if $ENABLE_SCSI_EXP; then
+        echo -e "${GREEN}Enabling kernel-level SCSI media changer & tape drive support...${RESET}"
+        FRAGS+="$CURR_DIR/configs/linux.config.scsi.exp.frag "
     fi
 
     if $ENABLE_SMP; then
@@ -3373,6 +3386,39 @@ get_mg()
     cp UNLICENSE $CURR_DIR/build/LICENCES/mg.txt
 }
 
+# Download and compile mt-st
+get_mt_st()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$DESTDIR/bin/mt" ] && [ -f "$DESTDIR/sbin/stinit" ]; then
+        echo -e "${LIGHT_RED}mt-st already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d mt-st ]; then
+        echo -e "${YELLOW}mt-st source already present, resetting...${RESET}"
+        cd mt-st
+        git config --global --add safe.directory $CURR_DIR/build/mt-st
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading Mg...${RESET}"
+        git clone --branch "v${MT_ST_VER}" https://github.com/iustin/mt-st.git
+        cd mt-st
+    fi
+
+    # Compile and install
+    echo -e "${GREEN}Compiling mt-st...${RESET}"
+    make -j$(nproc) CC=$CC_STATIC
+    sudo make DESTDIR=$DESTDIR install
+
+    # Copy licence file
+    cp COPYING $CURR_DIR/build/LICENCES/mt-st.txt
+}
+
 # Download and compile nano
 get_nano()
 {
@@ -3981,6 +4027,18 @@ trim_fat()
         sudo rm -rf "$DESTDIR/usr/share/mg"
     fi
 
+    for bin in "$DESTDIR"/bin/*; do
+        if [ -f "$bin" ]; then
+            sudo $STRIP $bin 2>/dev/null || true
+        fi
+    done
+
+    for bin in "$DESTDIR"/sbin/*; do
+        if [ -f "$bin" ]; then
+            sudo $STRIP $bin 2>/dev/null || true
+        fi
+    done
+
     for bin in "$DESTDIR"/usr/bin/*; do
         if [ -f "$bin" ]; then
             sudo $STRIP $bin 2>/dev/null || true
@@ -4019,9 +4077,9 @@ find_mbr_bin()
 copy_tests()
 {
     echo -e "${GREEN}Copying feature/capability tests...${RESET}"
-    mkdir -p $DESTDIR/home/tests
-    cp $CURR_DIR/tests/* $DESTDIR/home/tests
-    chmod +x $DESTDIR/home/tests/*.sh
+    sudo mkdir -p $DESTDIR/home/tests
+    sudo cp $CURR_DIR/tests/* $DESTDIR/home/tests
+    sudo chmod +x $DESTDIR/home/tests/*.sh
     cd $DESTDIR
 }
 
@@ -4435,6 +4493,12 @@ get_installed_programs_features()
         EXCLUDED_FEATURES+="\n * kernel-level SATA support"
     fi
 
+    if $ENABLE_SCSI_EXP; then
+        INCLUDED_FEATURES+="\n * kernel-level SCSI media changer & tape drive support"
+    else
+        EXCLUDED_FEATURES+="\n * kernel-level SCSI media changer & tape drive support"
+    fi
+
     if $ENABLE_TASKSTATS; then
         INCLUDED_FEATURES+="\n * kernel-level taskstats support"
     else
@@ -4633,6 +4697,11 @@ get_installed_programs_features()
     else
         EXCLUDED_FEATURES+="\n * mg"
     fi
+    if [ -f "$DESTDIR/bin/mt" ]; then
+        INCLUDED_FEATURES+="\n * mt (mt-st, $MT_ST_VER)"
+    else
+        EXCLUDED_FEATURES+="\n * mt"
+    fi
     if [ -f "$DESTDIR/usr/bin/nano" ]; then
         INCLUDED_FEATURES+="\n * nano ($NANO_VER)"
     else
@@ -4657,6 +4726,11 @@ get_installed_programs_features()
         INCLUDED_FEATURES+="\n * ssh (Dropbear, $DROPBEAR_VER)"
     else
         EXCLUDED_FEATURES+="\n * ssh (Dropbear)"
+    fi
+    if [ -f "$DESTDIR/sbin/stinit" ]; then
+        INCLUDED_FEATURES+="\n * stinit (mt-st, $MT_ST_VER)"
+    else
+        EXCLUDED_FEATURES+="\n * stinit"
     fi
     if [ -f "$DESTDIR/usr/bin/strace" ]; then
         INCLUDED_FEATURES+="\n * strace ($STRACE_VER)"
@@ -4860,6 +4934,9 @@ if $ENABLE_HTOP; then
 fi
 if $ENABLE_MG; then
     get_mg
+fi
+if $ENABLE_MT_ST; then
+    get_mt_st
 fi
 if $ENABLE_NANO; then
     get_nano

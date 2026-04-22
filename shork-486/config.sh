@@ -43,6 +43,7 @@ ENABLE_FILE=true
 ENABLE_GIT=true
 ENABLE_HTOP=true
 ENABLE_MG=true
+ENABLE_MT_ST=true
 ENABLE_NANO=true
 ENABLE_SHORKTAINMENT=true
 ENABLE_TCC=true
@@ -59,6 +60,7 @@ ENABLE_MENU=true
 ENABLE_PCIIDS=true
 ENABLE_PCMCIA=true
 ENABLE_SATA=false
+ENABLE_SCSI_EXP=true
 ENABLE_SMP=false
 ENABLE_USB=false
 ENABLE_ZSWAP=true
@@ -132,6 +134,7 @@ ENABLE_GCC=$ENABLE_GCC
 ENABLE_GIT=$ENABLE_GIT
 ENABLE_HTOP=$ENABLE_HTOP
 ENABLE_MG=$ENABLE_MG
+ENABLE_MT_ST=$ENABLE_MT_ST
 ENABLE_NANO=$ENABLE_NANO
 ENABLE_SHORKTAINMENT=$ENABLE_SHORKTAINMENT
 ENABLE_TCC=$ENABLE_TCC
@@ -147,6 +150,7 @@ ENABLE_MENU=$ENABLE_MENU
 ENABLE_PCIIDS=$ENABLE_PCIIDS
 ENABLE_PCMCIA=$ENABLE_PCMCIA
 ENABLE_SATA=$ENABLE_SATA
+ENABLE_SCSI_EXP=$ENABLE_SCSI_EXP
 ENABLE_SMP=$ENABLE_SMP
 ENABLE_USB=$ENABLE_USB
 ENABLE_ZSWAP=$ENABLE_ZSWAP
@@ -228,6 +232,7 @@ elif [ "$TYPE" == "Default" ]; then
     ENABLE_GIT=true
     ENABLE_HTOP=true
     ENABLE_MG=true
+    ENABLE_MT_ST=true
     ENABLE_NANO=true
     ENABLE_SHORKTAINMENT=true
     ENABLE_TCC=true
@@ -244,6 +249,7 @@ elif [ "$TYPE" == "Default" ]; then
     ENABLE_PCIIDS=true
     ENABLE_PCMCIA=true
     ENABLE_SATA=false
+    ENABLE_SCSI_EXP=true
     ENABLE_SMP=false
     ENABLE_USB=false
     ENABLE_ZSWAP=true
@@ -260,6 +266,7 @@ elif [ "$TYPE" == "Minimal" ]; then
     ENABLE_GIT=false
     ENABLE_HTOP=false
     ENABLE_MG=false
+    ENABLE_MT_ST=false
     ENABLE_NANO=false
     ENABLE_SHORKTAINMENT=false
     ENABLE_TCC=false
@@ -276,6 +283,7 @@ elif [ "$TYPE" == "Minimal" ]; then
     ENABLE_PCIIDS=false
     ENABLE_PCMCIA=false
     ENABLE_SATA=false
+    ENABLE_SCSI_EXP=false
     ENABLE_SMP=false
     ENABLE_USB=false
     ENABLE_ZSWAP=true
@@ -292,6 +300,7 @@ elif [ "$TYPE" == "Maximal" ]; then
     ENABLE_GIT=true
     ENABLE_HTOP=true
     ENABLE_MG=true
+    ENABLE_MT_ST=true
     ENABLE_NANO=true
     ENABLE_SHORKTAINMENT=true
     ENABLE_TCC=true
@@ -308,6 +317,7 @@ elif [ "$TYPE" == "Maximal" ]; then
     ENABLE_PCIIDS=true
     ENABLE_PCMCIA=true
     ENABLE_SATA=true
+    ENABLE_SCSI_EXP=true
     ENABLE_SMP=true
     ENABLE_USB=true
     ENABLE_ZSWAP=true
@@ -480,38 +490,42 @@ BUNDLED_ITEMS=()
 
 if [ "$ENABLE_NET_ETH" == true ]; then
     BUNDLED_ITEMS+=(
-        #"cmatrix"       "Scrolling text screensaver (+0.4MiB)"              "$(val "$ENABLE_CMATRIX")"
-        "dropbear"      "SCP & SSH client (+0.4MiB)"                        "$(val "$ENABLE_DROPBEAR")"
-        "file"          "File type identification (+10MiB)"                 "$(val "$ENABLE_FILE")"
-        "gcc"           "*GCC (as, g++, gcc, gfortran) + musl (+215MiB)"    "$(val "$ENABLE_GCC")"
-        "git"           "Source control client (+19MiB)"                    "$(val "$ENABLE_GIT")"
-        "htop"          "Interactive process viewer (+0.6MiB)"              "$(val "$ENABLE_HTOP")"
-        "mg"            "Emacs-style text editor (+0.3MiB)"                 "$(val "$ENABLE_MG")"
-        "nano"          "Text editor (+1MiB)"                               "$(val "$ENABLE_NANO")"
-        "shorktainment" "shorkmatrix, shorksay & sl (+0.1MiB)"              "$(val "$ENABLE_SHORKTAINMENT")"
-        "tcc"           "Tiny C Compiler + musl (+4MiB)"                    "$(val "$ENABLE_TCC")"
-        "tnftp"         "FTP client (+0.3MiB)"                              "$(val "$ENABLE_TNFTP")"
-        "tmux"          "tmux (+1.7MiB)"                                    "$(val "$ENABLE_TMUX")"
+        #"cmatrix"       "Scrolling text screensaver (+0.4MiB)"             "$(val "$ENABLE_CMATRIX")"
+        "dropbear"      "*SCP & SSH client (+0.4MiB)"                       "$(val "$ENABLE_DROPBEAR")"
+        "file"          "*File type identification (+10MiB)"                "$(val "$ENABLE_FILE")"
+        "gcc"           "**GCC (as, g++, gcc, gfortran) + musl (+215MiB)"   "$(val "$ENABLE_GCC")"
+        "git"           "*Source control client (+19MiB)"                   "$(val "$ENABLE_GIT")"
+        "htop"          "*Interactive process viewer (+0.6MiB)"             "$(val "$ENABLE_HTOP")"
+        "mg"            "*Emacs-style text editor (+0.3MiB)"                "$(val "$ENABLE_MG")"
+        "mt-st"         "*Tape drive tools (+0.2MiB)"                       "$(val "$ENABLE_MT_ST")"
+        "nano"          "*Text editor (+0.8MiB)"                            "$(val "$ENABLE_NANO")"
+        "shorktainment" "*shorkmatrix, shorksay & sl (+0.1MiB)"             "$(val "$ENABLE_SHORKTAINMENT")"
+        "tcc"           "*Tiny C Compiler + musl (+4MiB)"                   "$(val "$ENABLE_TCC")"
+        "tnftp"         "*FTP client (+0.3MiB)"                             "$(val "$ENABLE_TNFTP")"
+        "tmux"          "*tmux (+1.7MiB)"                                   "$(val "$ENABLE_TMUX")"
     )
 else
     BUNDLED_ITEMS+=(
-        #"cmatrix"       "Scrolling text screensaver (+0.4MiB)"              "$(val "$ENABLE_CMATRIX")"
-        "file"          "File type identification (+10MiB)"                 "$(val "$ENABLE_FILE")"
-        "gcc"           "*GCC (as, g++, gcc, gfortran) + musl (+215MiB)"    "$(val "$ENABLE_GCC")"
-        "htop"          "htop (+0.6MiB)"                                    "$(val "$ENABLE_HTOP")"
-        "mg"            "Emacs-style text editor (+0.3MiB)"                 "$(val "$ENABLE_MG")"
-        "nano"          "Text editor (+1MiB)"                               "$(val "$ENABLE_NANO")"
-        "shorktainment" "shorkmatrix, shorksay & sl (+0.1MiB)"              "$(val "$ENABLE_SHORKTAINMENT")"
-        "tcc"           "Tiny C Compiler + musl (+4MiB)"                    "$(val "$ENABLE_TCC")"
-        "tmux"          "tmux (+1.7MiB)"                                    "$(val "$ENABLE_TMUX")"
+        #"cmatrix"       "Scrolling text screensaver (+0.4MiB)"             "$(val "$ENABLE_CMATRIX")"
+        "file"          "*File type identification (+10MiB)"                "$(val "$ENABLE_FILE")"
+        "gcc"           "**GCC (as, g++, gcc, gfortran) + musl (+215MiB)"   "$(val "$ENABLE_GCC")"
+        "htop"          "*htop (+0.6MiB)"                                   "$(val "$ENABLE_HTOP")"
+        "mg"            "*Emacs-style text editor (+0.3MiB)"                "$(val "$ENABLE_MG")"
+        "mt-st"         "*Tape drive tools (+0.2MiB)"                       "$(val "$ENABLE_MT_ST")"
+        "nano"          "*Text editor (+0.8MiB)"                            "$(val "$ENABLE_NANO")"
+        "shorktainment" "*shorkmatrix, shorksay & sl (+0.1MiB)"             "$(val "$ENABLE_SHORKTAINMENT")"
+        "tcc"           "*Tiny C Compiler + musl (+4MiB)"                   "$(val "$ENABLE_TCC")"
+        "tmux"          "*tmux (+1.7MiB)"                                   "$(val "$ENABLE_TMUX")"
     )
 fi
+
+
 
 BUNDLED=$(dialog --clear \
     --backtitle "SHORK 486 Build Configurator" \
     --title "Bundled Software" \
     --cancel-label "Skip" \
-    --checklist "Select what software to bundle with SHORK 486. Options marked with \"*\" particularly affect RAM requirements." $HEIGHT $WIDTH 8 \
+    --checklist "Select what software to bundle with SHORK 486.\n* This option would be included in a \"default\" build\n** This option can raise system memory requirements" $HEIGHT $WIDTH 8 \
     "${BUNDLED_ITEMS[@]}" \
     2>&1 >/dev/tty)
 
@@ -520,7 +534,7 @@ SKIPPED=$?
 if [[ $SKIPPED -eq 1 ]]; then
     :
 else
-    #if [[ $BUNDLED =~ "cmatrix" ]];         then ENABLE_CMATRIX=true;           else ENABLE_CMATRIX=false;          fi
+    #if [[ $BUNDLED =~ "cmatrix" ]];        then ENABLE_CMATRIX=true;           else ENABLE_CMATRIX=false;          fi
     if [[ $BUNDLED =~ "dropbear" ]];        then ENABLE_DROPBEAR=true;          else ENABLE_DROPBEAR=false;         fi
     if [[ $BUNDLED =~ "file" ]];            then ENABLE_FILE=true;              else ENABLE_FILE=false;             fi
     if [[ $BUNDLED =~ "gcc" ]];             then ENABLE_GCC=true;               else ENABLE_GCC=false;              fi
@@ -541,18 +555,19 @@ OPTIONS=$(dialog --clear \
     --backtitle "SHORK 486 Build Configurator" \
     --title "Options" \
     --cancel-label "Skip" \
-    --checklist "Select what other options to include. Some of these are benign, some may increase the RAM and disk space requirement considerably, some are experimental. Options marked with \"*\" particularly affect RAM requirements." $HEIGHT $WIDTH 9 \
-    "cfonts"        "Alternative console fonts (+0.05MiB)"              $(val $ENABLE_CFONTS) \
-    "grub"          "GRUB 2.x instead of EXTLINUX (+4MiB)"              $(val $USE_GRUB) \
-    "gui"           "*SHORKGUI (+46MiB, EXPERIMENTAL)"                  $(val $ENABLE_GUI) \
-    "highmem"       "*Kernel-level high memory support"                 $(val $ENABLE_HIGHMEM) \
-    "menu"          "Menu-based bootloader (+0.5MiB)"                   $(val $ENABLE_MENU) \
-    "pci.ids"       "PCI IDs database (+0.1MiB)"                        $(val $ENABLE_PCIIDS) \
-    "pcmcia"        "Kernel-level PCMCIA support"                       $(val $ENABLE_PCMCIA) \
-    "sata"          "*Kernel-level SATA support"                        $(val $ENABLE_SATA) \
-    "smp"           "*Kernel-level SMP support"                         $(val $ENABLE_SMP) \
-    "usb"           "Kernel-level USB & HID support & lsusb (+0.2MiB)"  $(val $ENABLE_USB) \
-    "zswap"         "Kernel-level zswap support"                        $(val $ENABLE_ZSWAP) \
+    --checklist "Select what other options to include. Some of these are benign, some may increase the RAM and disk space requirement considerably, some are experimental.\n* This option would be included in a \"default\" build\n** This option can raise system memory requirements" $HEIGHT $WIDTH 9 \
+    "cfonts"        "*Alternative console fonts (+0.05MiB)"                     $(val $ENABLE_CFONTS) \
+    "grub"          "GRUB 2.x instead of EXTLINUX (+4MiB)"                      $(val $USE_GRUB) \
+    "gui"           "**SHORKGUI (+46MiB, EXPERIMENTAL)"                         $(val $ENABLE_GUI) \
+    "highmem"       "**Kernel-level high memory support"                        $(val $ENABLE_HIGHMEM) \
+    "menu"          "*Menu-based bootloader (+0.5MiB)"                          $(val $ENABLE_MENU) \
+    "pci.ids"       "*PCI IDs database (+0.1MiB)"                               $(val $ENABLE_PCIIDS) \
+    "pcmcia"        "*Kernel-level PCMCIA support"                              $(val $ENABLE_PCMCIA) \
+    "sata"          "**Kernel-level SATA support"                               $(val $ENABLE_SATA) \
+    "scsi-exp"      "*Kernel-level SCSI media changer & tape drive support"     $(val $ENABLE_SCSI_EXP) \
+    "smp"           "**Kernel-level SMP support"                                $(val $ENABLE_SMP) \
+    "usb"           "Kernel-level USB & HID support & lsusb (+0.2MiB)"          $(val $ENABLE_USB) \
+    "zswap"         "*Kernel-level zswap support"                               $(val $ENABLE_ZSWAP) \
     2>&1 >/dev/tty)
     #"keymaps"   "Keymaps & shorkmap (+0.06MiB)"             $(val $ENABLE_KEYMAPS) \
     
@@ -570,7 +585,29 @@ else
     if [[ $OPTIONS =~ "pci.ids" ]];     then ENABLE_PCIIDS=true;    else ENABLE_PCIIDS=false;       fi
     if [[ $OPTIONS =~ "pcmcia" ]];      then ENABLE_PCMCIA=true;    else ENABLE_PCMCIA=false;       fi
     if [[ $OPTIONS =~ "sata" ]];        then ENABLE_SATA=true;      else ENABLE_SATA=false;         fi
+    if [[ $OPTIONS =~ "scsi-exp" ]];    then ENABLE_SCSI_EXP=true;  else ENABLE_SCSI_EXP=false;     fi
     if [[ $OPTIONS =~ "smp" ]];         then ENABLE_SMP=true;       else ENABLE_SMP=false;          fi
     if [[ $OPTIONS =~ "usb" ]];         then ENABLE_USB=true;       else ENABLE_USB=false;          fi
     if [[ $OPTIONS =~ "zswap" ]];       then ENABLE_ZSWAP=true;     else ENABLE_ZSWAP=false;        fi
+fi
+
+
+
+# Conflict Resolution - +MT_ST/-SCSI_EXP
+if [ "$ENABLE_MT_ST" = true ] && [ "$ENABLE_SCSI_EXP" = false ]; then
+    dialog --clear \
+        --backtitle "SHORK 486 Build Configurator" \
+        --title "Conflict Resolution - +MT_ST/-SCSI_EXP" \
+        --yes-label "Enable support" \
+        --no-label "Disable tools" \
+        --yesno "You have chosen to enable \"tape drive tools\" but disable \"kernel-level SCSI media changer & tape drive support\". Kernel-level support is required for the tape drive tools to work. Do you wish to enable the required support, or disable the tools?" \
+        8 "$WIDTH"
+
+    CHOICE=$?
+
+    if [[ $CHOICE -eq 0 ]]; then
+        ENABLE_SCSI_EXP=true
+    elif [[ $CHOICE -eq 1 ]]; then
+        ENABLE_MT_ST=false
+    fi
 fi
