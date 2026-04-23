@@ -101,6 +101,7 @@ GIT_VER="2.54.0"
 HTOP_VER="3.5.0"
 KERNEL_VER="7.0"
 LIBEVENT_VER="release-2.1.12-stable"
+LYNX_VER="2-9-2x"
 MG_VER="3.7"
 MT_ST_VER="1.8"
 MUSL_VER="1.2.5"
@@ -133,6 +134,7 @@ ENABLE_GUI=false
 ENABLE_HIGHMEM=false
 ENABLE_HTOP=true
 ENABLE_KEYMAPS=true
+ENABLE_LYNX=true
 ENABLE_MENU=true
 ENABLE_MG=true
 ENABLE_MT_ST=true
@@ -608,7 +610,7 @@ get_i486_musl_cc()
     [ -d "i486-linux-musl-cross" ] || tar xvf i486-linux-musl-cross.tgz
 }
 
-# Download and compile ncurses (required for nano, htop, tic, tmux and util-linux)
+# Download and compile ncurses (required for htop, Lynx, nano, tic, tmux and util-linux)
 get_ncurses()
 {
     cd "$CURR_DIR/build"
@@ -754,7 +756,7 @@ get_zlib()
     make DESTDIR="$SYSROOT" install
 }
 
-# Download and compile OpenSSL (required for curl and Git/HTTPS remote)
+# Download and compile OpenSSL (required for curl, Lynx and Git/HTTPS remote)
 get_openssl()
 {
     cd "$CURR_DIR/build"
@@ -771,6 +773,7 @@ get_openssl()
         git config --global --add safe.directory $CURR_DIR/build/openssl
         cd openssl
         git reset --hard
+        git clean -fdx
     else
         echo -e "${GREEN}Downloading OpenSSL...${RESET}"
         git clone --branch openssl-${OPENSSL_VER} https://github.com/openssl/openssl.git
@@ -779,7 +782,11 @@ get_openssl()
 
     # Compile and install
     echo -e "${GREEN}Compiling OpenSSL...${RESET}"
-    ./Configure linux-generic32 no-shared no-tests no-dso no-engine --prefix="$SYSROOT" --openssldir=/etc/ssl CC="${CC} -latomic" AR="${AR}" RANLIB="${RANLIB}"
+    ./Configure linux-generic32 no-shared no-tests no-dso no-engine \
+        --prefix="$SYSROOT" --openssldir=/etc/ssl \
+        CC="${CC} -latomic" \
+        AR="${AR}" \
+        RANLIB="${RANLIB}"
     make -j$(nproc)
     make install_sw
 }
@@ -3303,6 +3310,53 @@ get_htop()
     cp COPYING $CURR_DIR/build/LICENCES/htop.txt
 }
 
+# Download and compile Lynx
+get_lynx()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$DESTDIR/usr/bin/lynx" ]; then
+        echo -e "${LIGHT_RED}Lynx already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d lynx-snapshots ]; then
+        echo -e "${YELLOW}Lynx source already present, resetting...${RESET}"
+        cd lynx-snapshots
+        git config --global --add safe.directory "$CURR_DIR/build/lynx"
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading Lynx...${RESET}"
+        git clone --branch "v${LYNX_VER}" https://github.com/ThomasDickey/lynx-snapshots.git
+        cd lynx-snapshots
+    fi
+
+    # Compile and install
+    echo -e "${GREEN}Compiling Lynx...${RESET}"
+    make configure
+    ./configure \
+            --host=${HOST} \
+            --prefix=/usr \
+            --with-ssl \
+            --with-ssl-dir="$SYSROOT" \
+            --with-openssl \
+            CC="${CC_STATIC}" \
+            AR="${AR}" \
+            RANLIB="${RANLIB}" \
+            CPPFLAGS="-I${SYSROOT}/include -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
+            CFLAGS="-Os -march=i486" \
+            LDFLAGS="-static -L${SYSROOT}/lib -L${PREFIX}/lib" \
+            LIBS="-latomic"
+    make -j$(nproc)
+    sudo make DESTDIR=$DESTDIR install
+
+    # Copy licence file
+    cp COPYING $CURR_DIR/build/LICENCES/lynx.txt
+}
+
 # Download and compile musl
 get_musl()
 {
@@ -4023,6 +4077,11 @@ trim_fat()
         sudo rm -rf "$DESTDIR/home/kali"
     fi
 
+    if $ENABLE_LYNX; then
+        sudo sed -i '/^#/d' $DESTDIR/usr/etc/lynx.lss
+        sudo sed -i '/^#/d' $DESTDIR/usr/etc/lynx.cfg
+    fi
+
     if $ENABLE_MG; then
         sudo rm -rf "$DESTDIR/usr/share/mg"
     fi
@@ -4692,6 +4751,11 @@ get_installed_programs_features()
     else
         EXCLUDED_FEATURES+="\n * lsblk (util-linux)"
     fi
+    if [ -f "$DESTDIR/usr/bin/lynx" ]; then
+        INCLUDED_FEATURES+="\n * lynx ($LYNX_VER)"
+    else
+        EXCLUDED_FEATURES+="\n * lynx"
+    fi
     if [ -f "$DESTDIR/usr/bin/mg" ]; then
         INCLUDED_FEATURES+="\n * mg ($MG_VER)"
     else
@@ -4931,6 +4995,9 @@ if $ENABLE_GIT; then
 fi
 if $ENABLE_HTOP; then
     get_htop
+fi
+if $ENABLE_LYNX; then
+    get_lynx
 fi
 if $ENABLE_MG; then
     get_mg

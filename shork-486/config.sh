@@ -31,7 +31,7 @@ DEFAULT=true
 MINIMAL=false
 MAXIMAL=false
 CUSTOM=false
-TARGET_DISK=72
+TARGET_DISK=80
 TARGET_SWAP=8
 SET_KEYMAP="en_us"
 HOSTNAME="shork-486"
@@ -42,6 +42,7 @@ ENABLE_DROPBEAR=true
 ENABLE_FILE=true
 ENABLE_GIT=true
 ENABLE_HTOP=true
+ENABLE_LYNX=true
 ENABLE_MG=true
 ENABLE_MT_ST=true
 ENABLE_NANO=true
@@ -133,6 +134,7 @@ ENABLE_FILE=$ENABLE_FILE
 ENABLE_GCC=$ENABLE_GCC
 ENABLE_GIT=$ENABLE_GIT
 ENABLE_HTOP=$ENABLE_HTOP
+ENABLE_LYNX=$ENABLE_LYNX
 ENABLE_MG=$ENABLE_MG
 ENABLE_MT_ST=$ENABLE_MT_ST
 ENABLE_NANO=$ENABLE_NANO
@@ -211,7 +213,7 @@ TYPE=$(dialog --clear \
     --title "Build Type" \
     --cancel-label "Quit" \
     --radiolist "Select the build type, presets for SHORK 486 feature levels. The \"Custom\" option will enable further prompts for software and feature selection." $HEIGHT $WIDTH 6 \
-    "Default" "Requires 16MiB RAM + 72MiB disk"             $(val $DEFAULT) \
+    "Default" "Requires 16MiB RAM + 80MiB disk"             $(val $DEFAULT) \
     "Minimal" "Requires 8MiB RAM + 16MiB disk"              $(val $MINIMAL) \
     "Maximal" "Requires 24MiB RAM + 440MiB disk"            $(val $MAXIMAL) \
     "Custom"  "Requirements depend on subsequent choices"   $(val $CUSTOM) \
@@ -231,6 +233,7 @@ elif [ "$TYPE" == "Default" ]; then
     ENABLE_FILE=true
     ENABLE_GIT=true
     ENABLE_HTOP=true
+    ENABLE_LYNX=true
     ENABLE_MG=true
     ENABLE_MT_ST=true
     ENABLE_NANO=true
@@ -265,6 +268,7 @@ elif [ "$TYPE" == "Minimal" ]; then
     ENABLE_FILE=false
     ENABLE_GIT=false
     ENABLE_HTOP=false
+    ENABLE_LYNX=false
     ENABLE_MG=false
     ENABLE_MT_ST=false
     ENABLE_NANO=false
@@ -299,6 +303,7 @@ elif [ "$TYPE" == "Maximal" ]; then
     ENABLE_FILE=true
     ENABLE_GIT=true
     ENABLE_HTOP=true
+    ENABLE_LYNX=true
     ENABLE_MG=true
     ENABLE_MT_ST=true
     ENABLE_NANO=true
@@ -496,6 +501,7 @@ if [ "$ENABLE_NET_ETH" == true ]; then
         "gcc"           "**GCC (as, g++, gcc, gfortran) + musl (+215MiB)"   "$(val "$ENABLE_GCC")"
         "git"           "*Source control client (+19MiB)"                   "$(val "$ENABLE_GIT")"
         "htop"          "*Interactive process viewer (+0.6MiB)"             "$(val "$ENABLE_HTOP")"
+        "lynx"          "*Text web browser (+7.3MiB)"                       "$(val "$ENABLE_LYNX")"
         "mg"            "*Emacs-style text editor (+0.3MiB)"                "$(val "$ENABLE_MG")"
         "mt-st"         "*Tape drive tools (+0.2MiB)"                       "$(val "$ENABLE_MT_ST")"
         "nano"          "*Text editor (+0.8MiB)"                            "$(val "$ENABLE_NANO")"
@@ -540,6 +546,7 @@ else
     if [[ $BUNDLED =~ "gcc" ]];             then ENABLE_GCC=true;               else ENABLE_GCC=false;              fi
     if [[ $BUNDLED =~ "git" ]];             then ENABLE_GIT=true;               else ENABLE_GIT=false;              fi
     if [[ $BUNDLED =~ "htop" ]];            then ENABLE_HTOP=true;              else ENABLE_HTOP=false;             fi
+    if [[ $BUNDLED =~ "lynx" ]];            then ENABLE_LYNX=true;              else ENABLE_LYNX=false;             fi
     if [[ $BUNDLED =~ "mg" ]];              then ENABLE_MG=true;                else ENABLE_MG=false;               fi
     if [[ $BUNDLED =~ "nano" ]];            then ENABLE_NANO=true;              else ENABLE_NANO=false;             fi
     if [[ $BUNDLED =~ "shorktainment" ]];   then ENABLE_SHORKTAINMENT=true;     else ENABLE_SHORKTAINMENT=false;    fi
