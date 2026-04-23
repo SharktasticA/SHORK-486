@@ -44,6 +44,7 @@ ENABLE_GIT=true
 ENABLE_HTOP=true
 ENABLE_LYNX=true
 ENABLE_MG=true
+ENABLE_MICROPYTHON=true
 ENABLE_MT_ST=true
 ENABLE_NANO=true
 ENABLE_SHORKTAINMENT=true
@@ -136,6 +137,7 @@ ENABLE_GIT=$ENABLE_GIT
 ENABLE_HTOP=$ENABLE_HTOP
 ENABLE_LYNX=$ENABLE_LYNX
 ENABLE_MG=$ENABLE_MG
+ENABLE_MICROPYTHON=$ENABLE_MICROPYTHON
 ENABLE_MT_ST=$ENABLE_MT_ST
 ENABLE_NANO=$ENABLE_NANO
 ENABLE_SHORKTAINMENT=$ENABLE_SHORKTAINMENT
@@ -235,6 +237,7 @@ elif [ "$TYPE" == "Default" ]; then
     ENABLE_HTOP=true
     ENABLE_LYNX=true
     ENABLE_MG=true
+    ENABLE_MICROPYTHON=true
     ENABLE_MT_ST=true
     ENABLE_NANO=true
     ENABLE_SHORKTAINMENT=true
@@ -270,6 +273,7 @@ elif [ "$TYPE" == "Minimal" ]; then
     ENABLE_HTOP=false
     ENABLE_LYNX=false
     ENABLE_MG=false
+    ENABLE_MICROPYTHON=false
     ENABLE_MT_ST=false
     ENABLE_NANO=false
     ENABLE_SHORKTAINMENT=false
@@ -305,6 +309,7 @@ elif [ "$TYPE" == "Maximal" ]; then
     ENABLE_HTOP=true
     ENABLE_LYNX=true
     ENABLE_MG=true
+    ENABLE_MICROPYTHON=true
     ENABLE_MT_ST=true
     ENABLE_NANO=true
     ENABLE_SHORKTAINMENT=true
@@ -503,25 +508,27 @@ if [ "$ENABLE_NET_ETH" == true ]; then
         "htop"          "*Interactive process viewer (+0.6MiB)"             "$(val "$ENABLE_HTOP")"
         "lynx"          "*Text web browser (+7.3MiB)"                       "$(val "$ENABLE_LYNX")"
         "mg"            "*Emacs-style text editor (+0.3MiB)"                "$(val "$ENABLE_MG")"
+        "micropython"   "*Python 3.4-syntax intepreter (+0.7MiB)"           "$(val "$ENABLE_MICROPYTHON")"
         "mt-st"         "*Tape drive tools (+0.2MiB)"                       "$(val "$ENABLE_MT_ST")"
         "nano"          "*Text editor (+0.8MiB)"                            "$(val "$ENABLE_NANO")"
         "shorktainment" "*shorkmatrix, shorksay & sl (+0.1MiB)"             "$(val "$ENABLE_SHORKTAINMENT")"
         "tcc"           "*Tiny C Compiler + musl (+4MiB)"                   "$(val "$ENABLE_TCC")"
         "tnftp"         "*FTP client (+0.3MiB)"                             "$(val "$ENABLE_TNFTP")"
-        "tmux"          "*tmux (+1.7MiB)"                                   "$(val "$ENABLE_TMUX")"
+        "tmux"          "*Terminal multiplexer (+1.7MiB)"                   "$(val "$ENABLE_TMUX")"
     )
 else
     BUNDLED_ITEMS+=(
         #"cmatrix"       "Scrolling text screensaver (+0.4MiB)"             "$(val "$ENABLE_CMATRIX")"
         "file"          "*File type identification (+10MiB)"                "$(val "$ENABLE_FILE")"
         "gcc"           "**GCC (as, g++, gcc, gfortran) + musl (+215MiB)"   "$(val "$ENABLE_GCC")"
-        "htop"          "*htop (+0.6MiB)"                                   "$(val "$ENABLE_HTOP")"
+        "htop"          "*Interactive process viewer (+0.6MiB)"             "$(val "$ENABLE_HTOP")"
         "mg"            "*Emacs-style text editor (+0.3MiB)"                "$(val "$ENABLE_MG")"
+        "micropython"   "*Python 3.4-syntax intepreter (+0.7MiB)"           "$(val "$ENABLE_MICROPYTHON")"
         "mt-st"         "*Tape drive tools (+0.2MiB)"                       "$(val "$ENABLE_MT_ST")"
         "nano"          "*Text editor (+0.8MiB)"                            "$(val "$ENABLE_NANO")"
         "shorktainment" "*shorkmatrix, shorksay & sl (+0.1MiB)"             "$(val "$ENABLE_SHORKTAINMENT")"
         "tcc"           "*Tiny C Compiler + musl (+4MiB)"                   "$(val "$ENABLE_TCC")"
-        "tmux"          "*tmux (+1.7MiB)"                                   "$(val "$ENABLE_TMUX")"
+        "tmux"          "*Terminal multiplexer (+1.7MiB)"                   "$(val "$ENABLE_TMUX")"
     )
 fi
 
@@ -548,6 +555,7 @@ else
     if [[ $BUNDLED =~ "htop" ]];            then ENABLE_HTOP=true;              else ENABLE_HTOP=false;             fi
     if [[ $BUNDLED =~ "lynx" ]];            then ENABLE_LYNX=true;              else ENABLE_LYNX=false;             fi
     if [[ $BUNDLED =~ "mg" ]];              then ENABLE_MG=true;                else ENABLE_MG=false;               fi
+    if [[ $BUNDLED =~ "micropython" ]];     then ENABLE_MICROPYTHON=true;       else ENABLE_MICROPYTHON=false;      fi
     if [[ $BUNDLED =~ "nano" ]];            then ENABLE_NANO=true;              else ENABLE_NANO=false;             fi
     if [[ $BUNDLED =~ "shorktainment" ]];   then ENABLE_SHORKTAINMENT=true;     else ENABLE_SHORKTAINMENT=false;    fi
     if [[ $BUNDLED =~ "tcc" ]];             then ENABLE_TCC=true;               else ENABLE_TCC=false;              fi

@@ -103,6 +103,7 @@ KERNEL_VER="7.0"
 LIBEVENT_VER="release-2.1.12-stable"
 LYNX_VER="2-9-2x"
 MG_VER="3.7"
+MICROPYTHON_VER="1.28.0"
 MT_ST_VER="1.8"
 MUSL_VER="1.2.5"
 NANO_DIST="v9"
@@ -137,6 +138,7 @@ ENABLE_KEYMAPS=true
 ENABLE_LYNX=true
 ENABLE_MENU=true
 ENABLE_MG=true
+ENABLE_MICROPYTHON=true
 ENABLE_MT_ST=true
 ENABLE_MULTIUSER=false
 ENABLE_NANO=true
@@ -477,12 +479,16 @@ install_arch_prerequisites()
         PACKAGES+=" fontconfig gperf unzip xorg-bdftopcf xorg-font-util xorg-mkfontscale"
     fi
 
-    if $FIX_EXTLINUX; then
-        PACKAGES+=" nasm"
+    if $ENABLE_MICROPYTHON; then
+        PACKAGES+=" libffi"
     fi
 
     if $ENABLE_TMUX; then
         PACKAGES+=" pkgconf"
+    fi
+
+    if $FIX_EXTLINUX; then
+        PACKAGES+=" nasm"
     fi
 
     if $USE_GRUB; then
@@ -506,20 +512,24 @@ install_debian_prerequisites()
         PACKAGES+=" fontconfig gettext gperf unzip xfonts-utils"
     fi
 
-    if $FIX_EXTLINUX; then
-        PACKAGES+=" nasm uuid-dev"
-    fi
-
     if $ENABLE_GIT; then
         PACKAGES+=" autoconf"
+    fi
+
+    if $ENABLE_MICROPYTHON; then
+        PACKAGES+=" libffi-dev"
+    fi
+
+    if $ENABLE_NANO; then
+        PACKAGES+=" texinfo"
     fi
 
     if $ENABLE_PCIIDS; then
         PACKAGES+=" pciutils"
     fi
 
-    if $ENABLE_NANO; then
-        PACKAGES+=" texinfo"
+    if $FIX_EXTLINUX; then
+        PACKAGES+=" nasm uuid-dev"
     fi
 
     if $USE_GRUB; then
@@ -542,16 +552,20 @@ install_fedora_prerequisites()
         PACKAGES+=" bdftopcf fontconfig gperf mkfontscale xorg-x11-font-utils"
     fi
 
-    if $FIX_EXTLINUX; then
-        PACKAGES+=" libuuid-devel nasm"
+    if $ENABLE_MICROPYTHON; then
+        PACKAGES+=" libffi-devel"
+    fi
+
+    if $ENABLE_NANO; then
+        PACKAGES+=" texinfo"
     fi
 
     if $ENABLE_PCIIDS; then
         PACKAGES+=" pciutils"
     fi
 
-    if $ENABLE_NANO; then
-        PACKAGES+=" texinfo"
+    if $FIX_EXTLINUX; then
+        PACKAGES+=" libuuid-devel nasm"
     fi
 
     if $USE_GRUB; then
@@ -3440,6 +3454,66 @@ get_mg()
     cp UNLICENSE $CURR_DIR/build/LICENCES/mg.txt
 }
 
+# Download and compile MicroPython
+get_micropython()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$DESTDIR/usr/bin/micropython" ]; then
+        echo -e "${LIGHT_RED}MicroPython already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d micropython ]; then
+        echo -e "${YELLOW}MicroPython source already present, resetting...${RESET}"
+        cd micropython
+        git config --global --add safe.directory $CURR_DIR/build/micropython
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading MicroPython...${RESET}"
+        git clone --branch "v${MICROPYTHON_VER}" https://github.com/micropython/micropython.git
+        cd micropython
+    fi
+    
+    # Build prerequisites
+    echo -e "${GREEN}Compiling mpy-cross...${RESET}"
+    make -C mpy-cross
+
+    # Compile and install
+    echo -e "${GREEN}Compiling MicroPython...${RESET}"
+    cd ports/unix
+    make submodules
+    make \
+        CC="${CC_STATIC}" \
+        AR="${AR}" \
+        RANLIB="${RANLIB}" \
+        STRIP="${STRIP}" \
+        CFLAGS_EXTRA="-Os -march=i486 -static --sysroot=${SYSROOT}" \
+        LDFLAGS_EXTRA="-static --sysroot=${SYSROOT}" \
+        MICROPY_PY_SSL=1 \
+        MICROPY_SSL_MBEDTLS=1 \
+        MICROPY_PY_ZLIB=1 \
+        MICROPY_PY_THREAD=1 \
+        MICROPY_PY_SOCKET=1 \
+        MICROPY_PY_TERMIOS=1 \
+        MICROPY_PY_FFI=0 \
+        MICROPY_PY_BTREE=0 \
+        VARIANT=standard
+    install -d "${DESTDIR}/usr/bin"
+    sudo install -m 755 build-standard/micropython "${DESTDIR}/usr/bin/micropython"
+
+    # Symlink python and python3 to mg
+    sudo ln -sf micropython "$DESTDIR/usr/bin/python"
+    sudo ln -sf micropython "$DESTDIR/usr/bin/python3"
+
+    # Copy licence file
+    cd ../..
+    cp LICENSE $CURR_DIR/build/LICENCES/micropython.txt
+}
+
 # Download and compile mt-st
 get_mt_st()
 {
@@ -4392,7 +4466,7 @@ build_disk_img()
     KERNEL_BYTES=$(stat -c %s bzImage)
     ROOT_BYTES=$(du -sb root/ | cut -f1)
     OVERHEAD_BYTES=0
-    OVERHEAD_BYTES=$((ROOT_BYTES / 2))
+    OVERHEAD_BYTES=$((4 * 1024 * 1024))
     TOTAL_BYTES=$((KERNEL_BYTES + ROOT_BYTES + OVERHEAD_BYTES))
     TOTAL_MIB=$((TOTAL_BYTES / 1048576))
     if [ "$BUILD_TYPE" = "minimal" ]; then
@@ -4761,6 +4835,11 @@ get_installed_programs_features()
     else
         EXCLUDED_FEATURES+="\n * mg"
     fi
+    if [ -f "$DESTDIR/usr/bin/micropython" ]; then
+        INCLUDED_FEATURES+="\n * micropython ($MICROPYTHON_VER)"
+    else
+        EXCLUDED_FEATURES+="\n * micropython"
+    fi
     if [ -f "$DESTDIR/bin/mt" ]; then
         INCLUDED_FEATURES+="\n * mt (mt-st, $MT_ST_VER)"
     else
@@ -5001,6 +5080,9 @@ if $ENABLE_LYNX; then
 fi
 if $ENABLE_MG; then
     get_mg
+fi
+if $ENABLE_MICROPYTHON; then
+    get_micropython
 fi
 if $ENABLE_MT_ST; then
     get_mt_st
