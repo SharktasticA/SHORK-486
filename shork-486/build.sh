@@ -4458,30 +4458,44 @@ build_disk_img()
         fi
     }
     trap cleanup EXIT ERR INT TERM
-    
-    echo -e "${GREEN}Creating a disk image...${RESET}"
 
-    # Calculate size for the image and align to 4MiB boundary
-    # OVERHEAD is provided to take into account metadata, partition alignment, bootloader structures, etc.
+
+
+    echo -e "${GREEN}Estimating required disk size...${RESET}"
+
+    # Get the size of our kernel and root fs
     KERNEL_BYTES=$(stat -c %s bzImage)
     ROOT_BYTES=$(du -sb root/ | cut -f1)
-    OVERHEAD_BYTES=0
+
+    # Calculate some overhead to take into account metadata, partition
+    # alignment, bootloader structures, etc.
     OVERHEAD_BYTES=$((4 * 1024 * 1024))
+    if [ "$ENABLE_GCC" = true ] || [ "$ENABLE_GUI" = true ]; then
+        # We can assume these features can demand more
+        OVERHEAD_BYTES=$((16 * 1024 * 1024))
+    fi
+
+    # Estimate how big of a disk we need to contain the three things above
     TOTAL_BYTES=$((KERNEL_BYTES + ROOT_BYTES + OVERHEAD_BYTES))
     TOTAL_MIB=$((TOTAL_BYTES / 1048576))
+
+    # Align to 4MiB boundary
+    TOTAL_DISK_SIZE=$((((TOTAL_MIB + 3) / 4) * 4))
+    
+    # We know this amount works for minimal build and keeps the disk size
+    # small
     if [ "$BUILD_TYPE" = "minimal" ]; then
         if [ "$TOTAL_MIB" -lt 16 ]; then
             TOTAL_MIB=16
         fi
     fi
-    TOTAL_DISK_SIZE=$((((TOTAL_MIB + 3) / 4) * 4))
 
     # Factor in target swap if provided
     if [ -n "$TARGET_SWAP" ]; then
         TOTAL_DISK_SIZE=$((TOTAL_DISK_SIZE + TARGET_SWAP))
     fi
 
-    # Use target disk value is provided
+    # Use target disk value if provided and large enough
     if [ -n "$TARGET_DISK" ]; then
         if [ "$TARGET_DISK" -lt "$TOTAL_DISK_SIZE" ]; then
             echo -e "${YELLOW}WARNING: the provided target disk value (${TARGET_DISK}MiB) is smaller than required size (${TOTAL_DISK_SIZE}MiB) - using calculated size instead${RESET}"
@@ -4491,10 +4505,13 @@ build_disk_img()
         fi
     fi
 
+
+
     # Create the image
+    echo -e "${GREEN}Creating the disk image...${RESET}"
     dd if=/dev/zero of=../images/shork-486.img bs=1M count="$TOTAL_DISK_SIZE" status=progress
 
-    # Enlarges the image so it ends on a whole CHS cylinder boundary
+    # Enlarges the image so it ends on a whole CHS-cylinder boundary
     SECTORS_PER_CYL=$((DISK_HEADS*DISK_SECTORS_TRACK))
     IMG_SIZE=$(stat -c %s ../images/shork-486.img)
     SECTORS_NO=$((IMG_SIZE / 512))
@@ -4503,7 +4520,10 @@ build_disk_img()
     truncate -s "$ALIGNED_IMG_SIZE" ../images/shork-486.img
     DISK_CYLINDERS=$((ALIGNED_SECTORS / SECTORS_PER_CYL))
 
+
+
     # Partition the image
+    echo -e "${GREEN}Partitioning the disk image...${RESET}"
     partition_image "$ALIGNED_SECTORS"
 
     # Ensure loop devices exist (Docker does not always create them)
@@ -4535,9 +4555,13 @@ build_disk_img()
         echo "/dev/sda2 none swap sw 0 0" | sudo tee -a /mnt/shork-486/etc/fstab
     fi
 
+
+
     # Install the kernel
     echo -e "${GREEN}Installing kernel image...${RESET}"
     sudo cp bzImage /mnt/shork-486/boot/bzImage
+
+
 
     # Install a bootloader
     if $USE_GRUB; then
@@ -4545,7 +4569,9 @@ build_disk_img()
     else
         install_extlinux_bootloader
     fi
-    
+
+
+
     # Ensure file system is in a clean state
     echo -e "${GREEN}Unmounting file system...${RESET}"
     sudo umount /mnt/shork-486
