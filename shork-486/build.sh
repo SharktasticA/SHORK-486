@@ -173,8 +173,8 @@ SHORKUTILS_RECLONE=false
 SKIP_BB=false
 SKIP_KRN=false
 
-TARGET_DISK=""
-TARGET_SWAP=""
+TARGET_DISK="80"
+TARGET_SWAP="8"
 USE_GRUB=false
 
 while [ $# -gt 0 ]; do
