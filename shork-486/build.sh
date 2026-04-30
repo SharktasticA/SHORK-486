@@ -99,7 +99,7 @@ DROPBEAR_VER="2025.89"
 FILE_VER="5_47"
 GIT_VER="2.54.0"
 HTOP_VER="3.5.0"
-KERNEL_VER="7.0.3"
+KERNEL_VER="7.1-rc1"
 LIBEVENT_VER="release-2.1.12-stable"
 LYNX_VER="2-9-2x"
 MG_VER="3.7"
@@ -1218,8 +1218,8 @@ compile_kernel()
     sudo sed -i "s/printf '%s' -dirty/printf '%s'/" scripts/setlocalversion
 
     # Apply our patches
-    echo -e "${GREEN}Applying 7.0.x_6.14.11-e820-v2 patch...${RESET}"
-    patch -p1 < "$CURR_DIR/patches/7.0.x_6.14.11-e820-v2.patch"
+    echo -e "${GREEN}Applying 7.x.x_6.14.11-e820-v2 patch...${RESET}"
+    patch -p1 < "$CURR_DIR/patches/7.x.x_6.14.11-e820-v2.patch"
 
     echo -e "${GREEN}Compiling Linux kernel...${RESET}"
     make ARCH=x86 olddefconfig
