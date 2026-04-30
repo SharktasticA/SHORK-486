@@ -17,7 +17,7 @@ fi
 
 
 CURR_DIR=$(pwd)
-WIDTH=72
+WIDTH=76
 HEIGHT=16
 
 
@@ -47,6 +47,7 @@ ENABLE_MG=true
 ENABLE_MICROPYTHON=true
 ENABLE_MT_ST=true
 ENABLE_NANO=true
+ENABLE_SC_IM=true
 ENABLE_SHORKTAINMENT=true
 ENABLE_TCC=true
 ENABLE_TNFTP=true
@@ -140,6 +141,7 @@ ENABLE_MG=$ENABLE_MG
 ENABLE_MICROPYTHON=$ENABLE_MICROPYTHON
 ENABLE_MT_ST=$ENABLE_MT_ST
 ENABLE_NANO=$ENABLE_NANO
+ENABLE_SC_IM=$ENABLE_SC_IM
 ENABLE_SHORKTAINMENT=$ENABLE_SHORKTAINMENT
 ENABLE_TCC=$ENABLE_TCC
 ENABLE_TNFTP=$ENABLE_TNFTP
@@ -240,6 +242,7 @@ elif [ "$TYPE" == "Default" ]; then
     ENABLE_MICROPYTHON=true
     ENABLE_MT_ST=true
     ENABLE_NANO=true
+    ENABLE_SC_IM=true
     ENABLE_SHORKTAINMENT=true
     ENABLE_TCC=true
     ENABLE_TNFTP=true
@@ -276,6 +279,7 @@ elif [ "$TYPE" == "Minimal" ]; then
     ENABLE_MICROPYTHON=false
     ENABLE_MT_ST=false
     ENABLE_NANO=false
+    ENABLE_SC_IM=false
     ENABLE_SHORKTAINMENT=false
     ENABLE_TCC=false
     ENABLE_TNFTP=false
@@ -312,6 +316,7 @@ elif [ "$TYPE" == "Maximal" ]; then
     ENABLE_MICROPYTHON=true
     ENABLE_MT_ST=true
     ENABLE_NANO=true
+    ENABLE_SC_IM=true
     ENABLE_SHORKTAINMENT=true
     ENABLE_TCC=true
     ENABLE_TNFTP=true
@@ -506,11 +511,12 @@ if [ "$ENABLE_NET_ETH" == true ]; then
         "gcc"           "**GCC (as, g++, gcc, gfortran) + musl (+215MiB)"   "$(val "$ENABLE_GCC")"
         "git"           "*Source control client (+19MiB)"                   "$(val "$ENABLE_GIT")"
         "htop"          "*Interactive process viewer (+0.6MiB)"             "$(val "$ENABLE_HTOP")"
-        "lynx"          "*Text web browser (+7.3MiB)"                       "$(val "$ENABLE_LYNX")"
+        "lynx"          "*Terminal web browser (+7.3MiB)"                   "$(val "$ENABLE_LYNX")"
         "mg"            "*Emacs-style text editor (+0.3MiB)"                "$(val "$ENABLE_MG")"
         "micropython"   "*Python 3.4-syntax intepreter (+0.7MiB)"           "$(val "$ENABLE_MICROPYTHON")"
         "mt-st"         "*Tape drive tools (+0.2MiB)"                       "$(val "$ENABLE_MT_ST")"
         "nano"          "*Text editor (+0.8MiB)"                            "$(val "$ENABLE_NANO")"
+        "sc-im"         "*Terminal spreadsheet editor (+2.8MiB)"            "$(val "$ENABLE_SC_IM")"
         "shorktainment" "*shorkmatrix, shorksay & sl (+0.1MiB)"             "$(val "$ENABLE_SHORKTAINMENT")"
         "tcc"           "*Tiny C Compiler + musl (+4MiB)"                   "$(val "$ENABLE_TCC")"
         "tnftp"         "*FTP client (+0.3MiB)"                             "$(val "$ENABLE_TNFTP")"
@@ -526,6 +532,7 @@ else
         "micropython"   "*Python 3.4-syntax intepreter (+0.7MiB)"           "$(val "$ENABLE_MICROPYTHON")"
         "mt-st"         "*Tape drive tools (+0.2MiB)"                       "$(val "$ENABLE_MT_ST")"
         "nano"          "*Text editor (+0.8MiB)"                            "$(val "$ENABLE_NANO")"
+        "sc-im"         "*Terminal spreadsheet editor (+2.8MiB)"            "$(val "$ENABLE_SC_IM")"
         "shorktainment" "*shorkmatrix, shorksay & sl (+0.1MiB)"             "$(val "$ENABLE_SHORKTAINMENT")"
         "tcc"           "*Tiny C Compiler + musl (+4MiB)"                   "$(val "$ENABLE_TCC")"
         "tmux"          "*Terminal multiplexer (+1.7MiB)"                   "$(val "$ENABLE_TMUX")"
@@ -557,6 +564,7 @@ else
     if [[ $BUNDLED =~ "mg" ]];              then ENABLE_MG=true;                else ENABLE_MG=false;               fi
     if [[ $BUNDLED =~ "micropython" ]];     then ENABLE_MICROPYTHON=true;       else ENABLE_MICROPYTHON=false;      fi
     if [[ $BUNDLED =~ "nano" ]];            then ENABLE_NANO=true;              else ENABLE_NANO=false;             fi
+    if [[ $BUNDLED =~ "sc-im" ]];           then ENABLE_SC_IM=true;             else ENABLE_SC_IM=false;            fi
     if [[ $BUNDLED =~ "shorktainment" ]];   then ENABLE_SHORKTAINMENT=true;     else ENABLE_SHORKTAINMENT=false;    fi
     if [[ $BUNDLED =~ "tcc" ]];             then ENABLE_TCC=true;               else ENABLE_TCC=false;              fi
     if [[ $BUNDLED =~ "tmux" ]];            then ENABLE_TMUX=true;              else ENABLE_TMUX=false;             fi
