@@ -101,6 +101,9 @@ GIT_VER="2.54.0"
 HTOP_VER="3.5.0"
 KERNEL_VER="7.1-rc1"
 LIBEVENT_VER="release-2.1.12-stable"
+LIBXLSXWRITER_VER="1.2.4"
+LIBXML2_VER="2.15.3"
+LIBZIP_VER="1.11.4"
 LYNX_VER="2-9-2x"
 MG_VER="3.7"
 MICROPYTHON_VER="1.28.0"
@@ -112,6 +115,7 @@ NCURSES_VER="6.4"
 NEDIT_VER="NEDIT-CLASSIC-END"
 OPENSSL_VER="3.6.0"
 ROVER_VER="1.0.1"
+SC_IM_VER="0.8.5"
 STRACE_VER="6.19"
 TCC_VER="e5eedc0"
 TMUX_VER="3.6a"
@@ -149,6 +153,7 @@ ENABLE_PCIIDS=true
 ENABLE_PCMCIA=true
 ENABLE_SATA=false
 ENABLE_SCSI_EXP=true
+ENABLE_SC_IM=true
 ENABLE_SHORKTAINMENT=true
 ENABLE_SMP=false
 ENABLE_STRACE=true
@@ -339,19 +344,28 @@ fi
 
 
 # Check what other prerequisites we need
-NEED_ZLIB=false
-NEED_OPENSSL=false
 NEED_CURL=false
+NEED_OPENSSL=false
 NEED_LIBEVENT=false
+NEED_LIBXLSXWRITER=false
+NEED_LIBXML2=false
+NEED_LIBZIP=false
+NEED_ZLIB=false
 
 if [ -n "$USED_WM" ]; then
     NEED_ZLIB=true
 fi
 
 if $ENABLE_GIT; then
-    NEED_ZLIB=true
-    NEED_OPENSSL=true
     NEED_CURL=true
+    NEED_OPENSSL=true
+    NEED_ZLIB=true
+fi
+
+if $ENABLE_SC_IM; then
+    NEED_LIBXLSXWRITER=true
+    NEED_LIBXML2=true
+    NEED_LIBZIP=true
 fi
 
 if $ENABLE_TMUX; then
@@ -624,7 +638,7 @@ get_i486_musl_cc()
     [ -d "i486-linux-musl-cross" ] || tar xvf i486-linux-musl-cross.tgz
 }
 
-# Download and compile ncurses (required for htop, Lynx, nano, tic, tmux and util-linux)
+# Download and compile ncurses (required for htop, Lynx, nano, sc-im, tic, tmux and util-linux)
 get_ncurses()
 {
     cd "$CURR_DIR/build"
@@ -708,103 +722,6 @@ get_tic()
     cp COPYING $CURR_DIR/build/LICENCES/ncurses.txt
 }
 
-# Download and compile libevent (required for tmux)
-get_libevent()
-{
-    cd "$CURR_DIR/build"
-
-    # Skip if already compiled
-    if [ -f "${PREFIX}/lib/libevent.a" ]; then
-        echo -e "${LIGHT_RED}libevent already compiled, skipping...${RESET}"
-        return
-    fi
-
-    # Download source
-    if [ -d libevent ]; then
-        echo -e "${YELLOW}libevent source already present, resetting...${RESET}"
-        cd libevent
-        git reset --hard
-    else
-        echo -e "${GREEN}Downloading libevent...${RESET}"
-        git clone --branch ${LIBEVENT_VER} https://github.com/libevent/libevent.git
-        cd libevent
-    fi
-
-    # Compile and install
-    echo -e "${GREEN}Compiling libevent...${RESET}"
-    ./autogen.sh
-    ./configure --host=${HOST} --prefix="${PREFIX}" --disable-shared  --enable-static --disable-samples --disable-openssl CC="${CC}"
-    make -j$(nproc)
-    make install
-}
-
-# Download and compile zlib (required for Git and TWM)
-get_zlib()
-{
-    cd "$CURR_DIR/build"
-
-    # Skip if already compiled
-    if [ -f "$SYSROOT/usr/lib/libz.a" ]; then
-        echo -e "${LIGHT_RED}zlib already compiled, skipping...${RESET}"
-        return
-    fi
-
-    # Download source
-    if [ -d zlib ]; then
-        echo -e "${YELLOW}zlib source already present, resetting...${RESET}"
-        git config --global --add safe.directory $CURR_DIR/build/zlib
-        cd zlib
-        git reset --hard
-    else
-        echo -e "${GREEN}Downloading zlib...${RESET}"
-        git clone --branch v${ZLIB_VER} https://github.com/madler/zlib.git
-        cd zlib
-    fi
-
-    echo -e "${GREEN}Compiling zlib...${RESET}"
-    make clean || true
-    CC="$CC" \
-    CFLAGS="-Os -march=i486 -static --sysroot=$SYSROOT" \
-    ./configure  --static --prefix=/usr
-    make -j$(nproc)
-    make DESTDIR="$SYSROOT" install
-}
-
-# Download and compile OpenSSL (required for curl, Lynx and Git/HTTPS remote)
-get_openssl()
-{
-    cd "$CURR_DIR/build"
-
-    # Skip if already compiled
-    if [ -f "$SYSROOT/lib/libssl.a" ]; then
-        echo -e "${LIGHT_RED}OpenSSL already compiled, skipping...${RESET}"
-        return
-    fi
-
-    # Download source
-    if [ -d openssl ]; then
-        echo -e "${YELLOW}OpenSSL source already present, resetting...${RESET}"
-        git config --global --add safe.directory $CURR_DIR/build/openssl
-        cd openssl
-        git reset --hard
-        git clean -fdx
-    else
-        echo -e "${GREEN}Downloading OpenSSL...${RESET}"
-        git clone --branch openssl-${OPENSSL_VER} https://github.com/openssl/openssl.git
-        cd openssl
-    fi
-
-    # Compile and install
-    echo -e "${GREEN}Compiling OpenSSL...${RESET}"
-    ./Configure linux-generic32 no-shared no-tests no-dso no-engine \
-        --prefix="$SYSROOT" --openssldir=/etc/ssl \
-        CC="${CC} -latomic" \
-        AR="${AR}" \
-        RANLIB="${RANLIB}"
-    make -j$(nproc)
-    make install_sw
-}
-
 # Download and compile curl (required for Git/HTTPS remote)
 get_curl()
 {
@@ -843,6 +760,221 @@ get_curl()
     ./configure --build="$(gcc -dumpmachine)" --host="${HOST}" --prefix="$SYSROOT" --with-openssl="$SYSROOT" --without-libpsl --disable-shared
     make -j$(nproc)
     make install
+}
+
+# Download and compile libevent (required for tmux)
+get_libevent()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "${PREFIX}/lib/libevent.a" ]; then
+        echo -e "${LIGHT_RED}libevent already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d libevent ]; then
+        echo -e "${YELLOW}libevent source already present, resetting...${RESET}"
+        cd libevent
+        git reset --hard
+    else
+        echo -e "${GREEN}Downloading libevent...${RESET}"
+        git clone --branch ${LIBEVENT_VER} https://github.com/libevent/libevent.git
+        cd libevent
+    fi
+
+    # Compile and install
+    echo -e "${GREEN}Compiling libevent...${RESET}"
+    ./autogen.sh
+    ./configure --host=${HOST} --prefix="${PREFIX}" --disable-shared  --enable-static --disable-samples --disable-openssl CC="${CC}"
+    make -j$(nproc)
+    make install
+}
+
+# Download and compile libxlsxwriter (required for sc-im)
+get_libxlsxwriter()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "${PREFIX}/lib/libxlsxwriter.a" ]; then
+        echo -e "${LIGHT_RED}libxlsxwriter already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d libxlsxwriter ]; then
+        echo -e "${YELLOW}libxlsxwriter source already present, resetting...${RESET}"
+        cd libxlsxwriter
+        git reset --hard
+    else
+        echo -e "${GREEN}Downloading libxlsxwriter...${RESET}"
+        git clone --branch v${LIBXLSXWRITER_VER} https://github.com/jmcnamara/libxlsxwriter.git
+        cd libxlsxwriter
+    fi
+
+    # Compile and install
+    echo -e "${GREEN}Compiling libxlsxwriter...${RESET}"
+    make \
+        CC="$CC_STATIC" \
+        AR="$AR" \
+        RANLIB="$RANLIB" \
+        CFLAGS="-static -O2 -I$PREFIX/include" \
+        LDFLAGS="-static -L$PREFIX/lib" \
+        MINIZIP=1 \
+        -j$(nproc)
+    cp -r include/* "$PREFIX/include/"
+    cp src/libxlsxwriter.a "$PREFIX/lib/"
+}
+
+# Download and compile libxml2 (required for sc-im)
+get_libxml2()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "${PREFIX}/lib/libxml2.a" ]; then
+        echo -e "${LIGHT_RED}libxml2 already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d libxml2 ]; then
+        echo -e "${YELLOW}libxml2 source already present, resetting...${RESET}"
+        cd libxml2
+        git reset --hard
+    else
+        echo -e "${GREEN}Downloading libxml2...${RESET}"
+        git clone --branch v${LIBXML2_VER} https://github.com/gnome/libxml2.git
+        cd libxml2
+    fi
+
+    # Compile and install
+    echo -e "${GREEN}Compiling libxml2...${RESET}"
+    ./autogen.sh
+    ./configure \
+        --host=${HOST} \
+        --prefix="${PREFIX}" \
+        --disable-shared \
+        --enable-static \
+        CC="${CC_STATIC}"
+    make -j$(nproc)
+    make install
+}
+
+# Download and compile libzip (required for sc-im)
+get_libzip()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$PREFIX/lib/libzip.a" ]; then
+        echo -e "${LIGHT_RED}libzip already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d libzip ]; then
+        echo -e "${YELLOW}libzip source already present, resetting...${RESET}"
+        cd libzip
+        git reset --hard
+    else
+        echo -e "${GREEN}Downloading libzip...${RESET}"
+        git clone --branch v${LIBZIP_VER} https://github.com/nih-at/libzip.git
+        cd libzip
+    fi
+
+    # Compile and install
+    echo -e "${GREEN}Compiling libzip...${RESET}"
+    cmake -DCMAKE_INSTALL_PREFIX="$PREFIX" \
+        -DCMAKE_C_COMPILER="$CC_STATIC" \
+        -DCMAKE_SYSTEM_NAME=Linux \
+        -DCMAKE_SYSTEM_PROCESSOR=i486 \
+        -DBUILD_SHARED_LIBS=OFF \
+        -DENABLE_GNUTLS=OFF \
+        -DENABLE_MBEDTLS=OFF \
+        -DENABLE_OPENSSL=OFF \
+        -DENABLE_ZSTD=OFF \
+        -DENABLE_BZIP2=OFF \
+        -DENABLE_LZMA=OFF \
+        -DZLIB_LIBRARY="$PREFIX/lib/libz.a" \
+        -DZLIB_INCLUDE_DIR="$PREFIX/include" \
+        -DBUILD_TOOLS=OFF \
+        -DBUILD_EXAMPLES=OFF \
+        -DBUILD_DOC=OFF \
+        -DBUILD_REGRESS=OFF \
+        -DBUILD_FUZZERS=OFF
+    make zip -j$(nproc)
+    cp lib/libzip.a "${PREFIX}/lib/"
+    cp zipconf.h "${PREFIX}/include/"
+    cp lib/zip.h "${PREFIX}/include/"
+}
+
+# Download and compile OpenSSL (required for curl, Lynx and Git/HTTPS remote)
+get_openssl()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/lib/libssl.a" ]; then
+        echo -e "${LIGHT_RED}OpenSSL already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d openssl ]; then
+        echo -e "${YELLOW}OpenSSL source already present, resetting...${RESET}"
+        git config --global --add safe.directory $CURR_DIR/build/openssl
+        cd openssl
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading OpenSSL...${RESET}"
+        git clone --branch openssl-${OPENSSL_VER} https://github.com/openssl/openssl.git
+        cd openssl
+    fi
+
+    # Compile and install
+    echo -e "${GREEN}Compiling OpenSSL...${RESET}"
+    ./Configure linux-generic32 no-shared no-tests no-dso no-engine \
+        --prefix="$SYSROOT" --openssldir=/etc/ssl \
+        CC="${CC} -latomic" \
+        AR="${AR}" \
+        RANLIB="${RANLIB}"
+    make -j$(nproc)
+    make install_sw
+}
+
+# Download and compile zlib (required for Git, libzip and TWM)
+get_zlib()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/libz.a" ]; then
+        echo -e "${LIGHT_RED}zlib already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d zlib ]; then
+        echo -e "${YELLOW}zlib source already present, resetting...${RESET}"
+        git config --global --add safe.directory $CURR_DIR/build/zlib
+        cd zlib
+        git reset --hard
+    else
+        echo -e "${GREEN}Downloading zlib...${RESET}"
+        git clone --branch v${ZLIB_VER} https://github.com/madler/zlib.git
+        cd zlib
+    fi
+
+    echo -e "${GREEN}Compiling zlib...${RESET}"
+    CC="$CC_STATIC" \
+    CFLAGS="-Os -march=i486 -static --sysroot=$SYSROOT" \
+    ./configure  --static --prefix=/usr
+    make -j$(nproc)
+    make DESTDIR="$SYSROOT" install
 }
 
 # Download and build our forked EXTLINUX (required if "Fix EXTLINUX" was used)
@@ -3536,7 +3668,7 @@ get_mt_st()
         git reset --hard
         git clean -fdx
     else
-        echo -e "${GREEN}Downloading Mg...${RESET}"
+        echo -e "${GREEN}Downloading mt-st...${RESET}"
         git clone --branch "v${MT_ST_VER}" https://github.com/iustin/mt-st.git
         cd mt-st
     fi
@@ -3646,6 +3778,55 @@ get_rover()
 
     # Create "licence" file
     echo "Public domain" | sudo tee "$CURR_DIR/build/LICENCES/rover.txt" > /dev/null
+}
+
+# Download and compile sc-im
+get_sc_im()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$DESTDIR/usr/bin/sc-im" ]; then
+        echo -e "${LIGHT_RED}sc-im already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d sc-im ]; then
+        echo -e "${YELLOW}sc-im source already present, resetting...${RESET}"
+        cd sc-im
+        git config --global --add safe.directory $CURR_DIR/build/sc-im
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading sc-im...${RESET}"
+        git clone --branch "v${SC_IM_VER}" https://github.com/andmarti1424/sc-im.git
+        cd sc-im
+    fi
+
+    # Compile and install
+    echo -e "${GREEN}Compiling sc-im...${RESET}"
+
+    # Compile with necessary include paths and static libraries
+    echo 'char *curfile = NULL;' >> src/main.c
+    echo "extern char * curfile;" >> src/sc.h
+
+    make -C src \
+        CC="$CC_STATIC" \
+        CFLAGS="-static -O2 -I${PREFIX}/include -I${PREFIX}/include/ncursesw -I${PREFIX}/include/libxml2 \
+            -DNCURSES -D_XOPEN_SOURCE_EXTENDED -D_GNU_SOURCE \
+            -DSNAME=\\\"sc-im\\\" -DHELP_PATH=\\\"/usr/share/sc-im\\\" \
+            -DCONFIG_DIR=\\\".config/sc-im\\\" -DCONFIG_FILE=\\\"scimrc\\\" \
+            -DHISTORY_DIR=\\\".cache\\\" -DHISTORY_FILE=\\\"sc-iminfo\\\" \
+            -DUSECOLORS -DUNDO -DMAXROWS=65536 \
+            -DXLSX -DODS -DXLSX_EXPORT" \
+        LDLIBS="-lxlsxwriter -lxml2 -lzip -lz -lm -lncursesw -ltinfo -lpthread" \
+        LDFLAGS="-static -L${PREFIX}/lib" \
+        -j$(nproc)
+    sudo make -C src DESTDIR="$DESTDIR" prefix=/usr install
+
+    # Copy licence file
+    cp LICENSE $CURR_DIR/build/LICENCES/sc-im.txt
 }
 
 # Download and compile Tiny C Compiler
@@ -4889,6 +5070,11 @@ get_installed_programs_features()
     else
         EXCLUDED_FEATURES+="\n * scp (Dropbear)"
     fi
+    if [ -f "$DESTDIR/usr/bin/sc-im" ]; then
+        INCLUDED_FEATURES+="\n * sc-im ($SC_IM_VER)"
+    else
+        EXCLUDED_FEATURES+="\n * sc-im"
+    fi
     if [ -f "$DESTDIR/usr/sbin/sfdisk" ]; then
         INCLUDED_FEATURES+="\n * sfdisk (util-linux, $UTIL_LINUX_VER)"
     else
@@ -5018,7 +5204,7 @@ generate_report()
         fi
     fi
 
-    printf "%b\n" "${lines[@]}" | sudo tee "$CURR_DIR/images/report.txt" > /dev/null
+    printf "%b\n" "${lines[@]}" | tee "$CURR_DIR/images/report.txt" > /dev/null
 }
 
 
@@ -5064,6 +5250,15 @@ if $NEED_CURL; then
 fi
 if $NEED_LIBEVENT; then
     get_libevent
+fi
+if $NEED_LIBXLSXWRITER; then
+    get_libxlsxwriter
+fi
+if $NEED_LIBXML2; then
+    get_libxml2
+fi
+if $NEED_LIBZIP; then
+    get_libzip
 fi
 
 if $ENABLE_GUI; then
@@ -5118,6 +5313,9 @@ if $ENABLE_MT_ST; then
 fi
 if $ENABLE_NANO; then
     get_nano
+fi
+if $ENABLE_SC_IM; then
+    get_sc_im
 fi
 if $ENABLE_TCC; then
     get_musl

@@ -54,6 +54,7 @@ ar, arch, ascii, awk, basename, bc, beep, blkid, cal, cat, chmod, chown, chroot,
 * mt (tape drive control, [mt-st](https://github.com/iustin/mt-st))
 * [nano](https://www.nano-editor.org) (text editor)
 * scp (SCP client, [Dropbear](https://github.com/mkj/dropbear))
+* [sc-im](https://github.com/andmarti1424/sc-im) (terminal spreadsheet editor)
 * ssh (SSH client, [Dropbear](https://github.com/mkj/dropbear))
 * stinit (tape drive initialiser, [mt-st](https://github.com/iustin/mt-st))
 * [tcc](https://bellard.org/tcc/) with [musl](https://musl.libc.org/) (C compiler)
@@ -303,3 +304,8 @@ Running `clean.sh` will delete everything `build.sh` has downloaded, created or 
 
 At present, you are always the root user when using SHORK 486. Make sure to act accordingly, and use it considerately and responsibly.
 
+
+
+## Acknowledgements
+
+* This product includes software developed by Andrés Martinelli <andmarti@gmail.com> (sc-im).
