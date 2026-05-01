@@ -27,10 +27,6 @@ IS_ARCH=false
 IS_FEDORA=false
 IS_DEBIAN=true
 BUILD_TYPE="default"
-DEFAULT=true
-MINIMAL=false
-MAXIMAL=false
-CUSTOM=false
 TARGET_DISK=80
 TARGET_SWAP=8
 SET_KEYMAP="en_us"
@@ -120,10 +116,6 @@ IS_ARCH=$IS_ARCH
 IS_DEBIAN=$IS_DEBIAN
 IS_FEDORA=$IS_FEDORA
 BUILD_TYPE="$BUILD_TYPE"
-DEFAULT=$DEFAULT
-MINIMAL=$MINIMAL
-MAXIMAL=$MAXIMAL
-CUSTOM=$CUSTOM
 TARGET_DISK=$TARGET_DISK
 TARGET_SWAP=$TARGET_SWAP
 SET_KEYMAP="$SET_KEYMAP"
@@ -175,6 +167,11 @@ val_inv()
     [[ "$1" != true ]] && echo on || echo off
 }
 
+val_str()
+{
+    [[ "$1" == "$2" ]] && echo on || echo off
+}
+
 
 
 trap 'tput reset; save_env' EXIT
@@ -212,25 +209,20 @@ fi
 
 
 # Get build type
-TYPE=$(dialog --clear \
+BUILD_TYPE=$(dialog --clear \
     --backtitle "SHORK 486 Build Configurator" \
     --title "Build Type" \
     --cancel-label "Quit" \
     --radiolist "Select the build type, presets for SHORK 486 feature levels. The \"Custom\" option will enable further prompts for software and feature selection." $HEIGHT $WIDTH 6 \
-    "Default" "Requires 16MiB RAM + 80MiB disk"             $(val $DEFAULT) \
-    "Minimal" "Requires 8MiB RAM + 16MiB disk"              $(val $MINIMAL) \
-    "Maximal" "Requires 24MiB RAM + 440MiB disk"            $(val $MAXIMAL) \
-    "Custom"  "Requirements depend on subsequent choices"   $(val $CUSTOM) \
+    "default" "Requires 16MiB RAM + 80MiB disk"             $(val_str "$BUILD_TYPE" default) \
+    "minimal" "Requires 8MiB RAM + 16MiB disk"              $(val_str "$BUILD_TYPE" minimal) \
+    "maximal" "Requires 24MiB RAM + 440MiB disk"            $(val_str "$BUILD_TYPE" maximal) \
+    "custom"  "Requirements depend on subsequent choices"   $(val_str "$BUILD_TYPE" custom) \
     2>&1 >/dev/tty)
 
-if [[ ! -n "$TYPE" ]]; then
+if [[ ! -n "$BUILD_TYPE" ]]; then
     exit 0
-elif [ "$TYPE" == "Default" ]; then
-    BUILD_TYPE="default"
-    DEFAULT=true
-    MINIMAL=false
-    MAXIMAL=false
-    CUSTOM=false
+elif [ "$BUILD_TYPE" == "default" ]; then
     ENABLE_NET_ETH=true
     #ENABLE_CMATRIX=true
     ENABLE_DROPBEAR=true
@@ -262,12 +254,7 @@ elif [ "$TYPE" == "Default" ]; then
     ENABLE_SMP=false
     ENABLE_USB=false
     ENABLE_ZSWAP=true
-elif [ "$TYPE" == "Minimal" ]; then
-    BUILD_TYPE="minimal"
-    DEFAULT=false
-    MINIMAL=true
-    MAXIMAL=false
-    CUSTOM=false
+elif [ "$BUILD_TYPE" == "minimal" ]; then
     ENABLE_NET_ETH=false
     #ENABLE_CMATRIX=false
     ENABLE_DROPBEAR=false
@@ -299,12 +286,7 @@ elif [ "$TYPE" == "Minimal" ]; then
     ENABLE_SMP=false
     ENABLE_USB=false
     ENABLE_ZSWAP=true
-elif [ "$TYPE" == "Maximal" ]; then
-    BUILD_TYPE="maximal"
-    DEFAULT=false
-    MINIMAL=false
-    MAXIMAL=true
-    CUSTOM=false
+elif [ "$BUILD_TYPE" == "maximal" ]; then
     ENABLE_NET_ETH=true
     #ENABLE_CMATRIX=true
     ENABLE_DROPBEAR=true
@@ -336,12 +318,7 @@ elif [ "$TYPE" == "Maximal" ]; then
     ENABLE_SMP=true
     ENABLE_USB=true
     ENABLE_ZSWAP=true
-elif [ "$TYPE" == "Custom" ]; then
-    BUILD_TYPE="custom"
-    DEFAULT=false
-    MINIMAL=false
-    MAXIMAL=false
-    CUSTOM=true
+elif [ "$BUILD_TYPE" == "custom" ]; then
     ENABLE_KEYMAPS=true
     ENABLE_FB=true
 fi
@@ -426,7 +403,7 @@ done
 
 
 # Get desired keymap
-if [ "$TYPE" != "Minimal" ]; then
+if [ "$BUILD_TYPE" != "minimal" ]; then
     KEYMAP_ITEMS=()
     for f in "$CURR_DIR/sysfiles/keymaps/"*.kmap.bin; do
         name=$(basename "$f" .kmap.bin)
@@ -474,7 +451,7 @@ fi
 
 
 # If build type isn't custom, it's time to exit!
-if [ "$TYPE" != "Custom" ]; then
+if [ "$BUILD_TYPE" != "custom" ]; then
     exit 0
 fi
 
