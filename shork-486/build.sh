@@ -128,44 +128,6 @@ ZLIB_VER="1.3.2"
 MBR_BIN=""
 
 # Build parameters/arguments
-ENABLE_CFONTS=true
-ENABLE_CMATRIX=false
-ENABLE_DROPBEAR=true
-ENABLE_FB=true
-ENABLE_FILE=true
-ENABLE_GCC=false
-ENABLE_GIT=true
-ENABLE_GUI=false
-ENABLE_HIGHMEM=false
-ENABLE_HTOP=true
-ENABLE_KEYMAPS=true
-ENABLE_LYNX=true
-ENABLE_MENU=true
-ENABLE_MG=true
-ENABLE_MICROPYTHON=true
-ENABLE_MT_ST=true
-ENABLE_MULTIUSER=false
-ENABLE_NANO=true
-ENABLE_NET_BASE=false
-ENABLE_NET_ETH=false
-ENABLE_NET_PCMCIA=false
-ENABLE_PCIIDS=true
-ENABLE_PCMCIA=true
-ENABLE_SATA=false
-ENABLE_SCSI_EXP=true
-ENABLE_SC_IM=true
-ENABLE_SHORKTAINMENT=true
-ENABLE_SMP=false
-ENABLE_STRACE=true
-ENABLE_TASKSTATS=false
-ENABLE_TCC=true
-ENABLE_TESTS=false
-ENABLE_TMUX=true
-ENABLE_TNFTP=true
-ENABLE_USB=false
-ENABLE_UTIL_LINUX=true
-ENABLE_ZSWAP=true
-
 ALWAYS_BUILD=false
 FIX_EXTLINUX=false
 IS_ARCH=false
@@ -177,9 +139,48 @@ SET_KEYMAP=""
 SHORKUTILS_RECLONE=false
 SKIP_BB=false
 SKIP_KRN=false
-
 TARGET_DISK="80"
 TARGET_SWAP="8"
+
+ENABLE_FB=true
+ENABLE_HIGHMEM=false
+ENABLE_MENU=true
+ENABLE_MULTIUSER=false
+ENABLE_NET_BASE=false
+ENABLE_NET_ETH=false
+ENABLE_NET_PCMCIA=false
+ENABLE_PCMCIA=true
+ENABLE_SATA=false
+ENABLE_SCSI_EXP=true
+ENABLE_SMP=false
+ENABLE_TASKSTATS=false
+ENABLE_USB=false
+ENABLE_ZSWAP=true
+
+INCLUDE_CON_FONTS=true
+INCLUDE_CMATRIX=false
+INCLUDE_DROPBEAR=true
+INCLUDE_FILE=true
+INCLUDE_GCC=false
+INCLUDE_GIT=true
+INCLUDE_GUI=false
+INCLUDE_HTOP=true
+INCLUDE_KEYMAPS=true
+INCLUDE_LYNX=true
+INCLUDE_MG=true
+INCLUDE_MICROPYTHON=true
+INCLUDE_MT_ST=true
+INCLUDE_NANO=true
+INCLUDE_PCIIDS=true
+INCLUDE_SC_IM=true
+INCLUDE_SHORKTAINMENT=true
+INCLUDE_STRACE=true
+INCLUDE_TESTS=false
+INCLUDE_TCC=true
+INCLUDE_TMUX=true
+INCLUDE_TNFTP=true
+INCLUDE_UTIL_LINUX=true
+
 USE_GRUB=false
 
 while [ $# -gt 0 ]; do
@@ -233,9 +234,9 @@ fi
 # Overrides to ensure the correct estimated RAM requirement is shown in the after-build report
 if [ "$BUILD_TYPE" = "custom" ]; then
     echo -e "${GREEN}Noting minimum RAM requirement for a custom build...${RESET}"
-    if [ "$ENABLE_GCC" = true ]; then
+    if [ "$INCLUDE_GCC" = true ]; then
         EST_MIN_RAM="32MiB/24MiB + 8MiB swap"
-    elif [ "$ENABLE_GUI" = true ] || [ "$ENABLE_HIGHMEM" = true ] || [ "$ENABLE_SATA" = true ]; then
+    elif [ "$INCLUDE_GUI" = true ] || [ "$ENABLE_HIGHMEM" = true ] || [ "$ENABLE_SATA" = true ]; then
         EST_MIN_RAM="24MiB/16MiB + 8MiB swap"
     fi
 elif [ "$BUILD_TYPE" = "maximal" ]; then
@@ -247,7 +248,7 @@ elif [ "$BUILD_TYPE" = "minimal" ]; then
 fi
 
 # Override to ensure the USED_WM is empty when the "use GUI" parameter is not used
-if ! $ENABLE_GUI; then
+if ! $INCLUDE_GUI; then
     USED_WM=""
 else
     # If USED_WM is empty but GUI is desired, ensure the default WM (TWM) is set
@@ -265,9 +266,9 @@ if [ "$ENABLE_NET_ETH" = true ]; then
 else
     # If networking support is disabled, make sure networking-based programs and features are also disabled
     ENABLE_NET_PCMCIA=false
-    ENABLE_DROPBEAR=false
-    ENABLE_GIT=false
-    ENABLE_TNFTP=false
+    INCLUDE_DROPBEAR=false
+    INCLUDE_GIT=false
+    INCLUDE_TNFTP=false
 fi
 
 # Override to ensure the "use GRUB" parameter is disabled when the "Fix EXTLINUX" parameter is used
@@ -276,18 +277,18 @@ if $FIX_EXTLINUX; then
 fi
 
 # Override to ensure MULTIUSER and TASKSTATS are enabled with HTOP
-if [ "$ENABLE_HTOP" = true ]; then
+if [ "$INCLUDE_HTOP" = true ]; then
     ENABLE_MULTIUSER=true
     ENABLE_TASKSTATS=true
 fi
 
 # Override to ensure NET_MIN is enabled with HTOP or NET
-if [ "$ENABLE_HTOP" = true ] || [ "$ENABLE_NET_ETH" = true ]; then
+if [ "$INCLUDE_HTOP" = true ] || [ "$ENABLE_NET_ETH" = true ]; then
     ENABLE_NET_BASE=true
 fi
 
 # Ensure SCSI_EXT is enabled with MT_ST
-if [ "$ENABLE_MT_ST" = true ]; then
+if [ "$INCLUDE_MT_ST" = true ]; then
     ENABLE_SCSI_EXP=true
 fi
 
@@ -356,19 +357,19 @@ if [ -n "$USED_WM" ]; then
     NEED_ZLIB=true
 fi
 
-if $ENABLE_GIT; then
+if $INCLUDE_GIT; then
     NEED_CURL=true
     NEED_OPENSSL=true
     NEED_ZLIB=true
 fi
 
-if $ENABLE_SC_IM; then
+if $INCLUDE_SC_IM; then
     NEED_LIBXLSXWRITER=true
     NEED_LIBXML2=true
     NEED_LIBZIP=true
 fi
 
-if $ENABLE_TMUX; then
+if $INCLUDE_TMUX; then
     NEED_LIBEVENT=true
 fi
 
@@ -489,15 +490,15 @@ install_arch_prerequisites()
 
     PACKAGES="autoconf bc base-devel bison bzip2 ca-certificates cpio dosfstools e2fsprogs flex gettext git libtool make multipath-tools ncurses pciutils python qemu-img systemd texinfo util-linux wget xz"
 
-    if $ENABLE_GUI; then
+    if $INCLUDE_GUI; then
         PACKAGES+=" fontconfig gperf unzip xorg-bdftopcf xorg-font-util xorg-mkfontscale"
     fi
 
-    if $ENABLE_MICROPYTHON; then
+    if $INCLUDE_MICROPYTHON; then
         PACKAGES+=" libffi"
     fi
 
-    if $ENABLE_TMUX; then
+    if $INCLUDE_TMUX; then
         PACKAGES+=" pkgconf"
     fi
 
@@ -522,23 +523,23 @@ install_debian_prerequisites()
 
     PACKAGES="autopoint bc bison bzip2 e2fsprogs extlinux fdisk flex git kpartx libtool make pkg-config python3 python-is-python3 qemu-utils syslinux wget xz-utils"
 
-    if $ENABLE_GUI; then
+    if $INCLUDE_GUI; then
         PACKAGES+=" fontconfig gettext gperf unzip xfonts-utils"
     fi
 
-    if $ENABLE_GIT; then
+    if $INCLUDE_GIT; then
         PACKAGES+=" autoconf"
     fi
 
-    if $ENABLE_MICROPYTHON; then
+    if $INCLUDE_MICROPYTHON; then
         PACKAGES+=" libffi-dev"
     fi
 
-    if $ENABLE_NANO; then
+    if $INCLUDE_NANO; then
         PACKAGES+=" texinfo"
     fi
 
-    if $ENABLE_PCIIDS; then
+    if $INCLUDE_PCIIDS; then
         PACKAGES+=" pciutils"
     fi
 
@@ -562,19 +563,19 @@ install_fedora_prerequisites()
 
     PACKAGES="autoconf automake bison dialog docbook2pdf docbook2X flex gcc gettext git libtool make patch perl python3 syslinux-extlinux qemu-img"
 
-    if $ENABLE_GUI; then
+    if $INCLUDE_GUI; then
         PACKAGES+=" bdftopcf fontconfig gperf mkfontscale xorg-x11-font-utils"
     fi
 
-    if $ENABLE_MICROPYTHON; then
+    if $INCLUDE_MICROPYTHON; then
         PACKAGES+=" libffi-devel"
     fi
 
-    if $ENABLE_NANO; then
+    if $INCLUDE_NANO; then
         PACKAGES+=" texinfo"
     fi
 
-    if $ENABLE_PCIIDS; then
+    if $INCLUDE_PCIIDS; then
         PACKAGES+=" pciutils"
     fi
 
@@ -1249,7 +1250,7 @@ configure_kernel()
         FRAGS+="$CURR_DIR/configs/linux.config.fb.frag "
     fi
 
-    if $ENABLE_GUI; then
+    if $INCLUDE_GUI; then
         echo -e "${GREEN}Enabling kernel-level event interface support...${RESET}"
         FRAGS+="$CURR_DIR/configs/linux.config.x11.frag "
     fi
@@ -4252,7 +4253,7 @@ get_shorkmatrix()
     sudo make DESTDIR=$DESTDIR install
 
     # Symlink shorkmatrix to cmatrix if CMatrix is not installed
-    if ! $ENABLE_CMATRIX; then
+    if ! $INCLUDE_CMATRIX; then
         sudo ln -sf shorkmatrix "$DESTDIR/usr/bin/cmatrix"
     fi
 }
@@ -4297,13 +4298,13 @@ trim_fat()
 
     sudo rm -rf "$DESTDIR/usr/lib/pkgconfig" "$DESTDIR/usr/man" "$DESTDIR/usr/share/bash-completion" "$DESTDIR/usr/share/doc" "$DESTDIR/usr/share/info" "$DESTDIR/usr/share/man"
 
-    if $ENABLE_FILE; then
+    if $INCLUDE_FILE; then
         sudo rm -rf "$DESTDIR/usr/include/magic.h"
         sudo rm -rf "$DESTDIR/usr/lib/libmagic.a"
         sudo rm -rf "$DESTDIR/usr/lib/libmagic.la"
     fi
 
-    if $ENABLE_GCC; then
+    if $INCLUDE_GCC; then
         sudo rm -rf "$DESTDIR/opt/i486-linux-musl-native/i486-linux-musl"
         sudo rm -rf "$DESTDIR/opt/i486-linux-musl-native/share"
         for bin in "$DESTDIR"/opt/i486-linux-musl-native/bin/*; do
@@ -4318,7 +4319,7 @@ trim_fat()
         done
     fi
     
-    if $ENABLE_GIT; then
+    if $INCLUDE_GIT; then
         cd "$DESTDIR/usr/libexec/git-core"
         sudo rm -f git-imap-send git-http-fetch git-http-backend git-daemon git-p4 git-svn git-send-email
         cd "$DESTDIR/usr/bin"
@@ -4328,16 +4329,16 @@ trim_fat()
         sudo mkdir -p "$DESTDIR/usr/share/git-core/templates"
     fi
 
-    if $ENABLE_GUI; then
+    if $INCLUDE_GUI; then
         sudo rm -rf "$DESTDIR/home/kali"
     fi
 
-    if $ENABLE_LYNX; then
+    if $INCLUDE_LYNX; then
         sudo sed -i '/^#/d' $DESTDIR/usr/etc/lynx.lss
         sudo sed -i '/^#/d' $DESTDIR/usr/etc/lynx.cfg
     fi
 
-    if $ENABLE_MG; then
+    if $INCLUDE_MG; then
         sudo rm -rf "$DESTDIR/usr/share/mg"
     fi
 
@@ -4437,7 +4438,7 @@ build_file_system()
         sudo tic -x -1 -o $DESTDIR/usr/share/terminfo $DESTDIR/usr/share/terminfo/src/terminfo.src
     fi
 
-    if $ENABLE_GUI; then
+    if $INCLUDE_GUI; then
         echo -e "${GREEN}Installing files needed for SHORKGUI...${RESET}"
         sudo mkdir -p {usr/share/backgrounds,usr/share/X11/app-defaults}
         copy_sysfile $CURR_DIR/shorkutils/shorkgui $DESTDIR/usr/bin/shorkgui
@@ -4451,13 +4452,13 @@ build_file_system()
         fi
     fi
 
-    if $ENABLE_GIT; then
+    if $INCLUDE_GIT; then
         echo -e "${GREEN}Copying pre-defined Git settings...${RESET}"
         sudo mkdir -p $DESTDIR/usr/etc
         copy_sysfile $CURR_DIR/sysfiles/gitconfig $DESTDIR/usr/etc/gitconfig
     fi
 
-    if $ENABLE_KEYMAPS; then
+    if $INCLUDE_KEYMAPS; then
         echo -e "${GREEN}Installing keymaps...${RESET}"
         sudo mkdir -p $DESTDIR/usr/share/keymaps/
         sudo cp $CURR_DIR/sysfiles/keymaps/*.kmap.bin "$DESTDIR/usr/share/keymaps/"
@@ -4469,7 +4470,7 @@ build_file_system()
         fi
     fi
 
-    if $ENABLE_MG; then
+    if $INCLUDE_MG; then
         echo -e "${GREEN}Copying pre-defined Mg settings...${RESET}"
         copy_sysfile $CURR_DIR/sysfiles/mg $DESTDIR/etc/mg
     fi
@@ -4483,13 +4484,13 @@ build_file_system()
         copy_sysfile $CURR_DIR/sysfiles/services $DESTDIR/etc/services
     fi
 
-    if $ENABLE_NANO; then
+    if $INCLUDE_NANO; then
         echo -e "${GREEN}Copying pre-defined nano settings...${RESET}"
         sudo mkdir -p $DESTDIR/usr/etc
         copy_sysfile $CURR_DIR/sysfiles/nanorc $DESTDIR/usr/etc/nanorc
     fi
 
-    if $ENABLE_PCIIDS; then
+    if $INCLUDE_PCIIDS; then
         # Include PCI IDs for shorkfetch's GPU identification
         # **Work offloaded to Python**
         echo -e "${GREEN}Generating pci.ids database...${RESET}"
@@ -4497,7 +4498,7 @@ build_file_system()
         sudo python3 -c "from helpers import *; build_pci_ids()"
     fi
 
-    if $ENABLE_TESTS; then
+    if $INCLUDE_TESTS; then
         copy_tests
     fi
 
@@ -4651,8 +4652,8 @@ build_disk_img()
     # Calculate some overhead to take into account metadata, partition
     # alignment, bootloader structures, etc.
     OVERHEAD_BYTES=$((4 * 1024 * 1024))
-    if [ "$ENABLE_GCC" = true ] || [ "$ENABLE_GUI" = true ]; then
-        # We can assume these features can demand more
+    if [ "$INCLUDE_GCC" = true ] || [ "$INCLUDE_GUI" = true ]; then
+        # We can assume these features demand more
         OVERHEAD_BYTES=$((16 * 1024 * 1024))
     fi
 
@@ -4666,8 +4667,8 @@ build_disk_img()
     # We know this amount works for minimal build and keeps the disk size
     # small
     if [ "$BUILD_TYPE" = "minimal" ]; then
-        if [ "$TOTAL_MIB" -lt 16 ]; then
-            TOTAL_MIB=16
+        if [ "$TOTAL_MIB" -lt 8 ]; then
+            TOTAL_MIB=8
         fi
     fi
 
@@ -4779,7 +4780,7 @@ convert_disk_img()
 get_installed_programs_features()
 {
     # Kernel features
-    if $ENABLE_GUI; then
+    if $INCLUDE_GUI; then
         INCLUDED_FEATURES+="\n * kernel-level event interface support"
     else
         EXCLUDED_FEATURES+="\n * kernel-level event interface support"
@@ -4991,7 +4992,7 @@ get_installed_programs_features()
     fi
 
     # SHORKTUI
-    if $ENABLE_GCC; then
+    if $INCLUDE_GCC; then
         INCLUDED_FEATURES+="\n * as"
         INCLUDED_FEATURES+="\n * g++"
         INCLUDED_FEATURES+="\n * gcc"
@@ -5225,10 +5226,10 @@ if $ENABLE_FB; then
     get_tic
 fi
 
-if $ENABLE_STRACE; then
+if $INCLUDE_STRACE; then
     get_strace
 fi
-if $ENABLE_UTIL_LINUX; then
+if $INCLUDE_UTIL_LINUX; then
     get_util_linux
 fi
 
@@ -5258,7 +5259,7 @@ if $NEED_LIBZIP; then
     get_libzip
 fi
 
-if $ENABLE_GUI; then
+if $INCLUDE_GUI; then
     prepare_x11
     get_tinyx
     if [[ $USED_WM == "TWM" ]]; then
@@ -5274,54 +5275,54 @@ if $ENABLE_GUI; then
     get_xset
 fi
 
-if $ENABLE_CFONTS; then
+if $INCLUDE_CON_FONTS; then
     get_console_fonts
 fi
 
-if $ENABLE_CMATRIX; then
+if $INCLUDE_CMATRIX; then
     get_cmatrix
 fi
-if $ENABLE_DROPBEAR; then
+if $INCLUDE_DROPBEAR; then
     get_dropbear
 fi
-if $ENABLE_FILE; then
+if $INCLUDE_FILE; then
     get_file
 fi
-if $ENABLE_GCC; then
+if $INCLUDE_GCC; then
     get_gcc
 fi
-if $ENABLE_GIT; then
+if $INCLUDE_GIT; then
     get_git
 fi
-if $ENABLE_HTOP; then
+if $INCLUDE_HTOP; then
     get_htop
 fi
-if $ENABLE_LYNX; then
+if $INCLUDE_LYNX; then
     get_lynx
 fi
-if $ENABLE_MG; then
+if $INCLUDE_MG; then
     get_mg
 fi
-if $ENABLE_MICROPYTHON; then
+if $INCLUDE_MICROPYTHON; then
     get_micropython
 fi
-if $ENABLE_MT_ST; then
+if $INCLUDE_MT_ST; then
     get_mt_st
 fi
-if $ENABLE_NANO; then
+if $INCLUDE_NANO; then
     get_nano
 fi
-if $ENABLE_SC_IM; then
+if $INCLUDE_SC_IM; then
     get_sc_im
 fi
-if $ENABLE_TCC; then
+if $INCLUDE_TCC; then
     get_musl
     get_tcc
 fi
-if $ENABLE_TMUX; then
+if $INCLUDE_TMUX; then
     get_tmux
 fi
-if $ENABLE_TNFTP; then
+if $INCLUDE_TNFTP; then
     get_tnftp
 fi
 
@@ -5330,7 +5331,7 @@ get_shorkdir
 get_shorkfetch
 get_shorkfont
 get_shorkhelp
-if $ENABLE_KEYMAPS; then
+if $INCLUDE_KEYMAPS; then
     get_shorkmap
 fi
 get_shorkoff
@@ -5338,7 +5339,7 @@ if $ENABLE_FB; then
     get_shorkres
 fi
 
-if $ENABLE_SHORKTAINMENT; then
+if $INCLUDE_SHORKTAINMENT; then
     get_shorklocomotive
     get_shorkmatrix
     get_shorksay

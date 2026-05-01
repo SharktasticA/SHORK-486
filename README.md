@@ -6,7 +6,7 @@ Member of the SHORK family: **SHORK 486** | [SHORK DISKETTE](https://github.com/
 
 SHORK 486 is an operating system for 486 and Pentium (P5) era vintage PCs. The aim is to produce a 32-bit Linux distribution that is very lean and functional but still capable on such PCs, often with my '90s IBM ThinkPads in mind. A default SHORK 486 system aims to work with at least 16MiB system memory and take up no more than ~80MiB on your disk. Despite those constraints, the default SHORK 486 experience includes Linux kernel 7.0.3, many typical Linux commands, custom SHORK Utilities such as shorkdir (TUI file browser) and shorkfetch (*fetch clone), a terminal multiplexer, a C compiler and Python 3.4-syntax interpreter, a text web browser, an FTP, SCP and SSH client, a Git source control client, the ed, Mg (Emacs-style), nano and vi editors, a spreadsheet editor, IDE CD-ROM and DVD-ROM support, SCSI tape drive support, ISA, PCI and PCMCIA ethernet support, support for most major national keyboard layouts, and a cute ASCII shark welcome screen!
 
-A build configurator is available to alter SHORK 486 to your liking. For example, you can select the "minimal" build type that requires just 8MiB RAM and ~16MiB disk space, whilst still including most typical commands as before, some custom SHORK utilities, and the ed and vi editors.  You can also select the "custom" build type, allowing you pick and choose specific software and features. Some people have expressed support for using SHORK 486 on newer hardware for a minimalist Linux environment - whilst SHORK 486 does not focus on such, options for enabling high memory, SATA, SMP and USB support are available if you so desire!
+A build configurator is available to alter SHORK 486 to your liking. For example, you can select the "minimal" build type that requires just 8MiB RAM and ~8MiB disk space, whilst still including most typical commands as before, some custom SHORK utilities, and the ed and vi editors.  You can also select the "custom" build type, allowing you pick and choose specific software and features. Some people have expressed support for using SHORK 486 on newer hardware for a minimalist Linux environment - whilst SHORK 486 does not focus on such, options for enabling high memory, SATA, SMP and USB support are available if you so desire!
 
 <p align="center"><img alt="A photo of SHORK 486 running on an IBM ThinkPad 365ED after a cold boot" src="photos/20260223_365ed.jpg" width="512"></p>
 
@@ -120,7 +120,7 @@ An **Intel 486SX or compatible** is the minimum processor requirement. Math emul
 
 ### Storage
 
-Without GUI enabled, SHORK 486 requires no more than a **~80MiB disk**. Using the "minimal" build type option and not including a swap partition will reduce this requirement to 16MiB. Potential options such as including GCC and SHORKGUI require an extra 215MiB and 46MiB, respectively.
+Without GUI enabled, SHORK 486 requires no more than a **~80MiB disk**. Using the "minimal" build type option and not including a swap partition will reduce this requirement to 8MiB. Potential options such as including GCC and SHORKGUI require an extra 215MiB and 46MiB, respectively.
 
 ### Graphics
 
@@ -198,7 +198,7 @@ Below are further explanations for options that could not fit into the configura
 
 * **Default**: Builds SHORK 486 to the author's recommended configuration, trying to balance features with RAM requirements. It includes all bundled software except GCC. A default build requires 16MiB system memory and ~80MiB disk size.
 
-* **Minimal**: Builds SHORK 486 to its most minimal configuration. All bundled software and additional features are excluded, and networking support and non-US keyboard layout support are disabled. A minimal build requires 8MiB system memory and ~16MiB disk size.
+* **Minimal**: Builds SHORK 486 to its most minimal configuration. All bundled software and additional features are excluded, and networking support and non-US keyboard layout support are disabled. A minimal build requires 8MiB system memory and ~8MiB disk size.
 
 * **Maximal**: Builds SHORK 486 with every bundled software or additional feature option enabled. It is provided as a curiosity for more modern hardware; it is not recommended for 486 and Pentium (P5)-era hardware. A maximal build requires 24MiB system memory and ~480MiB disk size.
 
