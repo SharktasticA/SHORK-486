@@ -99,7 +99,7 @@ DROPBEAR_VER="2025.89"
 FILE_VER="5_47"
 GIT_VER="2.54.0"
 HTOP_VER="3.5.0"
-KERNEL_VER="7.1-rc1"
+KERNEL_VER="7.1-rc2"
 LIBEVENT_VER="release-2.1.12-stable"
 LIBXLSXWRITER_VER="1.2.4"
 LIBXML2_VER="2.15.3"
@@ -1232,7 +1232,7 @@ download_kernel()
     cd "$CURR_DIR/build"
     echo -e "${GREEN}Downloading the Linux kernel...${RESET}"
     if [ ! -d "linux" ]; then
-        git clone --depth=1 --branch v$KERNEL_VER https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git || true
+        git clone --depth=1 --branch v$KERNEL_VER https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git || true
         cd "$CURR_DIR/build/linux"
         configure_kernel
     fi
@@ -1331,6 +1331,7 @@ reset_kernel()
     echo -e "${GREEN}Resetting and cleaning Linux kernel...${RESET}"
     git config --global --add safe.directory $CURR_DIR/build/linux || true
     git reset --hard || true
+    git clean -fdx || true
     make clean
     configure_kernel
 }
