@@ -62,11 +62,13 @@ ar, arch, ascii, awk, basename, bc, beep, blkid, cal, cat, chmod, chown, chroot,
 
 #### Optional
 
+* [c3270](https://github.com/pmattes/x3270) (3270 emulator) (EXPERIMENTAL)
 * [GCC with musl](https://musl.cc/)
     * as (assembler)
     * g++ (C++ compiler)
     * gcc (C compiler)
     * gfortran (Fortran compiler)
+* [tn5250](https://github.com/tn5250/tn5250) (TCP/IP 5250 emulator) (EXPERIMENTAL)
 
 ### SHORK Utilities (shorkutils)
 
@@ -91,8 +93,10 @@ ar, arch, ascii, awk, basename, bc, beep, blkid, cal, cat, chmod, chown, chroot,
 * Menu-based revamped shorkfont, shorkmap and shorkres
 * shorkchess (chess game)
 * shorkdisk (disk mounting, unmounting and ejecting)
+* shorkmines (minesweeper-like game)
 * shorknet (network connection management)
 * shorksnek (snake-like game)
+* shorkvader (space invaders-like game)
 
 #### Bundled software
 

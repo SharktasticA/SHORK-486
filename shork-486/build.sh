@@ -93,6 +93,7 @@ SYSROOT="${PREFIX}/i486-linux-musl"
 
 # Target software/feature versions
 BUSYBOX_VER="1_36_1"
+C3270_VER="4.5ga5"
 CMATRIX_VER="2.0"
 CURL_VER="8.20.0"
 DROPBEAR_VER="2025.89"
@@ -119,6 +120,7 @@ SC_IM_VER="0.8.5"
 STRACE_VER="7.0"
 TCC_VER="e5eedc0"
 TMUX_VER="3.6a"
+TN5250_VER="0.18.0"
 TNFTP_VER="20260211"
 TWM_VER="1.0.13.1"
 UTIL_LINUX_VER="2.42"
@@ -157,6 +159,7 @@ ENABLE_TASKSTATS=false
 ENABLE_USB=false
 ENABLE_ZSWAP=true
 
+INCLUDE_C3270=false
 INCLUDE_CON_FONTS=true
 INCLUDE_CMATRIX=false
 INCLUDE_DROPBEAR=true
@@ -171,13 +174,14 @@ INCLUDE_MG=true
 INCLUDE_MICROPYTHON=true
 INCLUDE_MT_ST=true
 INCLUDE_NANO=true
-INCLUDE_PCIIDS=true
+INCLUDE_PCI_IDS=true
 INCLUDE_SC_IM=true
 INCLUDE_SHORKTAINMENT=true
 INCLUDE_STRACE=true
 INCLUDE_TESTS=false
 INCLUDE_TCC=true
 INCLUDE_TMUX=true
+INCLUDE_TN5250=false
 INCLUDE_TNFTP=true
 INCLUDE_UTIL_LINUX=true
 
@@ -542,7 +546,7 @@ install_debian_prerequisites()
         PACKAGES+=" texinfo"
     fi
 
-    if $INCLUDE_PCIIDS; then
+    if $INCLUDE_PCI_IDS; then
         PACKAGES+=" pciutils"
     fi
 
@@ -578,7 +582,7 @@ install_fedora_prerequisites()
         PACKAGES+=" texinfo"
     fi
 
-    if $INCLUDE_PCIIDS; then
+    if $INCLUDE_PCI_IDS; then
         PACKAGES+=" pciutils"
     fi
 
@@ -642,7 +646,8 @@ get_i486_musl_cc()
     [ -d "i486-linux-musl-cross" ] || tar xvf i486-linux-musl-cross.tgz
 }
 
-# Download and compile ncurses (required for htop, Lynx, nano, sc-im, tic, tmux and util-linux)
+# Download and compile ncurses (required for c3270, htop, Lynx, nano, sc-im, tic,
+# tmux, tn5250 and util-linux)
 get_ncurses()
 {
     cd "$CURR_DIR/build"
@@ -915,7 +920,8 @@ get_libzip()
     cp lib/zip.h "${PREFIX}/include/"
 }
 
-# Download and compile OpenSSL (required for curl, Lynx and Git/HTTPS remote)
+# Download and compile OpenSSL (required for curl, Lynx, Git/HTTPS remote and
+# tn5250)
 get_openssl()
 {
     cd "$CURR_DIR/build"
@@ -3235,6 +3241,57 @@ get_console_fonts()
 ## Packaged software building                       ##
 ######################################################
 
+# Download and compile c3270
+get_c3270()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$DESTDIR/usr/bin/c3270" ]; then
+        echo -e "${LIGHT_RED}c3270 already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d x3270 ]; then
+        echo -e "${YELLOW}c3270 source already present, resetting & cleaning...${RESET}"
+        cd x3270
+        git config --global --add safe.directory "$CURR_DIR/build/x3270"
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading c3270...${RESET}"
+        git clone --branch ${C3270_VER} https://github.com/pmattes/x3270.git
+        cd x3270
+    fi
+
+    # Compile and install
+    #echo -e "${GREEN}Compiling x3270...${RESET}"
+    ./configure \
+        --host=${HOST} \
+        --prefix=/usr \
+        --enable-c3270 \
+        --disable-x3270 \
+        --disable-s3270 \
+        --disable-b3270 \
+        --disable-tcl3270 \
+        --disable-pr3287 \
+        --disable-x3270if \
+        --disable-playback \
+        --disable-mitm \
+        --disable-wc3270 \
+        CC="${CC_STATIC}" \
+        AR="${AR}" \
+        RANLIB="${RANLIB}" \
+        CFLAGS="-Os -march=i486 -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
+        LDFLAGS="-static -L${PREFIX}/lib"
+    make -j$(nproc)
+    sudo make DESTDIR=$DESTDIR install
+
+    # Copy licence file
+    cp LICENSE.md $CURR_DIR/build/LICENCES/c3270.txt
+}
+
 # Download and compile CMatrix
 get_cmatrix()
 {
@@ -3920,6 +3977,57 @@ get_tmux()
     cp COPYING $CURR_DIR/build/LICENCES/tmux.txt
 }
 
+# Download and compile tn5250
+get_tn5250()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$DESTDIR/usr/bin/tn5250" ]; then
+        echo -e "${LIGHT_RED}tn5250 already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d tn5250 ]; then
+        echo -e "${YELLOW}tn5250 source already present, resetting & cleaning...${RESET}"
+        cd tn5250
+        git config --global --add safe.directory "$CURR_DIR/build/tn5250"
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading tn5250...${RESET}"
+        git clone --branch "v${TN5250_VER}" https://github.com/tn5250/tn5250.git
+        cd tn5250
+    fi
+
+    INTER_HEADERS="$($CC -print-file-name=include)"
+    LIBATOMIC_A="$($CC -print-file-name=libatomic.a)"
+
+    export CC="$CC"
+    export CFLAGS="-static -fno-pie -fno-pic -D__gnuc_va_list=va_list -nostdinc -I${INTER_HEADERS} -I${PREFIX}/i486-linux-musl/include -I${PREFIX}/include -I${PREFIX}/include/ncursesw"
+    export CPPFLAGS="$CFLAGS"
+    export LDFLAGS="-static -static-libgcc -no-pie -Wl,-static -L${PREFIX}/lib -L${SYSROOT}/lib"
+
+    # Compile and install
+    ./autogen.sh
+    ./configure \
+        --host=i486-linux-musl \
+        --prefix=/usr \
+        --with-ssl \
+        --disable-shared \
+        --enable-static \
+        AR="${AR}" \
+        RANLIB="${RANLIB}" \
+        LIBS="-lssl -lcrypto -lncursesw ${LIBATOMIC_A} -lpthread -ldl"
+    make -j"$(nproc)"
+    sudo make DESTDIR="$DESTDIR" install
+
+    # Copy licence file
+    cp COPYING "$CURR_DIR/build/LICENCES/tn5250.txt"
+}
+
+
 # Download and compile tnftp
 get_tnftp()
 {
@@ -4493,7 +4601,7 @@ build_file_system()
         copy_sysfile $CURR_DIR/sysfiles/nanorc $DESTDIR/usr/etc/nanorc
     fi
 
-    if $INCLUDE_PCIIDS; then
+    if $INCLUDE_PCI_IDS; then
         # Include PCI IDs for shorkfetch's GPU identification
         # **Work offloaded to Python**
         echo -e "${GREEN}Generating pci.ids database...${RESET}"
@@ -4650,11 +4758,11 @@ build_disk_img()
 
     # Get the size of our kernel and root fs
     KERNEL_BYTES=$(stat -c %s bzImage)
-    ROOT_BYTES=$(du -sb root/ | cut -f1)
+    ROOT_BYTES=$(du -B1 -s root/ | cut -f1)
 
     # Calculate some overhead to take into account metadata, partition
     # alignment, bootloader structures, etc.
-    OVERHEAD_BYTES=$((4 * 1024 * 1024))
+    OVERHEAD_BYTES=$((12 * 1024 * 1024))
     if [ "$INCLUDE_GCC" = true ] || [ "$INCLUDE_GUI" = true ]; then
         # We can assume these features demand more
         OVERHEAD_BYTES=$((16 * 1024 * 1024))
@@ -4662,10 +4770,12 @@ build_disk_img()
 
     # Estimate how big of a disk we need to contain the three things above
     TOTAL_BYTES=$((KERNEL_BYTES + ROOT_BYTES + OVERHEAD_BYTES))
-    TOTAL_MIB=$((TOTAL_BYTES / 1048576))
+    TOTAL_MIB=$(((TOTAL_BYTES + 1048575) / 1048576))
 
-    # Align to 4MiB boundary
-    TOTAL_DISK_SIZE=$((((TOTAL_MIB + 3) / 4) * 4))
+    # Factor in target swap if provided
+    if [ -n "$TARGET_SWAP" ]; then
+        TOTAL_MIB=$((TOTAL_MIB + TARGET_SWAP))
+    fi
     
     # We know this amount works for minimal build and keeps the disk size
     # small
@@ -4675,10 +4785,8 @@ build_disk_img()
         fi
     fi
 
-    # Factor in target swap if provided
-    if [ -n "$TARGET_SWAP" ]; then
-        TOTAL_DISK_SIZE=$((TOTAL_DISK_SIZE + TARGET_SWAP))
-    fi
+    # Align to 4MiB boundary
+    TOTAL_DISK_SIZE=$((((TOTAL_MIB + 3) / 4) * 4))
 
     # Use target disk value if provided and large enough
     if [ -n "$TARGET_DISK" ]; then
@@ -5006,10 +5114,15 @@ get_installed_programs_features()
         EXCLUDED_FEATURES+="\n * gcc"
         EXCLUDED_FEATURES+="\n * gfortran"
     fi
-    if [ -f "$DESTDIR/usr/bin/cmatrix" ]; then
-        INCLUDED_FEATURES+="\n * cmatrix ($CMATRIX_VER)"
+    if [ -f "$DESTDIR/usr/bin/c3270" ]; then
+        INCLUDED_FEATURES+="\n * c3270 ($C3270_VER)"
     else
-        EXCLUDED_FEATURES+="\n * cmatrix"
+        EXCLUDED_FEATURES+="\n * c3270"
+    fi
+    if [ -f "$DESTDIR/usr/bin/cmatrix" ] && [ "$ENABLE_CMATRIX" = true ]; then
+        INCLUDED_FEATURES+="\n * cmatrix ($CMATRIX_VER)"
+    #else
+    #    EXCLUDED_FEATURES+="\n * cmatrix"
     fi
     if [ -f "$DESTDIR/usr/bin/file" ]; then
         INCLUDED_FEATURES+="\n * file ($FILE_VER)"
@@ -5111,6 +5224,11 @@ get_installed_programs_features()
     else
         EXCLUDED_FEATURES+="\n * tmux"
     fi
+    if [ -f "$DESTDIR/usr/bin/tn5250" ]; then
+        INCLUDED_FEATURES+="\n * tn5250 ($TN5250_VER)"
+    else
+        EXCLUDED_FEATURES+="\n * tn5250"
+    fi
     if [ -f "$DESTDIR/usr/bin/whereis" ]; then
         INCLUDED_FEATURES+="\n * whereis (util-linux, $UTIL_LINUX_VER)"
     else
@@ -5148,7 +5266,7 @@ generate_report()
 
     if [ -n "$USED_PARAMS" ]; then
         lines+=(
-            "Build parameters: $USED_PARAMS"
+            "Build parameters:$USED_PARAMS"
         )
     fi
     
@@ -5182,14 +5300,14 @@ generate_report()
     if [ -n "$INCLUDED_FEATURES" ]; then
         lines+=(
             ""
-            "Included programs & features: $INCLUDED_FEATURES"
+            "Included programs & features:$INCLUDED_FEATURES"
         )
     fi
 
     if [ -n "$EXCLUDED_FEATURES" ]; then
         lines+=(
             ""
-            "Excluded programs & features: $EXCLUDED_FEATURES"
+            "Excluded programs & features:$EXCLUDED_FEATURES"
         )
     fi
 
@@ -5282,6 +5400,9 @@ if $INCLUDE_CON_FONTS; then
     get_console_fonts
 fi
 
+if $INCLUDE_C3270; then
+    get_c3270
+fi
 if $INCLUDE_CMATRIX; then
     get_cmatrix
 fi
@@ -5324,6 +5445,9 @@ if $INCLUDE_TCC; then
 fi
 if $INCLUDE_TMUX; then
     get_tmux
+fi
+if $INCLUDE_TN5250; then
+    get_tn5250
 fi
 if $INCLUDE_TNFTP; then
     get_tnftp
