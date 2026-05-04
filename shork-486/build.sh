@@ -1358,6 +1358,9 @@ compile_kernel()
     echo -e "${GREEN}Applying 7.1.x_restore-M486-M486SX-ELAN patch...${RESET}"
     patch -p1 < "$CURR_DIR/patches/7.1.x_restore-M486-M486SX-ELAN.patch"
 
+    echo -e "${GREEN}Applying 7.1.x_restore-pcmcia-hosts patch...${RESET}"
+    patch -p1 < "$CURR_DIR/patches/7.1.x_restore-pcmcia-hosts.patch"
+
     echo -e "${GREEN}Compiling Linux kernel...${RESET}"
     make ARCH=x86 olddefconfig
     make ARCH=x86 bzImage -j$(nproc)
