@@ -189,6 +189,9 @@ while [ $# -gt 0 ]; do
         --always-build)
             ALWAYS_BUILD=true
             ;;
+        --enable-tests)
+            INCLUDE_TESTS=true
+            ;;
         --is-arch)
             IS_ARCH=true
             IS_DEBIAN=false
