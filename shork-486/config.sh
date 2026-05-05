@@ -331,6 +331,7 @@ fi
 
 
 # Get build type
+PREV_BUILD_TYPE=$BUILD_TYPE
 BUILD_TYPE=$(dialog --clear \
     --backtitle "SHORK 486 Build Configurator" \
     --title "Build Type" \
@@ -355,6 +356,27 @@ elif [ "$BUILD_TYPE" == "maximal" ]; then
     set_maximal_vars
 elif [ "$BUILD_TYPE" == "custom" ]; then
     set_custom_vars
+fi
+
+
+
+if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
+    if [ "$BUILD_TYPE" == "default" ]; then
+        TARGET_DISK=80
+        TARGET_SWAP=8
+    elif [ "$BUILD_TYPE" == "offline" ]; then
+        TARGET_DISK=50
+        TARGET_SWAP=8
+    elif [ "$BUILD_TYPE" == "minimal" ]; then
+        TARGET_DISK=8
+        TARGET_SWAP=0
+    elif [ "$BUILD_TYPE" == "maximal" ]; then
+        TARGET_DISK=440
+        TARGET_SWAP=8
+    elif [ "$BUILD_TYPE" == "custom" ]; then
+        TARGET_DISK=80
+        TARGET_SWAP=8
+    fi
 fi
 
 
