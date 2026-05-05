@@ -81,7 +81,8 @@ HOSTNAME="$ID"
 
 # Common compiler/compiler-related locations
 ARCH="i486"
-PREFIX="${CURR_DIR}/build/${ARCH}-linux-musl-cross"
+CROSS="${ARCH}-linux-musl-cross"
+PREFIX="${CURR_DIR}/build/${CROSS}"
 AR="${PREFIX}/bin/${ARCH}-linux-musl-ar"
 CC="${PREFIX}/bin/${ARCH}-linux-musl-gcc"
 CC_STATIC="${CURR_DIR}/${ARCH}-linux-musl-gcc-static"
@@ -652,14 +653,14 @@ get_prerequisites()
 ## Compiled software toolchains & prerequisites     ##
 ######################################################
 
-# Download and extract i486 musl cross-compiler
-get_i486_musl_cc()
+# Download and extract the required GCC+musl cross-compiler
+get_musl_cross()
 {
     cd "$CURR_DIR/build"
 
-    echo -e "${GREEN}Downloading i486 cross-compiler...${RESET}"
-    [ -f i486-linux-musl-cross.tgz ] || wget https://musl.cc/i486-linux-musl-cross.tgz
-    [ -d "i486-linux-musl-cross" ] || tar xvf i486-linux-musl-cross.tgz
+    echo -e "${GREEN}Downloading ${CROSS}...${RESET}"
+    [ -f "${CROSS}.tgz" ] || wget "https://musl.cc/${CROSS}.tgz"
+    [ -d "${CROSS}" ] || tar xvf "${CROSS}.tgz"
 }
 
 # Download and compile ncurses (required for c3270, htop, Lynx, nano, sc-im, tic,
@@ -5357,9 +5358,7 @@ fi
 
 mkdir -p build/LICENCES
 get_prerequisites
-if [[ "$ARCH" == "i486" ]]; then
-    get_i486_musl_cc
-fi
+get_musl_cross
 
 if ! $SKIP_BB; then
     get_busybox
