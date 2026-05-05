@@ -46,9 +46,9 @@ confirm()
 
 
 
-echo -e "${BLUE}============================"
-echo -e "${BLUE}== SHORK 486 build script =="
-echo -e "${BLUE}============================${RESET}"
+echo -e "${BLUE}========================"
+echo -e "${BLUE}== SHORK build script =="
+echo -e "${BLUE}========================${RESET}"
 
 
 
@@ -80,16 +80,17 @@ URL="$(cat ${CURR_DIR}/branding/URL | tr -d '\n')"
 HOSTNAME="$ID"
 
 # Common compiler/compiler-related locations
-PREFIX="${CURR_DIR}/build/i486-linux-musl-cross"
-AR="${PREFIX}/bin/i486-linux-musl-ar"
-CC="${PREFIX}/bin/i486-linux-musl-gcc"
-CC_STATIC="${CURR_DIR}/i486-linux-musl-gcc-static"
-CXX_STATIC="${CURR_DIR}/i486-linux-musl-gxx-static"
+ARCH="i486"
+PREFIX="${CURR_DIR}/build/${ARCH}-linux-musl-cross"
+AR="${PREFIX}/bin/${ARCH}-linux-musl-ar"
+CC="${PREFIX}/bin/${ARCH}-linux-musl-gcc"
+CC_STATIC="${CURR_DIR}/${ARCH}-linux-musl-gcc-static"
+CXX_STATIC="${CURR_DIR}/${ARCH}-linux-musl-gxx-static"
 DESTDIR="${CURR_DIR}/build/root"
-HOST=i486-linux-musl
-RANLIB="${PREFIX}/bin/i486-linux-musl-ranlib"
-STRIP="${PREFIX}/bin/i486-linux-musl-strip"
-SYSROOT="${PREFIX}/i486-linux-musl"
+HOST="${ARCH}-linux-musl"
+RANLIB="${PREFIX}/bin/${ARCH}-linux-musl-ranlib"
+STRIP="${PREFIX}/bin/${ARCH}-linux-musl-strip"
+SYSROOT="${PREFIX}/${ARCH}-linux-musl"
 
 # Target software/feature versions
 BUSYBOX_VER="1_36_1"
@@ -388,7 +389,7 @@ fi
 # Use commit ID-based versioning is VER is not numeric 
 if [[ ! "$VER" =~ [0-9] ]]; then
     if [ -n "$IN_DOCKER" ]; then
-        git config --global --add safe.directory /var/shork-486
+        git config --global --add safe.directory "/var/${ID}"
     fi
     if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
         COMMIT=$(git rev-parse --short=7 HEAD)
@@ -406,7 +407,7 @@ fi
 delete_root_dir()
 {
     if [ -n "$CURR_DIR" ] && [ -d $DESTDIR ]; then
-        echo -e "${GREEN}Deleting existing SHORK 486 root directory to ensure fresh changes can be made...${RESET}"
+        echo -e "${GREEN}Deleting existing ${NAME} root directory to ensure fresh changes can be made...${RESET}"
         sudo rm -rf $DESTDIR
     fi
 }
@@ -429,7 +430,7 @@ fix_perms()
         sudo chown -R "$HOST_UID:$HOST_GID" $CURR_DIR/__pycache__ || true
         sudo chmod 755 $CURR_DIR/__pycache__ || true
 
-        for f in $CURR_DIR/images/shork-486.img $CURR_DIR/images/shork-486.vmdk; do
+        for f in $CURR_DIR/images/$ID.img $CURR_DIR/images/$ID.vmdk; do
             [ -f "$f" ] || continue
             sudo chown "$HOST_UID:$HOST_GID" "$f"
             sudo chmod 644 "$f"
@@ -441,8 +442,8 @@ fix_perms()
 clean_stale_mounts()
 {
     echo -e "${GREEN}Cleaning up any stale mounts and block-device mappings left by image builds...${RESET}"
-    sudo umount -lf /mnt/shork-486 2>/dev/null || true
-    sudo losetup -a | grep shork-486 | cut -d: -f1 | xargs -r sudo losetup -d || true
+    sudo umount -lf /mnt/$ID 2>/dev/null || true
+    sudo losetup -a | grep $ID | cut -d: -f1 | xargs -r sudo losetup -d || true
     sudo dmsetup remove_all 2>/dev/null || true
 }
 
@@ -768,7 +769,7 @@ get_curl()
     LDFLAGS="-L$SYSROOT/lib -static" \
     LIBS="-lssl -lcrypto -lpthread -ldl -latomic" \
     CC="${CC}" \
-    CFLAGS="-Os -march=i486 -static" \
+    CFLAGS="-Os -march=${ARCH} -static" \
     ./configure --build="$(gcc -dumpmachine)" --host="${HOST}" --prefix="$SYSROOT" --with-openssl="$SYSROOT" --without-libpsl --disable-shared
     make -j$(nproc)
     make install
@@ -902,7 +903,7 @@ get_libzip()
     cmake -DCMAKE_INSTALL_PREFIX="$PREFIX" \
         -DCMAKE_C_COMPILER="$CC_STATIC" \
         -DCMAKE_SYSTEM_NAME=Linux \
-        -DCMAKE_SYSTEM_PROCESSOR=i486 \
+        -DCMAKE_SYSTEM_PROCESSOR=${ARCH} \
         -DBUILD_SHARED_LIBS=OFF \
         -DENABLE_GNUTLS=OFF \
         -DENABLE_MBEDTLS=OFF \
@@ -984,7 +985,7 @@ get_zlib()
 
     echo -e "${GREEN}Compiling zlib...${RESET}"
     CC="$CC_STATIC" \
-    CFLAGS="-Os -march=i486 -static --sysroot=$SYSROOT" \
+    CFLAGS="-Os -march=${ARCH} -static --sysroot=$SYSROOT" \
     ./configure  --static --prefix=/usr
     make -j$(nproc)
     make DESTDIR="$SYSROOT" install
@@ -1078,12 +1079,12 @@ get_busybox()
     sed -i 's|"/dev/cdrom"|"/dev/sr0"|' util-linux/eject.c
     sed -i 's|"/dev/cdrom"|"/dev/sr0"|' miscutils/volname.c
 
-    echo -e "${GREEN}Copying base SHORK 486 BusyBox .config file...${RESET}"
+    echo -e "${GREEN}Copying base ${NAME} BusyBox .config file...${RESET}"
     cp $CURR_DIR/configs/busybox.config .config
 
     # Ensure BusyBox behaves with our toolchain
-    sed -i "s|^CONFIG_CROSS_COMPILER_PREFIX=.*|CONFIG_CROSS_COMPILER_PREFIX=\"${PREFIX}/bin/i486-linux-musl-\"|" .config
-    sed -i "s|^CONFIG_SYSROOT=.*|CONFIG_SYSROOT=\"${CURR_DIR}/build/i486-linux-musl-cross\"|" .config
+    sed -i "s|^CONFIG_CROSS_COMPILER_PREFIX=.*|CONFIG_CROSS_COMPILER_PREFIX=\"${PREFIX}/bin/${ARCH}-linux-musl-\"|" .config
+    sed -i "s|^CONFIG_SYSROOT=.*|CONFIG_SYSROOT=\"${CURR_DIR}/build/${ARCH}-linux-musl-cross\"|" .config
     sed -i "s|^CONFIG_EXTRA_CFLAGS=.*|CONFIG_EXTRA_CFLAGS=\"-I${PREFIX}/include\"|" .config
     sed -i "s|^CONFIG_EXTRA_LDFLAGS=.*|CONFIG_EXTRA_LDFLAGS=\"-L${PREFIX}/lib\"|" .config
 
@@ -1139,7 +1140,7 @@ get_strace()
     # Compile and install
     echo -e "${GREEN}Compiling strace...${RESET}"
     ./bootstrap
-    ./configure --host=${HOST} --prefix=/usr --disable-shared --enable-static CC="${CC_STATIC}" CFLAGS="-Os -march=i486" LDFLAGS="-static"
+    ./configure --host=${HOST} --prefix=/usr --disable-shared --enable-static CC="${CC_STATIC}" CFLAGS="-Os -march=${ARCH}" LDFLAGS="-static"
     make -j$(nproc)
     make install DESTDIR="$DESTDIR"
 
@@ -1200,7 +1201,7 @@ get_util_linux()
         --disable-nls \
         --disable-widechar \
         CC="${CC_STATIC}" \
-        CFLAGS="-Os -march=i486 -I${PREFIX}/include" \
+        CFLAGS="-Os -march=${ARCH} -I${PREFIX}/include" \
         CPPFLAGS="-I${PREFIX}/include" \
         LDFLAGS="-L${PREFIX}/lib -static" \
         PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig"
@@ -1252,7 +1253,7 @@ download_kernel()
 
 configure_kernel()
 {
-    echo -e "${GREEN}Copying base SHORK 486 Linux kernel .config file...${RESET}"
+    echo -e "${GREEN}Copying base ${NAME} Linux kernel .config file...${RESET}"
     cp $CURR_DIR/configs/linux.config .config
 
     FRAGS=""
@@ -2635,7 +2636,7 @@ get_openmotif()
         AR="$AR" \
         RANLIB="$RANLIB" \
         STRIP="$STRIP" \
-        CFLAGS="--sysroot=${SYSROOT} -O2 -march=i486 -I${SYSROOT}/usr/include -Wno-error -Wno-maybe-uninitialized -Wno-array-bounds -Wno-int-in-bool-context"
+        CFLAGS="--sysroot=${SYSROOT} -O2 -march=${ARCH} -I${SYSROOT}/usr/include -Wno-error -Wno-maybe-uninitialized -Wno-array-bounds -Wno-int-in-bool-context"
 
     # Patch for "undefined reference to 'main'"
     sudo sed -i 's/^LEX =.*/LEX = flex/' tools/wml/Makefile
@@ -2757,7 +2758,7 @@ get_tinyx()
     # Compile and install
     echo -e "${GREEN}Compiling TinyX...${RESET}"
     ./autogen.sh
-    ./configure --host="${HOST}" --prefix=/usr --disable-shared --enable-static --with-sysroot="$SYSROOT" --disable-xorg --enable-kdrive --enable-xfbdev CC="${CC_STATIC}" CPPFLAGS="-I$SYSROOT/usr/include -I$SYSROOT/usr/include/freetype2" CFLAGS="-Os -march=i486 -static --sysroot=$SYSROOT" LDFLAGS="-static -L$SYSROOT/usr/lib --sysroot=$SYSROOT" LIBS="$LINK_LIBS" \XSERVERCFLAGS_CFLAGS="-I$SYSROOT/usr/include -I$SYSROOT/usr/include/freetype2" XSERVERLIBS_LIBS="$LINK_LIBS"
+    ./configure --host="${HOST}" --prefix=/usr --disable-shared --enable-static --with-sysroot="$SYSROOT" --disable-xorg --enable-kdrive --enable-xfbdev CC="${CC_STATIC}" CPPFLAGS="-I$SYSROOT/usr/include -I$SYSROOT/usr/include/freetype2" CFLAGS="-Os -march=${ARCH} -static --sysroot=$SYSROOT" LDFLAGS="-static -L$SYSROOT/usr/lib --sysroot=$SYSROOT" LIBS="$LINK_LIBS" \XSERVERCFLAGS_CFLAGS="-I$SYSROOT/usr/include -I$SYSROOT/usr/include/freetype2" XSERVERLIBS_LIBS="$LINK_LIBS"
     make -j$(nproc)
     make DESTDIR=$DESTDIR install
 
@@ -2834,7 +2835,7 @@ get_nedit()
     sudo sed -i 's|-I../Microline||g' makefiles/Makefile.linux
     sudo sed -i 's|../Microline/XmL/libXmL.a||g' makefiles/Makefile.linux
 
-    export CFLAGS="--sysroot=${SYSROOT} -O2 -march=i486 -I${SYSROOT}/usr/include"
+    export CFLAGS="--sysroot=${SYSROOT} -O2 -march=${ARCH} -I${SYSROOT}/usr/include"
     export LDFLAGS="--sysroot=${SYSROOT} -L${SYSROOT}/usr/lib"
 
     # Compile and install
@@ -3286,7 +3287,7 @@ get_c3270()
         CC="${CC_STATIC}" \
         AR="${AR}" \
         RANLIB="${RANLIB}" \
-        CFLAGS="-Os -march=i486 -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
+        CFLAGS="-Os -march=${ARCH} -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
         LDFLAGS="-static -L${PREFIX}/lib"
     make -j$(nproc)
     sudo make DESTDIR=$DESTDIR install
@@ -3327,7 +3328,7 @@ get_cmatrix()
         CC="${CC_STATIC}" \
         AR="${AR}" \
         RANLIB="${RANLIB}" \
-        CFLAGS="-Os -march=i486 -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
+        CFLAGS="-Os -march=${ARCH} -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
         LDFLAGS="-static -L${PREFIX}/lib"
     make -j$(nproc)
     sudo make DESTDIR=$DESTDIR install
@@ -3362,7 +3363,7 @@ get_dropbear()
     # Compile and install
     echo -e "${GREEN}Compiling Dropbear...${RESET}"
     unset LIBS
-    ./configure --host=${HOST} --prefix=/usr --disable-zlib --disable-loginfunc --disable-syslog --disable-lastlog --disable-utmp --disable-utmpx --disable-wtmp --disable-wtmpx CC="${CC}" AR="${AR}" RANLIB="${RANLIB}" CFLAGS="-Os -march=i486 -static" LDFLAGS="-static"
+    ./configure --host=${HOST} --prefix=/usr --disable-zlib --disable-loginfunc --disable-syslog --disable-lastlog --disable-utmp --disable-utmpx --disable-wtmp --disable-wtmpx CC="${CC}" AR="${AR}" RANLIB="${RANLIB}" CFLAGS="-Os -march=${ARCH} -static" LDFLAGS="-static"
     make PROGRAMS="dbclient scp" -j$(nproc)
     sudo make DESTDIR=$DESTDIR install PROGRAMS="dbclient scp"
     sudo mv "$DESTDIR/usr/bin/dbclient" "$DESTDIR/usr/bin/ssh"
@@ -3405,7 +3406,7 @@ get_file()
     # Compile and install
     echo -e "${GREEN}Compiling file...${RESET}"
     autoreconf -fiv
-    ./configure --host=${HOST} --prefix=/usr --disable-shared --enable-static CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" CFLAGS="-Os -march=i486" LDFLAGS="-static"
+    ./configure --host=${HOST} --prefix=/usr --disable-shared --enable-static CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" CFLAGS="-Os -march=${ARCH}" LDFLAGS="-static"
     make -j$(nproc)
     sudo make DESTDIR=$DESTDIR install
 
@@ -3419,14 +3420,14 @@ get_gcc()
     cd "$CURR_DIR/build"
 
     # Skip if already extracted
-    if [ -d "$DESTDIR/opt/i486-linux-musl-native" ]; then
-        echo -e "${LIGHT_RED}i486-linux-musl-native already extracted, skipping...${RESET}"
+    if [ -d "$DESTDIR/opt/${ARCH}-linux-musl-native" ]; then
+        echo -e "${LIGHT_RED}${ARCH}-linux-musl-native already extracted, skipping...${RESET}"
         return
     fi
 
-    echo -e "${GREEN}Downloading i486-linux-musl-native...${RESET}"
+    echo -e "${GREEN}Downloading ${ARCH}-linux-musl-native...${RESET}"
 
-    DIR="i486-linux-musl-native"
+    DIR="${ARCH}-linux-musl-native"
     ARC="${DIR}.tgz"
     URI="https://musl.cc/${ARC}"
 
@@ -3435,20 +3436,20 @@ get_gcc()
 
     # Extract
     if [ -d "$DESTDIR/opt/$DIR" ]; then
-        echo -e "${YELLOW}i486-linux-musl-native's archive is already present, re-extracting...${RESET}"
+        echo -e "${YELLOW}${ARCH}-linux-musl-native's archive is already present, re-extracting...${RESET}"
         sudo rm -rf "$DESTDIR/opt/$DIR"
     fi
     mkdir -p $DESTDIR/opt
     tar xzf $ARC -C $DESTDIR/opt
     mkdir -p $DESTDIR/lib
-    for f in $DESTDIR/opt/i486-linux-musl-native/lib/*.so*; do
+    for f in $DESTDIR/opt/${ARCH}-linux-musl-native/lib/*.so*; do
         [ -e "$f" ] || continue
         target="${f#$DESTDIR}"
         ln -sf "$target" "$DESTDIR/lib/"
     done
 
     # Copy licence file
-    #cp TODO $CURR_DIR/build/LICENCES/i486-linux-musl-native.txt
+    #cp TODO $CURR_DIR/build/LICENCES/${ARCH}-linux-musl-native.txt
 }
 
 # Download and compile Git
@@ -3477,7 +3478,7 @@ get_git()
     # Compile and install
     echo -e "${GREEN}Compiling Git...${RESET}"
     make configure
-    ./configure --host=${HOST} --prefix=/usr CC="${CC}" AR="${AR}" RANLIB="${RANLIB}" CFLAGS="-Os -march=i486 -static -I${PREFIX}/include" LDFLAGS="-static -L${PREFIX}/lib"
+    ./configure --host=${HOST} --prefix=/usr CC="${CC}" AR="${AR}" RANLIB="${RANLIB}" CFLAGS="-Os -march=${ARCH} -static -I${PREFIX}/include" LDFLAGS="-static -L${PREFIX}/lib"
     sudo cp $CURR_DIR/configs/git.config.mak config.mak
     make -j$(nproc)
     sudo make DESTDIR=$DESTDIR install
@@ -3512,7 +3513,7 @@ get_htop()
     # Compile and install
     echo -e "${GREEN}Compiling htop...${RESET}"
     ./autogen.sh
-    ./configure --host=${HOST} --prefix=/usr CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" CFLAGS="-Os -march=i486 -I${PREFIX}/include -I${PREFIX}/include/ncursesw" LDFLAGS="-static -L${PREFIX}/lib"
+    ./configure --host=${HOST} --prefix=/usr CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" CFLAGS="-Os -march=${ARCH} -I${PREFIX}/include -I${PREFIX}/include/ncursesw" LDFLAGS="-static -L${PREFIX}/lib"
     make -j$(nproc)
     sudo cp htop $DESTDIR/usr/bin
 
@@ -3557,7 +3558,7 @@ get_lynx()
             AR="${AR}" \
             RANLIB="${RANLIB}" \
             CPPFLAGS="-I${SYSROOT}/include -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
-            CFLAGS="-Os -march=i486" \
+            CFLAGS="-Os -march=${ARCH}" \
             LDFLAGS="-static -L${SYSROOT}/lib -L${PREFIX}/lib" \
             LIBS="-latomic"
     make -j$(nproc)
@@ -3639,7 +3640,7 @@ get_mg()
     # Compile and install
     echo -e "${GREEN}Compiling Mg...${RESET}"
     ./autogen.sh
-    ./configure --host=${HOST} --prefix=/usr CC="${CC}" AR="${AR}" RANLIB="${RANLIB}" CFLAGS="-Os -march=i486 -static"
+    ./configure --host=${HOST} --prefix=/usr CC="${CC}" AR="${AR}" RANLIB="${RANLIB}" CFLAGS="-Os -march=${ARCH} -static"
     make -j$(nproc)
     sudo make DESTDIR=$DESTDIR install
 
@@ -3687,7 +3688,7 @@ get_micropython()
         AR="${AR}" \
         RANLIB="${RANLIB}" \
         STRIP="${STRIP}" \
-        CFLAGS_EXTRA="-Os -march=i486 -static --sysroot=${SYSROOT}" \
+        CFLAGS_EXTRA="-Os -march=${ARCH} -static --sysroot=${SYSROOT}" \
         LDFLAGS_EXTRA="-static --sysroot=${SYSROOT}" \
         MICROPY_PY_SSL=1 \
         MICROPY_SSL_MBEDTLS=1 \
@@ -3780,7 +3781,7 @@ get_nano()
     export ac_cv_lib_tinfo_tigetstr='no'
     export LIBS="-lncursesw"
 
-    ./configure --cache-file=/dev/null --host=${HOST} --prefix=/usr --enable-utf8 --enable-color --disable-nls --disable-speller --disable-browser --disable-libmagic --disable-justify --disable-wrapping CC="${CC}" CFLAGS="-Os -march=i486 -mno-fancy-math-387 -I${PREFIX}/include -I${PREFIX}/include/ncursesw" LDFLAGS="-static -L${PREFIX}/lib"
+    ./configure --cache-file=/dev/null --host=${HOST} --prefix=/usr --enable-utf8 --enable-color --disable-nls --disable-speller --disable-browser --disable-libmagic --disable-justify --disable-wrapping CC="${CC}" CFLAGS="-Os -march=${ARCH} -mno-fancy-math-387 -I${PREFIX}/include -I${PREFIX}/include/ncursesw" LDFLAGS="-static -L${PREFIX}/lib"
 
     # In case "cannot find -ltinfo" error 
     grep -rl "\-ltinfo" . | xargs -r sed -i 's/-ltinfo//g' 2>/dev/null || true
@@ -3818,7 +3819,7 @@ get_rover()
     fi
 
     # Patch rover to support alternate key assignments
-    echo '// Alternate key binds for SHORK 486' | sudo tee -a config.h > /dev/null
+    echo '// Alternate key binds for ${NAME}' | sudo tee -a config.h > /dev/null
     echo '#define RVK_DOWN_ALT          "B"' | sudo tee -a config.h > /dev/null
     echo '#define RVK_UP_ALT            "A"' | sudo tee -a config.h > /dev/null
     #echo '#define RVK_JUMP_BOTTOM_ALT   "TODO"' | sudo tee -a config.h > /dev/null
@@ -4008,14 +4009,14 @@ get_tn5250()
     LIBATOMIC_A="$($CC -print-file-name=libatomic.a)"
 
     export CC="$CC"
-    export CFLAGS="-static -fno-pie -fno-pic -D__gnuc_va_list=va_list -nostdinc -I${INTER_HEADERS} -I${PREFIX}/i486-linux-musl/include -I${PREFIX}/include -I${PREFIX}/include/ncursesw"
+    export CFLAGS="-static -fno-pie -fno-pic -D__gnuc_va_list=va_list -nostdinc -I${INTER_HEADERS} -I${PREFIX}/${ARCH}-linux-musl/include -I${PREFIX}/include -I${PREFIX}/include/ncursesw"
     export CPPFLAGS="$CFLAGS"
     export LDFLAGS="-static -static-libgcc -no-pie -Wl,-static -L${PREFIX}/lib -L${SYSROOT}/lib"
 
     # Compile and install
     ./autogen.sh
     ./configure \
-        --host=i486-linux-musl \
+        --host=${ARCH}-linux-musl \
         --prefix=/usr \
         --with-ssl \
         --disable-shared \
@@ -4062,7 +4063,7 @@ get_tnftp()
     # Compile and install
     echo -e "${GREEN}Compiling tnftp...${RESET}"
     unset LIBS
-    ./configure --host=${HOST} --prefix=/usr --disable-editcomplete --disable-shared --enable-static CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}" CFLAGS="-Os -march=i486" LDFLAGS=""
+    ./configure --host=${HOST} --prefix=/usr --disable-editcomplete --disable-shared --enable-static CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}" CFLAGS="-Os -march=${ARCH}" LDFLAGS=""
     make -j$(nproc)
     sudo make DESTDIR=$DESTDIR install
     ln -sf tnftp "$DESTDIR/usr/bin/ftp"
@@ -4419,14 +4420,14 @@ trim_fat()
     fi
 
     if $INCLUDE_GCC; then
-        sudo rm -rf "$DESTDIR/opt/i486-linux-musl-native/i486-linux-musl"
-        sudo rm -rf "$DESTDIR/opt/i486-linux-musl-native/share"
-        for bin in "$DESTDIR"/opt/i486-linux-musl-native/bin/*; do
+        sudo rm -rf "$DESTDIR/opt/${ARCH}-linux-musl-native/${ARCH}-linux-musl"
+        sudo rm -rf "$DESTDIR/opt/${ARCH}-linux-musl-native/share"
+        for bin in "$DESTDIR"/opt/${ARCH}-linux-musl-native/bin/*; do
             if [ -f "$bin" ]; then
                 sudo $STRIP $bin 2>/dev/null || true
             fi
         done
-        for bin in "$DESTDIR"/opt/i486-linux-musl-native/libexec/gcc/i486-linux-musl/11.2.1/*; do
+        for bin in "$DESTDIR"/opt/${ARCH}-linux-musl-native/libexec/gcc/${ARCH}-linux-musl/11.2.1/*; do
             if [ -f "$bin" ]; then
                 sudo $STRIP $bin 2>/dev/null || true
             fi
@@ -4639,11 +4640,11 @@ partition_image()
         SWAP_SIZE=$((TARGET_SWAP * 2048))
         ROOT_SIZE=$((ALIGNED_SECTORS - DISK_SECTORS_TRACK - SWAP_SIZE))
         SWAP_START=$((DISK_SECTORS_TRACK + ROOT_SIZE))
-        sed -e "s/@ROOT_SIZE@/${ROOT_SIZE}/g" -e "s/@SWAP_START@/${SWAP_START}/g" -e "s/@SWAP_SIZE@/${SWAP_SIZE}/g" "$CURR_DIR/sysfiles/partitions_swap" | sudo sfdisk "$CURR_DIR/images/shork-486.img"
+        sed -e "s/@ROOT_SIZE@/${ROOT_SIZE}/g" -e "s/@SWAP_START@/${SWAP_START}/g" -e "s/@SWAP_SIZE@/${SWAP_SIZE}/g" "$CURR_DIR/sysfiles/partitions_swap" | sudo sfdisk "${CURR_DIR}/images/${ID}.img"
     else
         echo -e "${GREEN}Setting up for just root partition (no swap)...${RESET}"
         ROOT_SIZE=$((ALIGNED_SECTORS - DISK_SECTORS_TRACK))
-        sed "s/@ROOT_SIZE@/${ROOT_SIZE}/g" "$CURR_DIR/sysfiles/partitions_noswap" | sudo sfdisk "$CURR_DIR/images/shork-486.img"
+        sed "s/@ROOT_SIZE@/${ROOT_SIZE}/g" "$CURR_DIR/sysfiles/partitions_noswap" | sudo sfdisk "${CURR_DIR}/images/$ID.img"
     fi
 
     ROOT_PART_SIZE=$((ROOT_SIZE / 2048))
@@ -4654,29 +4655,29 @@ install_grub_bootloader()
 {
     cd $CURR_DIR/build/
 
-    sudo mkdir -p /mnt/shork-486/boot/grub
+    sudo mkdir -p "/mnt/${ID}/boot/grub"
 
     if $ENABLE_MENU; then
         echo -e "${GREEN}Installing menu-based GRUB bootloader...${RESET}"
-        copy_sysfile $CURR_DIR/sysfiles/grub.cfg.menu /mnt/shork-486/boot/grub/grub.cfg
+        copy_sysfile $CURR_DIR/sysfiles/grub.cfg.menu "/mnt/${ID}/boot/grub/grub.cfg"
     else
         echo -e "${GREEN}Installing boot-only GRUB bootloader...${RESET}"
-        copy_sysfile $CURR_DIR/sysfiles/grub.cfg.boot /mnt/shork-486/boot/grub/grub.cfg
+        copy_sysfile $CURR_DIR/sysfiles/grub.cfg.boot "/mnt/${ID}/boot/grub/grub.cfg"
     fi
 
-    sudo mount --bind /dev  /mnt/shork-486/dev
-    sudo mount --bind /proc /mnt/shork-486/proc
-    sudo mount --bind /sys  /mnt/shork-486/sys
+    sudo mount --bind /dev  "/mnt/${ID}/dev"
+    sudo mount --bind /proc "/mnt/${ID}/proc"
+    sudo mount --bind /sys  "/mnt/${ID}/sys"
 
     GRUB_CMD="grub-install"
     if ! command -v "$GRUB_CMD" >/dev/null 2>&1; then
         GRUB_CMD="/usr/sbin/grub2-install"
     fi
-    sudo $GRUB_CMD --target=i386-pc --boot-directory=/mnt/shork-486/boot --modules="ext2 part_msdos biosdisk" --force "$1"
+    sudo $GRUB_CMD --target=i386-pc --boot-directory="/mnt/${ID}/boot" --modules="ext2 part_msdos biosdisk" --force "$1"
 
-    sudo umount /mnt/shork-486/dev
-    sudo umount /mnt/shork-486/proc
-    sudo umount /mnt/shork-486/sys
+    sudo umount "/mnt/${ID}/dev"
+    sudo umount "/mnt/${ID}/proc"
+    sudo umount "/mnt/${ID}/sys"
 
     BOOTLDR_USED="GRUB"
 }
@@ -4693,11 +4694,11 @@ install_extlinux_bootloader()
         BOOTLDR_USED="patched EXTLINUX"
     fi
 
-    sudo mkdir -p /mnt/shork-486/boot/syslinux
+    sudo mkdir -p "/mnt/${ID}/boot/syslinux"
 
     if $ENABLE_MENU; then
         echo -e "${GREEN}Installing menu-based EXTLINUX bootloader...${RESET}"
-        copy_sysfile $CURR_DIR/sysfiles/syslinux.cfg.menu  /mnt/shork-486/boot/syslinux/syslinux.cfg
+        copy_sysfile $CURR_DIR/sysfiles/syslinux.cfg.menu  "/mnt/${ID}/boot/syslinux/syslinux.cfg"
         
         SYSLINUX_DIRS="
         /usr/lib/syslinux/modules/bios
@@ -4710,7 +4711,7 @@ install_extlinux_bootloader()
         {
             for d in $SYSLINUX_DIRS; do
                 if [ -f "$d/$1" ]; then
-                    sudo cp "$d/$1" /mnt/shork-486/boot/syslinux/
+                    sudo cp "$d/$1" "/mnt/${ID}/boot/syslinux/"
                     return 0
                 fi
             done
@@ -4724,13 +4725,13 @@ install_extlinux_bootloader()
         copy_syslinux_file libmenu.c32
     else
         echo -e "${GREEN}Installing boot-only EXTLINUX bootloader...${RESET}"
-        copy_sysfile $CURR_DIR/sysfiles/syslinux.cfg.boot  /mnt/shork-486/boot/syslinux/syslinux.cfg
+        copy_sysfile $CURR_DIR/sysfiles/syslinux.cfg.boot  "/mnt/${ID}/boot/syslinux/syslinux.cfg"
     fi
 
-    sudo "$EXTLINUX_BIN" --install /mnt/shork-486/boot/syslinux
+    sudo "$EXTLINUX_BIN" --install "/mnt/${ID}/boot/syslinux"
 
     # Install MBR boot code
-    sudo dd if="$MBR_BIN" of=../images/shork-486.img bs=440 count=1 conv=notrunc
+    sudo dd if="$MBR_BIN" of="../images/${ID}.img" bs=440 count=1 conv=notrunc
 }
 
 # Build a disk image containing our system
@@ -4743,7 +4744,7 @@ build_disk_img()
     {
         set +e
 
-        mountpoint="/mnt/shork-486"
+        mountpoint="/mnt/${ID}"
         if mountpoint -q "$mountpoint" 2>/dev/null; then
             sudo umount -lf "$mountpoint" || true
         fi
@@ -4805,15 +4806,15 @@ build_disk_img()
 
     # Create the image
     echo -e "${GREEN}Creating the disk image...${RESET}"
-    dd if=/dev/zero of=../images/shork-486.img bs=1M count="$TOTAL_DISK_SIZE" status=progress
+    dd if=/dev/zero of="../images/${ID}.img" bs=1M count="$TOTAL_DISK_SIZE" status=progress
 
     # Enlarges the image so it ends on a whole CHS-cylinder boundary
     SECTORS_PER_CYL=$((DISK_HEADS*DISK_SECTORS_TRACK))
-    IMG_SIZE=$(stat -c %s ../images/shork-486.img)
+    IMG_SIZE=$(stat -c %s "../images/${ID}.img")
     SECTORS_NO=$((IMG_SIZE / 512))
     ALIGNED_SECTORS=$(((SECTORS_NO + SECTORS_PER_CYL - 1) / SECTORS_PER_CYL * SECTORS_PER_CYL))
     ALIGNED_IMG_SIZE=$((ALIGNED_SECTORS * 512))
-    truncate -s "$ALIGNED_IMG_SIZE" ../images/shork-486.img
+    truncate -s "$ALIGNED_IMG_SIZE" "../images/${ID}.img"
     DISK_CYLINDERS=$((ALIGNED_SECTORS / SECTORS_PER_CYL))
 
 
@@ -4829,7 +4830,7 @@ build_disk_img()
     [ -e /dev/loop-control ] || sudo mknod /dev/loop-control c 10 237
 
     # Expose partition
-    loop=$(sudo losetup -f --show ../images/shork-486.img)
+    loop=$(sudo losetup -f --show "../images/${ID}.img")
     sudo kpartx -av "$loop"
     root_part="/dev/mapper/$(basename "$loop")p1"
     if [ -n "$TARGET_SWAP" ]; then
@@ -4839,23 +4840,23 @@ build_disk_img()
     # Create and populate root partition
     echo -e "${GREEN}Creating root partition...${RESET}"
     sudo mkfs.ext4 -F "$root_part"
-    sudo mkdir -p /mnt/shork-486
-    sudo mount "$root_part" /mnt/shork-486
-    sudo cp -a root//. /mnt/shork-486
-    sudo mkdir -p /mnt/shork-486/{dev,proc,sys,boot}
+    sudo mkdir -p "/mnt/${ID}"
+    sudo mount "$root_part" "/mnt/${ID}"
+    sudo cp -a root//. "/mnt/${ID}"
+    sudo mkdir -p /mnt/$ID/{dev,proc,sys,boot}
 
     # Create swap partition if enabled
     if [ -n "$TARGET_SWAP" ]; then
         echo -e "${GREEN}Creating swap partition...${RESET}"
         sudo mkswap "$swap_part"
-        echo "/dev/sda2 none swap sw 0 0" | sudo tee -a /mnt/shork-486/etc/fstab
+        echo "/dev/sda2 none swap sw 0 0" | sudo tee -a "/mnt/${ID}/etc/fstab"
     fi
 
 
 
     # Install the kernel
     echo -e "${GREEN}Installing kernel image...${RESET}"
-    sudo cp bzImage /mnt/shork-486/boot/bzImage
+    sudo cp bzImage "/mnt/${ID}/boot/bzImage"
 
 
 
@@ -4870,7 +4871,7 @@ build_disk_img()
 
     # Ensure file system is in a clean state
     echo -e "${GREEN}Unmounting file system...${RESET}"
-    sudo umount /mnt/shork-486
+    sudo umount "/mnt/${ID}"
     sudo fsck.ext4 -f -p "$root_part"
 }
 
@@ -4880,7 +4881,7 @@ convert_disk_img()
     cd $CURR_DIR/images/
 
     echo -e "${GREEN}Creating VMware virtual machine disk from disk image...${RESET}"
-    qemu-img convert -f raw -O vmdk shork-486.img shork-486.vmdk
+    qemu-img convert -f raw -O vmdk "${ID}.img" "${ID}.vmdk"
 }
 
 
@@ -5250,12 +5251,12 @@ generate_report()
 
     local lines=(
         "=================================="
-        "== SHORK 486 after-build report =="
+        "==   SHORK after-build report   =="
         "=================================="
         "==     $DATE     =="
         "=================================="
         ""
-        "Version:             SHORK 486 $VER"
+        "Version:             $NAME $VER"
         "Kernel:              Linux $KERNEL_VER"
         "Base:                BusyBox $BUSYBOX_VER"
         "Bootloader:          $BOOTLDR_USED"
@@ -5339,7 +5340,9 @@ fi
 
 mkdir -p build/LICENCES
 get_prerequisites
-get_i486_musl_cc
+if [[ "$ARCH" == "i486" ]]; then
+    get_i486_musl_cc
+fi
 
 if ! $SKIP_BB; then
     get_busybox
