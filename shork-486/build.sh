@@ -73,6 +73,7 @@ USED_PARAMS=""
 USED_WM="TWM"
 
 # Branding
+ARCH="$(cat ${CURR_DIR}/branding/ARCH | tr -d '\n')"
 NAME="$(cat ${CURR_DIR}/branding/NAME | tr -d '\n')"
 VER="$(cat ${CURR_DIR}/branding/VER | tr -d '\n')"
 ID="$(cat ${CURR_DIR}/branding/ID | tr -d '\n')"
@@ -80,7 +81,6 @@ URL="$(cat ${CURR_DIR}/branding/URL | tr -d '\n')"
 HOSTNAME="$ID"
 
 # Common compiler/compiler-related locations
-ARCH="i486"
 CROSS="${ARCH}-linux-musl-cross"
 PREFIX="${CURR_DIR}/build/${CROSS}"
 AR="${PREFIX}/bin/${ARCH}-linux-musl-ar"
