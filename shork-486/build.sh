@@ -3566,18 +3566,18 @@ get_lynx()
     echo -e "${GREEN}Compiling Lynx...${RESET}"
     make configure
     ./configure \
-            --host=${HOST} \
-            --prefix=/usr \
-            --with-ssl \
-            --with-ssl-dir="$SYSROOT" \
-            --with-openssl \
-            CC="${CC_STATIC}" \
-            AR="${AR}" \
-            RANLIB="${RANLIB}" \
-            CPPFLAGS="-I${SYSROOT}/include -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
-            CFLAGS="-Os -march=${ARCH}" \
-            LDFLAGS="-static -L${SYSROOT}/lib -L${PREFIX}/lib" \
-            LIBS="-latomic"
+        --host=${HOST} \
+        --prefix=/usr \
+        --with-ssl \
+        --with-ssl-dir="$SYSROOT" \
+        --with-openssl \
+        CC="${CC_STATIC}" \
+        AR="${AR}" \
+        RANLIB="${RANLIB}" \
+        CPPFLAGS="-I${SYSROOT}/include -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
+        CFLAGS="-Os -march=${ARCH}" \
+        LDFLAGS="-static -L${SYSROOT}/lib -L${PREFIX}/lib" \
+        LIBS="-lncursesw -ltinfo -latomic"
     make -j$(nproc)
     sudo make DESTDIR=$DESTDIR install
 
