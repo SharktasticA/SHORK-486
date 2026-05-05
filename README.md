@@ -36,7 +36,7 @@ Depending on configuration, SHORK 486 requires between just 8-24MiB system memor
 
 ## Capabilities
 
-### BusyBox, util-linux, etc.
+### Default BusyBox & util-linux
 
 ar, arch, ascii, awk, basename, bc, beep, blkid, cal, cat, chmod, chown, chroot, chvt, clear, cp, crontab, cut, date, dc, dd, df, diff, dirname, dmesg, du, ed, eject, expand, expr, false, fdformat, fdisk, find, fold, free, ftpget, ftpput, grep, gzip, halt, head, hexdump, hostname, ifconfig, ip, kill, killall, less, ln, loadkmap, losetup, ls, lsblk, lspci, man, mdev, mkdir, mknod, mkswap, mount, mountpoint, mv, nice, nohup, nproc, partprobe, partx, paste, patch, ping, pkill, pmap, printf, ps, pstree, pwd, readlink, rev, rm, rmdir, route, sed, seq, setfont, sfdisk, showkey, sleep, stat, strace, stty, swapoff, swapon, sync, tar, taskset, tee, telnet, test, top, touch, tr, traceroute, tree, true, truncate, udhcpc, umount, uname, unexpand, unzip, usleep, vi, volname, wc, wget, whereis, which, whoami, whois, xxd, xz, yes
 
@@ -185,7 +185,7 @@ The after-build report is provided to confirm whether the build was completed as
 When running the SHORK 486 Build Configurator, you will be prompted to select the following:
 
 * Build environment (Arch native, Debian native/Dockerised or Fedora native)
-* Build type (default, minimal, maximal or custom)
+* Build type (default, offline, minimal, maximal or custom)
 * Target disk size (size in MiB for the disk image containing SHORK 486)
 * Swap partition size (size in MiB for a swap partition)
 * If not "Minimal" build type selected:
@@ -200,7 +200,10 @@ Below are further explanations for options that could not fit into the configura
 
 #### Build Type
 
-* **Default**: Builds SHORK 486 to the author's recommended configuration, trying to balance features with RAM requirements. It includes all bundled software except GCC. A default build requires 16MiB system memory and ~80MiB disk size.
+* **Default**: Builds SHORK 486 to the author's recommended configuration, trying to balance features and bundled software variety with system requirements. A default build requires 16MiB system memory and ~80MiB disk size.
+
+* **Offline**: The same as a default build but _without_ full networking support or software that requires an internet connection. An offline build requires 12MiB system memory and ~50MiB disk size.
+    * The after-build report will still report that "kernel-level networking support (base)" is included. This is required to satisfy htop's kernel requirements, but the kernel is still incapable of supporting real network connections.
 
 * **Minimal**: Builds SHORK 486 to its most minimal configuration. All bundled software and additional features are excluded, and networking support and non-US keyboard layout support are disabled. A minimal build requires 8MiB system memory and ~8MiB disk size.
 

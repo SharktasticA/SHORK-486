@@ -31,42 +31,42 @@ TARGET_DISK=80
 TARGET_SWAP=8
 SET_KEYMAP="en_us"
 HOSTNAME="shork-486"
-FIX_EXTLINUX=true
-ENABLE_NET_ETH=true
+FIX_EXTLINUX=false
+ENABLE_NET_ETH=false
 INCLUDE_C3270=false
 INCLUDE_CMATRIX=false
-INCLUDE_DROPBEAR=true
-INCLUDE_FILE=true
+INCLUDE_DROPBEAR=false
+INCLUDE_FILE=false
 INCLUDE_GCC=false
-INCLUDE_GIT=true
-INCLUDE_HTOP=true
-INCLUDE_LYNX=true
-INCLUDE_MG=true
-INCLUDE_MICROPYTHON=true
-INCLUDE_MT_ST=true
-INCLUDE_NANO=true
-INCLUDE_SC_IM=true
-INCLUDE_SHORKTAINMENT=true
-INCLUDE_STRACE=true
-INCLUDE_TCC=true
+INCLUDE_GIT=false
+INCLUDE_HTOP=false
+INCLUDE_LYNX=false
+INCLUDE_MG=false
+INCLUDE_MICROPYTHON=false
+INCLUDE_MT_ST=false
+INCLUDE_NANO=false
+INCLUDE_SC_IM=false
+INCLUDE_SHORKTAINMENT=false
+INCLUDE_STRACE=false
+INCLUDE_TCC=false
 INCLUDE_TN5250=false
-INCLUDE_TNFTP=true
-INCLUDE_TMUX=true
-INCLUDE_UTIL_LINUX=true
-INCLUDE_CON_FONTS=true
+INCLUDE_TNFTP=false
+INCLUDE_TMUX=false
+INCLUDE_UTIL_LINUX=false
+INCLUDE_CON_FONTS=false
 USE_GRUB=false
-ENABLE_FB=true
+ENABLE_FB=false
 INCLUDE_GUI=false
 ENABLE_HIGHMEM=false
-INCLUDE_KEYMAPS=true
-ENABLE_MENU=true
-INCLUDE_PCI_IDS=true
-ENABLE_PCMCIA=true
+INCLUDE_KEYMAPS=false
+ENABLE_MENU=false
+INCLUDE_PCI_IDS=false
+ENABLE_PCMCIA=false
 ENABLE_SATA=false
-ENABLE_SCSI_EXP=true
+ENABLE_SCSI_EXP=false
 ENABLE_SMP=false
 ENABLE_USB=false
-ENABLE_ZSWAP=true
+ENABLE_ZSWAP=false
 
 keymap_name()
 {
@@ -180,6 +180,120 @@ val_str()
     [[ "$1" == "$2" ]] && echo on || echo off
 }
 
+set_minimal_vars()
+{
+    ENABLE_NET_ETH=false
+    INCLUDE_C3270=false
+    #INCLUDE_CMATRIX=false
+    INCLUDE_DROPBEAR=false
+    INCLUDE_FILE=false
+    INCLUDE_GCC=false
+    INCLUDE_GIT=false
+    INCLUDE_HTOP=false
+    INCLUDE_LYNX=false
+    INCLUDE_MG=false
+    INCLUDE_MICROPYTHON=false
+    INCLUDE_MT_ST=false
+    INCLUDE_NANO=false
+    INCLUDE_SC_IM=false
+    INCLUDE_SHORKTAINMENT=false
+    INCLUDE_STRACE=false
+    INCLUDE_TCC=false
+    INCLUDE_TN5250=false
+    INCLUDE_TNFTP=false
+    INCLUDE_TMUX=false
+    INCLUDE_UTIL_LINUX=false
+    INCLUDE_CON_FONTS=false
+    USE_GRUB=false
+    ENABLE_FB=false
+    INCLUDE_GUI=false
+    ENABLE_HIGHMEM=false
+    INCLUDE_KEYMAPS=false
+    ENABLE_MENU=false
+    INCLUDE_PCI_IDS=false
+    ENABLE_PCMCIA=false
+    ENABLE_SATA=false
+    ENABLE_SCSI_EXP=false
+    ENABLE_SMP=false
+    ENABLE_USB=false
+    ENABLE_ZSWAP=true
+}
+
+set_default_vars()
+{
+    ENABLE_NET_ETH=true
+    INCLUDE_C3270=false
+    #INCLUDE_CMATRIX=true
+    INCLUDE_DROPBEAR=true
+    INCLUDE_FILE=true
+    INCLUDE_GCC=false
+    INCLUDE_GIT=true
+    INCLUDE_HTOP=true
+    INCLUDE_LYNX=true
+    INCLUDE_MG=true
+    INCLUDE_MICROPYTHON=true
+    INCLUDE_MT_ST=true
+    INCLUDE_NANO=true
+    INCLUDE_SC_IM=true
+    INCLUDE_SHORKTAINMENT=true
+    INCLUDE_STRACE=true
+    INCLUDE_TCC=true
+    INCLUDE_TN5250=false
+    INCLUDE_TNFTP=true
+    INCLUDE_TMUX=true
+    INCLUDE_UTIL_LINUX=true
+    INCLUDE_CON_FONTS=true
+    USE_GRUB=false
+    ENABLE_FB=true
+    INCLUDE_GUI=false
+    ENABLE_HIGHMEM=false
+    INCLUDE_KEYMAPS=true
+    ENABLE_MENU=true
+    INCLUDE_PCI_IDS=true
+    ENABLE_PCMCIA=true
+    ENABLE_SATA=false
+    ENABLE_SCSI_EXP=true
+    ENABLE_SMP=false
+    ENABLE_USB=false
+    ENABLE_ZSWAP=true
+}
+
+set_offline_vars()
+{
+    set_default_vars
+    ENABLE_NET_ETH=false
+    INCLUDE_DROPBEAR=false
+    INCLUDE_GIT=false
+    INCLUDE_LYNX=false
+    INCLUDE_TN5250=false
+    INCLUDE_TNFTP=false
+}
+
+set_maximal_vars()
+{
+    set_default_vars
+    INCLUDE_C3270=true
+    INCLUDE_GCC=true
+    INCLUDE_TN5250=true
+    INCLUDE_TNFTP=true
+    INCLUDE_TMUX=true
+    INCLUDE_UTIL_LINUX=true
+    INCLUDE_CON_FONTS=true
+    ENABLE_FB=true
+    INCLUDE_GUI=true
+    ENABLE_HIGHMEM=true
+    INCLUDE_KEYMAPS=true
+    ENABLE_SATA=true
+    ENABLE_SMP=true
+    ENABLE_USB=true
+}
+
+set_custom_vars()
+{
+    INCLUDE_KEYMAPS=true
+    ENABLE_FB=true
+}
+
 
 
 trap 'tput reset; save_env' EXIT
@@ -221,126 +335,26 @@ BUILD_TYPE=$(dialog --clear \
     --backtitle "SHORK 486 Build Configurator" \
     --title "Build Type" \
     --cancel-label "Quit" \
-    --radiolist "Select the build type, presets for SHORK 486 feature levels. The \"Custom\" option will enable further prompts for software and feature selection." $HEIGHT $WIDTH 6 \
-    "default" "Requires 16MiB RAM + 80MiB disk"             $(val_str "$BUILD_TYPE" default) \
-    "minimal" "Requires 8MiB RAM + 8MiB disk"              $(val_str "$BUILD_TYPE" minimal) \
-    "maximal" "Requires 24MiB RAM + 440MiB disk"            $(val_str "$BUILD_TYPE" maximal) \
-    "custom"  "Requirements depend on subsequent choices"   $(val_str "$BUILD_TYPE" custom) \
+    --radiolist "Select the build type, presets for SHORK 486 feature levels. The minimum requirements for each are enclosed in brackets. The \"custom\" option will enable further prompts for software and feature selection." $HEIGHT $WIDTH 6 \
+    "default" "Typical experience (16MiB RAM + 80MiB disk)"         $(val_str "$BUILD_TYPE" default) \
+    "offline" "Default sans networking (12MiB RAM + 50MiB disk)"    $(val_str "$BUILD_TYPE" offline) \
+    "minimal" "Minimal build (8MiB RAM + 8MiB disk)"                $(val_str "$BUILD_TYPE" minimal) \
+    "maximal" "Maximal build (24MiB RAM + 440MiB disk)"             $(val_str "$BUILD_TYPE" maximal) \
+    "custom"  "Requirements depend on subsequent choices"           $(val_str "$BUILD_TYPE" custom) \
     2>&1 >/dev/tty)
 
 if [[ ! -n "$BUILD_TYPE" ]]; then
     exit 0
 elif [ "$BUILD_TYPE" == "default" ]; then
-    ENABLE_NET_ETH=true
-    INCLUDE_C3270=false
-    #INCLUDE_CMATRIX=true
-    INCLUDE_DROPBEAR=true
-    INCLUDE_FILE=true
-    INCLUDE_GCC=false
-    INCLUDE_GIT=true
-    INCLUDE_HTOP=true
-    INCLUDE_LYNX=true
-    INCLUDE_MG=true
-    INCLUDE_MICROPYTHON=true
-    INCLUDE_MT_ST=true
-    INCLUDE_NANO=true
-    INCLUDE_SC_IM=true
-    INCLUDE_SHORKTAINMENT=true
-    INCLUDE_STRACE=true
-    INCLUDE_TCC=true
-    INCLUDE_TN5250=false
-    INCLUDE_TNFTP=true
-    INCLUDE_TMUX=true
-    INCLUDE_UTIL_LINUX=true
-    INCLUDE_CON_FONTS=true
-    USE_GRUB=false
-    ENABLE_FB=true
-    INCLUDE_GUI=false
-    ENABLE_HIGHMEM=false
-    INCLUDE_KEYMAPS=true
-    ENABLE_MENU=true
-    INCLUDE_PCI_IDS=true
-    ENABLE_PCMCIA=true
-    ENABLE_SATA=false
-    ENABLE_SCSI_EXP=true
-    ENABLE_SMP=false
-    ENABLE_USB=false
-    ENABLE_ZSWAP=true
+    set_default_vars
+elif [ "$BUILD_TYPE" == "offline" ]; then
+    set_offline_vars
 elif [ "$BUILD_TYPE" == "minimal" ]; then
-    ENABLE_NET_ETH=false
-    INCLUDE_C3270=false
-    #INCLUDE_CMATRIX=false
-    INCLUDE_DROPBEAR=false
-    INCLUDE_FILE=false
-    INCLUDE_GCC=false
-    INCLUDE_GIT=false
-    INCLUDE_HTOP=false
-    INCLUDE_LYNX=false
-    INCLUDE_MG=false
-    INCLUDE_MICROPYTHON=false
-    INCLUDE_MT_ST=false
-    INCLUDE_NANO=false
-    INCLUDE_SC_IM=false
-    INCLUDE_SHORKTAINMENT=false
-    INCLUDE_STRACE=false
-    INCLUDE_TCC=false
-    INCLUDE_TN5250=false
-    INCLUDE_TNFTP=false
-    INCLUDE_TMUX=false
-    INCLUDE_UTIL_LINUX=false
-    INCLUDE_CON_FONTS=false
-    USE_GRUB=false
-    ENABLE_FB=false
-    INCLUDE_GUI=false
-    ENABLE_HIGHMEM=false
-    INCLUDE_KEYMAPS=false
-    ENABLE_MENU=false
-    INCLUDE_PCI_IDS=false
-    ENABLE_PCMCIA=false
-    ENABLE_SATA=false
-    ENABLE_SCSI_EXP=false
-    ENABLE_SMP=false
-    ENABLE_USB=false
-    ENABLE_ZSWAP=true
+    set_minimal_vars
 elif [ "$BUILD_TYPE" == "maximal" ]; then
-    ENABLE_NET_ETH=true
-    INCLUDE_C3270=true
-    #INCLUDE_CMATRIX=true
-    INCLUDE_DROPBEAR=true
-    INCLUDE_FILE=true
-    INCLUDE_GCC=true
-    INCLUDE_GIT=true
-    INCLUDE_HTOP=true
-    INCLUDE_LYNX=true
-    INCLUDE_MG=true
-    INCLUDE_MICROPYTHON=true
-    INCLUDE_MT_ST=true
-    INCLUDE_NANO=true
-    INCLUDE_SC_IM=true
-    INCLUDE_SHORKTAINMENT=true
-    INCLUDE_STRACE=true
-    INCLUDE_TCC=true
-    INCLUDE_TN5250=true
-    INCLUDE_TNFTP=true
-    INCLUDE_TMUX=true
-    INCLUDE_UTIL_LINUX=true
-    INCLUDE_CON_FONTS=true
-    USE_GRUB=false
-    ENABLE_FB=true
-    INCLUDE_GUI=true
-    ENABLE_HIGHMEM=true
-    INCLUDE_KEYMAPS=true
-    ENABLE_MENU=true
-    INCLUDE_PCI_IDS=true
-    ENABLE_PCMCIA=true
-    ENABLE_SATA=true
-    ENABLE_SCSI_EXP=true
-    ENABLE_SMP=true
-    ENABLE_USB=true
-    ENABLE_ZSWAP=true
+    set_maximal_vars
 elif [ "$BUILD_TYPE" == "custom" ]; then
-    INCLUDE_KEYMAPS=true
-    ENABLE_FB=true
+    set_custom_vars
 fi
 
 

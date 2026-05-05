@@ -249,6 +249,9 @@ if [ "$BUILD_TYPE" = "custom" ]; then
 elif [ "$BUILD_TYPE" = "maximal" ]; then
     echo -e "${GREEN}Noting minimum RAM requirement for a maximal build...${RESET}"
     EST_MIN_RAM="32MiB/24MiB + 8MiB swap"
+elif [ "$BUILD_TYPE" = "offline" ]; then
+    echo -e "${GREEN}Noting minimum RAM requirement for an offline build...${RESET}"
+    EST_MIN_RAM="12MiB"
 elif [ "$BUILD_TYPE" = "minimal" ]; then
     echo -e "${GREEN}Noting minimum RAM requirement for a minimal build...${RESET}"
     EST_MIN_RAM="8MiB"
