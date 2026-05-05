@@ -216,7 +216,7 @@ set_minimal_vars()
     ENABLE_SCSI_EXP=false
     ENABLE_SMP=false
     ENABLE_USB=false
-    ENABLE_ZSWAP=true
+    ENABLE_ZSWAP=false
 }
 
 set_default_vars()
