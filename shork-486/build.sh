@@ -509,6 +509,10 @@ install_arch_prerequisites()
         PACKAGES+=" libffi"
     fi
 
+    if $INCLUDE_SC_IM; then
+        PACKAGES+=" cmake"
+    fi
+
     if $INCLUDE_TMUX; then
         PACKAGES+=" pkgconf"
     fi
@@ -554,6 +558,10 @@ install_debian_prerequisites()
         PACKAGES+=" pciutils"
     fi
 
+    if $INCLUDE_SC_IM; then
+        PACKAGES+=" cmake"
+    fi
+
     if $FIX_EXTLINUX; then
         PACKAGES+=" nasm uuid-dev"
     fi
@@ -588,6 +596,10 @@ install_fedora_prerequisites()
 
     if $INCLUDE_PCI_IDS; then
         PACKAGES+=" pciutils"
+    fi
+
+    if $INCLUDE_SC_IM; then
+        PACKAGES+=" byacc cmake"
     fi
 
     if $FIX_EXTLINUX; then
@@ -1018,6 +1030,11 @@ get_patched_extlinux()
     sudo sed -i 's/\$maxsize = \$padsize = 440;/\$maxsize = \$padsize = 500;/' mbr/checksize.pl
     sudo sed -i 's/\$maxsize = \$padsize = 432;/\$maxsize = \$padsize = 500;/' mbr/checksize.pl
     sudo sed -i 's/\$maxsize = \$padsize = 439;/\$maxsize = \$padsize = 500;/' mbr/checksize.pl
+
+    # Fedora 44+ seems to need this specific patch...
+    if $IS_FEDORA; then
+        sudo sed -i 's/-pie//g' core/Makefile
+    fi
 
     # Compile and install
     echo -e "${GREEN}Compiling EXTLINUX...${RESET}"
