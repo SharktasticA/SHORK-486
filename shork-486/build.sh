@@ -59,16 +59,19 @@ echo -e "${BLUE}========================${RESET}"
 # General global vars
 BUILD_TYPE="default"
 BOOTLDR_USED=""
-DOTENV_USED=false
+DEFAULT_TARGET_DISK=80
+DEFAULT_TARGET_SWAP=8
 DISK_CYLINDERS=0
 DISK_HEADS=16
 DISK_SECTORS_TRACK=63
 DONT_DEL_ROOT=false
+DOTENV_USED=false
 EST_MIN_RAM="16MiB"
 EXCLUDED_FEATURES=""
 INCLUDED_FEATURES=""
-ROOT_PART_SIZE=""
-TOTAL_DISK_SIZE=""
+MINIMAL_TARGET_DISK=8
+ROOT_PART_SIZE=0
+TOTAL_DISK_SIZE=0
 USED_PARAMS=""
 USED_WM="TWM"
 
@@ -143,8 +146,8 @@ SET_KEYMAP=""
 SHORKUTILS_RECLONE=false
 SKIP_BB=false
 SKIP_KRN=false
-TARGET_DISK="80"
-TARGET_SWAP="8"
+TARGET_DISK=$DEFAULT_TARGET_DISK
+TARGET_SWAP=$DEFAULT_TARGET_SWAP
 
 ENABLE_FB=true
 ENABLE_HIGHMEM=false
@@ -325,31 +328,37 @@ if [ -n "$PHYSICAL_START" ]; then
 fi
 
 # Target disk integer check
-if [ -n "$TARGET_DISK" ] && ! [[ "$TARGET_DISK" =~ ^[0-9]+$ ]]; then
-    echo -e "${RED}ERROR: the \"target disk\" parameter value must be an integer (whole number) - exiting${RESET}"
-    exit 1
+if [ -n "$TARGET_DISK" ] && [ "$TARGET_DISK" -ne 0 ]; then
+    TARGET_DISK="$(echo "$TARGET_DISK" | tr -d '[:space:]')"
+    if ! [[ "$TARGET_DISK" =~ ^[0-9]+$ ]]; then
+        echo -e "${RED}ERROR: the target disk value must be an integer (whole number)${RESET}"
+        exit 1
+    fi
+    TARGET_DISK=$((TARGET_DISK))
+else
+    TARGET_DISK=$DEFAULT_TARGET_DISK
 fi
 
 # Target swap integer and range check
-if [ -n "$TARGET_SWAP" ]; then
+if [ -n "$TARGET_SWAP" ] || [ "$TARGET_SWAP" -ne 0 ]; then
     TARGET_SWAP="$(echo "$TARGET_SWAP" | tr -d '[:space:]')"
     if ! [[ "$TARGET_SWAP" =~ ^[0-9]+$ ]]; then
-        echo -e "${RED}ERROR: the \"target swap\" parameter value must be an integer (whole number) - exiting${RESET}"
+        echo -e "${RED}ERROR: the target swap value must be an integer (whole number)${RESET}"
         exit 1
     fi
-
-    if [ "$TARGET_SWAP" == 0 ]; then
-        TARGET_SWAP=""
-    elif [ "$TARGET_SWAP" -lt 0 ] || [ "$TARGET_SWAP" -gt 64 ]; then
-        echo -e "${RED}ERROR: the \"target swap\" parameter value must be between 1 and 64 - exiting${RESET}"
+    if [ "$TARGET_SWAP" -lt 0 ] || [ "$TARGET_SWAP" -gt 64 ]; then
+        echo -e "${RED}ERROR: the target swap value must be between 1 and 64${RESET}"
         exit 1
     fi
+    TARGET_SWAP=$((TARGET_SWAP))
+else
+    TARGET_SWAP=$DEFAULT_TARGET_SWAP
 fi
 
 # Set keymap existence check
 if [ -n "$SET_KEYMAP" ]; then
     if [ ! -f "$CURR_DIR/sysfiles/keymaps/$SET_KEYMAP.kmap.bin" ]; then
-        echo -e "${RED}ERROR: the \"set keymap\" parameter value does not match a known included keymap - exiting${RESET}"
+        echo -e "${RED}ERROR: the set keymap value does not match a known included keymap${RESET}"
         exit 1
     fi
 fi
@@ -4788,44 +4797,56 @@ build_disk_img()
     # Get the size of our kernel and root fs
     KERNEL_BYTES=$(stat -c %s bzImage)
     ROOT_BYTES=$(du -B1 -s root/ | cut -f1)
+    FILES_BYTES=$((KERNEL_BYTES + ROOT_BYTES))
+    FILES_MIB=$(((FILES_BYTES + 1048575) / 1048576))
 
-    # Calculate some overhead to take into account metadata, partition
-    # alignment, bootloader structures, etc.
-    OVERHEAD_BYTES=$((12 * 1024 * 1024))
-    if [ "$INCLUDE_GCC" = true ] || [ "$INCLUDE_GUI" = true ]; then
-        # We can assume these features demand more
-        OVERHEAD_BYTES=$((16 * 1024 * 1024))
-    fi
+    # For a minimal build, the process is simpler since we have a pretty good
+    # idea of the smallest acceptable disk size and have no need to factor in 
+    # some overhead
+    if [ "$BUILD_TYPE" = "minimal" ] && [ "$TARGET_DISK" -ge "$FILES_MIB" ]; then
+        if [ "$TARGET_DISK" -le "$MINIMAL_TARGET_DISK" ]; then
+            TOTAL_DISK_SIZE=$MINIMAL_TARGET_DISK
+        else
+            TOTAL_DISK_SIZE=$TARGET_DISK
+        fi
 
-    # Estimate how big of a disk we need to contain the three things above
-    TOTAL_BYTES=$((KERNEL_BYTES + ROOT_BYTES + OVERHEAD_BYTES))
-    TOTAL_MIB=$(((TOTAL_BYTES + 1048575) / 1048576))
+        # Factor in target swap if provided
+        if [ "$TARGET_SWAP" -ne 0 ]; then
+            TOTAL_DISK_SIZE=$((TOTAL_DISK_SIZE + TARGET_SWAP))
+        fi
+    # Everything else...
+    else
+        # Calculate some overhead to take into account metadata, partition
+        # alignment, bootloader structures, etc.
+        OVERHEAD_BYTES=$((12 * 1024 * 1024))
+        if [ "$INCLUDE_GCC" = true ] || [ "$INCLUDE_GUI" = true ]; then
+            # We can assume these features demand more
+            OVERHEAD_BYTES=$((16 * 1024 * 1024))
+        fi
+        OVERHEAD_MIB=$(((OVERHEAD_BYTES + 1048575) / 1048576))
 
-    # Factor in target swap if provided
-    if [ -n "$TARGET_SWAP" ]; then
-        TOTAL_MIB=$((TOTAL_MIB + TARGET_SWAP))
-    fi
-    
-    # We know this amount works for minimal build and keeps the disk size
-    # small
-    if [ "$BUILD_TYPE" = "minimal" ]; then
-        if [ "$TOTAL_MIB" -lt 8 ]; then
-            TOTAL_MIB=8
+        # Estimate how big of a disk we need to contain the three things above
+        TOTAL_MIB=$((FILES_MIB + OVERHEAD_MIB))
+
+        # Factor in target swap if provided
+        if [ "$TARGET_SWAP" -ne 0 ]; then
+            TOTAL_MIB=$((TOTAL_MIB + TARGET_SWAP))
+        fi
+
+        # Use target disk value if provided and large enough
+        if [ -n "$TARGET_DISK" ]; then
+            if [ "$TARGET_DISK" -lt "$TOTAL_MIB" ]; then
+                echo -e "${YELLOW}WARNING: the provided target disk value (${TARGET_DISK}MiB) is smaller than required size (${TOTAL_DISK_SIZE}MiB) - using calculated size instead${RESET}"
+                TOTAL_DISK_SIZE=$TOTAL_MIB
+            else
+                echo -e "${GREEN}Using user-specified disk size (${TARGET_DISK}MiB)${RESET}"
+                TOTAL_DISK_SIZE=$TARGET_DISK
+            fi
         fi
     fi
 
     # Align to 4MiB boundary
-    TOTAL_DISK_SIZE=$((((TOTAL_MIB + 3) / 4) * 4))
-
-    # Use target disk value if provided and large enough
-    if [ -n "$TARGET_DISK" ]; then
-        if [ "$TARGET_DISK" -lt "$TOTAL_DISK_SIZE" ]; then
-            echo -e "${YELLOW}WARNING: the provided target disk value (${TARGET_DISK}MiB) is smaller than required size (${TOTAL_DISK_SIZE}MiB) - using calculated size instead${RESET}"
-        else
-            echo -e "${GREEN}Using user-specified disk size (${TARGET_DISK}MiB)${RESET}"
-            TOTAL_DISK_SIZE="$TARGET_DISK"
-        fi
-    fi
+    TOTAL_DISK_SIZE=$((((TOTAL_DISK_SIZE + 3) / 4) * 4))
 
 
 
@@ -4858,7 +4879,7 @@ build_disk_img()
     loop=$(sudo losetup -f --show "../images/${ID}.img")
     sudo kpartx -av "$loop"
     root_part="/dev/mapper/$(basename "$loop")p1"
-    if [ -n "$TARGET_SWAP" ]; then
+    if [ "$TARGET_SWAP" -ne 0 ]; then
         swap_part="/dev/mapper/$(basename "$loop")p2"
     fi
 
@@ -4871,7 +4892,7 @@ build_disk_img()
     sudo mkdir -p /mnt/$ID/{dev,proc,sys,boot}
 
     # Create swap partition if enabled
-    if [ -n "$TARGET_SWAP" ]; then
+    if [ "$TARGET_SWAP" -ne 0 ]; then
         echo -e "${GREEN}Creating swap partition...${RESET}"
         sudo mkswap "$swap_part"
         echo "/dev/sda2 none swap sw 0 0" | sudo tee -a "/mnt/${ID}/etc/fstab"
@@ -5312,7 +5333,7 @@ generate_report()
         "Root partition size: ${ROOT_PART_SIZE}MiB"
     )
 
-    if [ -n "$TARGET_SWAP" ]; then
+    if [ "$TARGET_SWAP" -ne 0 ]; then
         lines+=("Swap partition size: ${TARGET_SWAP}MiB")
     fi
 
