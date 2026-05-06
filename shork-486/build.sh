@@ -97,7 +97,7 @@ STRIP="${PREFIX}/bin/${ARCH}-linux-musl-strip"
 SYSROOT="${PREFIX}/${ARCH}-linux-musl"
 
 # Target software/feature versions
-BUSYBOX_VER="1_36_1"
+BUSYBOX_VER="1_37_0"
 C3270_VER="4.5ga5"
 CMATRIX_VER="2.0"
 CURL_VER="8.20.0"
@@ -1086,15 +1086,15 @@ get_busybox()
     cd "$CURR_DIR/build"
 
     # Download source
-    if [ -d busybox ]; then
+    if [ -d busybox_mirror ]; then
         echo -e "${YELLOW}BusyBox source already present, resetting...${RESET}"
-        cd busybox
-        git config --global --add safe.directory "$CURR_DIR/build/busybox"
+        cd busybox_mirror
+        git config --global --add safe.directory "$CURR_DIR/build/busybox_mirror"
         git reset --hard
     else
         echo -e "${GREEN}Downloading BusyBox...${RESET}"
-        git clone --branch $BUSYBOX_VER https://github.com/mirror/busybox.git
-        cd busybox
+        git clone --branch $BUSYBOX_VER https://github.com/vda-linux/busybox_mirror.git
+        cd busybox_mirror
     fi
 
     sed -i 's/main() {}/int main() {}/' scripts/kconfig/lxdialog/check-lxdialog.sh
@@ -5294,6 +5294,8 @@ generate_report()
     TOTAL_SECONDS=$(( END_TIME - START_TIME ))
     MINS=$(( TOTAL_SECONDS / 60 ))
     SECS=$(( TOTAL_SECONDS % 60 ))
+
+    BUSYBOX_VER="${BUSYBOX_VER//_/.}"
 
     local lines=(
         "=================================="
