@@ -22,6 +22,17 @@ HEIGHT=20
 
 
 
+CUSTOM_DEF_SWAP=0
+CUSTOM_MIN_DISK=8
+DEFAULT_DEF_SWAP=8
+DEFAULT_MIN_DISK=80
+MAXIMAL_DEF_SWAP=8
+MAXIMAL_MIN_DISK=440
+MINIMAL_DEF_SWAP=0
+MINIMAL_MIN_DISK=8
+OFFLINE_DEF_SWAP=8
+OFFLINE_MIN_DISK=50
+
 ALWAYS_BUILD=true
 IS_ARCH=false
 IS_FEDORA=false
@@ -360,22 +371,36 @@ fi
 
 
 
-if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
-    if [ "$BUILD_TYPE" == "default" ]; then
-        TARGET_DISK=80
-        TARGET_SWAP=8
-    elif [ "$BUILD_TYPE" == "offline" ]; then
-        TARGET_DISK=50
-        TARGET_SWAP=8
-    elif [ "$BUILD_TYPE" == "minimal" ]; then
-        TARGET_DISK=8
-        TARGET_SWAP=0
-    elif [ "$BUILD_TYPE" == "maximal" ]; then
-        TARGET_DISK=440
-        TARGET_SWAP=8
-    elif [ "$BUILD_TYPE" == "custom" ]; then
-        TARGET_DISK=80
-        TARGET_SWAP=8
+CURR_MIN_DISK=0
+if [ "$BUILD_TYPE" == "default" ]; then
+    CURR_MIN_DISK=$DEFAULT_MIN_DISK
+    if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
+        TARGET_DISK=$DEFAULT_MIN_DISK
+        TARGET_SWAP=$DEFAULT_DEF_SWAP
+    fi
+elif [ "$BUILD_TYPE" == "offline" ]; then
+    CURR_MIN_DISK=$OFFLINE_MIN_DISK
+    if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
+        TARGET_DISK=$OFFLINE_MIN_DISK
+        TARGET_SWAP=$OFFLINE_DEF_SWAP
+    fi
+elif [ "$BUILD_TYPE" == "minimal" ]; then
+    CURR_MIN_DISK=$MINIMAL_MIN_DISK
+    if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
+        TARGET_DISK=$MINIMAL_MIN_DISK
+        TARGET_SWAP=$MINIMAL_DEF_SWAP
+    fi
+elif [ "$BUILD_TYPE" == "maximal" ]; then
+    CURR_MIN_DISK=$MAXIMAL_MIN_DISK
+    if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
+        TARGET_DISK=$MAXIMAL_MIN_DISK
+        TARGET_SWAP=$MAXIMAL_DEF_SWAP
+    fi
+elif [ "$BUILD_TYPE" == "custom" ]; then
+    CURR_MIN_DISK=$CUSTOM_MIN_DISK
+    if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
+        TARGET_DISK=$CUSTOM_MIN_DISK
+        TARGET_SWAP=$CUSTOM_DEF_SWAP
     fi
 fi
 
@@ -387,8 +412,8 @@ while true; do
         --backtitle "SHORK 486 Build Configurator" \
         --title "Target Disk Size" \
         --cancel-label "Skip" \
-        --inputbox "Enter a target disk size in mebibytes (between 8 and 4096) to use when creating the disk image containing SHORK 486. Whilst the build script will try to honour this, it will override it if the combined compiled system and optional swap partition size is larger than the target disk size so the build doesn't fail." \
-        11 $WIDTH "$TARGET_DISK" \
+        --inputbox "Enter a target disk size in mebibytes (between $CURR_MIN_DISK and 4096) to use when creating the disk image containing SHORK 486. Whilst the build script will try to honour this, it may be increased automatically to satisfy 4MiB alignment requirements, or if the combined kernel size, root partition size, optional swap partition size, and partition table overhead exceeds the target disk size." \
+        12 $WIDTH "$TARGET_DISK" \
         2>&1 >/dev/tty)
 
     SKIPPED=$?
@@ -401,15 +426,15 @@ while true; do
         dialog --clear \
             --backtitle "SHORK 486 Build Configurator" \
             --title "Target Disk Size" \
-            --msgbox "The value must be numeric only." 12 $WIDTH
+            --msgbox "The value must be numeric and a whole number (integer)." 5 $WIDTH
         continue
     fi
 
-    if (( TARGET_DISK_TMP < 8 || TARGET_DISK_TMP > 4096 )); then
+    if (( TARGET_DISK_TMP < $CURR_MIN_DISK || TARGET_DISK_TMP > 4096 )); then
         dialog --clear \
             --backtitle "SHORK 486 Build Configurator" \
             --title "Target Disk Size" \
-            --msgbox "The value must be between 8 and 4096." 12 $WIDTH
+            --msgbox "The value must be between $CURR_MIN_DISK and 4096." 5 $WIDTH
         continue
     fi
 
@@ -440,7 +465,7 @@ while true; do
         dialog --clear \
             --backtitle "SHORK 486 Build Configurator" \
             --title "Swap Partition Size" \
-            --msgbox "The value must be numeric only." 12 $WIDTH
+            --msgbox "The value must be numeric and a whole number (integer)." 5 $WIDTH
         continue
     fi
 
@@ -448,7 +473,7 @@ while true; do
         dialog --clear \
             --backtitle "SHORK 486 Build Configurator" \
             --title "Swap Partition Size" \
-            --msgbox "The value must be between 0 and 64." 12 $WIDTH
+            --msgbox "The value must be between 0 and 64." 5 $WIDTH
         continue
     fi
 
