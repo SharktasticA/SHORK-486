@@ -42,8 +42,10 @@ TARGET_DISK=80
 TARGET_SWAP=8
 SET_KEYMAP="en_us"
 HOSTNAME="shork-486"
-FIX_EXTLINUX=false
+ENABLE_MULTIUSER_REAL=false
+ROOT_PASSWD=""
 ENABLE_NET_ETH=false
+FIX_EXTLINUX=false
 INCLUDE_C3270=false
 INCLUDE_CMATRIX=false
 INCLUDE_DROPBEAR=false
@@ -135,8 +137,10 @@ TARGET_DISK=$TARGET_DISK
 TARGET_SWAP=$TARGET_SWAP
 SET_KEYMAP="$SET_KEYMAP"
 HOSTNAME="$HOSTNAME"
-FIX_EXTLINUX=$FIX_EXTLINUX
+ENABLE_MULTIUSER_REAL=$ENABLE_MULTIUSER_REAL
+ROOT_PASSWD=$ROOT_PASSWD
 ENABLE_NET_ETH=$ENABLE_NET_ETH
+FIX_EXTLINUX=$FIX_EXTLINUX
 INCLUDE_C3270=$INCLUDE_C3270
 INCLUDE_CMATRIX=$INCLUDE_CMATRIX
 INCLUDE_DROPBEAR=$INCLUDE_DROPBEAR
@@ -193,6 +197,7 @@ val_str()
 
 set_minimal_vars()
 {
+    ENABLE_MULTIUSER_REAL=false
     ENABLE_NET_ETH=false
     INCLUDE_C3270=false
     #INCLUDE_CMATRIX=false
@@ -514,6 +519,125 @@ HOSTNAME=$(dialog --clear \
 
 
 
+# Get multi-user support choice
+if [ "$BUILD_TYPE" != "minimal" ]; then
+    dialog --clear \
+        --backtitle "SHORK 486 Build Configurator" \
+        --title "Multi-User Support" \
+        --yesno "Do you want to enable multi-user support in SHORK 486? It will enable BusyBox's multi-user-related utilities and you will be able to set a root password in the next prompt." \
+        7 $WIDTH
+
+    CHOICE=$?
+
+    if [[ $CHOICE -eq 0 ]]; then
+        ENABLE_MULTIUSER_REAL=true
+    elif [[ $CHOICE -eq 1 ]]; then
+        ENABLE_MULTIUSER_REAL=false
+        ROOT_PASSWD=""
+    fi
+
+
+
+    # Get root password
+    if [ "$ENABLE_MULTIUSER_REAL" == true ]; then
+        while true; do
+            # If root password has already been set, offer to reuse it...
+            if [ -n "$ROOT_PASSWD" ]; then
+                dialog --clear \
+                    --backtitle "SHORK 486 Build Configurator" \
+                    --title "Root Password" \
+                    --yesno "A root password has already been set before. Do you want to reuse it?" 5 $WIDTH
+
+                USE_EXISTING=$?
+                if [ "$USE_EXISTING" -eq 0 ]; then
+                    ROOT_PASSWD="'$ROOT_PASSWD'"
+                    break
+                fi
+            fi
+
+            ROOT_PASSWD_TMP=$(dialog --clear \
+                --backtitle "SHORK 486 Build Configurator" \
+                --title "Root Password" \
+                --cancel-label "Skip" \
+                --passwordbox "If desired, enter a password for SHORK 486's root user account. It must be at least 8 characters long. If a root password isn't needed or desired, please skip or leave the input box empty." \
+                9 $WIDTH \
+                2>&1 >/dev/tty)
+
+            SKIPPED=$?
+
+            if [[ $SKIPPED -eq 1 ]]; then
+                break
+            fi
+
+            if [ "${#ROOT_PASSWD_TMP}" -lt 8 ]; then
+                dialog --clear \
+                    --backtitle "SHORK 486 Build Configurator" \
+                    --title "Root Password" \
+                    --msgbox "The password must be at least 8 characters long." 5 $WIDTH
+                continue
+            fi
+
+            if printf '%s' "$ROOT_PASSWD_TMP" | grep -q ' '; then
+                dialog --clear \
+                    --backtitle "SHORK 486 Build Configurator" \
+                    --title "Root Password" \
+                    --msgbox "The password cannot contain any spaces." 5 $WIDTH
+                continue
+            fi
+
+            if printf '%s' "$ROOT_PASSWD_TMP" | grep -q '[[:cntrl:]]'; then
+                dialog --clear \
+                    --backtitle "SHORK 486 Build Configurator" \
+                    --title "Root Password" \
+                    --msgbox "The password cannot contain any control characters." 5 $WIDTH
+                continue
+            fi
+
+            MKPASSWD_METHOD="md5"
+            OPENSSL_METHOD="-1"
+            
+            ROOT_PASSWD_HASH=""
+            if command -v mkpasswd >/dev/null 2>&1; then
+                ROOT_PASSWD_HASH="$(mkpasswd -m "$MKPASSWD_METHOD" "$ROOT_PASSWD_TMP")"
+            elif command -v openssl >/dev/null 2>&1; then
+                ROOT_PASSWD_HASH="$(openssl passwd "$OPENSSL_METHOD" "$ROOT_PASSWD_TMP")"
+            else
+                echo "ERROR: there are no tools available for hashing passwords (tried mkpasswd and openssl)." >&2
+                exit 1
+            fi
+
+            ROOT_PASSWD="'$ROOT_PASSWD_HASH'"
+            break
+        done
+    fi
+fi
+
+
+
+# Get networking support choice
+if [ "$BUILD_TYPE" == "custom" ]; then
+    dialog --clear \
+        --backtitle "SHORK 486 Build Configurator" \
+        --title "Ethernet Networking Support" \
+        --yesno "Do you want to enable ethernet networking support in SHORK 486? It includes kernel-level ethernet networking support and BusyBox's networking-related utilities, and you will be able to choose software that requires an internet connection in the next prompt." \
+        8 $WIDTH
+
+    CHOICE=$?
+
+    if [[ $CHOICE -eq 0 ]]; then
+        ENABLE_NET_ETH=true
+    elif [[ $CHOICE -eq 1 ]]; then
+        ENABLE_NET_ETH=false
+        INCLUDE_DROPBEAR=false
+        INCLUDE_GIT=false
+        INCLUDE_LYNX=false
+        INCLUDE_TN5250=false
+        INCLUDE_TNFTP=false
+    fi
+fi
+
+
+
 # Get patched EXTLINUX choice
 dialog --clear \
     --backtitle "SHORK 486 Build Configurator" \
@@ -534,28 +658,6 @@ fi
 # If build type isn't custom, it's time to exit!
 if [ "$BUILD_TYPE" != "custom" ]; then
     exit 0
-fi
-
-
-
-# Get networking support choice
-dialog --clear \
-    --backtitle "SHORK 486 Build Configurator" \
-    --title "Ethernet Networking Support" \
-    --yesno "Do you want to enable ethernet networking support in SHORK 486? It includes kernel-level ethernet networking support and BusyBox's networking-related utilities, and you will be able to choose software that requires an internet connection in the next prompt." \
-    8 $WIDTH
-
-CHOICE=$?
-
-if [[ $CHOICE -eq 0 ]]; then
-    ENABLE_NET_ETH=true
-elif [[ $CHOICE -eq 1 ]]; then
-    ENABLE_NET_ETH=false
-    INCLUDE_DROPBEAR=false
-    INCLUDE_GIT=false
-    INCLUDE_LYNX=false
-    INCLUDE_TN5250=false
-    INCLUDE_TNFTP=false
 fi
 
 

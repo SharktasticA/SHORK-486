@@ -1,6 +1,8 @@
 #!/bin/sh
 
 ######################################################
+## /etc/init.d/rc                                   ##
+######################################################
 ## System init script executed during boot that     ##
 ## mounts core file systems, ensures essential      ##
 ## device nodes exist, sets hostname and            ##
@@ -26,6 +28,15 @@ mount -t sysfs sysfs /sys
 mkdir -p /dev/pts
 mount -t devpts devpts /dev/pts
 chmod 666 /dev/pts
+
+# Create /var/run for utmp when multi-user
+if [ -d /home ]; then
+    mkdir -p /var/run /var/lock
+    mount -t tmpfs tmpfs /var/run
+    touch /var/run/utmp /var/run/wtmp
+    chmod 664 /var/run/utmp /var/run/wtmp
+    ln -sf /var/run /run
+fi
 
 # Required device nodes
 [ -c /dev/ptmx ] || mknod -m 666 /dev/ptmx c 5 2
@@ -70,29 +81,51 @@ rm -f /tmp/.tty*_seen
 # Prepare to show the welcome banner
 clear
 
-# Show welcome banner
-COLS=$(stty size 2>/dev/null | awk '{print $2}')
-BANNER=""
+# Show welcome banner and OS name
+if [ -f banners/welcome ]; then
+    COLS=$(stty size 2>/dev/null | awk '{print $2}')
+    BANNER_WIDTH=36
+    BUFFER=""
+    
+    TOTAL_PAD=$((COLS - BANNER_WIDTH))
+    RIGHT_PAD=$((TOTAL_PAD / 2))
+    LEFT_PAD=$((TOTAL_PAD - RIGHT_PAD))
 
-if [ "$COLS" -ge 128 ] && [ -f banners/welcome-128 ]; then
-    BANNER="banners/welcome-128"
-elif [ "$COLS" -ge 100 ] && [ -f banners/welcome-100 ]; then
-    BANNER="banners/welcome-100"
-elif [ "$COLS" -ge 80 ] && [ -f banners/welcome-80 ]; then
-    BANNER="banners/welcome-80"
-fi
+    # Print top border
+    BUFFER="$(printf "%*s\n" "$COLS" '')"
 
-if [ -n "$BANNER" ]; then
+    while IFS= read -r line; do
+        BUFFER="${BUFFER}$(printf "%*s%s%*s\n" "$LEFT_PAD" '' "$line" "$RIGHT_PAD" '')"
+    done < banners/welcome
+    BUFFER="${BUFFER}$(printf "%*s\n" "$COLS" '')"
+
+    # Show OS name
+    OS="@NAME@"
+    TOTAL_PAD=$((COLS - ${#OS}))
+    RIGHT_PAD=$((TOTAL_PAD / 2))
+    LEFT_PAD=$((TOTAL_PAD - RIGHT_PAD))
+    BUFFER="${BUFFER}$(printf "%*s%s%*s\n" "$LEFT_PAD" '' "$OS" "$RIGHT_PAD" '')"
+
+    # Show author
+    AUTHOR="Kali (links.sharktastica.co.uk)"
+    TOTAL_PAD=$((COLS - ${#AUTHOR}))
+    RIGHT_PAD=$((TOTAL_PAD / 2))
+    LEFT_PAD=$((TOTAL_PAD - RIGHT_PAD))
+    BUFFER="${BUFFER}$(printf "%*s%s%*s\n" "$LEFT_PAD" '' "$AUTHOR" "$RIGHT_PAD" '')"
+
+    # Print bottom border
+    BUFFER="${BUFFER}$(printf "%*s" "$COLS" '')"
+
+    # Set terminal to white on blue
     printf "\x1b[37;44m"
-    cat "$BANNER"
+    # Print buffer
+    printf "%s" "$BUFFER"
+    # Reset colour
     printf "\x1b[0m"
 fi
 
-printf "\n\n"
-
-# Show welcome tip (if first boot)
-if [ ! -f /etc/.past_first_boot ]; then
-    printf "Welcome! If this is your first time using @NAME@, please check out \033[32mshorkhelp\033[0m!"
-    echo "1" > /etc/.past_first_boot
-    printf "\n\n"
+printf "\n"
+# Padding specific for single-user use
+if [ ! -d /home ]; then
+    printf "\n"
 fi

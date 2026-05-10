@@ -101,7 +101,7 @@ BUSYBOX_VER="1_37_0"
 C3270_VER="4.5ga5"
 CMATRIX_VER="2.0"
 CURL_VER="8.20.0"
-DROPBEAR_VER="2025.89"
+DROPBEAR_VER="2026.90"
 FILE_VER="5_47"
 GIT_VER="2.54.0"
 HTOP_VER="3.5.0"
@@ -119,7 +119,7 @@ NANO_DIST="v9"
 NANO_VER="9.0"
 NCURSES_VER="6.4"
 NEDIT_VER="NEDIT-CLASSIC-END"
-OPENSSL_VER="3.6.0"
+OPENSSL_VER="3.6.2"
 ROVER_VER="1.0.1"
 SC_IM_VER="0.8.5"
 STRACE_VER="7.0"
@@ -142,6 +142,7 @@ IS_DEBIAN=false
 IS_FEDORA=false
 PHYSICAL_ALIGN=0x2000
 PHYSICAL_START=""
+ROOT_PASSWD=""
 SET_KEYMAP=""
 SHORKUTILS_RECLONE=false
 SKIP_BB=false
@@ -152,7 +153,8 @@ TARGET_SWAP=$DEFAULT_TARGET_SWAP
 ENABLE_FB=true
 ENABLE_HIGHMEM=false
 ENABLE_MENU=true
-ENABLE_MULTIUSER=false
+ENABLE_MULTIUSER_KRN=false
+ENABLE_MULTIUSER_REAL=false
 ENABLE_NET_BASE=false
 ENABLE_NET_ETH=false
 ENABLE_NET_PCMCIA=false
@@ -286,14 +288,19 @@ else
     INCLUDE_TNFTP=false
 fi
 
+# Ensure MULTIUSER_KRN is enabled with MULTIUSER_REAL
+if [ "$ENABLE_MULTIUSER_REAL" = true ]; then
+    ENABLE_MULTIUSER_KRN=true
+fi
+
 # Override to ensure the "use GRUB" parameter is disabled when the "Fix EXTLINUX" parameter is used
 if $FIX_EXTLINUX; then
     USE_GRUB=false
 fi
 
-# Override to ensure MULTIUSER and TASKSTATS are enabled with HTOP
+# Override to ensure MULTIUSER_KRN and TASKSTATS are enabled with HTOP
 if [ "$INCLUDE_HTOP" = true ]; then
-    ENABLE_MULTIUSER=true
+    ENABLE_MULTIUSER_KRN=true
     ENABLE_TASKSTATS=true
 fi
 
@@ -1097,14 +1104,15 @@ get_busybox()
         cd busybox_mirror
     fi
 
+    # Patch to fix error with running menuconfig
     sed -i 's/main() {}/int main() {}/' scripts/kconfig/lxdialog/check-lxdialog.sh
-
-    # Patch BusyBox to suppress banner and help message
-    sed -i 's/^#if !ENABLE_FEATURE_SH_EXTRA_QUIET/#if 0 \/* disabled ash banner *\//' shell/ash.c
 
     # Patch BusyBox's eject and volname to default to /dev/sr0 not /dev/cdrom
     sed -i 's|"/dev/cdrom"|"/dev/sr0"|' util-linux/eject.c
     sed -i 's|"/dev/cdrom"|"/dev/sr0"|' miscutils/volname.c
+
+    # Patch login timeout to 0
+    sed -i 's/getenv("LOGIN_TIMEOUT") ? : "60"/getenv("LOGIN_TIMEOUT") ? : "0"/' loginutils/login.c
 
     echo -e "${GREEN}Copying base ${NAME} BusyBox .config file...${RESET}"
     cp $CURR_DIR/configs/busybox.config .config
@@ -1115,13 +1123,22 @@ get_busybox()
     sed -i "s|^CONFIG_EXTRA_CFLAGS=.*|CONFIG_EXTRA_CFLAGS=\"-I${PREFIX}/include\"|" .config
     sed -i "s|^CONFIG_EXTRA_LDFLAGS=.*|CONFIG_EXTRA_LDFLAGS=\"-L${PREFIX}/lib\"|" .config
 
+    if $ENABLE_MULTIUSER_REAL; then
+        echo -e "${GREEN}Enabling BusyBox's multi-user utilities...${RESET}"
+        merge_busybox_frag "$CURR_DIR/configs/busybox.config.multiuser.frag"
+        
+        echo -e "${GREEN}Applying 1.37.0_musl_utmp patch...${RESET}"
+        patch -p1 < "$CURR_DIR/patches/1.37.0_musl_utmp.patch"
+
+    fi
+    
     if $ENABLE_NET_ETH; then
-        echo -e "${GREEN}Enabling BusyBox's network-related util implementations...${RESET}"
+        echo -e "${GREEN}Enabling BusyBox's networking utilities...${RESET}"
         merge_busybox_frag "$CURR_DIR/configs/busybox.config.net.frag"
     fi
 
     if $ENABLE_USB; then
-        echo -e "${GREEN}Enabling BusyBox's USB-related util implementation...${RESET}"
+        echo -e "${GREEN}Enabling BusyBox's USB-related utilities...${RESET}"
         merge_busybox_frag "$CURR_DIR/configs/busybox.config.usb.frag"
         yes | make oldconfig
     fi
@@ -1305,7 +1322,7 @@ configure_kernel()
         FRAGS+="$CURR_DIR/configs/linux.config.pcmcia.frag "
     fi
 
-    if $ENABLE_MULTIUSER; then
+    if $ENABLE_MULTIUSER_KRN; then
         echo -e "${GREEN}Enabling kernel-level multi-user support...${RESET}"
         FRAGS+="$CURR_DIR/configs/linux.config.multiuser.frag "
     fi
@@ -4541,9 +4558,9 @@ find_mbr_bin()
 copy_tests()
 {
     echo -e "${GREEN}Copying feature/capability tests...${RESET}"
-    sudo mkdir -p $DESTDIR/home/tests
-    sudo cp $CURR_DIR/tests/* $DESTDIR/home/tests
-    sudo chmod +x $DESTDIR/home/tests/*.sh
+    sudo mkdir -p $DESTDIR/tests
+    sudo cp $CURR_DIR/tests/* $DESTDIR/tests
+    sudo chmod +x $DESTDIR/tests/*.sh
     cd $DESTDIR
 }
 
@@ -4554,7 +4571,7 @@ build_file_system()
     cd $DESTDIR
 
     echo -e "${GREEN}Creating required directories...${RESET}"
-    sudo mkdir -p {dev,proc,etc/init.d,sys,tmp,home,usr/share,usr/libexec,banners}
+    sudo mkdir -p {dev,proc,etc/init.d,sys,tmp,usr/share,usr/libexec,banners,root}
 
     echo -e "${GREEN}Configure permissions...${RESET}"
     chmod +x $CURR_DIR/sysfiles/rc
@@ -4564,9 +4581,7 @@ build_file_system()
     chmod +x $CURR_DIR/shorkutils/shorkgui
 
     echo -e "${GREEN}Copying system files...${RESET}"
-    copy_sysfile $CURR_DIR/sysfiles/welcome-80 $DESTDIR/banners/welcome-80
-    copy_sysfile $CURR_DIR/sysfiles/welcome-100 $DESTDIR/banners/welcome-100
-    copy_sysfile $CURR_DIR/sysfiles/welcome-128 $DESTDIR/banners/welcome-128
+    copy_sysfile $CURR_DIR/sysfiles/welcome $DESTDIR/banners/welcome
     copy_sysfile $CURR_DIR/sysfiles/goodbye-80 $DESTDIR/banners/goodbye-80
     copy_sysfile $CURR_DIR/sysfiles/goodbye-100 $DESTDIR/banners/goodbye-100
     copy_sysfile $CURR_DIR/sysfiles/goodbye-128 $DESTDIR/banners/goodbye-128
@@ -4574,7 +4589,6 @@ build_file_system()
     copy_sysfile $CURR_DIR/sysfiles/issue $DESTDIR/etc/issue
     copy_sysfile $CURR_DIR/sysfiles/os-release $DESTDIR/etc/os-release
     copy_sysfile $CURR_DIR/sysfiles/rc $DESTDIR/etc/init.d/rc
-    copy_sysfile $CURR_DIR/sysfiles/inittab $DESTDIR/etc/inittab
     copy_sysfile $CURR_DIR/sysfiles/profile $DESTDIR/etc/profile
     copy_sysfile $CURR_DIR/sysfiles/passwd $DESTDIR/etc/passwd
     copy_sysfile $CURR_DIR/sysfiles/poweroff $DESTDIR/sbin/poweroff
@@ -4624,6 +4638,31 @@ build_file_system()
         copy_sysfile $CURR_DIR/sysfiles/mg $DESTDIR/etc/mg
     fi
 
+    if $ENABLE_MULTIUSER_REAL; then
+        echo -e "${GREEN}Copying mutli-user-related files...${RESET}"
+
+        sudo mkdir -p $DESTDIR/home
+
+        copy_sysfile $CURR_DIR/sysfiles/inittab.getty $DESTDIR/etc/inittab
+        copy_sysfile $CURR_DIR/sysfiles/group $DESTDIR/etc/group
+        copy_sysfile $CURR_DIR/sysfiles/shadow $DESTDIR/etc/shadow
+
+        if [ -n "$ROOT_PASSWD" ]; then
+            ROOT_PASSWD_LINE="root:$ROOT_PASSWD:0:0:99999:7:::"
+            if ! grep -Fxq "$ROOT_PASSWD_LINE" "$DESTDIR/etc/shadow"; then
+                printf '%s\n' "$ROOT_PASSWD_LINE" | sudo tee -a "$DESTDIR/etc/shadow" >/dev/null
+            fi
+        fi
+
+        # Remove hard-coded variables intended for single-user builds
+        sudo sed -i '/^export HOME=\/root$/d' "$DESTDIR/etc/profile"
+        sudo sed -i '/^export USER=root$/d' "$DESTDIR/etc/profile"
+        sudo sed -i '/^export LOGNAME=root$/d' "$DESTDIR/etc/profile"
+        sudo sed -i '/^export LOGIN_TIMEOUT=0$/d' "$DESTDIR/etc/profile"
+    else
+        copy_sysfile $CURR_DIR/sysfiles/inittab.nogetty $DESTDIR/etc/inittab
+    fi
+
     if $ENABLE_NET_ETH; then
         echo -e "${GREEN}Copying networking-related files...${RESET}"
         sudo mkdir -p $DESTDIR/etc/iproute2
@@ -4658,8 +4697,10 @@ build_file_system()
         copy_sysfile /etc/ssl/certs/ca-certificates.crt $DESTDIR/etc/ssl/cert.pem
     fi
 
-    cd $DESTDIR
-    sudo chown -R root:root .
+    echo -e "${GREEN}Ensure file permissions are correct...${RESET}"
+    sudo chown -R root:root "$DESTDIR"
+    sudo find "$DESTDIR" -type d -exec chmod 755 {} +
+    sudo find "$DESTDIR" -type f ! -perm -111 -exec chmod 644 {} +
 }
 
 # Partition disk image
@@ -4959,7 +5000,7 @@ get_installed_programs_features()
         EXCLUDED_FEATURES+="\n * kernel-level high memory support"
     fi
 
-    if $ENABLE_MULTIUSER; then
+    if $ENABLE_MULTIUSER_KRN; then
         INCLUDED_FEATURES+="\n * kernel-level multi-user support"
     else
         EXCLUDED_FEATURES+="\n * kernel-level multi-user support"
@@ -5025,16 +5066,19 @@ get_installed_programs_features()
     else
         EXCLUDED_FEATURES+="\n * alternative console fonts"
     fi
+
     if [ -d "$DESTDIR/usr/share/keymaps" ]; then
         INCLUDED_FEATURES+="\n * keymaps"
     else
         EXCLUDED_FEATURES+="\n * keymaps"
     fi
+
     if [ -f "$DESTDIR/usr/local/musl/lib/libc.so" ]; then
         INCLUDED_FEATURES+="\n * musl (for TCC, $MUSL_VER)"
     else
         EXCLUDED_FEATURES+="\n * musl (for TCC)"
     fi
+
     if [ -f "$DESTDIR/usr/share/misc/pci.ids" ]; then
         INCLUDED_FEATURES+="\n * pci.ids database"
     else
@@ -5153,6 +5197,17 @@ get_installed_programs_features()
     fi
 
     # SHORKTUI
+    if $ENABLE_MULTIUSER_REAL; then
+        INCLUDED_FEATURES+="\n * BusyBox multi-user utilities"
+    else
+        EXCLUDED_FEATURES+="\n * BusyBox multi-user utilities"
+    fi
+    if $ENABLE_NET_ETH; then
+        INCLUDED_FEATURES+="\n * BusyBox networking utilities"
+    else
+        EXCLUDED_FEATURES+="\n * BusyBox networking utilities"
+    fi
+
     if $INCLUDE_GCC; then
         INCLUDED_FEATURES+="\n * as"
         INCLUDED_FEATURES+="\n * g++"
@@ -5164,121 +5219,145 @@ get_installed_programs_features()
         EXCLUDED_FEATURES+="\n * gcc"
         EXCLUDED_FEATURES+="\n * gfortran"
     fi
+
     if [ -f "$DESTDIR/usr/bin/c3270" ]; then
         INCLUDED_FEATURES+="\n * c3270 ($C3270_VER)"
     else
         EXCLUDED_FEATURES+="\n * c3270"
     fi
+
     if [ -f "$DESTDIR/usr/bin/cmatrix" ] && [ "$ENABLE_CMATRIX" = true ]; then
         INCLUDED_FEATURES+="\n * cmatrix ($CMATRIX_VER)"
     #else
     #    EXCLUDED_FEATURES+="\n * cmatrix"
     fi
+
     if [ -f "$DESTDIR/usr/bin/file" ]; then
         INCLUDED_FEATURES+="\n * file ($FILE_VER)"
     else
         EXCLUDED_FEATURES+="\n * file"
     fi
+
     if [ -f "$DESTDIR/usr/bin/ftp" ]; then
         INCLUDED_FEATURES+="\n * ftp (tnftp, $TNFTP_VER)"
     else
         EXCLUDED_FEATURES+="\n * ftp (tnftp)"
     fi
+
     if [ -f "$DESTDIR/usr/bin/git" ]; then
         INCLUDED_FEATURES+="\n * git ($GIT_VER)"
     else
         EXCLUDED_FEATURES+="\n * git"
     fi
+
     if [ -f "$DESTDIR/usr/bin/htop" ]; then
         INCLUDED_FEATURES+="\n * htop ($HTOP_VER)"
     else
         EXCLUDED_FEATURES+="\n * htop"
     fi
+
     if [ -f "$DESTDIR/usr/bin/lsblk" ]; then
         INCLUDED_FEATURES+="\n * lsblk (util-linux, $UTIL_LINUX_VER)"
     else
         EXCLUDED_FEATURES+="\n * lsblk (util-linux)"
     fi
+
     if [ -f "$DESTDIR/usr/bin/lynx" ]; then
         INCLUDED_FEATURES+="\n * lynx ($LYNX_VER)"
     else
         EXCLUDED_FEATURES+="\n * lynx"
     fi
+
     if [ -f "$DESTDIR/usr/bin/mg" ]; then
         INCLUDED_FEATURES+="\n * mg ($MG_VER)"
     else
         EXCLUDED_FEATURES+="\n * mg"
     fi
+
     if [ -f "$DESTDIR/usr/bin/micropython" ]; then
         INCLUDED_FEATURES+="\n * micropython ($MICROPYTHON_VER)"
     else
         EXCLUDED_FEATURES+="\n * micropython"
     fi
+
     if [ -f "$DESTDIR/bin/mt" ]; then
         INCLUDED_FEATURES+="\n * mt (mt-st, $MT_ST_VER)"
     else
         EXCLUDED_FEATURES+="\n * mt"
     fi
+
     if [ -f "$DESTDIR/usr/bin/nano" ]; then
         INCLUDED_FEATURES+="\n * nano ($NANO_VER)"
     else
         EXCLUDED_FEATURES+="\n * nano"
     fi
+
     if [ -f "$DESTDIR/usr/bin/partx" ]; then
         INCLUDED_FEATURES+="\n * partx (util-linux, $UTIL_LINUX_VER)"
     else
         EXCLUDED_FEATURES+="\n * partx (util-linux)"
     fi
+
     if [ -f "$DESTDIR/usr/bin/scp" ]; then
         INCLUDED_FEATURES+="\n * scp (Dropbear, $DROPBEAR_VER)"
     else
         EXCLUDED_FEATURES+="\n * scp (Dropbear)"
     fi
+
     if [ -f "$DESTDIR/usr/bin/sc-im" ]; then
         INCLUDED_FEATURES+="\n * sc-im ($SC_IM_VER)"
     else
         EXCLUDED_FEATURES+="\n * sc-im"
     fi
+
     if [ -f "$DESTDIR/usr/sbin/sfdisk" ]; then
         INCLUDED_FEATURES+="\n * sfdisk (util-linux, $UTIL_LINUX_VER)"
     else
         EXCLUDED_FEATURES+="\n * sfdisk (util-linux)"
     fi
+
     if [ -f "$DESTDIR/usr/bin/ssh" ]; then
         INCLUDED_FEATURES+="\n * ssh (Dropbear, $DROPBEAR_VER)"
     else
         EXCLUDED_FEATURES+="\n * ssh (Dropbear)"
     fi
+
     if [ -f "$DESTDIR/sbin/stinit" ]; then
         INCLUDED_FEATURES+="\n * stinit (mt-st, $MT_ST_VER)"
     else
         EXCLUDED_FEATURES+="\n * stinit"
     fi
+
     if [ -f "$DESTDIR/usr/bin/strace" ]; then
         INCLUDED_FEATURES+="\n * strace ($STRACE_VER)"
     else
         EXCLUDED_FEATURES+="\n * strace"
     fi
+
     if [ -f "$DESTDIR/usr/local/bin/i386-tcc" ]; then
         INCLUDED_FEATURES+="\n * tcc ($TCC_VER)"
     else
         EXCLUDED_FEATURES+="\n * tcc"
     fi
+
     if [ -f "$DESTDIR/usr/bin/tic" ]; then
         INCLUDED_FEATURES+="\n * tic ($NCURSES_VER)"
     else
         EXCLUDED_FEATURES+="\n * tic"
     fi
+
     if [ -f "$DESTDIR/usr/bin/tmux" ]; then
         INCLUDED_FEATURES+="\n * tmux ($TMUX_VER)"
     else
         EXCLUDED_FEATURES+="\n * tmux"
     fi
+
     if [ -f "$DESTDIR/usr/bin/tn5250" ]; then
         INCLUDED_FEATURES+="\n * tn5250 ($TN5250_VER)"
     else
         EXCLUDED_FEATURES+="\n * tn5250"
     fi
+
     if [ -f "$DESTDIR/usr/bin/whereis" ]; then
         INCLUDED_FEATURES+="\n * whereis (util-linux, $UTIL_LINUX_VER)"
     else
@@ -5370,7 +5449,14 @@ generate_report()
                 ".env contents:"
             )
             while IFS= read -r envline; do
-                lines+=("$envline")
+                case "$envline" in
+                    ROOT_PASSWD=*)
+                        lines+=("ROOT_PASSWD=*redacted*")
+                        ;;
+                    *)
+                        lines+=("$envline")
+                        ;;
+                esac
             done < "${CURR_DIR}/.env"
         fi
     fi

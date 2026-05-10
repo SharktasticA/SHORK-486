@@ -1,4 +1,6 @@
 ######################################################
+## /mnt/ID/boot/syslinux/syslinux.cfg               ##
+######################################################
 ## Syslinux bootloader configuration (menu based)   ##
 ######################################################
 ## Kali (sharktastica.co.uk)                        ##

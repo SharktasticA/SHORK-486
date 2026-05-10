@@ -1,0 +1,20 @@
+######################################################
+## /etc/inittab                                     ##
+######################################################
+## BusyBox init configuration defining startup      ##
+## actions, how shell respawns, and handlers for    ##
+## Ctrl‑Alt‑Del and shutdown events (getty)         ##
+######################################################
+## Kali (sharktastica.co.uk)                        ##
+######################################################
+
+
+
+::sysinit:/etc/init.d/rc
+
+tty1::respawn:/sbin/getty -n 38400 tty1
+tty2::respawn:/bin/sh -c 'printf "%s %s %s tty2\n" "@NAME@" "@VER@" "@HOSTNAME@"; exec /sbin/getty -n 38400 tty2'
+tty3::respawn:/bin/sh -c 'printf "%s %s %s tty3\n" "@NAME@" "@VER@" "@HOSTNAME@"; exec /sbin/getty -n 38400 tty3'
+
+::ctrlaltdel:/sbin/reboot
+::shutdown:/bin/umount -a -r
