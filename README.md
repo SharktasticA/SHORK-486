@@ -6,7 +6,7 @@ Member of the SHORK family: **SHORK 486** | [SHORK DISKETTE](https://github.com/
 
 SHORK 486 is an operating system for 486 and Pentium (P5) era vintage PCs. The aim is to produce a 32-bit Linux distribution that is very lean and functional but still capable on such PCs, often with my '90s IBM ThinkPads in mind. A default SHORK 486 system aims to work with at least 16MiB system memory and take up no more than ~80MiB on your disk. Despite those constraints, the default SHORK 486 experience includes Linux kernel 7.0.5, many typical Linux commands, custom SHORK Utilities such as shorkdir (TUI file browser) and shorkfetch (*fetch clone), a terminal multiplexer, a C compiler and Python 3.4-syntax interpreter, a text web browser, an FTP, SCP and SSH client, a Git source control client, the ed, Mg (Emacs-style), nano and vi editors, a spreadsheet editor, IDE CD-ROM and DVD-ROM support, SCSI tape drive support, ISA, PCI and PCMCIA ethernet support, support for most major national keyboard layouts, and a cute ASCII shark welcome screen!
 
-A build configurator is available to alter SHORK 486 to your liking. For example, you can select the "minimal" build type that requires just 8MiB RAM and ~8MiB disk space, whilst still including most typical commands as before, some custom SHORK utilities, and the ed and vi editors.  You can also select the "custom" build type, allowing you pick and choose specific software and features. Some people have expressed support for using SHORK 486 on newer hardware for a minimalist Linux environment - whilst SHORK 486 does not focus on such, options for enabling high memory, SATA, SMP and USB support are available if you so desire!
+A build configurator is available to alter SHORK 486 to your liking. For example, you can select the "minimal" build type that requires just 8MiB RAM and ~8MiB disk space, whilst still including most typical commands as before, some custom SHORK utilities, and the ed and vi editors. If not a "minimal" build, multi-user support can be included. You can also select the "custom" build type, allowing you pick and choose specific software and features. Some people have expressed support for using SHORK 486 on newer hardware for a minimalist Linux environment - whilst SHORK 486 does not focus on such, options for enabling high memory, SATA, SMP and USB support are available if you so desire!
 
 <p align="center"><img alt="A photo of SHORK 486 running on an IBM ThinkPad 365ED after a cold boot" src="photos/20260223_365ed.jpg" width="512"></p>
 
@@ -36,13 +36,11 @@ Depending on configuration, SHORK 486 requires between just 8-24MiB system memor
 
 ## Capabilities
 
-### Default BusyBox & util-linux
+### BusyBox & util-linux
 
-ar, arch, ascii, awk, basename, bc, beep, blkid, cal, cat, chmod, chown, chroot, chvt, clear, cp, crontab, cut, date, dc, dd, df, diff, dirname, dmesg, du, ed, eject, expand, expr, false, fdformat, fdisk, find, fold, free, ftpget, ftpput, getfattr, grep, gzip, halt, head, hexdump, hostname, ifconfig, ip, kill, killall, less, ln, loadkmap, losetup, ls, lsblk, lspci, man, mdev, mkdir, mknod, mkswap, mount, mountpoint, mv, nice, nohup, nproc, partprobe, partx, paste, patch, ping, pkill, pmap, printf, ps, pstree, pwd, readlink, rev, rm, rmdir, route, sed, seq, setfattr, setfont, sfdisk, showkey, sleep, stat, strace, stty, swapoff, swapon, sync, tar, taskset, tee, telnet, test, time, top, touch, tr, traceroute, tree, true, truncate, udhcpc, umount, uname, unexpand, unzip, usleep, vi, volname, wc, wget, whereis, which, whoami, whois, xxd, xz, yes
+addgroup, adduser, ar, arch, ascii, awk, basename, bc, beep, blkid, cal, cat, chgrp, chmod, chown, chpasswd, chroot, chvt, clear, cp, crontab, cryptpw, cut, date, dc, dd, df, diff, dirname, dmesg, du, ed, eject, expand, expr, false, fdformat, fdisk, find, fold, free, ftpget, ftpput, getfattr, getty, grep, gzip, halt, head, hexdump, hostname, ifconfig, ip, kill, killall, less, ln, loadkmap, login, losetup, ls, lsblk, lspci, man, mdev, mkdir, mknod, mkpasswd, mkswap, mount, mountpoint, mv, nice, nohup, nproc, partprobe, partx, paste, patch, ping, pkill, pmap, printf, ps, pstree, pwd, readlink, rev, rm, rmdir, route, sed, seq, setfattr, setfont, sfdisk, showkey, sleep, stat, strace, stty, su, sulogin, swapoff, swapon, sync, tar, taskset, tee, telnet, test, time, top, touch, tr, traceroute, tree, true, truncate, udhcpc, umount, uname, unexpand, unzip, usleep, users, vi, volname, w, wc, wget, whereis, which, who, whoami, whois, xxd, xz, yes
 
 ### Bundled software
-
-#### Default
 
 * [file](https://github.com/file/file) (file identification)
 * ftp (FTP client, [tnftp](https://ftp.netbsd.org/pub/NetBSD/misc/tnftp/))
@@ -186,15 +184,20 @@ When running the SHORK 486 Build Configurator, you will be prompted to select th
 
 * Build environment (Arch native, Debian native/Dockerised or Fedora native)
 * Build type (default, offline, minimal, maximal or custom)
-* Target disk size (size in MiB for the disk image containing SHORK 486)
-* Swap partition size (size in MiB for a swap partition)
+* Target disk size (size in MiB)
+* Swap partition size (size in MiB)
 * If not "Minimal" build type selected:
-    * Keyboard layout (keymap)
+    * Keyboard layout (keymap) (single choice)
+* Hostname (text input)
+* If not "Minimal" build type selected:
+    * Multi-user support (yes/no)
+        * Root password (text input)
+* If "Custom" build type selected:
+    * Ethernet networking support (yes/no)
 * Patched EXTLINUX (yes/no)
 * If "Custom" build type selected:
-    * Ethernet networking support
-    * Bundled software
-    * Options (all other configuration)
+    * Bundled software (multiple choice)
+    * Options (all other configuration) (multiple choice)
 
 Below are further explanations for options that could not fit into the configurator itself.
 
@@ -213,6 +216,18 @@ Below are further explanations for options that could not fit into the configura
 
 
 
+#### Multi-User Support
+
+Selecting "Yes" here will enable multi-user and password-protected user support in SHORK 486. BusyBox will include implementations for the `addgroup`, `adduser`, `chgrp`, `chown`, `chpasswd`, `chroot`, `cryptpw`, `delgroup`, `deluser`, `getty`, `login`, `mkpasswd`, `su`, `sulogin`, `users`, `w` and `who` commands. You will be allowed input a root password in the next prompt.
+
+
+
+#### Ethernet Networking Support
+
+Selecting "Yes" here will enable ethernet networking support in SHORK 486. BusyBox will include implementations for the `ftpget`, `ftpput`, `ifconfig`, `ip`, `ping`, `route`, `telnet`, `traceroute`, `udhcpc`, `wget` and `whois` commands. You will be allowed to select bundled software and options that require an internet connection in the subsequent prompts.
+
+
+
 #### Patched EXTLINUX
 
 Selecting "Yes" here will tell the build script to use [my forked SYSLINUX/EXTLINUX repository](https://github.com/SharktasticA/syslinux) instead of your host Linux distribution's maintained packaged version. This version addresses a memory detection error to resolve the "Booting kernel failed: Invalid argument" or boot menu looping issue that the stock EXTLINUX may encounter with some BIOSes when attempting to boot the kernel with.
@@ -223,12 +238,6 @@ Selecting "Yes" here will tell the build script to use [my forked SYSLINUX/EXTLI
 * This may significantly increase total build time, but it does not affect system requirements.
 * The patch was discovered by akeym - thank you!
 * _Note: If enabled, the option to use GRUB 2.x instead of EXTLINUX offered later for custom builds will be ignored._
-
-
-
-#### Ethernet Networking Support
-
-Selecting "Yes" here will enable ethernet networking support in SHORK 486. BusyBox will include implementations for the `ftpget`, `ftpput`, `ifconfig`, `ip`, `ping`, `route`, `telnet`, `traceroute`, `udhcpc`, `wget` and `whois` commands. You will be allowed to select bundled software and options that require an internet connection in the subsequent prompts.
 
 
 

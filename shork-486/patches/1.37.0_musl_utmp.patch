@@ -1,0 +1,206 @@
+diff --git a/coreutils/who.c b/coreutils/who.c
+index 6f96f7243..3f6dfde5e 100644
+--- a/coreutils/who.c
++++ b/coreutils/who.c
+@@ -112,6 +112,7 @@ int who_main(int argc UNUSED_PARAM, char **argv)
+ 	int do_w     = (ENABLE_W     && (CNT_APPLET == 1 || applet_name[1] == '\0'));
+ 	int do_who   = (ENABLE_WHO   && (CNT_APPLET == 1 || applet_name[1] == 'h'));
+ 	struct utmpx *ut;
++	struct utmpx ut_buffer;
+ 	unsigned opt;
+ 	const char *fmt = "%s";
+ 
+@@ -119,8 +120,14 @@ int who_main(int argc UNUSED_PARAM, char **argv)
+ 	if ((opt & 2) || do_w) /* -H or we are w */
+ 		puts("USER\t\tTTY\t\tIDLE\tTIME\t\t HOST");
+ 
+-	setutxent();
+-	while ((ut = getutxent()) != NULL) {
++	FILE *utmp_stream = fopen("/var/run/utmp", "r");
++	if (!utmp_stream) {
++		bb_perror_msg("cannot open utmp file");
++		return EXIT_FAILURE;
++	}
++
++	while (fread(&ut_buffer, sizeof(ut_buffer), 1, utmp_stream) == 1) {
++		ut = &ut_buffer;
+ 		if (ut->ut_user[0]
+ 		 && ((opt & 1) || ut->ut_type == USER_PROCESS)
+ 		) {
+@@ -165,6 +172,6 @@ int who_main(int argc UNUSED_PARAM, char **argv)
+ 	if (do_users)
+ 		bb_putchar('\n');
+ 	if (ENABLE_FEATURE_CLEAN_UP)
+-		endutxent();
++		fclose(utmp_stream);
+ 	return EXIT_SUCCESS;
+ }
+diff --git a/libbb/utmp.c b/libbb/utmp.c
+index bd07670db..6d7a916ef 100644
+--- a/libbb/utmp.c
++++ b/libbb/utmp.c
+@@ -14,6 +14,31 @@ static void touch(const char *filename)
+ 		close(open(filename, O_WRONLY | O_CREAT, 0664));
+ }
+ 
++static void write_utmpx(const char *path, struct utmpx *utent, pid_t pid)
++{
++	struct utmpx tmp;
++	int found = 0;
++
++	int fd = open(path, O_RDWR | O_CREAT, 0664);
++	if (fd < 0) return;
++
++	while (read(fd, &tmp, sizeof(tmp)) == sizeof(tmp)) {
++		if (tmp.ut_pid == pid) {
++			lseek(fd, -(off_t)sizeof(tmp), SEEK_CUR);
++			write(fd, utent, sizeof(*utent));
++			found = 1;
++			break;
++		}
++	}
++
++	if (!found) {
++		lseek(fd, 0, SEEK_END);
++		write(fd, utent, sizeof(*utent));
++	}
++
++	close(fd);
++}
++
+ void FAST_FUNC write_new_utmp(pid_t pid, int new_type, const char *tty_name, const char *username, const char *hostname)
+ {
+ 	struct utmpx utent;
+@@ -45,17 +70,13 @@ void FAST_FUNC write_new_utmp(pid_t pid, int new_type, const char *tty_name, con
+ 		tty_name += 3;
+ 	strncpy(id, tty_name, width);
+ 
+-	touch(_PATH_UTMPX);
+-	//utmpxname(_PATH_UTMPX);
+-	setutxent();
+-	/* Append new one (hopefully, unless we collide on ut_id) */
+-	pututxline(&utent);
+-	endutxent();
++	touch("/var/run/utmp");
++	write_utmpx("/var/run/utmp", &utent, pid);
+ 
+ #if ENABLE_FEATURE_WTMP
+ 	/* "man utmp" says wtmp file should *not* be created automagically */
+ 	/*touch(bb_path_wtmp_file);*/
+-	updwtmpx(bb_path_wtmp_file, &utent);
++	write_utmpx(bb_path_wtmp_file, &utent, pid);
+ #endif
+ }
+ 
+@@ -65,35 +86,40 @@ void FAST_FUNC write_new_utmp(pid_t pid, int new_type, const char *tty_name, con
+ void FAST_FUNC update_utmp(pid_t pid, int new_type, const char *tty_name, const char *username, const char *hostname)
+ {
+ 	struct utmpx utent;
+-	struct utmpx *utp;
++	struct utmpx *utp = NULL;
++	struct utmpx tmp;
++	int fd;
+ 
+-	touch(_PATH_UTMPX);
+-	//utmpxname(_PATH_UTMPX);
+-	setutxent();
++	touch("/var/run/utmp");
+ 
+ 	/* Did init/getty/telnetd/sshd/... create an entry for us?
+ 	 * It should be (new_type-1), but we'd also reuse
+ 	 * any other potentially stale xxx_PROCESS entry */
+-	while ((utp = getutxent()) != NULL) {
+-		if (utp->ut_pid == pid
+-		// && ut->ut_line[0]
+-		 && utp->ut_id[0] /* must have nonzero id */
+-		 && (  utp->ut_type == INIT_PROCESS
+-		    || utp->ut_type == LOGIN_PROCESS
+-		    || utp->ut_type == USER_PROCESS
+-		    || utp->ut_type == DEAD_PROCESS
+-		    )
+-		) {
+-			if (utp->ut_type >= new_type) {
+-				/* Stale record. Nuke hostname */
+-				memset(utp->ut_host, 0, sizeof(utp->ut_host));
++	fd = open("/var/run/utmp", O_RDONLY);
++	if (fd >= 0) {
++		while (read(fd, &tmp, sizeof(tmp)) == sizeof(tmp)) {
++			if (tmp.ut_pid == pid
++		 	// && ut->ut_line[0]
++			 && tmp.ut_id[0] /* must have nonzero id */
++			 && (  tmp.ut_type == INIT_PROCESS
++			    || tmp.ut_type == LOGIN_PROCESS
++			    || tmp.ut_type == USER_PROCESS
++			    || tmp.ut_type == DEAD_PROCESS
++			    )
++			) {
++				if (tmp.ut_type >= new_type) {
++					/* Stale record. Nuke hostname */
++					memset(tmp.ut_host, 0, sizeof(tmp.ut_host));
++				}
++				/* NB: pututxline (see later) searches for matching utxent
++				 * using getutxid(utent) - we must not change ut_id
++				 * if we want *exactly this* record to be overwritten!
++				 */
++				utp = &tmp;
++				break;
+ 			}
+-			/* NB: pututxline (see later) searches for matching utxent
+-			 * using getutxid(utent) - we must not change ut_id
+-			 * if we want *exactly this* record to be overwritten!
+-			 */
+-			break;
+ 		}
++		close(fd);
+ 	}
+ 	//endutxent(); - no need, pututxline can deal with (and actually likes)
+ 	//the situation when utmp file is positioned on found record
+@@ -101,8 +127,6 @@ void FAST_FUNC update_utmp(pid_t pid, int new_type, const char *tty_name, const
+ 	if (!utp) {
+ 		if (new_type != DEAD_PROCESS)
+ 			write_new_utmp(pid, new_type, tty_name, username, hostname);
+-		else
+-			endutxent();
+ 		return;
+ 	}
+ 
+@@ -120,14 +144,12 @@ void FAST_FUNC update_utmp(pid_t pid, int new_type, const char *tty_name, const
+ 	utent.ut_tv.tv_sec = time(NULL);
+ 
+ 	/* Update, or append new one */
+-	//setutxent();
+-	pututxline(&utent);
+-	endutxent();
++	write_utmpx("/var/run/utmp", &utent, pid);
+ 
+ #if ENABLE_FEATURE_WTMP
+ 	/* "man utmp" says wtmp file should *not* be created automagically */
+ 	/*touch(bb_path_wtmp_file);*/
+-	updwtmpx(bb_path_wtmp_file, &utent);
++	write_utmpx(bb_path_wtmp_file, &utent, pid);
+ #endif
+ }
+ 
+diff --git a/loginutils/login.c b/loginutils/login.c
+index 301be4a34..1ad8122a4 100644
+--- a/loginutils/login.c
++++ b/loginutils/login.c
+@@ -518,8 +518,6 @@ int login_main(int argc UNUSED_PARAM, char **argv)
+ 		pause_after_failed_login();
+ 		/* TODO: doesn't sound like correct English phrase to me */
+ 		puts("Login incorrect");
+-		syslog(LOG_WARNING, "invalid password for '%s'%s",
+-					username, fromhost);
+ 		if (++count == 3) {
+ 			if (ENABLE_FEATURE_CLEAN_UP)
+ 				free(fromhost);
+@@ -582,9 +580,6 @@ int login_main(int argc UNUSED_PARAM, char **argv)
+ 	if (access(".hushlogin", F_OK) != 0)
+ 		motd();
+ 
+-	if (pw->pw_uid == 0)
+-		syslog(LOG_INFO, "root login%s", fromhost);
+-
+ 	if (ENABLE_FEATURE_CLEAN_UP)
+ 		free(fromhost);
+ 

@@ -1,4 +1,6 @@
 ######################################################
+## /etc/profile                                     ##
+######################################################
 ## System-wide shell profile defining core          ##
 ## environment variables, prompt settings, and a    ##
 ## helper function for the shorkfont utility        ##
@@ -10,7 +12,7 @@
 
 export TERM=linux
 export TERMINFO=/usr/share/terminfo
-export HOME=/home
+export HOME=/root
 export USER=root
 export LOGNAME=root
 export SHELL=/bin/sh
@@ -28,3 +30,14 @@ shorkfont()
     sync
     exit
 }
+
+# Show welcome tip (if first boot marker does not exist)
+if [ ! -f /etc/.past_first_boot ] && [ "$(tty)" = "/dev/tty1" ]; then
+    printf "Welcome! If this is your first time using @NAME@, please check out \033[32mshorkhelp\033[0m!\n"
+    echo "1" > /etc/.past_first_boot
+
+    # Padding specific for single-user use
+    if [ ! -d /home ]; then
+        printf "\n"
+    fi
+fi

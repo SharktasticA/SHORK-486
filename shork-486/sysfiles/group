@@ -1,14 +1,14 @@
 ######################################################
-## /usr/etc/nanorc                                  ##
+## /etc/group                                       ##
 ######################################################
-## Pre-defined nano configuration enabling line     ##
-## numbers and soft wrap features                   ##
+## Groups database containing a list of groups and  ##
+## their members.                                   ##
 ######################################################
 ## Kali (sharktastica.co.uk)                        ##
 ######################################################
 
 
 
-set linenumbers
-set tabsize 4
-set tabstospaces
+# groupname:password:GID:members
+root:x:0:
+shadow:x:42:
