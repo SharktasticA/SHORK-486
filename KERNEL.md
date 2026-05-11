@@ -6,15 +6,38 @@ Whilst SHORK 486 itself is licensed under GPL 3.0 terms, the contents of the `sh
 
 
 
-## 7.1.x
+## Todo & for consideration
 
-### Todo & for consideration
+### 7.2.x
 
-* Restore IBM PC 110 touchpad driver: https://www.phoronix.com/news/Linux-7.1-PCI
+* Restore 586 support: https://www.phoronix.com/news/AMD-K5-CPUs
+* Restore AMD Élan drivers: https://www.phoronix.com/news/AMD-Elan-Linux-Driver-Removal
+
+### 7.1.x
 
 * Review implications of 64-bit `i_ino`: https://www.phoronix.com/news/Linux-7.1-VFS-Kino-32-bit
-
 * Review removed networking drivers: https://www.phoronix.com/news/Linux-7.1-Removes-Old-Net
+
+
+## 7.1.x
+
+
+
+### [7.1.x_restore-pc110pad.patch](shork-486/patches/7.1.x_restore-pc110pad.patch)
+
+* Original kernel: *7.1-rc1*
+* Context: https://www.phoronix.com/news/Linux-7.1-PCI
+
+This patch reverts the removal of the `pc110pad` driver in [6f468ea360f0](https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=6f468ea360f0a6a1e45854afbc3019842ed891a8). This is for the IBM Palm Top PC 110's trackpad. The PC 110 is a 486SX-based device and a target for SHORK 486.
+
+
+
+### [7.1.x_restore-no-pci-devices.patch](shork-486/patches/7.1.x_restore-no-pci-devices.patch)
+
+* Original kernel: *7.1-rc1*
+* Context: https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=40286d6379aacfcc053253ef78dc78b09addffda
+
+This patch reverts the removal of the `no_pci_devices` function in [d79dc408deb6](https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=d79dc408deb6c192adbad7893ee0c22d50826511) as it is required by the above patch to restore the `pc110pad` driver.
 
 
 
