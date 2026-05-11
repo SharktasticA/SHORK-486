@@ -2,6 +2,8 @@
 
 A part of the SHORK 486 project is patching bleeding-edge Linux kernel releases to ensure they operate with the hardware and specifications SHORK 486 is designed to work with. This will include restoring removed build targets for older platforms and removed drivers for older hardware, as well as patching bugs noticed on older hardware. This document will list created patches and their purposes, potential/todo patches, and anything else useful for this project.
 
+Whilst SHORK 486 itself is licensed under GPL 3.0 terms, the contents of the `shork-486/patches` directory are licensed under [GPL 2.0 terms](https://docs.kernel.org/process/license-rules.html) as they are derived from Linux kernel and BusyBox source code.
+
 
 
 ## 7.0.x
