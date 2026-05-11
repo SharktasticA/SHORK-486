@@ -2802,7 +2802,20 @@ get_tinyx()
     # Compile and install
     echo -e "${GREEN}Compiling TinyX...${RESET}"
     ./autogen.sh
-    ./configure --host="${HOST}" --prefix=/usr --disable-shared --enable-static --with-sysroot="$SYSROOT" --disable-xorg --enable-kdrive --enable-xfbdev CC="${CC_STATIC}" CPPFLAGS="-I$SYSROOT/usr/include -I$SYSROOT/usr/include/freetype2" CFLAGS="-Os -march=${ARCH} -static --sysroot=$SYSROOT" LDFLAGS="-static -L$SYSROOT/usr/lib --sysroot=$SYSROOT" LIBS="$LINK_LIBS" \XSERVERCFLAGS_CFLAGS="-I$SYSROOT/usr/include -I$SYSROOT/usr/include/freetype2" XSERVERLIBS_LIBS="$LINK_LIBS"
+    ./configure \
+        --host="${HOST}" \
+        --prefix=/usr \
+        --disable-shared \
+        --enable-static \
+        --with-sysroot="$SYSROOT" \
+        --disable-xorg \
+        --enable-kdrive \
+        --enable-xfbdev \
+        CC="${CC_STATIC}" \
+        CPPFLAGS="-I$SYSROOT/usr/include -I$SYSROOT/usr/include/freetype2" \
+        CFLAGS="-O2 -march=i486 -mtune=i486 -fomit-frame-pointer -ffast-math -mno-fancy-math-387 -pipe --sysroot=$SYSROOT" \
+        LDFLAGS="-static -L$SYSROOT/usr/lib --sysroot=$SYSROOT" \
+        LIBS="$LINK_LIBS" \XSERVERCFLAGS_CFLAGS="-I$SYSROOT/usr/include -I$SYSROOT/usr/include/freetype2" XSERVERLIBS_LIBS="$LINK_LIBS"
     make -j$(nproc)
     make DESTDIR=$DESTDIR install
 
@@ -2844,7 +2857,11 @@ get_twm()
     # Compile and install
     echo -e "${GREEN}Compiling TWM...${RESET}"
     ./autogen.sh
-    ./configure --host="$HOST" --prefix=/usr CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    ./configure --host="$HOST" --prefix=/usr \
+        CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP" \
+        CFLAGS="-O2 -march=i486 -mtune=i486 -fomit-frame-pointer -ffast-math -pipe --sysroot=$SYSROOT" \
+        CPPFLAGS="-I$SYSROOT/usr/include" \
+        LDFLAGS="-static -L$SYSROOT/usr/lib --sysroot=$SYSROOT"
     make -j$(nproc)
     make DESTDIR="$DESTDIR" install
 
@@ -2955,6 +2972,8 @@ get_st()
         cd st
     fi
 
+
+
     # Patch to fix "select: function not implemented" error
     sudo sed -i 's/pselect(\(.*\), NULL)/select(\1)/' st.c
     sudo sed -i 's/pselect(\(.*\), NULL)/select(\1)/' x.c
@@ -2968,9 +2987,17 @@ get_st()
     # Patch to change default TERM value
     sudo sed -i 's|st-256color|linux|g' config.def.h
 
+    # Patch to disable cursor blinking
+    sed -i 's/^static unsigned int blinktimeout = .*/static unsigned int blinktimeout = 0;/' config.def.h
+
     # Compile and install
     echo -e "${GREEN}Compiling st...${RESET}"
-    make -j$(nproc) CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP" LIBS="-lXft -lfontconfig -lfreetype -lXrender -lX11 -lxcb -lXau -lXdmcp -lexpat -lpng -lz -lm"
+    make -j$(nproc) \
+        CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP" \
+        CFLAGS="-O2 -march=i486 -mtune=i486 -fomit-frame-pointer -ffast-math -pipe" \
+        CPPFLAGS="-I$SYSROOT/usr/include -I$SYSROOT/usr/include/freetype2" \
+        LDFLAGS="-static -L$SYSROOT/usr/lib --sysroot=$SYSROOT" \
+        LIBS="-lXft -lfontconfig -lfreetype -lXrender -lX11 -lxcb -lXau -lXdmcp -lexpat -lpng -lz -lm"
     make DESTDIR="$DESTDIR" PREFIX=/usr install CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
 
     # Copy licence file
