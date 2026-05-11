@@ -302,6 +302,8 @@ These build script parameters are provided to help automate its use, especially 
 * `images`: Contains the result raw disk images and an after-build report created by the build process.
     * Created after a build attempt is made.
 
+* `patches`: Contains diff patches for the Linux kernel and BusyBox to restore removed functionality/implement new functionality required for SHORK 486.
+
 * `shorkutils`: Contains custom SHORK utilities to be copied to the root file system 
 
 * `sysfiles`: Contains important system files to be copied into the root file system.
@@ -318,10 +320,16 @@ Running `clean.sh` will delete everything `build.sh` has downloaded, created or 
 
 ### Using SHORK 486
 
-At present, you are always the root user when using SHORK 486. Make sure to act accordingly, and use it considerately and responsibly.
+When built as a single-user system or a multi-user system with no additional users, you will be the root user when using SHORK 486. Make sure to act accordingly, and use it considerately and responsibly.
 
 
 
 ## Acknowledgements
 
 * This product includes software developed by Andrés Martinelli <andmarti@gmail.com> (sc-im).
+
+
+
+## Licences
+
+SHORK 486 itself, SHORK Utilities and SHORK Entertainment are all licensed under [GPL 3.0 terms](COPYING). The contents of the `shork-486/patches` directory are licensed under [GPL 2.0 terms](https://docs.kernel.org/process/license-rules.html) as they are derived from Linux kernel and BusyBox source code.
