@@ -105,7 +105,7 @@ DROPBEAR_VER="2026.90"
 FILE_VER="5_47"
 GIT_VER="2.54.0"
 HTOP_VER="3.5.0"
-KERNEL_VER="7.0.6"
+KERNEL_VER="7.0.7"
 LIBEVENT_VER="release-2.1.12-stable"
 LIBXLSXWRITER_VER="1.2.4"
 LIBXML2_VER="2.15.3"
@@ -5082,9 +5082,9 @@ get_installed_programs_features()
 
     # Misc features
     if [ -d "$DESTDIR/usr/share/consolefonts" ]; then
-        INCLUDED_FEATURES+="\n * alternative console fonts"
+        INCLUDED_FEATURES+="\n * console fonts pack"
     else
-        EXCLUDED_FEATURES+="\n * alternative console fonts"
+        EXCLUDED_FEATURES+="\n * console fonts pack"
     fi
 
     if [ -d "$DESTDIR/usr/share/keymaps" ]; then
