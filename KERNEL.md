@@ -66,6 +66,6 @@ This patch reverts the changes made in [8b793a92d862](https://git.kernel.org/pub
 * Original kernel: 7.0.0
 * Context: https://github.com/SharktasticA/SHORK-486/issues/3, https://lore.kernel.org/lkml/20260415003021.1543723-1-david@davidgow.net/
 
-_No longer required as of 7.1-rc3 due to [5772f6535227](https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=5772f6535227ebd104065d80afa8ed3478d34c5c)_
+_No longer required as of [7.0.7](https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/diff/?id=v7.0.7&id2=v7.0.6&dt=2) and [7.1-rc3](https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=5772f6535227ebd104065d80afa8ed3478d34c5c)_
 
 This patch fixes an issue introduced in [157266edcc56](https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?h=master&id=157266edcc56715323de1bd60e49194b3b66a174) during 7.0-rc1 that prevented the use of fallbacks when a received e820 map has no/too few entries, in turn preventing booting on certain old BIOSes and usually manifesting as a "Real mode trampoline was not allocated" error.
