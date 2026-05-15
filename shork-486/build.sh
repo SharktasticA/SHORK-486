@@ -166,6 +166,8 @@ ENABLE_TASKSTATS=false
 ENABLE_USB=false
 ENABLE_ZSWAP=true
 
+MODE_SERIAL_CON=false
+
 INCLUDE_C3270=false
 INCLUDE_CON_FONTS=true
 INCLUDE_CMATRIX=false
@@ -4716,6 +4718,18 @@ build_file_system()
         copy_sysfile /etc/ssl/certs/ca-certificates.crt $DESTDIR/etc/ssl/cert.pem
     fi
 
+    # Configure for ttyS0 if serial console mode is enabled
+    if $MODE_SERIAL_CON; then
+        echo -e "${GREEN}Configuring system files for serial console mode...${RESET}"
+
+        if $ENABLE_MULTIUSER_REAL; then
+            sudo sed -i "s/^tty1::respawn:\/sbin\/getty -n 38400 tty1/ttyS0::respawn:\/sbin\/getty -L ttyS0 115200 vt100/" "$DESTDIR/etc/inittab"
+        else
+            sudo sed -i "s/^tty1::respawn/ttyS0::respawn/" "$DESTDIR/etc/inittab"
+        fi
+        sudo sed -i "/^tty[23]::respawn/d" "$DESTDIR/etc/inittab"
+    fi
+
     echo -e "${GREEN}Ensure file permissions are correct...${RESET}"
     sudo chown -R root:root "$DESTDIR"
     sudo find "$DESTDIR" -type d -exec chmod 755 {} +
@@ -4768,6 +4782,15 @@ install_grub_bootloader()
         GRUB_CMD="/usr/sbin/grub2-install"
     fi
     sudo $GRUB_CMD --target=i386-pc --boot-directory="/mnt/${ID}/boot" --modules="ext2 part_msdos biosdisk" --force "$1"
+
+    # Configure for ttyS0 if serial console mode is enabled
+    if $MODE_SERIAL_CON; then
+        echo -e "${GREEN}Configuring bootloader for serial console mode...${RESET}"
+        sudo sed -i "s/Starting ${NAME}/Starting ${NAME} (serial console mode)/g" "/mnt/${ID}/boot/grub/grub.cfg"
+        sudo sed -i "s/console=tty1/console=ttyS0,115200n8/g" "/mnt/${ID}/boot/grub/grub.cfg"
+        sudo sed -i "s/ vga=normal//g" "/mnt/${ID}/boot/grub/grub.cfg"
+        sudo sed -i "s/quiet loglevel=3/loglevel=6/g" "/mnt/${ID}/boot/grub/grub.cfg"
+    fi
 
     sudo umount "/mnt/${ID}/dev"
     sudo umount "/mnt/${ID}/proc"
@@ -4823,6 +4846,15 @@ install_extlinux_bootloader()
     fi
 
     sudo "$EXTLINUX_BIN" --install "/mnt/${ID}/boot/syslinux"
+
+    # Configure for ttyS0 if serial console mode is enabled
+    if $MODE_SERIAL_CON; then
+        echo -e "${GREEN}Configuring bootloader for serial console mode...${RESET}"
+        sudo sed -i "s/Starting ${NAME}/Starting ${NAME} (serial console mode)/g" "/mnt/${ID}/boot/syslinux/syslinux.cfg"
+        sudo sed -i "s/console=tty1/console=ttyS0,115200n8/g" "/mnt/${ID}/boot/syslinux/syslinux.cfg"
+        sudo sed -i "s/ vga=normal//g" "/mnt/${ID}/boot/syslinux/syslinux.cfg"
+        sudo sed -i "s/quiet loglevel=3/loglevel=6/g" "/mnt/${ID}/boot/syslinux/syslinux.cfg"
+    fi
 
     # Install MBR boot code
     sudo dd if="$MBR_BIN" of="../images/${ID}.img" bs=440 count=1 conv=notrunc

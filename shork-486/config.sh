@@ -44,6 +44,7 @@ SET_KEYMAP="en_us"
 HOSTNAME="shork-486"
 ENABLE_MULTIUSER_REAL=false
 ROOT_PASSWD=""
+MODE_SERIAL_CON=false
 ENABLE_NET_ETH=false
 FIX_EXTLINUX=false
 INCLUDE_C3270=false
@@ -139,6 +140,7 @@ SET_KEYMAP="$SET_KEYMAP"
 HOSTNAME="$HOSTNAME"
 ENABLE_MULTIUSER_REAL=$ENABLE_MULTIUSER_REAL
 ROOT_PASSWD=$ROOT_PASSWD
+MODE_SERIAL_CON=$MODE_SERIAL_CON
 ENABLE_NET_ETH=$ENABLE_NET_ETH
 FIX_EXTLINUX=$FIX_EXTLINUX
 INCLUDE_C3270=$INCLUDE_C3270
@@ -611,6 +613,25 @@ if [ "$BUILD_TYPE" != "minimal" ]; then
             break
         done
     fi
+fi
+
+
+
+# Get serial console mode choice
+dialog --clear \
+    --backtitle "SHORK 486 Build Configurator" \
+    --title "Serial Console Mode" \
+    --defaultno \
+    --yesno "Do you want to enable the serial console mode for SHORK 486? This will configure the system to use ttyS0 instead of ttyX, allowing it to be used over serial consoles without manually changing the configuration yourself. Enabling this will disable multiple ttyX support and turn off the menu-based bootloader (the latter can be manually re-enabled when configuring a \"custom\" build)." \
+    10 $WIDTH
+
+CHOICE=$?
+
+if [[ $CHOICE -eq 0 ]]; then
+    MODE_SERIAL_CON=true
+    ENABLE_MENU=false
+else
+    MODE_SERIAL_CON=false
 fi
 
 
