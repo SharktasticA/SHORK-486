@@ -556,6 +556,7 @@ if [ "$BUILD_TYPE" != "minimal" ]; then
             fi
 
             ROOT_PASSWD_TMP=$(dialog --clear \
+                --insecure \
                 --backtitle "SHORK 486 Build Configurator" \
                 --title "Root Password" \
                 --cancel-label "Skip" \
