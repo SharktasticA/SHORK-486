@@ -3,7 +3,7 @@
 ######################################################
 ## SHORK 486 build script                           ##
 ######################################################
-## Kali (sharktastica.co.uk)                        ##
+## Kali (links.sharktastica.co.uk)                  ##
 ######################################################
 
 
@@ -105,7 +105,7 @@ DROPBEAR_VER="2026.90"
 FILE_VER="5_47"
 GIT_VER="2.54.0"
 HTOP_VER="3.5.0"
-KERNEL_VER="7.0.8"
+KERNEL_VER="7.0.9"
 LIBEVENT_VER="release-2.1.12-stable"
 LIBXLSXWRITER_VER="1.2.4"
 LIBXML2_VER="2.15.3"
