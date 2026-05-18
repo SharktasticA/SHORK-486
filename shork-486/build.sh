@@ -3,7 +3,7 @@
 ######################################################
 ## SHORK 486 build script                           ##
 ######################################################
-## Kali (sharktastica.co.uk)                        ##
+## Kali (links.sharktastica.co.uk)                  ##
 ######################################################
 
 
@@ -3600,6 +3600,40 @@ get_htop()
 
     # Copy licence file
     cp COPYING $CURR_DIR/build/LICENCES/htop.txt
+}
+
+# Download and compile lapifetch
+get_lapifetch()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$DESTDIR/usr/local/bin/lapifetch" ]; then
+        echo -e "${LIGHT_RED}lapifetch already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d lapifetch ]; then
+        echo -e "${YELLOW}lapifetch source already present, resetting...${RESET}"
+        cd lapifetch
+        git config --global --add safe.directory "$CURR_DIR/build/lapifetch"
+        git reset --hard
+    else
+        echo -e "${GREEN}Downloading lapifetch...${RESET}"
+        git clone https://github.com/asunyan-dev/lapifetch.git
+        cd lapifetch
+    fi
+
+    sed -i 's/^install: all$/install:/' Makefile
+
+    # Compile and install
+    echo -e "${GREEN}Compiling lapifetch...${RESET}"
+    make -j$(nproc) CXX="${CXX_STATIC}"
+    sudo make DESTDIR=$DESTDIR install
+
+    # Copy licence file
+    cp LICENSE $CURR_DIR/build/LICENCES/lapifetch.txt
 }
 
 # Download and compile Lynx

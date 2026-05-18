@@ -3,7 +3,7 @@
 ######################################################
 ## SHORK 486 build configurator                     ##
 ######################################################
-## Kali (sharktastica.co.uk)                        ##
+## Kali (links.sharktastica.co.uk)                  ##
 ######################################################
 
 
@@ -788,6 +788,25 @@ else
 fi
 
 
+
+# Conflict Resolution - +FIX_EXTLINUX/+USE_GRUB
+if [ "$FIX_EXTLINUX" = true ] && [ "$USE_GRUB" = true ]; then
+    dialog --clear \
+        --backtitle "SHORK 486 Build Configurator" \
+        --title "Conflict Resolution - +FIX_EXTLINUX/+USE_GRUB" \
+        --yes-label "EXTLINUX" \
+        --no-label "GRUB" \
+        --yesno "You have chosen to enable \"patched EXTLINUX\" and selected \"GRUB 2.x instead of EXTLINUX\". Please confirm which bootloader you wish to use." \
+        6 "$WIDTH"
+
+    CHOICE=$?
+
+    if [[ $CHOICE -eq 0 ]]; then
+        USE_GRUB=false
+    elif [[ $CHOICE -eq 1 ]]; then
+        FIX_EXTLINUX=false
+    fi
+fi
 
 # Conflict Resolution - +MT_ST/-SCSI_EXP
 if [ "$INCLUDE_MT_ST" = true ] && [ "$ENABLE_SCSI_EXP" = false ]; then
