@@ -143,6 +143,7 @@ IS_FEDORA=false
 PHYSICAL_ALIGN=0x2000
 PHYSICAL_START=""
 ROOT_PASSWD=""
+SCANCODE_SET=-1
 SET_KEYMAP=""
 SHORKUTILS_RECLONE=false
 SKIP_BB=false
@@ -4793,6 +4794,11 @@ install_grub_bootloader()
         copy_sysfile $CURR_DIR/sysfiles/grub.cfg.boot "/mnt/${ID}/boot/grub/grub.cfg"
     fi
 
+    # If required, specify the target scancode set
+    if [[ $SCANCODE_SET != -1 ]]; then
+        sudo sed -i "s/atkbd.extra=1/atkbd.set=${SCANCODE_SET} atkbd.extra=1/" "/mnt/${ID}/boot/grub/grub.cfg"
+    fi
+
     sudo mount --bind /dev  "/mnt/${ID}/dev"
     sudo mount --bind /proc "/mnt/${ID}/proc"
     sudo mount --bind /sys  "/mnt/${ID}/sys"
@@ -4854,6 +4860,11 @@ install_extlinux_bootloader()
     else
         echo -e "${GREEN}Installing boot-only EXTLINUX bootloader...${RESET}"
         copy_sysfile $CURR_DIR/sysfiles/syslinux.cfg.boot  "/mnt/${ID}/boot/syslinux/syslinux.cfg"
+    fi
+
+    # If required, specify the target scancode set
+    if [[ $SCANCODE_SET != -1 ]]; then
+        sudo sed -i "s/atkbd.extra=1/atkbd.set=${SCANCODE_SET} atkbd.extra=1/" "/mnt/${ID}/boot/syslinux/syslinux.cfg"
     fi
 
     sudo "$EXTLINUX_BIN" --install "/mnt/${ID}/boot/syslinux"
@@ -5504,7 +5515,7 @@ generate_report()
             while IFS= read -r envline; do
                 case "$envline" in
                     ROOT_PASSWD=*)
-                        lines+=("ROOT_PASSWD=*redacted*")
+                        lines+=("ROOT_PASSWD=*REDACTED*")
                         ;;
                     *)
                         lines+=("$envline")
