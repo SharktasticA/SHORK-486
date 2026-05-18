@@ -784,7 +784,7 @@ OPTIONS=$(dialog --clear \
     --title "Options" \
     --cancel-label "Skip" \
     --checklist "Select what other options to include. Some of these are benign, some may increase the RAM and disk space requirement considerably, some are experimental.\n* This option would be included in a \"default\" build\n** This option can raise system memory requirements" $HEIGHT $WIDTH 9 \
-    "con-fonts"     "*Console fonts pack (+0.05MiB)"                            $(val $INCLUDE_CON_FONTS) \
+    "con-fonts"     "*Console fonts pack (+0.1MiB)"                             $(val $INCLUDE_CON_FONTS) \
     "grub"          "GRUB 2.x instead of EXTLINUX (+4MiB)"                      $(val $USE_GRUB) \
     "gui"           "**SHORKGUI (+46MiB, EXPERIMENTAL)"                         $(val $INCLUDE_GUI) \
     "highmem"       "**Kernel-level high memory support"                        $(val $ENABLE_HIGHMEM) \

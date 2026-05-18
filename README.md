@@ -223,7 +223,7 @@ Below are further explanations for options that could not fit into the configura
 
 #### Keyboard Scancode Set
 
-Allows you to specify an IBM scancode set for SHORK 486 to use. For most AT and PS/2 keyboards, this is likely not needed and can be skipped. But some specific keyboards or computers with integrated keyboards have been known to require a specific one.
+Allows you to specify an IBM scancode set for SHORK 486 to request. For most AT and PS/2 keyboards, this is likely not needed and can be skipped. But some specific keyboards or computers with integrated keyboards have been known to require a specific one.
 
 * Skipping is typically recommended as most 486 and P5 era keyboards should work as-is.
 * Set 2 is what all AT keyboards are limited to, and should also be supported by a compliant PS/2 keyboard.

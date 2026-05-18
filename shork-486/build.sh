@@ -3278,14 +3278,34 @@ get_console_fonts()
     echo -e "${GREEN}Installing console fonts...${RESET}"
 
     FONTS+=(
+        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat2-Fixed13.psf"
+        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat2-Fixed14.psf"
         "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat2-Fixed16.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat2-Terminus16.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat2-VGA16.psf"
+        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat2-Fixed18.psf"
+        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat7-Fixed13.psf"
+        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat7-Fixed14.psf"
         "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat7-Fixed16.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat7-Terminus16.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat7-VGA16.psf"
+        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat7-Fixed18.psf"
+        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat15-Fixed13.psf"
+        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat15-Fixed14.psf"
         "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat15-Fixed16.psf"
+        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat15-Fixed18.psf"
+
+        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat2-Terminus14.psf"
+        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat2-Terminus16.psf"
+        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat7-Terminus14.psf"
+        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat7-Terminus16.psf"
+        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat15-Terminus14.psf"
         "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat15-Terminus16.psf"
+
+        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat2-VGA8.psf"
+        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat2-VGA14.psf"
+        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat2-VGA16.psf"
+        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat7-VGA8.psf"
+        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat7-VGA14.psf"
+        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat7-VGA16.psf"
+        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat15-VGA8.psf"
+        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat15-VGA14.psf"
         "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat15-VGA16.psf"
     )
 
@@ -3616,6 +3636,9 @@ get_lapifetch()
     fi
 
     sed -i 's/^install: all$/install:/' Makefile
+    sed -i '1s/^/DESTDIR =\n\n/' Makefile
+    sed -i 's|cp $(TARGET) /usr/local/bin|cp $(TARGET) $(DESTDIR)/usr/local/bin|' Makefile
+    sed -i 's|rm -f /usr/local/bin/$(TARGET)|rm -f $(DESTDIR)/usr/local/bin/$(TARGET)|' Makefile
 
     # Compile and install
     echo -e "${GREEN}Compiling lapifetch...${RESET}"
