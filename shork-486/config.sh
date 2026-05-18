@@ -40,6 +40,7 @@ IS_DEBIAN=true
 BUILD_TYPE="default"
 TARGET_DISK=80
 TARGET_SWAP=8
+SCANCODE_SET=-1
 SET_KEYMAP="en_us"
 HOSTNAME="shork-486"
 ENABLE_MULTIUSER_REAL=false
@@ -113,11 +114,6 @@ keymap_name()
     esac
 }
 
-is_set_keymap()
-{
-    [[ "$1" == $SET_KEYMAP ]] && echo on || echo off
-}
-
 load_env()
 {
     if [[ -f .env ]]; then
@@ -135,6 +131,7 @@ IS_FEDORA=$IS_FEDORA
 BUILD_TYPE="$BUILD_TYPE"
 TARGET_DISK=$TARGET_DISK
 TARGET_SWAP=$TARGET_SWAP
+SCANCODE_SET=$SCANCODE_SET
 SET_KEYMAP="$SET_KEYMAP"
 HOSTNAME="$HOSTNAME"
 ENABLE_MULTIUSER_REAL=$ENABLE_MULTIUSER_REAL
@@ -318,28 +315,36 @@ load_env
 
 
 # Get build environment
-ENV=$(dialog --clear \
+if [[ $IS_ARCH == true ]]; then 
+    CHOICE_DEFAULT="Arch"
+elif [[ $IS_FEDORA == true ]]; then
+    CHOICE_DEFAULT="Fedora"
+else 
+    CHOICE_DEFAULT="Debian"
+fi
+
+CHOICE=$(dialog --clear \
     --backtitle "SHORK 486 Build Configurator" \
     --title "Build Environment" \
     --cancel-label "Quit" \
-    --radiolist "Select the host environment you plan to build SHORK 486 with." $HEIGHT $WIDTH 3 \
-    "Arch"    "Native building on Arch"                         $(val $IS_ARCH) \
-    "Debian"  "Native building on Debian/Dockerised building"   $(val $IS_DEBIAN) \
-    "Fedora"  "Native building on Fedora"                       $(val $IS_FEDORA) \
-    2>&1 >/dev/tty)
+    --default-item "$CHOICE_DEFAULT" \
+    --menu "Select the host environment you plan to build SHORK 486 with." 10 $WIDTH 3 \
+    "Arch"    "Native building on Arch" \
+    "Debian"  "Native building on Debian/Dockerised building" \
+    "Fedora"  "Native building on Fedora" \
+    3>&1 1>&2 2>&3)
 
-if [[ ! -n "$ENV" ]]; then
+if [[ ! -n "$CHOICE" ]]; then
     exit 0
 else
     IS_ARCH=false
     IS_DEBIAN=false
     IS_FEDORA=false
-
-    if [ "$ENV" == "Arch" ]; then
+    if [ "$CHOICE" == "Arch" ]; then
         IS_ARCH=true
-    elif [ "$ENV" == "Debian" ]; then
+    elif [ "$CHOICE" == "Debian" ]; then
         IS_DEBIAN=true
-    elif [ "$ENV" == "Fedora" ]; then
+    elif [ "$CHOICE" == "Fedora" ]; then
         IS_FEDORA=true
     fi
 fi
@@ -352,13 +357,14 @@ BUILD_TYPE=$(dialog --clear \
     --backtitle "SHORK 486 Build Configurator" \
     --title "Build Type" \
     --cancel-label "Quit" \
-    --radiolist "Select the build type, presets for SHORK 486 feature levels. The minimum requirements for each are enclosed in brackets. The \"custom\" option will enable further prompts for software and feature selection." $HEIGHT $WIDTH 6 \
-    "default" "Typical experience (16MiB RAM + 80MiB disk)"         $(val_str "$BUILD_TYPE" default) \
-    "offline" "Default sans networking (12MiB RAM + 50MiB disk)"    $(val_str "$BUILD_TYPE" offline) \
-    "minimal" "Minimal build (8MiB RAM + 8MiB disk)"                $(val_str "$BUILD_TYPE" minimal) \
-    "maximal" "Maximal build (24MiB RAM + 440MiB disk)"             $(val_str "$BUILD_TYPE" maximal) \
-    "custom"  "Requirements depend on subsequent choices"           $(val_str "$BUILD_TYPE" custom) \
-    2>&1 >/dev/tty)
+    --default-item "$BUILD_TYPE" \
+    --menu "Select the build type, presets for SHORK 486 feature levels. The minimum requirements for each are enclosed in brackets. The \"custom\" option will enable further prompts for software and feature selection." 14 $WIDTH 5 \
+    "default" "Typical experience (16MiB RAM + 80MiB disk)" \
+    "offline" "Default sans networking (12MiB RAM + 50MiB disk)" \
+    "minimal" "Minimal build (8MiB RAM + 8MiB disk)" \
+    "maximal" "Maximal build (24MiB RAM + 440MiB disk)" \
+    "custom"  "Requirements depend on subsequent choices" \
+    3>&1 1>&2 2>&3)
 
 if [[ ! -n "$BUILD_TYPE" ]]; then
     exit 0
@@ -488,22 +494,48 @@ done
 
 
 
+# Get keyboard scancode set choice
+case $SCANCODE_SET in
+    2)  CHOICE_DEFAULT="2" ;;
+    3)  CHOICE_DEFAULT="3" ;;
+    *)  CHOICE_DEFAULT="-" ;;
+esac
+
+CHOICE=$(dialog --clear \
+    --backtitle "SHORK 486 Build Configurator" \
+    --title "Keyboard Scancode Set" \
+    --default-item "$CHOICE_DEFAULT" \
+    --menu "Do you want to specify an IBM scancode set for SHORK 486 to request? For most AT and PS/2 keyboards, this is likely not needed and can be skipped. But some specific keyboards or computers with integrated keyboards have been known to require a specific one and are listed below.\n\nKnown to require set 3: IBM 9545 ThinkPad 755C" \
+    16 $WIDTH 3 \
+    "-"     "Skip (recommended for most)" \
+    "2"     "Set 2 (AT & PS/2)" \
+    "3"     "Set 3 (PS/2 & 315X/316X/3179/3180/319X/3270 PC/3290-2/InfoWindow)" \
+    3>&1 1>&2 2>&3)
+
+case $CHOICE in
+    "2")    SCANCODE_SET=2 ;;
+    "3")    SCANCODE_SET=3 ;;
+    *)      SCANCODE_SET=-1 ;;
+esac
+
+
+
 # Get desired keymap
 if [ "$BUILD_TYPE" != "minimal" ]; then
     KEYMAP_ITEMS=()
     for f in "$CURR_DIR/sysfiles/keymaps/"*.kmap.bin; do
         name=$(basename "$f" .kmap.bin)
-        KEYMAP_ITEMS+=("$name" "$(keymap_name $name)" "$(is_set_keymap $name)")
+        KEYMAP_ITEMS+=("$name" "$(keymap_name $name)")
     done
 
     SET_KEYMAP=$(dialog --clear \
         --backtitle "SHORK 486 Build Configurator" \
         --title "Keyboard Layout" \
         --cancel-label "Skip" \
-        --radiolist "Select what keyboard layout (keymap) you wish to use. This can later be changed inside SHORK 486 by running shorkmap." \
-        $HEIGHT $WIDTH 25 \
+        --default-item "$SET_KEYMAP" \
+        --menu "Select what keyboard layout (keymap) you wish to use. This can later be changed inside SHORK 486 by running shorkmap." $HEIGHT $WIDTH 25 \
         "${KEYMAP_ITEMS[@]}" \
-        2>&1 >/dev/tty)
+        3>&1 1>&2 2>&3)
 fi
 
 
@@ -643,8 +675,8 @@ fi
 dialog --clear \
     --backtitle "SHORK 486 Build Configurator" \
     --title "Patched EXTLINUX" \
-    --yesno "Do you want to use SHORK's patched fork of the EXTLINUX bootloader, instead of your host distribution's maintained package version? The patched fork fixes a memory detection issue that *may* prevent booting with certain old BIOS implementations. It is recommended to say \"Yes\" but it will increase build time." \
-    9 $WIDTH
+    --yesno "Do you want to use SHORK's patched fork of the EXTLINUX bootloader, instead of your host distribution's maintained package version? The patched fork fixes a memory detection issue that *may* prevent booting with certain old BIOS implementations. It is recommended to say \"Yes\" but it will increase build time.\n\nKnown computers that require this: Chicony NB5/derivatives, HP OmniBook 800CT, IBM 2625 ThinkPad 365E/365ED and IBM 6381 PS/ValuePoint" \
+    12 $WIDTH
 
 CHOICE=$?
 
@@ -752,7 +784,7 @@ OPTIONS=$(dialog --clear \
     --title "Options" \
     --cancel-label "Skip" \
     --checklist "Select what other options to include. Some of these are benign, some may increase the RAM and disk space requirement considerably, some are experimental.\n* This option would be included in a \"default\" build\n** This option can raise system memory requirements" $HEIGHT $WIDTH 9 \
-    "con-fonts"     "*Console fonts pack (+0.05MiB)"                            $(val $INCLUDE_CON_FONTS) \
+    "con-fonts"     "*Console fonts pack (+0.1MiB)"                             $(val $INCLUDE_CON_FONTS) \
     "grub"          "GRUB 2.x instead of EXTLINUX (+4MiB)"                      $(val $USE_GRUB) \
     "gui"           "**SHORKGUI (+46MiB, EXPERIMENTAL)"                         $(val $INCLUDE_GUI) \
     "highmem"       "**Kernel-level high memory support"                        $(val $ENABLE_HIGHMEM) \

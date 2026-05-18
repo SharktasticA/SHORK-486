@@ -143,6 +143,7 @@ IS_FEDORA=false
 PHYSICAL_ALIGN=0x2000
 PHYSICAL_START=""
 ROOT_PASSWD=""
+SCANCODE_SET=-1
 SET_KEYMAP=""
 SHORKUTILS_RECLONE=false
 SKIP_BB=false
@@ -3288,14 +3289,34 @@ get_console_fonts()
     echo -e "${GREEN}Installing console fonts...${RESET}"
 
     FONTS+=(
+        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat2-Fixed13.psf"
+        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat2-Fixed14.psf"
         "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat2-Fixed16.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat2-Terminus16.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat2-VGA16.psf"
+        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat2-Fixed18.psf"
+        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat7-Fixed13.psf"
+        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat7-Fixed14.psf"
         "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat7-Fixed16.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat7-Terminus16.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat7-VGA16.psf"
+        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat7-Fixed18.psf"
+        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat15-Fixed13.psf"
+        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat15-Fixed14.psf"
         "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat15-Fixed16.psf"
+        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat15-Fixed18.psf"
+
+        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat2-Terminus14.psf"
+        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat2-Terminus16.psf"
+        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat7-Terminus14.psf"
+        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat7-Terminus16.psf"
+        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat15-Terminus14.psf"
         "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat15-Terminus16.psf"
+
+        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat2-VGA8.psf"
+        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat2-VGA14.psf"
+        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat2-VGA16.psf"
+        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat7-VGA8.psf"
+        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat7-VGA14.psf"
+        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat7-VGA16.psf"
+        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat15-VGA8.psf"
+        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat15-VGA14.psf"
         "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat15-VGA16.psf"
     )
 
@@ -3626,6 +3647,9 @@ get_lapifetch()
     fi
 
     sed -i 's/^install: all$/install:/' Makefile
+    sed -i '1s/^/DESTDIR =\n\n/' Makefile
+    sed -i 's|cp $(TARGET) /usr/local/bin|cp $(TARGET) $(DESTDIR)/usr/local/bin|' Makefile
+    sed -i 's|rm -f /usr/local/bin/$(TARGET)|rm -f $(DESTDIR)/usr/local/bin/$(TARGET)|' Makefile
 
     # Compile and install
     echo -e "${GREEN}Compiling lapifetch...${RESET}"
@@ -4804,6 +4828,11 @@ install_grub_bootloader()
         copy_sysfile $CURR_DIR/sysfiles/grub.cfg.boot "/mnt/${ID}/boot/grub/grub.cfg"
     fi
 
+    # If required, specify the target scancode set
+    if [[ $SCANCODE_SET != -1 ]]; then
+        sudo sed -i "s/atkbd.extra=1/atkbd.set=${SCANCODE_SET} atkbd.extra=1/" "/mnt/${ID}/boot/grub/grub.cfg"
+    fi
+
     sudo mount --bind /dev  "/mnt/${ID}/dev"
     sudo mount --bind /proc "/mnt/${ID}/proc"
     sudo mount --bind /sys  "/mnt/${ID}/sys"
@@ -4865,6 +4894,11 @@ install_extlinux_bootloader()
     else
         echo -e "${GREEN}Installing boot-only EXTLINUX bootloader...${RESET}"
         copy_sysfile $CURR_DIR/sysfiles/syslinux.cfg.boot  "/mnt/${ID}/boot/syslinux/syslinux.cfg"
+    fi
+
+    # If required, specify the target scancode set
+    if [[ $SCANCODE_SET != -1 ]]; then
+        sudo sed -i "s/atkbd.extra=1/atkbd.set=${SCANCODE_SET} atkbd.extra=1/" "/mnt/${ID}/boot/syslinux/syslinux.cfg"
     fi
 
     sudo "$EXTLINUX_BIN" --install "/mnt/${ID}/boot/syslinux"
@@ -5515,7 +5549,7 @@ generate_report()
             while IFS= read -r envline; do
                 case "$envline" in
                     ROOT_PASSWD=*)
-                        lines+=("ROOT_PASSWD=*redacted*")
+                        lines+=("ROOT_PASSWD=*REDACTED*")
                         ;;
                     *)
                         lines+=("$envline")
