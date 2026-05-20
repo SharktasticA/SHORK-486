@@ -3355,10 +3355,22 @@ get_console_fonts()
         sudo wget $FONT -O $DEST
     done
 
-    # Download relevant licence files
+    # Download Terminus' licence file
+    TERMINUS_MIRRORS=(
+        "https://altushost-bul.dl.sourceforge.net/project/terminus-font/terminus-font-4.49"
+        "https://altushost-swe.dl.sourceforge.net/project/terminus-font/terminus-font-4.49"
+        "https://sf-eu-introserv-3.dl.sourceforge.net/project/terminus-font/terminus-font-4.49"
+    )
     TERMINUS_ARC="terminus-font-4.49.1.tar.gz"
-    [ -f "$TERMINUS_ARC" ] || wget https://altushost-bul.dl.sourceforge.net/project/terminus-font/terminus-font-4.49/$TERMINUS_ARC 
-    
+
+    if [ ! -f "$TERMINUS_ARC" ]; then
+        for MIRROR in "${TERMINUS_MIRRORS[@]}"; do
+            if wget --timeout=5 --tries=1 "$MIRROR/$TERMINUS_ARC"; then
+                break
+            fi
+        done
+    fi
+
     tar -xzf $TERMINUS_ARC -O terminus-font-4.49.1/OFL.TXT > $CURR_DIR/build/LICENCES/Terminus.txt
 
     cd $DESTDIR
