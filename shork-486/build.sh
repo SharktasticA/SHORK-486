@@ -89,46 +89,80 @@ PREFIX="${CURR_DIR}/build/${CROSS}"
 AR="${PREFIX}/bin/${ARCH}-linux-musl-ar"
 CC="${PREFIX}/bin/${ARCH}-linux-musl-gcc"
 CC_STATIC="${CURR_DIR}/${ARCH}-linux-musl-gcc-static"
+CXX="${PREFIX}/bin/${ARCH}-linux-musl-g++"
 CXX_STATIC="${CURR_DIR}/${ARCH}-linux-musl-gxx-static"
 DESTDIR="${CURR_DIR}/build/root"
 HOST="${ARCH}-linux-musl"
+LD="${PREFIX}/bin/${ARCH}-linux-musl-ld"
 RANLIB="${PREFIX}/bin/${ARCH}-linux-musl-ranlib"
 STRIP="${PREFIX}/bin/${ARCH}-linux-musl-strip"
 SYSROOT="${PREFIX}/${ARCH}-linux-musl"
 
 # Target software/feature versions
+BUSYBOX_SRC="https://github.com/vda-linux/busybox_mirror.git"
 BUSYBOX_VER="1_37_0"
+C3270_SRC="https://github.com/pmattes/x3270.git"
 C3270_VER="4.5ga5"
+CMATRIX_SRC="https://github.com/abishekvashok/cmatrix.git"
 CMATRIX_VER="2.0"
+CURL_SRC="https://curl.se/download"
 CURL_VER="8.20.0"
-DROPBEAR_VER="2026.90"
+DROPBEAR_SRC="https://github.com/mkj/dropbear.git"
+DROPBEAR_VER="2026.91"
+FILE_SRC="https://github.com/file/file.git"
 FILE_VER="5_47"
+GIT_SRC="https://github.com/git/git.git"
 GIT_VER="2.54.0"
-HTOP_VER="3.5.0"
+HTOP_SRC="https://github.com/htop-dev/htop.git"
+HTOP_VER="3.5.1"
+KERNEL_SRC="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git"
 KERNEL_VER="7.0.9"
+LIBEVENT_SRC="https://github.com/libevent/libevent.git"
 LIBEVENT_VER="release-2.1.12-stable"
+LIBXLSXWRITER_SRC="https://github.com/jmcnamara/libxlsxwriter.git"
 LIBXLSXWRITER_VER="1.2.4"
+LIBXML2_SRC="https://github.com/gnome/libxml2.git"
 LIBXML2_VER="2.15.3"
+LIBZIP_SRC="https://github.com/nih-at/libzip.git"
 LIBZIP_VER="1.11.4"
+LYNX_SRC="https://github.com/ThomasDickey/lynx-snapshots.git"
 LYNX_VER="2-9-2x"
+MG_SRC="https://github.com/troglobit/mg.git"
 MG_VER="3.7"
+MICROPYTHON_SRC="https://github.com/micropython/micropython.git"
 MICROPYTHON_VER="1.28.0"
+MT_ST_SRC="https://github.com/iustin/mt-st.git"
 MT_ST_VER="1.8"
-MUSL_VER="1.2.5"
+MUSL_SRC="https://musl.libc.org/releases"
+MUSL_VER="1.2.6"
+NANO_SRC="https://www.nano-editor.org/dist"
 NANO_DIST="v9"
 NANO_VER="9.0"
+NCURSES_SRC="https://github.com/mirror/ncurses.git"
 NCURSES_VER="6.4"
+NEDIT_SRC="https://git.code.sf.net/p/nedit/git"
 NEDIT_VER="NEDIT-CLASSIC-END"
+OPENSSL_SRC="https://github.com/openssl/openssl.git"
 OPENSSL_VER="3.6.2"
+ROVER_SRC="https://github.com/lecram/rover.git"
 ROVER_VER="1.0.1"
+SC_IM_SRC="https://github.com/andmarti1424/sc-im.git"
 SC_IM_VER="0.8.5"
+STRACE_SRC="https://github.com/strace/strace.git"
 STRACE_VER="7.0"
+TCC_SRC="https://github.com/Tiny-C-Compiler/tinycc-mirror-repository.git"
 TCC_VER="e5eedc0"
+TMUX_SRC="https://github.com/tmux/tmux.git"
 TMUX_VER="3.6a"
+TN5250_SRC="https://github.com/tn5250/tn5250.git"
 TN5250_VER="0.18.0"
+TNFTP_SRC="https://ftp.netbsd.org/pub/NetBSD/misc/tnftp"
 TNFTP_VER="20260211"
+TWM_SRC="https://gitlab.freedesktop.org/xorg/app/twm.git"
 TWM_VER="1.0.13.1"
-UTIL_LINUX_VER="2.42"
+UTIL_LINUX_SRC="https://github.com/util-linux/util-linux.git"
+UTIL_LINUX_VER="2.42.1"
+ZLIB_SRC="https://github.com/madler/zlib.git"
 ZLIB_VER="1.3.2"
 
 # MBR binary
@@ -700,7 +734,7 @@ get_ncurses()
         git reset --hard
     else
         echo -e "${GREEN}Downloading ncurses...${RESET}"
-        git clone --branch v${NCURSES_VER} https://github.com/mirror/ncurses.git
+        git clone --branch v${NCURSES_VER} $NCURSES_SRC
         cd ncurses
     fi
 
@@ -780,7 +814,7 @@ get_curl()
     
     CURL="curl-${CURL_VER}"
     CURL_ARC="${CURL}.tar.xz"
-    CURL_URI="https://curl.se/download/${CURL_ARC}"
+    CURL_URI="${CURL_SRC}/${CURL_ARC}"
 
     # Download source
     [ -f $CURL_ARC ] || wget $CURL_URI
@@ -823,7 +857,7 @@ get_libevent()
         git reset --hard
     else
         echo -e "${GREEN}Downloading libevent...${RESET}"
-        git clone --branch ${LIBEVENT_VER} https://github.com/libevent/libevent.git
+        git clone --branch ${LIBEVENT_VER} $LIBEVENT_SRC
         cd libevent
     fi
 
@@ -853,7 +887,7 @@ get_libxlsxwriter()
         git reset --hard
     else
         echo -e "${GREEN}Downloading libxlsxwriter...${RESET}"
-        git clone --branch v${LIBXLSXWRITER_VER} https://github.com/jmcnamara/libxlsxwriter.git
+        git clone --branch v${LIBXLSXWRITER_VER} $LIBXLSXWRITER_SRC
         cd libxlsxwriter
     fi
 
@@ -889,7 +923,7 @@ get_libxml2()
         git reset --hard
     else
         echo -e "${GREEN}Downloading libxml2...${RESET}"
-        git clone --branch v${LIBXML2_VER} https://github.com/gnome/libxml2.git
+        git clone --branch v${LIBXML2_VER} $LIBXML2_SRC
         cd libxml2
     fi
 
@@ -924,7 +958,7 @@ get_libzip()
         git reset --hard
     else
         echo -e "${GREEN}Downloading libzip...${RESET}"
-        git clone --branch v${LIBZIP_VER} https://github.com/nih-at/libzip.git
+        git clone --branch v${LIBZIP_VER} $LIBZIP_SRC
         cd libzip
     fi
 
@@ -975,7 +1009,7 @@ get_openssl()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading OpenSSL...${RESET}"
-        git clone --branch openssl-${OPENSSL_VER} https://github.com/openssl/openssl.git
+        git clone --branch openssl-${OPENSSL_VER} $OPENSSL_SRC
         cd openssl
     fi
 
@@ -1009,7 +1043,7 @@ get_zlib()
         git reset --hard
     else
         echo -e "${GREEN}Downloading zlib...${RESET}"
-        git clone --branch v${ZLIB_VER} https://github.com/madler/zlib.git
+        git clone --branch v${ZLIB_VER} $ZLIB_SRC
         cd zlib
     fi
 
@@ -1101,7 +1135,7 @@ get_busybox()
         git reset --hard
     else
         echo -e "${GREEN}Downloading BusyBox...${RESET}"
-        git clone --branch $BUSYBOX_VER https://github.com/vda-linux/busybox_mirror.git
+        git clone --branch $BUSYBOX_VER $BUSYBOX_SRC
         cd busybox_mirror
     fi
 
@@ -1178,7 +1212,7 @@ get_strace()
         git reset --hard
     else
         echo -e "${GREEN}Downloading strace...${RESET}"
-        git clone --branch v$STRACE_VER https://github.com/strace/strace.git
+        git clone --branch v$STRACE_VER $STRACE_SRC
         cd strace
     fi
 
@@ -1213,7 +1247,7 @@ get_util_linux()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading util-linux...${RESET}"
-        git clone --depth=1 --branch v$UTIL_LINUX_VER https://github.com/util-linux/util-linux.git
+        git clone --depth=1 --branch v$UTIL_LINUX_VER $UTIL_LINUX_SRC
         cd util-linux
     fi
 
@@ -1290,7 +1324,7 @@ download_kernel()
     cd "$CURR_DIR/build"
     echo -e "${GREEN}Downloading the Linux kernel...${RESET}"
     if [ ! -d "linux" ]; then
-        git clone --depth=1 --branch v$KERNEL_VER https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git || true
+        git clone --depth=1 --branch "v$KERNEL_VER" $KERNEL_SRC || true
         cd "$CURR_DIR/build/linux"
         configure_kernel
     fi
@@ -2842,7 +2876,7 @@ get_twm()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading TWM...${RESET}"
-        git clone --branch "twm-${TWM_VER}" https://gitlab.freedesktop.org/xorg/app/twm.git
+        git clone --branch "twm-${TWM_VER}" $TWM_SRC
         cd twm
     fi
 
@@ -2888,7 +2922,7 @@ get_nedit()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading NEdit...${RESET}"
-        git clone https://git.code.sf.net/p/nedit/git nedit-git
+        git clone $NEDIT_SRC nedit-git
         cd nedit-git
         git checkout $NEDIT_VER
     fi
@@ -3356,7 +3390,7 @@ get_c3270()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading c3270...${RESET}"
-        git clone --branch ${C3270_VER} https://github.com/pmattes/x3270.git
+        git clone --branch ${C3270_VER} $C3270_SRC
         cd x3270
     fi
 
@@ -3406,7 +3440,7 @@ get_cmatrix()
         git reset --hard
     else
         echo -e "${GREEN}Downloading CMatrix...${RESET}"
-        git clone --branch v${CMATRIX_VER} https://github.com/abishekvashok/cmatrix.git
+        git clone --branch v${CMATRIX_VER} $CMATRIX_SRC
         cd cmatrix
     fi
 
@@ -3447,7 +3481,7 @@ get_dropbear()
         git reset --hard
     else
         echo -e "${GREEN}Downloading Dropbear...${RESET}"
-        git clone --branch DROPBEAR_${DROPBEAR_VER} https://github.com/mkj/dropbear.git
+        git clone --branch DROPBEAR_${DROPBEAR_VER} $DROPBEAR_SRC
         cd dropbear
     fi
 
@@ -3482,7 +3516,7 @@ get_file()
         git reset --hard
     else
         echo -e "${GREEN}Downloading file...${RESET}"
-        git clone --branch "FILE$FILE_VER" https://github.com/file/file.git
+        git clone --branch "FILE$FILE_VER" $FILE_SRC
         cd file
     fi
 
@@ -3562,7 +3596,7 @@ get_git()
         git reset --hard
     else
         echo -e "${GREEN}Downloading Git...${RESET}"
-        git clone --branch "v${GIT_VER}" https://github.com/git/git.git
+        git clone --branch "v${GIT_VER}" $GIT_SRC
         cd git
     fi
 
@@ -3597,7 +3631,7 @@ get_htop()
         git reset --hard
     else
         echo -e "${GREEN}Downloading htop...${RESET}"
-        git clone --branch "${HTOP_VER}" https://github.com/htop-dev/htop.git
+        git clone --branch "${HTOP_VER}" $HTOP_SRC
         cd htop
     fi
 
@@ -3669,7 +3703,7 @@ get_lynx()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading Lynx...${RESET}"
-        git clone --branch "v${LYNX_VER}" https://github.com/ThomasDickey/lynx-snapshots.git
+        git clone --branch "v${LYNX_VER}" $LYNX_SRC
         cd lynx-snapshots
     fi
 
@@ -3711,7 +3745,7 @@ get_musl()
 
     MUSL="musl-${MUSL_VER}"
     MUSL_ARC="${MUSL}.tar.gz"
-    MUSL_URI="https://musl.libc.org/releases/${MUSL_ARC}"
+    MUSL_URI="${MUSL_SRC}/${MUSL_ARC}"
 
     # Download source
     [ -f $MUSL_ARC ] || wget $MUSL_URI
@@ -3755,7 +3789,7 @@ get_mg()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading Mg...${RESET}"
-        git clone --branch "v${MG_VER}" https://github.com/troglobit/mg.git
+        git clone --branch "v${MG_VER}" $MG_SRC
         cd mg
     fi
 
@@ -3799,7 +3833,7 @@ get_micropython()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading MicroPython...${RESET}"
-        git clone --branch "v${MICROPYTHON_VER}" https://github.com/micropython/micropython.git
+        git clone --branch "v${MICROPYTHON_VER}" $MICROPYTHON_SRC
         cd micropython
     fi
     
@@ -3859,7 +3893,7 @@ get_mt_st()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading mt-st...${RESET}"
-        git clone --branch "v${MT_ST_VER}" https://github.com/iustin/mt-st.git
+        git clone --branch "v${MT_ST_VER}" $MT_ST_SRC
         cd mt-st
     fi
 
@@ -3887,7 +3921,7 @@ get_nano()
     
     NANO="nano-${NANO_VER}"
     NANO_ARC="${NANO}.tar.xz"
-    NANO_URI="https://www.nano-editor.org/dist/${NANO_DIST}/${NANO_ARC}"
+    NANO_URI="${NANO_SRC}/${NANO_DIST}/${NANO_ARC}"
 
     # Download source
     [ -f $NANO_ARC ] || wget $NANO_URI
@@ -3942,7 +3976,7 @@ get_rover()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading Rover...${RESET}"
-        git clone --branch v$ROVER_VER https://github.com/lecram/rover.git
+        git clone --branch v$ROVER_VER $ROVER_SRC
         cd rover
     fi
 
@@ -3990,7 +4024,7 @@ get_sc_im()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading sc-im...${RESET}"
-        git clone --branch "v${SC_IM_VER}" https://github.com/andmarti1424/sc-im.git
+        git clone --branch "v${SC_IM_VER}" $SC_IM_SRC
         cd sc-im
     fi
 
@@ -4038,7 +4072,7 @@ get_tcc()
         git reset --hard
     else
         echo -e "${GREEN}Downloading Tiny C Compiler...${RESET}"
-        git clone https://github.com/Tiny-C-Compiler/tinycc-mirror-repository.git
+        git clone $TCC_SRC
         cd tinycc-mirror-repository
         git checkout $TCC_VER
     fi
@@ -4080,7 +4114,7 @@ get_tmux()
         git reset --hard
     else
         echo -e "${GREEN}Downloading tmux...${RESET}"
-        git clone --branch "${TMUX_VER}" https://github.com/tmux/tmux.git
+        git clone --branch "${TMUX_VER}" $TMUX_SRC
         cd tmux
     fi
 
@@ -4129,7 +4163,7 @@ get_tn5250()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading tn5250...${RESET}"
-        git clone --branch "v${TN5250_VER}" https://github.com/tn5250/tn5250.git
+        git clone --branch "v${TN5250_VER}" $TN5250_SRC
         cd tn5250
     fi
 
@@ -4175,7 +4209,7 @@ get_tnftp()
 
     TNFTP="tnftp-${TNFTP_VER}"
     TNFTP_ARC="${TNFTP}.tar.gz"
-    TNFTP_URI="https://ftp.netbsd.org/pub/NetBSD/misc/tnftp/${TNFTP_ARC}"
+    TNFTP_URI="${TNFTP_SRC}/${TNFTP_ARC}"
 
     # Download source
     [ -f $TNFTP_ARC ] || wget $TNFTP_URI
@@ -5560,6 +5594,7 @@ if ! $DONT_DEL_ROOT; then
 fi
 
 mkdir -p build/LICENCES
+mkdir -p build/staging
 get_prerequisites
 get_musl_cross
 
