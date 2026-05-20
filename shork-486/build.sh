@@ -115,6 +115,8 @@ GIT_SRC="https://github.com/git/git.git"
 GIT_VER="2.54.0"
 HTOP_SRC="https://github.com/htop-dev/htop.git"
 HTOP_VER="3.5.1"
+JOE_SRC="https://github.com/joe-editor/joe"
+JOE_VER="4.8"
 KERNEL_SRC="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git"
 KERNEL_VER="7.0.9"
 LIBEVENT_SRC="https://github.com/libevent/libevent.git"
@@ -222,6 +224,7 @@ INCLUDE_GCC=false
 INCLUDE_GIT=true
 INCLUDE_GUI=false
 INCLUDE_HTOP=true
+INCLUDE_JOE=true
 INCLUDE_KEYMAPS=true
 INCLUDE_LYNX=true
 INCLUDE_MG=true
@@ -3708,6 +3711,48 @@ get_lapifetch()
     cp LICENSE $CURR_DIR/build/LICENCES/lapifetch.txt
 }
 
+# Download and compile JOE
+get_joe()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$DESTDIR/usr/bin/joe" ]; then
+        echo -e "${LIGHT_RED}Lynx already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d joe ]; then
+        echo -e "${YELLOW}JOE source already present, resetting...${RESET}"
+        cd joe
+        git config --global --add safe.directory "$CURR_DIR/build/joe"
+        git reset --hard
+    else
+        echo -e "${GREEN}Downloading JOE...${RESET}"
+        git clone --branch "releases/joe-${JOE_VER}" $JOE_SRC
+        cd joe
+    fi
+
+    # Use freopen instead of fclose on stdin since the latter is not compatible
+    # with musl
+    sed -i '/fclose(stdin);/!b;n;s/stdin = fopen/freopen/;s/);/, stdin);/' joe/main.c
+
+    # Compile and install
+    echo -e "${GREEN}Compiling JOE...${RESET}"
+    autoreconf -fiv
+    ./configure \
+        --host=${HOST} \
+        --prefix=/usr \
+        --sysconfdir=/etc \
+        CC="${CC_STATIC}"
+    make -j$(nproc)
+    sudo make DESTDIR=$DESTDIR install
+
+    # Copy licence file
+    cp COPYING $CURR_DIR/build/LICENCES/joe.txt
+}
+
 # Download and compile Lynx
 get_lynx()
 {
@@ -4795,6 +4840,10 @@ trim_fat()
         sudo rm -rf "$DESTDIR/home/kali"
     fi
 
+    if $INCLUDE_JOE; then
+        sudo rm -rf "$DESTDIR/usr/share/applications/joe.desktop"
+    fi
+
     if $INCLUDE_LYNX; then
         sudo sed -i '/^#/d' $DESTDIR/usr/etc/lynx.lss
         sudo sed -i '/^#/d' $DESTDIR/usr/etc/lynx.cfg
@@ -5562,6 +5611,12 @@ get_installed_programs_features()
         EXCLUDED_FEATURES+="\n * htop"
     fi
 
+    if [ -f "$DESTDIR/usr/bin/joe" ]; then
+        INCLUDED_FEATURES+="\n * joe ($JOE_VER)"
+    else
+        EXCLUDED_FEATURES+="\n * joe"
+    fi
+
     if [ -f "$DESTDIR/usr/bin/lsblk" ]; then
         INCLUDED_FEATURES+="\n * lsblk (util-linux, $UTIL_LINUX_VER)"
     else
@@ -5871,6 +5926,9 @@ if $INCLUDE_GIT; then
 fi
 if $INCLUDE_HTOP; then
     get_htop
+fi
+if $INCLUDE_JOE; then
+    get_joe
 fi
 if $INCLUDE_LYNX; then
     get_lynx

@@ -54,6 +54,7 @@ INCLUDE_FILE=false
 INCLUDE_GCC=false
 INCLUDE_GIT=false
 INCLUDE_HTOP=false
+INCLUDE_JOE=false
 INCLUDE_LYNX=false
 INCLUDE_MG=false
 INCLUDE_MICROPYTHON=false
@@ -146,6 +147,7 @@ INCLUDE_FILE=$INCLUDE_FILE
 INCLUDE_GCC=$INCLUDE_GCC
 INCLUDE_GIT=$INCLUDE_GIT
 INCLUDE_HTOP=$INCLUDE_HTOP
+INCLUDE_JOE=$INCLUDE_JOE
 INCLUDE_LYNX=$INCLUDE_LYNX
 INCLUDE_MG=$INCLUDE_MG
 INCLUDE_MICROPYTHON=$INCLUDE_MICROPYTHON
@@ -205,6 +207,7 @@ set_minimal_vars()
     INCLUDE_GCC=false
     INCLUDE_GIT=false
     INCLUDE_HTOP=false
+    INCLUDE_JOE=false
     INCLUDE_LYNX=false
     INCLUDE_MG=false
     INCLUDE_MICROPYTHON=false
@@ -245,6 +248,7 @@ set_default_vars()
     INCLUDE_GCC=false
     INCLUDE_GIT=true
     INCLUDE_HTOP=true
+    INCLUDE_JOE=false
     INCLUDE_LYNX=true
     INCLUDE_MG=true
     INCLUDE_MICROPYTHON=true
@@ -712,6 +716,7 @@ if [ "$ENABLE_NET_ETH" == true ]; then
         "gcc"           "**GCC (as, g++, gcc, gfortran) + musl (+215MiB)"   "$(val "$INCLUDE_GCC")"
         "git"           "*Source control client (+19MiB)"                   "$(val "$INCLUDE_GIT")"
         "htop"          "*Interactive process viewer (+0.6MiB)"             "$(val "$INCLUDE_HTOP")"
+        "joe"           "WordStar-style text editor (+1.9MiB)"              "$(val "$INCLUDE_JOE")"
         "lynx"          "*Terminal web browser (+7.3MiB)"                   "$(val "$INCLUDE_LYNX")"
         "mg"            "*Emacs-style text editor (+0.3MiB)"                "$(val "$INCLUDE_MG")"
         "micropython"   "*Python 3.4-syntax intepreter (+0.7MiB)"           "$(val "$INCLUDE_MICROPYTHON")"
@@ -721,7 +726,7 @@ if [ "$ENABLE_NET_ETH" == true ]; then
         "shorktainment" "*shorkmatrix, shorksay & sl (+0.1MiB)"             "$(val "$INCLUDE_SHORKTAINMENT")"
         "strace"        "*System calls & signals tracer (+1.1MiB)"          "$(val "$INCLUDE_STRACE")"
         "tcc"           "*Tiny C Compiler + musl (+4MiB)"                   "$(val "$INCLUDE_TCC")"
-        #"tilde"         "*GUI-like text editor (+4.5MiB)"                   "$(val "$INCLUDE_TILDE")"
+        #"tilde"         "GUI-like text editor (+4.5MiB)"                    "$(val "$INCLUDE_TILDE")"
         "tn5250"        "TCP/IP 5250 terminal emulator (+6.4MiB)"           "$(val "$INCLUDE_TN5250")"
         "tnftp"         "*FTP client (+0.3MiB)"                             "$(val "$INCLUDE_TNFTP")"
         "tmux"          "*Terminal multiplexer (+1.7MiB)"                   "$(val "$INCLUDE_TMUX")"
@@ -734,6 +739,7 @@ else
         "file"          "*File type identification (+10MiB)"                "$(val "$INCLUDE_FILE")"
         "gcc"           "**GCC (as, g++, gcc, gfortran) + musl (+215MiB)"   "$(val "$INCLUDE_GCC")"
         "htop"          "*Interactive process viewer (+0.6MiB)"             "$(val "$INCLUDE_HTOP")"
+        "joe"           "Joe's Own Editor (+1.9MiB)"                        "$(val "$INCLUDE_JOE")"
         "mg"            "*Emacs-style text editor (+0.3MiB)"                "$(val "$INCLUDE_MG")"
         "micropython"   "*Python 3.4-syntax intepreter (+0.7MiB)"           "$(val "$INCLUDE_MICROPYTHON")"
         "mt-st"         "*Tape drive tools (+0.2MiB)"                       "$(val "$INCLUDE_MT_ST")"
@@ -742,7 +748,7 @@ else
         "shorktainment" "*shorkmatrix, shorksay & sl (+0.1MiB)"             "$(val "$INCLUDE_SHORKTAINMENT")"
         "strace"        "*System calls & signals tracer (+1.1MiB)"          "$(val "$INCLUDE_STRACE")"
         "tcc"           "*Tiny C Compiler + musl (+4MiB)"                   "$(val "$INCLUDE_TCC")"
-        #"tilde"         "*GUI-like text editor (+4.5MiB)"                   "$(val "$INCLUDE_TILDE")"
+        #"tilde"         "GUI-like text editor (+4.5MiB)"                    "$(val "$INCLUDE_TILDE")"
         "util-linux"    "*lsblk, partx, sfdisk & whereis (+1.9MiB)"         "$(val "$INCLUDE_UTIL_LINUX")"
     )
 fi
@@ -769,6 +775,7 @@ else
     if [[ $BUNDLED =~ "gcc" ]];             then INCLUDE_GCC=true;              else INCLUDE_GCC=false;             fi
     if [[ $BUNDLED =~ "git" ]];             then INCLUDE_GIT=true;              else INCLUDE_GIT=false;             fi
     if [[ $BUNDLED =~ "htop" ]];            then INCLUDE_HTOP=true;             else INCLUDE_HTOP=false;            fi
+    if [[ $BUNDLED =~ "joe" ]];             then INCLUDE_JOE=true;              else INCLUDE_JOE=false;             fi
     if [[ $BUNDLED =~ "lynx" ]];            then INCLUDE_LYNX=true;             else INCLUDE_LYNX=false;            fi
     if [[ $BUNDLED =~ "mg" ]];              then INCLUDE_MG=true;               else INCLUDE_MG=false;              fi
     if [[ $BUNDLED =~ "micropython" ]];     then INCLUDE_MICROPYTHON=true;      else INCLUDE_MICROPYTHON=false;     fi
