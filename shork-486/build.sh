@@ -119,6 +119,15 @@ KERNEL_SRC="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git"
 KERNEL_VER="7.0.9"
 LIBEVENT_SRC="https://github.com/libevent/libevent.git"
 LIBEVENT_VER="release-2.1.12-stable"
+LIBT3_SRC="https://os.ghalkes.nl/dist"
+LIBT3CONFIG_VER="1.0.0"
+LIBT3HIGHLIGHT_VER="0.5.0"
+LIBT3KEY_VER="0.2.11"
+LIBT3WIDGET_VER="1.2.2"
+LIBT3WINDOW_VER="0.4.2"
+LIBTRANSCRIPT_VER="0.3.4"
+LIBUNISTRING_SRC="https://ftp.gnu.org/gnu/libunistring"
+LIBUNISTRING_VER="1.4"
 LIBXLSXWRITER_SRC="https://github.com/jmcnamara/libxlsxwriter.git"
 LIBXLSXWRITER_VER="1.2.4"
 LIBXML2_SRC="https://github.com/gnome/libxml2.git"
@@ -144,6 +153,8 @@ NEDIT_SRC="https://git.code.sf.net/p/nedit/git"
 NEDIT_VER="NEDIT-CLASSIC-END"
 OPENSSL_SRC="https://github.com/openssl/openssl.git"
 OPENSSL_VER="3.6.2"
+PCRE2_SRC="https://github.com/PCRE2Project/pcre2/releases/download"
+PCRE2_VER="10.47"
 ROVER_SRC="https://github.com/lecram/rover.git"
 ROVER_VER="1.0.1"
 SC_IM_SRC="https://github.com/andmarti1424/sc-im.git"
@@ -152,6 +163,7 @@ STRACE_SRC="https://github.com/strace/strace.git"
 STRACE_VER="7.0"
 TCC_SRC="https://github.com/Tiny-C-Compiler/tinycc-mirror-repository.git"
 TCC_VER="e5eedc0"
+TILDE_VER="1.1.3"
 TMUX_SRC="https://github.com/tmux/tmux.git"
 TMUX_VER="3.6a"
 TN5250_SRC="https://github.com/tn5250/tn5250.git"
@@ -222,6 +234,7 @@ INCLUDE_SHORKTAINMENT=true
 INCLUDE_STRACE=true
 INCLUDE_TESTS=false
 INCLUDE_TCC=true
+INCLUDE_TILDE=false
 INCLUDE_TMUX=true
 INCLUDE_TN5250=false
 INCLUDE_TNFTP=true
@@ -588,7 +601,7 @@ install_debian_prerequisites()
     sudo dpkg --add-architecture i386
     sudo apt-get update
 
-    PACKAGES="autopoint bc bison bzip2 e2fsprogs extlinux fdisk flex git kpartx libtool make pkg-config python3 python-is-python3 qemu-utils syslinux wget xz-utils"
+    PACKAGES="autopoint bc bison bzip2 e2fsprogs extlinux fdisk flex git kpartx libtool libtool-bin make pkg-config python3 python-is-python3 qemu-utils syslinux wget xz-utils"
 
     if $INCLUDE_GUI; then
         PACKAGES+=" fontconfig gettext gperf unzip xfonts-utils"
@@ -4107,6 +4120,166 @@ get_tcc()
     cp COPYING $CURR_DIR/build/LICENCES/tcc.txt
 }
 
+# Download and compile tilde
+get_tilde()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$DESTDIR/usr/bin/tilde" ]; then
+        echo -e "${LIGHT_RED}tilde already compiled, skipping...${RESET}"
+        #return
+    fi
+
+    # The components we need to download and compile for tilde - the order
+    # matters!
+    TILDE_CMPS=(
+        "libunistring       ${LIBUNISTRING_VER}"
+        "libtranscript      ${LIBTRANSCRIPT_VER}"
+        "libt3config        ${LIBT3CONFIG_VER}"
+        "libt3key           ${LIBT3KEY_VER}"
+        "libt3window        ${LIBT3WINDOW_VER}"
+        "pcre2              ${PCRE2_VER}"
+        "libt3widget        ${LIBT3WIDGET_VER}"
+        "libt3highlight     ${LIBT3HIGHLIGHT_VER}"
+        "tilde              ${TILDE_VER}"
+    )
+
+    # We symlinked various cross-compiler components under generic names
+    # because tilde/tilde component's build system looks for these
+    # specifically; without them, it tries to use the host's versions
+    mkdir -p "$CURR_DIR/build/fake-tools"
+    ln -sf "$CC"  "$CURR_DIR/build/fake-tools/gcc"
+    ln -sf "$CXX" "$CURR_DIR/build/fake-tools/g++"
+    ln -sf "$LD"  "$CURR_DIR/build/fake-tools/ld"
+    cp "$CURR_DIR/i486-linux-musl-pkg-config" "$CURR_DIR/build/fake-tools/"
+    sudo ln -sf $(which libtool) /usr/local/bin/i486-linux-musl-libtool
+
+    export PATH="$CURR_DIR/build/fake-tools:$PATH"
+    mkdir -p staging/usr/lib/pkgconfig
+    mkdir -p staging/usr/include
+
+    # Try telling pkg-config to only search our staging sysroot. We had issue
+    # using our usual sysroot.
+    export PKG_CONFIG_PATH="${DESTDIR}/usr/lib/pkgconfig:${CURR_DIR}/build/staging/usr/lib/pkgconfig"
+    export PKG_CONFIG_LIBDIR="${DESTDIR}/usr/lib/pkgconfig:${CURR_DIR}/build/staging/usr/lib/pkgconfig"
+    export PKG_CONFIG_SYSROOT_DIR="${CURR_DIR}/build/staging"
+
+    CFLAGS="--sysroot=${SYSROOT} -I${DESTDIR}/usr/include -I${CURR_DIR}/build/staging/usr/include -I${PREFIX}/include -I${PREFIX}/include/ncursesw --static"
+    LDFLAGS="--sysroot=${SYSROOT} -L${DESTDIR}/usr/lib -L${CURR_DIR}/build/staging/usr/lib -L${PREFIX}/lib --static"
+
+    # Download and compile each component
+    for CMP in "${TILDE_CMPS[@]}"; do
+        CMP_NAME=""
+        CMP_VER=""
+        read -r CMP_NAME CMP_VER <<< "$CMP"
+
+        echo -e "${GREEN}Downloading ${CMP_NAME}...${RESET}"
+        CMP_DIR="$CMP_NAME-$CMP_VER"
+
+        # The components come from different sources
+        if [ "$CMP_NAME" = "libunistring" ]; then
+            CMP_ARC="$CMP_NAME-$CMP_VER.tar.gz"
+            CMP_URI="${LIBUNISTRING_SRC}/${CMP_ARC}"
+        elif [ "$CMP_NAME" = "pcre2" ]; then
+            CMP_ARC="$CMP_NAME-$CMP_VER.tar.gz"
+            CMP_URI="${PCRE2}/${CMP_NAME}-${CMP_VER}/${CMP_ARC}"
+        else
+            CMP_ARC="$CMP_NAME-$CMP_VER.tar.bz2"
+            CMP_URI="${LIBT3_SRC}/${CMP_ARC}"
+        fi
+
+        # Download source
+        [ -f $CMP_ARC ] || wget $CMP_URI
+
+        # Extract source
+        if [ -d $CMP_DIR ]; then
+            echo -e "${YELLOW}${CMP_NAME}'s source archive is already present, re-extracting before proceeding...${RESET}"
+            sudo rm -rf $CMP_DIR
+        fi
+        if [ "$CMP_NAME" = "libunistring" ] || [ "$CMP_NAME" = "pcre2" ]; then
+            tar xzf $CMP_ARC
+        else
+            tar xjf $CMP_ARC
+        fi
+
+        cd $CMP_DIR
+
+        # Compile and install
+        echo -e "${GREEN}Compiling ${CMP_NAME}...${RESET}"
+        ./configure \
+            --host=i486-linux-musl \
+            --prefix=/usr \
+            --enable-static \
+            --disable-shared \
+            CC="${CC}" \
+            CXX="${CXX}" \
+            AR="${AR}" \
+            LD="${LD}" \
+            RANLIB="${RANLIB}" \
+            CFLAGS="$CFLAGS" \
+            CXXFLAGS="$CFLAGS" \
+            LDFLAGS="$LDFLAGS"
+
+        if [ "$CMP_NAME" = "tilde" ]; then
+            make -j$(nproc)
+            make DESTDIR="${DESTDIR}" install
+        elif [ "$CMP_NAME" = "libtranscript" ]; then
+            # If we tried compiling and installing this normally, the linkltc
+            # utility would also be attempted and would fail in a static
+            # cross-compile. Thus, we just compile the lib target and install
+            # what we need manually.
+            make -j$(nproc) lib
+            mkdir -p "${CURR_DIR}/build/staging/usr/include/transcript"
+            cp src/*.h "${CURR_DIR}/build/staging/usr/include/transcript/"
+            install -D "${CURR_DIR}/build/${CMP_DIR}/libtranscript.pc" "${CURR_DIR}/build/staging/usr/lib/pkgconfig/libtranscript.pc"
+            sed -i "s|prefix=/usr|prefix=${CURR_DIR}/build/staging/usr|" "${CURR_DIR}/build/staging/usr/lib/pkgconfig/libtranscript.pc"
+        elif [ "$CMP_NAME" = "libt3highlight" ]; then
+            # Similar to libtranscript...
+            make -j$(nproc) lib
+            mkdir -p "${CURR_DIR}/build/staging/usr/include/t3highlight"
+            cp src/*.h "${CURR_DIR}/build/staging/usr/include/t3highlight/" 2>/dev/null || true
+
+            # Install language definition files tilde needs at runtime
+            mkdir -p "${DESTDIR}/usr/share/libt3highlight0"
+            find "${CURR_DIR}/build/${CMP_DIR}/src/data" -type f | while read F; do
+                install -m0644 "$F" "${DESTDIR}/usr/share/libt3highlight0/"
+            done
+
+            install -D "${CURR_DIR}/build/${CMP_DIR}/libt3highlight.pc" "${CURR_DIR}/build/staging/usr/lib/pkgconfig/libt3highlight.pc"
+            sed -i "s|prefix=/usr|prefix=${CURR_DIR}/build/staging/usr|" "${CURR_DIR}/build/staging/usr/lib/pkgconfig/libt3highlight.pc"
+        else
+            make -j$(nproc)
+            make DESTDIR="${CURR_DIR}/build/staging" install
+            # Rewrite our libtool archives' libdir to our staging location so
+            # libtool can resolve them properly when we compile the next
+            # component
+            find "${CURR_DIR}/build/staging/usr/lib" -name "${CMP_NAME}*.la" | while read LA; do
+                sed -i "s|libdir='/usr/lib'|libdir='${CURR_DIR}/build/staging/usr/lib'|g" "$LA"
+                sed -i "s|libdir=\"/usr/lib\"|libdir=\"${CURR_DIR}/build/staging/usr/lib\"|g" "$LA"
+            done
+        fi
+
+        # Install install/lack of install results in now static archive of
+        # libtool *.o being made, we'll do it outselves
+        OBJS=$(find "${CURR_DIR}/build/${CMP_DIR}" -path "*/.libs/*.o" | tr '\n' ' ')
+        $AR rcs "${CURR_DIR}/build/staging/usr/lib/${CMP_NAME}.a" $OBJS
+        $RANLIB "${CURR_DIR}/build/staging/usr/lib/${CMP_NAME}.a"
+
+        # In case a compilation only generated its .pc file in the build
+        # directory install of installing it...
+        if [ -f "${CURR_DIR}/build/${CMP_DIR}/${CMP_NAME}.pc" ]; then
+            cp "${CURR_DIR}/build/${CMP_DIR}/${CMP_NAME}.pc" "${CURR_DIR}/build/staging/usr/lib/pkgconfig/"
+            sed -i "s|prefix=/usr|prefix=${CURR_DIR}/build/staging/usr|" "${CURR_DIR}/build/staging/usr/lib/pkgconfig/${CMP_NAME}.pc"
+        fi
+
+        cd "$CURR_DIR/build"
+    done
+
+    # Copy licence file
+    cp "tilde-${TILDE_VER}/COPYING" "$CURR_DIR/build/LICENCES/tilde.txt"
+}
+
 # Download and compile tmux
 get_tmux()
 {
@@ -5479,6 +5652,12 @@ get_installed_programs_features()
         EXCLUDED_FEATURES+="\n * tic"
     fi
 
+    if [ -f "$DESTDIR/usr/bin/tilde" ]; then
+        INCLUDED_FEATURES+="\n * tilde ($TILDE_VER)"
+    else
+        EXCLUDED_FEATURES+="\n * tilde"
+    fi
+
     if [ -f "$DESTDIR/usr/bin/tmux" ]; then
         INCLUDED_FEATURES+="\n * tmux ($TMUX_VER)"
     else
@@ -5714,6 +5893,9 @@ fi
 if $INCLUDE_TCC; then
     get_musl
     get_tcc
+fi
+if $INCLUDE_TILDE; then
+    get_tilde
 fi
 if $INCLUDE_TMUX; then
     get_tmux
