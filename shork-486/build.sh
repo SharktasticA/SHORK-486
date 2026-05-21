@@ -4228,7 +4228,7 @@ get_tilde()
             CMP_URI="${LIBUNISTRING_SRC}/${CMP_ARC}"
         elif [ "$CMP_NAME" = "pcre2" ]; then
             CMP_ARC="$CMP_NAME-$CMP_VER.tar.gz"
-            CMP_URI="${PCRE2}/${CMP_NAME}-${CMP_VER}/${CMP_ARC}"
+            CMP_URI="${PCRE2_SRC}/${CMP_NAME}-${CMP_VER}/${CMP_ARC}"
         else
             CMP_ARC="$CMP_NAME-$CMP_VER.tar.bz2"
             CMP_URI="${LIBT3_SRC}/${CMP_ARC}"
@@ -4268,7 +4268,7 @@ get_tilde()
 
         if [ "$CMP_NAME" = "tilde" ]; then
             make -j$(nproc)
-            make DESTDIR="${DESTDIR}" install
+            sudo make DESTDIR="${DESTDIR}" install
         elif [ "$CMP_NAME" = "libtranscript" ]; then
             # If we tried compiling and installing this normally, the linkltc
             # utility would also be attempted and would fail in a static
@@ -4286,9 +4286,9 @@ get_tilde()
             cp src/*.h "${CURR_DIR}/build/staging/usr/include/t3highlight/" 2>/dev/null || true
 
             # Install language definition files tilde needs at runtime
-            mkdir -p "${DESTDIR}/usr/share/libt3highlight0"
+            sudo mkdir -p "${DESTDIR}/usr/share/libt3highlight0"
             find "${CURR_DIR}/build/${CMP_DIR}/src/data" -type f | while read F; do
-                install -m0644 "$F" "${DESTDIR}/usr/share/libt3highlight0/"
+                sudo install -m0644 "$F" "${DESTDIR}/usr/share/libt3highlight0/"
             done
 
             install -D "${CURR_DIR}/build/${CMP_DIR}/libt3highlight.pc" "${CURR_DIR}/build/staging/usr/lib/pkgconfig/libt3highlight.pc"
