@@ -89,46 +89,94 @@ PREFIX="${CURR_DIR}/build/${CROSS}"
 AR="${PREFIX}/bin/${ARCH}-linux-musl-ar"
 CC="${PREFIX}/bin/${ARCH}-linux-musl-gcc"
 CC_STATIC="${CURR_DIR}/${ARCH}-linux-musl-gcc-static"
+CXX="${PREFIX}/bin/${ARCH}-linux-musl-g++"
 CXX_STATIC="${CURR_DIR}/${ARCH}-linux-musl-gxx-static"
 DESTDIR="${CURR_DIR}/build/root"
 HOST="${ARCH}-linux-musl"
+LD="${PREFIX}/bin/${ARCH}-linux-musl-ld"
 RANLIB="${PREFIX}/bin/${ARCH}-linux-musl-ranlib"
 STRIP="${PREFIX}/bin/${ARCH}-linux-musl-strip"
 SYSROOT="${PREFIX}/${ARCH}-linux-musl"
 
 # Target software/feature versions
+BUSYBOX_SRC="https://github.com/vda-linux/busybox_mirror.git"
 BUSYBOX_VER="1_37_0"
+C3270_SRC="https://github.com/pmattes/x3270.git"
 C3270_VER="4.5ga5"
+CMATRIX_SRC="https://github.com/abishekvashok/cmatrix.git"
 CMATRIX_VER="2.0"
+CURL_SRC="https://curl.se/download"
 CURL_VER="8.20.0"
-DROPBEAR_VER="2026.90"
+DROPBEAR_SRC="https://github.com/mkj/dropbear.git"
+DROPBEAR_VER="2026.91"
+FILE_SRC="https://github.com/file/file.git"
 FILE_VER="5_47"
+GIT_SRC="https://github.com/git/git.git"
 GIT_VER="2.54.0"
-HTOP_VER="3.5.0"
+HTOP_SRC="https://github.com/htop-dev/htop.git"
+HTOP_VER="3.5.1"
+JOE_SRC="https://github.com/joe-editor/joe"
+JOE_VER="4.8"
+KERNEL_SRC="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git"
 KERNEL_VER="7.1-rc4"
+LIBEVENT_SRC="https://github.com/libevent/libevent.git"
 LIBEVENT_VER="release-2.1.12-stable"
+LIBT3_SRC="https://os.ghalkes.nl/dist"
+LIBT3CONFIG_VER="1.0.0"
+LIBT3HIGHLIGHT_VER="0.5.0"
+LIBT3KEY_VER="0.2.11"
+LIBT3WIDGET_VER="1.2.2"
+LIBT3WINDOW_VER="0.4.2"
+LIBTRANSCRIPT_VER="0.3.4"
+LIBUNISTRING_SRC="https://ftp.gnu.org/gnu/libunistring"
+LIBUNISTRING_VER="1.4"
+LIBXLSXWRITER_SRC="https://github.com/jmcnamara/libxlsxwriter.git"
 LIBXLSXWRITER_VER="1.2.4"
+LIBXML2_SRC="https://github.com/gnome/libxml2.git"
 LIBXML2_VER="2.15.3"
+LIBZIP_SRC="https://github.com/nih-at/libzip.git"
 LIBZIP_VER="1.11.4"
+LYNX_SRC="https://github.com/ThomasDickey/lynx-snapshots.git"
 LYNX_VER="2-9-2x"
+MG_SRC="https://github.com/troglobit/mg.git"
 MG_VER="3.7"
+MICROPYTHON_SRC="https://github.com/micropython/micropython.git"
 MICROPYTHON_VER="1.28.0"
+MT_ST_SRC="https://github.com/iustin/mt-st.git"
 MT_ST_VER="1.8"
-MUSL_VER="1.2.5"
+MUSL_SRC="https://musl.libc.org/releases"
+MUSL_VER="1.2.6"
+NANO_SRC="https://www.nano-editor.org/dist"
 NANO_DIST="v9"
 NANO_VER="9.0"
+NCURSES_SRC="https://github.com/mirror/ncurses.git"
 NCURSES_VER="6.4"
+NEDIT_SRC="https://git.code.sf.net/p/nedit/git"
 NEDIT_VER="NEDIT-CLASSIC-END"
+OPENSSL_SRC="https://github.com/openssl/openssl.git"
 OPENSSL_VER="3.6.2"
+PCRE2_SRC="https://github.com/PCRE2Project/pcre2/releases/download"
+PCRE2_VER="10.47"
+ROVER_SRC="https://github.com/lecram/rover.git"
 ROVER_VER="1.0.1"
+SC_IM_SRC="https://github.com/andmarti1424/sc-im.git"
 SC_IM_VER="0.8.5"
+STRACE_SRC="https://github.com/strace/strace.git"
 STRACE_VER="7.0"
+TCC_SRC="https://github.com/Tiny-C-Compiler/tinycc-mirror-repository.git"
 TCC_VER="e5eedc0"
+TILDE_VER="1.1.3"
+TMUX_SRC="https://github.com/tmux/tmux.git"
 TMUX_VER="3.6a"
+TN5250_SRC="https://github.com/tn5250/tn5250.git"
 TN5250_VER="0.18.0"
+TNFTP_SRC="https://ftp.netbsd.org/pub/NetBSD/misc/tnftp"
 TNFTP_VER="20260211"
+TWM_SRC="https://gitlab.freedesktop.org/xorg/app/twm.git"
 TWM_VER="1.0.13.1"
-UTIL_LINUX_VER="2.42"
+UTIL_LINUX_SRC="https://github.com/util-linux/util-linux.git"
+UTIL_LINUX_VER="2.42.1"
+ZLIB_SRC="https://github.com/madler/zlib.git"
 ZLIB_VER="1.3.2"
 
 # MBR binary
@@ -176,6 +224,7 @@ INCLUDE_GCC=false
 INCLUDE_GIT=true
 INCLUDE_GUI=false
 INCLUDE_HTOP=true
+INCLUDE_JOE=true
 INCLUDE_KEYMAPS=true
 INCLUDE_LYNX=true
 INCLUDE_MG=true
@@ -188,6 +237,7 @@ INCLUDE_SHORKTAINMENT=true
 INCLUDE_STRACE=true
 INCLUDE_TESTS=false
 INCLUDE_TCC=true
+INCLUDE_TILDE=false
 INCLUDE_TMUX=true
 INCLUDE_TN5250=false
 INCLUDE_TNFTP=true
@@ -554,7 +604,7 @@ install_debian_prerequisites()
     sudo dpkg --add-architecture i386
     sudo apt-get update
 
-    PACKAGES="autopoint bc bison bzip2 e2fsprogs extlinux fdisk flex git kpartx libtool make pkg-config python3 python-is-python3 qemu-utils syslinux wget xz-utils"
+    PACKAGES="autopoint bc bison bzip2 e2fsprogs extlinux fdisk flex git kpartx libtool libtool-bin make pkg-config python3 python-is-python3 qemu-utils syslinux wget xz-utils"
 
     if $INCLUDE_GUI; then
         PACKAGES+=" fontconfig gettext gperf unzip xfonts-utils"
@@ -700,7 +750,7 @@ get_ncurses()
         git reset --hard
     else
         echo -e "${GREEN}Downloading ncurses...${RESET}"
-        git clone --branch v${NCURSES_VER} https://github.com/mirror/ncurses.git
+        git clone --branch v${NCURSES_VER} $NCURSES_SRC
         cd ncurses
     fi
 
@@ -780,7 +830,7 @@ get_curl()
     
     CURL="curl-${CURL_VER}"
     CURL_ARC="${CURL}.tar.xz"
-    CURL_URI="https://curl.se/download/${CURL_ARC}"
+    CURL_URI="${CURL_SRC}/${CURL_ARC}"
 
     # Download source
     [ -f $CURL_ARC ] || wget $CURL_URI
@@ -823,7 +873,7 @@ get_libevent()
         git reset --hard
     else
         echo -e "${GREEN}Downloading libevent...${RESET}"
-        git clone --branch ${LIBEVENT_VER} https://github.com/libevent/libevent.git
+        git clone --branch ${LIBEVENT_VER} $LIBEVENT_SRC
         cd libevent
     fi
 
@@ -853,7 +903,7 @@ get_libxlsxwriter()
         git reset --hard
     else
         echo -e "${GREEN}Downloading libxlsxwriter...${RESET}"
-        git clone --branch v${LIBXLSXWRITER_VER} https://github.com/jmcnamara/libxlsxwriter.git
+        git clone --branch v${LIBXLSXWRITER_VER} $LIBXLSXWRITER_SRC
         cd libxlsxwriter
     fi
 
@@ -889,7 +939,7 @@ get_libxml2()
         git reset --hard
     else
         echo -e "${GREEN}Downloading libxml2...${RESET}"
-        git clone --branch v${LIBXML2_VER} https://github.com/gnome/libxml2.git
+        git clone --branch v${LIBXML2_VER} $LIBXML2_SRC
         cd libxml2
     fi
 
@@ -924,7 +974,7 @@ get_libzip()
         git reset --hard
     else
         echo -e "${GREEN}Downloading libzip...${RESET}"
-        git clone --branch v${LIBZIP_VER} https://github.com/nih-at/libzip.git
+        git clone --branch v${LIBZIP_VER} $LIBZIP_SRC
         cd libzip
     fi
 
@@ -975,7 +1025,7 @@ get_openssl()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading OpenSSL...${RESET}"
-        git clone --branch openssl-${OPENSSL_VER} https://github.com/openssl/openssl.git
+        git clone --branch openssl-${OPENSSL_VER} $OPENSSL_SRC
         cd openssl
     fi
 
@@ -1009,7 +1059,7 @@ get_zlib()
         git reset --hard
     else
         echo -e "${GREEN}Downloading zlib...${RESET}"
-        git clone --branch v${ZLIB_VER} https://github.com/madler/zlib.git
+        git clone --branch v${ZLIB_VER} $ZLIB_SRC
         cd zlib
     fi
 
@@ -1101,7 +1151,7 @@ get_busybox()
         git reset --hard
     else
         echo -e "${GREEN}Downloading BusyBox...${RESET}"
-        git clone --branch $BUSYBOX_VER https://github.com/vda-linux/busybox_mirror.git
+        git clone --branch $BUSYBOX_VER $BUSYBOX_SRC
         cd busybox_mirror
     fi
 
@@ -1178,7 +1228,7 @@ get_strace()
         git reset --hard
     else
         echo -e "${GREEN}Downloading strace...${RESET}"
-        git clone --branch v$STRACE_VER https://github.com/strace/strace.git
+        git clone --branch v$STRACE_VER $STRACE_SRC
         cd strace
     fi
 
@@ -1213,7 +1263,7 @@ get_util_linux()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading util-linux...${RESET}"
-        git clone --depth=1 --branch v$UTIL_LINUX_VER https://github.com/util-linux/util-linux.git
+        git clone --depth=1 --branch v$UTIL_LINUX_VER $UTIL_LINUX_SRC
         cd util-linux
     fi
 
@@ -1290,7 +1340,7 @@ download_kernel()
     cd "$CURR_DIR/build"
     echo -e "${GREEN}Downloading the Linux kernel...${RESET}"
     if [ ! -d "linux" ]; then
-        git clone --depth=1 --branch v$KERNEL_VER https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git || true
+        git clone --depth=1 --branch "v$KERNEL_VER" $KERNEL_SRC || true
         cd "$CURR_DIR/build/linux"
         configure_kernel
     fi
@@ -2853,7 +2903,7 @@ get_twm()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading TWM...${RESET}"
-        git clone --branch "twm-${TWM_VER}" https://gitlab.freedesktop.org/xorg/app/twm.git
+        git clone --branch "twm-${TWM_VER}" $TWM_SRC
         cd twm
     fi
 
@@ -2899,7 +2949,7 @@ get_nedit()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading NEdit...${RESET}"
-        git clone https://git.code.sf.net/p/nedit/git nedit-git
+        git clone $NEDIT_SRC nedit-git
         cd nedit-git
         git checkout $NEDIT_VER
     fi
@@ -3332,10 +3382,22 @@ get_console_fonts()
         sudo wget $FONT -O $DEST
     done
 
-    # Download relevant licence files
+    # Download Terminus' licence file
+    TERMINUS_MIRRORS=(
+        "https://altushost-bul.dl.sourceforge.net/project/terminus-font/terminus-font-4.49"
+        "https://altushost-swe.dl.sourceforge.net/project/terminus-font/terminus-font-4.49"
+        "https://sf-eu-introserv-3.dl.sourceforge.net/project/terminus-font/terminus-font-4.49"
+    )
     TERMINUS_ARC="terminus-font-4.49.1.tar.gz"
-    [ -f "$TERMINUS_ARC" ] || wget https://altushost-bul.dl.sourceforge.net/project/terminus-font/terminus-font-4.49/$TERMINUS_ARC 
-    
+
+    if [ ! -f "$TERMINUS_ARC" ]; then
+        for MIRROR in "${TERMINUS_MIRRORS[@]}"; do
+            if wget --timeout=5 --tries=1 "$MIRROR/$TERMINUS_ARC"; then
+                break
+            fi
+        done
+    fi
+
     tar -xzf $TERMINUS_ARC -O terminus-font-4.49.1/OFL.TXT > $CURR_DIR/build/LICENCES/Terminus.txt
 
     cd $DESTDIR
@@ -3367,7 +3429,7 @@ get_c3270()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading c3270...${RESET}"
-        git clone --branch ${C3270_VER} https://github.com/pmattes/x3270.git
+        git clone --branch ${C3270_VER} $C3270_SRC
         cd x3270
     fi
 
@@ -3417,7 +3479,7 @@ get_cmatrix()
         git reset --hard
     else
         echo -e "${GREEN}Downloading CMatrix...${RESET}"
-        git clone --branch v${CMATRIX_VER} https://github.com/abishekvashok/cmatrix.git
+        git clone --branch v${CMATRIX_VER} $CMATRIX_SRC
         cd cmatrix
     fi
 
@@ -3458,7 +3520,7 @@ get_dropbear()
         git reset --hard
     else
         echo -e "${GREEN}Downloading Dropbear...${RESET}"
-        git clone --branch DROPBEAR_${DROPBEAR_VER} https://github.com/mkj/dropbear.git
+        git clone --branch DROPBEAR_${DROPBEAR_VER} $DROPBEAR_SRC
         cd dropbear
     fi
 
@@ -3493,7 +3555,7 @@ get_file()
         git reset --hard
     else
         echo -e "${GREEN}Downloading file...${RESET}"
-        git clone --branch "FILE$FILE_VER" https://github.com/file/file.git
+        git clone --branch "FILE$FILE_VER" $FILE_SRC
         cd file
     fi
 
@@ -3573,7 +3635,7 @@ get_git()
         git reset --hard
     else
         echo -e "${GREEN}Downloading Git...${RESET}"
-        git clone --branch "v${GIT_VER}" https://github.com/git/git.git
+        git clone --branch "v${GIT_VER}" $GIT_SRC
         cd git
     fi
 
@@ -3608,7 +3670,7 @@ get_htop()
         git reset --hard
     else
         echo -e "${GREEN}Downloading htop...${RESET}"
-        git clone --branch "${HTOP_VER}" https://github.com/htop-dev/htop.git
+        git clone --branch "${HTOP_VER}" $HTOP_SRC
         cd htop
     fi
 
@@ -3660,6 +3722,48 @@ get_lapifetch()
     cp LICENSE $CURR_DIR/build/LICENCES/lapifetch.txt
 }
 
+# Download and compile JOE
+get_joe()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$DESTDIR/usr/bin/joe" ]; then
+        echo -e "${LIGHT_RED}Lynx already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d joe ]; then
+        echo -e "${YELLOW}JOE source already present, resetting...${RESET}"
+        cd joe
+        git config --global --add safe.directory "$CURR_DIR/build/joe"
+        git reset --hard
+    else
+        echo -e "${GREEN}Downloading JOE...${RESET}"
+        git clone --branch "releases/joe-${JOE_VER}" $JOE_SRC
+        cd joe
+    fi
+
+    # Use freopen instead of fclose on stdin since the latter is not compatible
+    # with musl
+    sed -i '/fclose(stdin);/!b;n;s/stdin = fopen/freopen/;s/);/, stdin);/' joe/main.c
+
+    # Compile and install
+    echo -e "${GREEN}Compiling JOE...${RESET}"
+    autoreconf -fiv
+    ./configure \
+        --host=${HOST} \
+        --prefix=/usr \
+        --sysconfdir=/etc \
+        CC="${CC_STATIC}"
+    make -j$(nproc)
+    sudo make DESTDIR=$DESTDIR install
+
+    # Copy licence file
+    cp COPYING $CURR_DIR/build/LICENCES/joe.txt
+}
+
 # Download and compile Lynx
 get_lynx()
 {
@@ -3680,7 +3784,7 @@ get_lynx()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading Lynx...${RESET}"
-        git clone --branch "v${LYNX_VER}" https://github.com/ThomasDickey/lynx-snapshots.git
+        git clone --branch "v${LYNX_VER}" $LYNX_SRC
         cd lynx-snapshots
     fi
 
@@ -3722,7 +3826,7 @@ get_musl()
 
     MUSL="musl-${MUSL_VER}"
     MUSL_ARC="${MUSL}.tar.gz"
-    MUSL_URI="https://musl.libc.org/releases/${MUSL_ARC}"
+    MUSL_URI="${MUSL_SRC}/${MUSL_ARC}"
 
     # Download source
     [ -f $MUSL_ARC ] || wget $MUSL_URI
@@ -3766,7 +3870,7 @@ get_mg()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading Mg...${RESET}"
-        git clone --branch "v${MG_VER}" https://github.com/troglobit/mg.git
+        git clone --branch "v${MG_VER}" $MG_SRC
         cd mg
     fi
 
@@ -3810,7 +3914,7 @@ get_micropython()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading MicroPython...${RESET}"
-        git clone --branch "v${MICROPYTHON_VER}" https://github.com/micropython/micropython.git
+        git clone --branch "v${MICROPYTHON_VER}" $MICROPYTHON_SRC
         cd micropython
     fi
     
@@ -3870,7 +3974,7 @@ get_mt_st()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading mt-st...${RESET}"
-        git clone --branch "v${MT_ST_VER}" https://github.com/iustin/mt-st.git
+        git clone --branch "v${MT_ST_VER}" $MT_ST_SRC
         cd mt-st
     fi
 
@@ -3898,7 +4002,7 @@ get_nano()
     
     NANO="nano-${NANO_VER}"
     NANO_ARC="${NANO}.tar.xz"
-    NANO_URI="https://www.nano-editor.org/dist/${NANO_DIST}/${NANO_ARC}"
+    NANO_URI="${NANO_SRC}/${NANO_DIST}/${NANO_ARC}"
 
     # Download source
     [ -f $NANO_ARC ] || wget $NANO_URI
@@ -3953,7 +4057,7 @@ get_rover()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading Rover...${RESET}"
-        git clone --branch v$ROVER_VER https://github.com/lecram/rover.git
+        git clone --branch v$ROVER_VER $ROVER_SRC
         cd rover
     fi
 
@@ -4001,7 +4105,7 @@ get_sc_im()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading sc-im...${RESET}"
-        git clone --branch "v${SC_IM_VER}" https://github.com/andmarti1424/sc-im.git
+        git clone --branch "v${SC_IM_VER}" $SC_IM_SRC
         cd sc-im
     fi
 
@@ -4049,7 +4153,7 @@ get_tcc()
         git reset --hard
     else
         echo -e "${GREEN}Downloading Tiny C Compiler...${RESET}"
-        git clone https://github.com/Tiny-C-Compiler/tinycc-mirror-repository.git
+        git clone $TCC_SRC
         cd tinycc-mirror-repository
         git checkout $TCC_VER
     fi
@@ -4072,6 +4176,166 @@ get_tcc()
     cp COPYING $CURR_DIR/build/LICENCES/tcc.txt
 }
 
+# Download and compile tilde
+get_tilde()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$DESTDIR/usr/bin/tilde" ]; then
+        echo -e "${LIGHT_RED}tilde already compiled, skipping...${RESET}"
+        #return
+    fi
+
+    # The components we need to download and compile for tilde - the order
+    # matters!
+    TILDE_CMPS=(
+        "libunistring       ${LIBUNISTRING_VER}"
+        "libtranscript      ${LIBTRANSCRIPT_VER}"
+        "libt3config        ${LIBT3CONFIG_VER}"
+        "libt3key           ${LIBT3KEY_VER}"
+        "libt3window        ${LIBT3WINDOW_VER}"
+        "pcre2              ${PCRE2_VER}"
+        "libt3widget        ${LIBT3WIDGET_VER}"
+        "libt3highlight     ${LIBT3HIGHLIGHT_VER}"
+        "tilde              ${TILDE_VER}"
+    )
+
+    # We symlinked various cross-compiler components under generic names
+    # because tilde/tilde component's build system looks for these
+    # specifically; without them, it tries to use the host's versions
+    mkdir -p "$CURR_DIR/build/fake-tools"
+    ln -sf "$CC"  "$CURR_DIR/build/fake-tools/gcc"
+    ln -sf "$CXX" "$CURR_DIR/build/fake-tools/g++"
+    ln -sf "$LD"  "$CURR_DIR/build/fake-tools/ld"
+    cp "$CURR_DIR/i486-linux-musl-pkg-config" "$CURR_DIR/build/fake-tools/"
+    sudo ln -sf $(which libtool) /usr/local/bin/i486-linux-musl-libtool
+
+    export PATH="$CURR_DIR/build/fake-tools:$PATH"
+    mkdir -p staging/usr/lib/pkgconfig
+    mkdir -p staging/usr/include
+
+    # Try telling pkg-config to only search our staging sysroot. We had issue
+    # using our usual sysroot.
+    export PKG_CONFIG_PATH="${DESTDIR}/usr/lib/pkgconfig:${CURR_DIR}/build/staging/usr/lib/pkgconfig"
+    export PKG_CONFIG_LIBDIR="${DESTDIR}/usr/lib/pkgconfig:${CURR_DIR}/build/staging/usr/lib/pkgconfig"
+    export PKG_CONFIG_SYSROOT_DIR="${CURR_DIR}/build/staging"
+
+    CFLAGS="--sysroot=${SYSROOT} -I${DESTDIR}/usr/include -I${CURR_DIR}/build/staging/usr/include -I${PREFIX}/include -I${PREFIX}/include/ncursesw --static"
+    LDFLAGS="--sysroot=${SYSROOT} -L${DESTDIR}/usr/lib -L${CURR_DIR}/build/staging/usr/lib -L${PREFIX}/lib --static"
+
+    # Download and compile each component
+    for CMP in "${TILDE_CMPS[@]}"; do
+        CMP_NAME=""
+        CMP_VER=""
+        read -r CMP_NAME CMP_VER <<< "$CMP"
+
+        echo -e "${GREEN}Downloading ${CMP_NAME}...${RESET}"
+        CMP_DIR="$CMP_NAME-$CMP_VER"
+
+        # The components come from different sources
+        if [ "$CMP_NAME" = "libunistring" ]; then
+            CMP_ARC="$CMP_NAME-$CMP_VER.tar.gz"
+            CMP_URI="${LIBUNISTRING_SRC}/${CMP_ARC}"
+        elif [ "$CMP_NAME" = "pcre2" ]; then
+            CMP_ARC="$CMP_NAME-$CMP_VER.tar.gz"
+            CMP_URI="${PCRE2_SRC}/${CMP_NAME}-${CMP_VER}/${CMP_ARC}"
+        else
+            CMP_ARC="$CMP_NAME-$CMP_VER.tar.bz2"
+            CMP_URI="${LIBT3_SRC}/${CMP_ARC}"
+        fi
+
+        # Download source
+        [ -f $CMP_ARC ] || wget $CMP_URI
+
+        # Extract source
+        if [ -d $CMP_DIR ]; then
+            echo -e "${YELLOW}${CMP_NAME}'s source archive is already present, re-extracting before proceeding...${RESET}"
+            sudo rm -rf $CMP_DIR
+        fi
+        if [ "$CMP_NAME" = "libunistring" ] || [ "$CMP_NAME" = "pcre2" ]; then
+            tar xzf $CMP_ARC
+        else
+            tar xjf $CMP_ARC
+        fi
+
+        cd $CMP_DIR
+
+        # Compile and install
+        echo -e "${GREEN}Compiling ${CMP_NAME}...${RESET}"
+        ./configure \
+            --host=i486-linux-musl \
+            --prefix=/usr \
+            --enable-static \
+            --disable-shared \
+            CC="${CC}" \
+            CXX="${CXX}" \
+            AR="${AR}" \
+            LD="${LD}" \
+            RANLIB="${RANLIB}" \
+            CFLAGS="$CFLAGS" \
+            CXXFLAGS="$CFLAGS" \
+            LDFLAGS="$LDFLAGS"
+
+        if [ "$CMP_NAME" = "tilde" ]; then
+            make -j$(nproc)
+            sudo make DESTDIR="${DESTDIR}" install
+        elif [ "$CMP_NAME" = "libtranscript" ]; then
+            # If we tried compiling and installing this normally, the linkltc
+            # utility would also be attempted and would fail in a static
+            # cross-compile. Thus, we just compile the lib target and install
+            # what we need manually.
+            make -j$(nproc) lib
+            mkdir -p "${CURR_DIR}/build/staging/usr/include/transcript"
+            cp src/*.h "${CURR_DIR}/build/staging/usr/include/transcript/"
+            install -D "${CURR_DIR}/build/${CMP_DIR}/libtranscript.pc" "${CURR_DIR}/build/staging/usr/lib/pkgconfig/libtranscript.pc"
+            sed -i "s|prefix=/usr|prefix=${CURR_DIR}/build/staging/usr|" "${CURR_DIR}/build/staging/usr/lib/pkgconfig/libtranscript.pc"
+        elif [ "$CMP_NAME" = "libt3highlight" ]; then
+            # Similar to libtranscript...
+            make -j$(nproc) lib
+            mkdir -p "${CURR_DIR}/build/staging/usr/include/t3highlight"
+            cp src/*.h "${CURR_DIR}/build/staging/usr/include/t3highlight/" 2>/dev/null || true
+
+            # Install language definition files tilde needs at runtime
+            sudo mkdir -p "${DESTDIR}/usr/share/libt3highlight0"
+            find "${CURR_DIR}/build/${CMP_DIR}/src/data" -type f | while read F; do
+                sudo install -m0644 "$F" "${DESTDIR}/usr/share/libt3highlight0/"
+            done
+
+            install -D "${CURR_DIR}/build/${CMP_DIR}/libt3highlight.pc" "${CURR_DIR}/build/staging/usr/lib/pkgconfig/libt3highlight.pc"
+            sed -i "s|prefix=/usr|prefix=${CURR_DIR}/build/staging/usr|" "${CURR_DIR}/build/staging/usr/lib/pkgconfig/libt3highlight.pc"
+        else
+            make -j$(nproc)
+            make DESTDIR="${CURR_DIR}/build/staging" install
+            # Rewrite our libtool archives' libdir to our staging location so
+            # libtool can resolve them properly when we compile the next
+            # component
+            find "${CURR_DIR}/build/staging/usr/lib" -name "${CMP_NAME}*.la" | while read LA; do
+                sed -i "s|libdir='/usr/lib'|libdir='${CURR_DIR}/build/staging/usr/lib'|g" "$LA"
+                sed -i "s|libdir=\"/usr/lib\"|libdir=\"${CURR_DIR}/build/staging/usr/lib\"|g" "$LA"
+            done
+        fi
+
+        # Install install/lack of install results in now static archive of
+        # libtool *.o being made, we'll do it outselves
+        OBJS=$(find "${CURR_DIR}/build/${CMP_DIR}" -path "*/.libs/*.o" | tr '\n' ' ')
+        $AR rcs "${CURR_DIR}/build/staging/usr/lib/${CMP_NAME}.a" $OBJS
+        $RANLIB "${CURR_DIR}/build/staging/usr/lib/${CMP_NAME}.a"
+
+        # In case a compilation only generated its .pc file in the build
+        # directory install of installing it...
+        if [ -f "${CURR_DIR}/build/${CMP_DIR}/${CMP_NAME}.pc" ]; then
+            cp "${CURR_DIR}/build/${CMP_DIR}/${CMP_NAME}.pc" "${CURR_DIR}/build/staging/usr/lib/pkgconfig/"
+            sed -i "s|prefix=/usr|prefix=${CURR_DIR}/build/staging/usr|" "${CURR_DIR}/build/staging/usr/lib/pkgconfig/${CMP_NAME}.pc"
+        fi
+
+        cd "$CURR_DIR/build"
+    done
+
+    # Copy licence file
+    cp "tilde-${TILDE_VER}/COPYING" "$CURR_DIR/build/LICENCES/tilde.txt"
+}
+
 # Download and compile tmux
 get_tmux()
 {
@@ -4091,7 +4355,7 @@ get_tmux()
         git reset --hard
     else
         echo -e "${GREEN}Downloading tmux...${RESET}"
-        git clone --branch "${TMUX_VER}" https://github.com/tmux/tmux.git
+        git clone --branch "${TMUX_VER}" $TMUX_SRC
         cd tmux
     fi
 
@@ -4140,7 +4404,7 @@ get_tn5250()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading tn5250...${RESET}"
-        git clone --branch "v${TN5250_VER}" https://github.com/tn5250/tn5250.git
+        git clone --branch "v${TN5250_VER}" $TN5250_SRC
         cd tn5250
     fi
 
@@ -4186,7 +4450,7 @@ get_tnftp()
 
     TNFTP="tnftp-${TNFTP_VER}"
     TNFTP_ARC="${TNFTP}.tar.gz"
-    TNFTP_URI="https://ftp.netbsd.org/pub/NetBSD/misc/tnftp/${TNFTP_ARC}"
+    TNFTP_URI="${TNFTP_SRC}/${TNFTP_ARC}"
 
     # Download source
     [ -f $TNFTP_ARC ] || wget $TNFTP_URI
@@ -4585,6 +4849,10 @@ trim_fat()
 
     if $INCLUDE_GUI; then
         sudo rm -rf "$DESTDIR/home/kali"
+    fi
+
+    if $INCLUDE_JOE; then
+        sudo rm -rf "$DESTDIR/usr/share/applications/joe.desktop"
     fi
 
     if $INCLUDE_LYNX; then
@@ -5354,6 +5622,12 @@ get_installed_programs_features()
         EXCLUDED_FEATURES+="\n * htop"
     fi
 
+    if [ -f "$DESTDIR/usr/bin/joe" ]; then
+        INCLUDED_FEATURES+="\n * joe ($JOE_VER)"
+    else
+        EXCLUDED_FEATURES+="\n * joe"
+    fi
+
     if [ -f "$DESTDIR/usr/bin/lsblk" ]; then
         INCLUDED_FEATURES+="\n * lsblk (util-linux, $UTIL_LINUX_VER)"
     else
@@ -5442,6 +5716,12 @@ get_installed_programs_features()
         INCLUDED_FEATURES+="\n * tic ($NCURSES_VER)"
     else
         EXCLUDED_FEATURES+="\n * tic"
+    fi
+
+    if [ -f "$DESTDIR/usr/bin/tilde" ]; then
+        INCLUDED_FEATURES+="\n * tilde ($TILDE_VER)"
+    else
+        EXCLUDED_FEATURES+="\n * tilde"
     fi
 
     if [ -f "$DESTDIR/usr/bin/tmux" ]; then
@@ -5571,6 +5851,7 @@ if ! $DONT_DEL_ROOT; then
 fi
 
 mkdir -p build/LICENCES
+mkdir -p build/staging
 get_prerequisites
 get_musl_cross
 
@@ -5657,6 +5938,9 @@ fi
 if $INCLUDE_HTOP; then
     get_htop
 fi
+if $INCLUDE_JOE; then
+    get_joe
+fi
 if $INCLUDE_LYNX; then
     get_lynx
 fi
@@ -5678,6 +5962,9 @@ fi
 if $INCLUDE_TCC; then
     get_musl
     get_tcc
+fi
+if $INCLUDE_TILDE; then
+    get_tilde
 fi
 if $INCLUDE_TMUX; then
     get_tmux

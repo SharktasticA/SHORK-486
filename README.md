@@ -66,6 +66,7 @@ addgroup, adduser, ar, arch, ascii, awk, basename, bc, beep, blkid, cal, cat, ch
     * g++ (C++ compiler)
     * gcc (C compiler)
     * gfortran (Fortran compiler)
+* [joe](https://github.com/joe-editor/joe) (WordStar-style text editor)
 * [tn5250](https://github.com/tn5250/tn5250) (TCP/IP 5250 emulator) (EXPERIMENTAL)
 
 ### SHORK Utilities (shorkutils)

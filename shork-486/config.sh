@@ -54,6 +54,7 @@ INCLUDE_FILE=false
 INCLUDE_GCC=false
 INCLUDE_GIT=false
 INCLUDE_HTOP=false
+INCLUDE_JOE=false
 INCLUDE_LYNX=false
 INCLUDE_MG=false
 INCLUDE_MICROPYTHON=false
@@ -63,6 +64,7 @@ INCLUDE_SC_IM=false
 INCLUDE_SHORKTAINMENT=false
 INCLUDE_STRACE=false
 INCLUDE_TCC=false
+INCLUDE_TILDE=false
 INCLUDE_TN5250=false
 INCLUDE_TNFTP=false
 INCLUDE_TMUX=false
@@ -145,6 +147,7 @@ INCLUDE_FILE=$INCLUDE_FILE
 INCLUDE_GCC=$INCLUDE_GCC
 INCLUDE_GIT=$INCLUDE_GIT
 INCLUDE_HTOP=$INCLUDE_HTOP
+INCLUDE_JOE=$INCLUDE_JOE
 INCLUDE_LYNX=$INCLUDE_LYNX
 INCLUDE_MG=$INCLUDE_MG
 INCLUDE_MICROPYTHON=$INCLUDE_MICROPYTHON
@@ -154,6 +157,7 @@ INCLUDE_SC_IM=$INCLUDE_SC_IM
 INCLUDE_SHORKTAINMENT=$INCLUDE_SHORKTAINMENT
 INCLUDE_STRACE=$INCLUDE_STRACE
 INCLUDE_TCC=$INCLUDE_TCC
+INCLUDE_TILDE=$INCLUDE_TILDE
 INCLUDE_TN5250=$INCLUDE_TN5250
 INCLUDE_TNFTP=$INCLUDE_TNFTP
 INCLUDE_TMUX=$INCLUDE_TMUX
@@ -203,6 +207,7 @@ set_minimal_vars()
     INCLUDE_GCC=false
     INCLUDE_GIT=false
     INCLUDE_HTOP=false
+    INCLUDE_JOE=false
     INCLUDE_LYNX=false
     INCLUDE_MG=false
     INCLUDE_MICROPYTHON=false
@@ -212,6 +217,7 @@ set_minimal_vars()
     INCLUDE_SHORKTAINMENT=false
     INCLUDE_STRACE=false
     INCLUDE_TCC=false
+    INCLUDE_TILDE=false
     INCLUDE_TN5250=false
     INCLUDE_TNFTP=false
     INCLUDE_TMUX=false
@@ -242,6 +248,7 @@ set_default_vars()
     INCLUDE_GCC=false
     INCLUDE_GIT=true
     INCLUDE_HTOP=true
+    INCLUDE_JOE=false
     INCLUDE_LYNX=true
     INCLUDE_MG=true
     INCLUDE_MICROPYTHON=true
@@ -251,6 +258,7 @@ set_default_vars()
     INCLUDE_SHORKTAINMENT=true
     INCLUDE_STRACE=true
     INCLUDE_TCC=true
+    INCLUDE_TILDE=false
     INCLUDE_TN5250=false
     INCLUDE_TNFTP=true
     INCLUDE_TMUX=true
@@ -556,6 +564,7 @@ if [ "$BUILD_TYPE" != "minimal" ]; then
     dialog --clear \
         --backtitle "SHORK 486 Build Configurator" \
         --title "Multi-User Support" \
+        --defaultno \
         --yesno "Do you want to enable multi-user support in SHORK 486? It will enable BusyBox's multi-user-related utilities and you will be able to set a root password in the next prompt." \
         7 $WIDTH
 
@@ -701,12 +710,13 @@ BUNDLED_ITEMS=()
 if [ "$ENABLE_NET_ETH" == true ]; then
     BUNDLED_ITEMS+=(
         "c3270"        "3270 terminal emulator (+1.8MiB)"                   "$(val "$INCLUDE_C3270")"
-        #"cmatrix"      "Scrolling text screensaver (+0.4MiB)"              "$(val "$INCLUDE_CMATRIX")"
+        #"cmatrix"       "Scrolling text screensaver (+0.4MiB)"              "$(val "$INCLUDE_CMATRIX")"
         "dropbear"      "*SCP & SSH client (+0.4MiB)"                       "$(val "$INCLUDE_DROPBEAR")"
         "file"          "*File type identification (+10MiB)"                "$(val "$INCLUDE_FILE")"
         "gcc"           "**GCC (as, g++, gcc, gfortran) + musl (+215MiB)"   "$(val "$INCLUDE_GCC")"
         "git"           "*Source control client (+19MiB)"                   "$(val "$INCLUDE_GIT")"
         "htop"          "*Interactive process viewer (+0.6MiB)"             "$(val "$INCLUDE_HTOP")"
+        "joe"           "WordStar-style text editor (+1.9MiB)"              "$(val "$INCLUDE_JOE")"
         "lynx"          "*Terminal web browser (+7.3MiB)"                   "$(val "$INCLUDE_LYNX")"
         "mg"            "*Emacs-style text editor (+0.3MiB)"                "$(val "$INCLUDE_MG")"
         "micropython"   "*Python 3.4-syntax intepreter (+0.7MiB)"           "$(val "$INCLUDE_MICROPYTHON")"
@@ -716,6 +726,7 @@ if [ "$ENABLE_NET_ETH" == true ]; then
         "shorktainment" "*shorkmatrix, shorksay & sl (+0.1MiB)"             "$(val "$INCLUDE_SHORKTAINMENT")"
         "strace"        "*System calls & signals tracer (+1.1MiB)"          "$(val "$INCLUDE_STRACE")"
         "tcc"           "*Tiny C Compiler + musl (+4MiB)"                   "$(val "$INCLUDE_TCC")"
+        #"tilde"         "GUI-like text editor (+4.5MiB)"                    "$(val "$INCLUDE_TILDE")"
         "tn5250"        "TCP/IP 5250 terminal emulator (+6.4MiB)"           "$(val "$INCLUDE_TN5250")"
         "tnftp"         "*FTP client (+0.3MiB)"                             "$(val "$INCLUDE_TNFTP")"
         "tmux"          "*Terminal multiplexer (+1.7MiB)"                   "$(val "$INCLUDE_TMUX")"
@@ -724,10 +735,11 @@ if [ "$ENABLE_NET_ETH" == true ]; then
 else
     BUNDLED_ITEMS+=(
         "c3270"        "3270 terminal emulator (+1.8MiB)"                   "$(val "$INCLUDE_C3270")"
-        #"cmatrix"      "Scrolling text screensaver (+0.4MiB)"              "$(val "$INCLUDE_CMATRIX")"
+        #"cmatrix"       "Scrolling text screensaver (+0.4MiB)"              "$(val "$INCLUDE_CMATRIX")"
         "file"          "*File type identification (+10MiB)"                "$(val "$INCLUDE_FILE")"
         "gcc"           "**GCC (as, g++, gcc, gfortran) + musl (+215MiB)"   "$(val "$INCLUDE_GCC")"
         "htop"          "*Interactive process viewer (+0.6MiB)"             "$(val "$INCLUDE_HTOP")"
+        "joe"           "Joe's Own Editor (+1.9MiB)"                        "$(val "$INCLUDE_JOE")"
         "mg"            "*Emacs-style text editor (+0.3MiB)"                "$(val "$INCLUDE_MG")"
         "micropython"   "*Python 3.4-syntax intepreter (+0.7MiB)"           "$(val "$INCLUDE_MICROPYTHON")"
         "mt-st"         "*Tape drive tools (+0.2MiB)"                       "$(val "$INCLUDE_MT_ST")"
@@ -736,6 +748,7 @@ else
         "shorktainment" "*shorkmatrix, shorksay & sl (+0.1MiB)"             "$(val "$INCLUDE_SHORKTAINMENT")"
         "strace"        "*System calls & signals tracer (+1.1MiB)"          "$(val "$INCLUDE_STRACE")"
         "tcc"           "*Tiny C Compiler + musl (+4MiB)"                   "$(val "$INCLUDE_TCC")"
+        #"tilde"         "GUI-like text editor (+4.5MiB)"                    "$(val "$INCLUDE_TILDE")"
         "util-linux"    "*lsblk, partx, sfdisk & whereis (+1.9MiB)"         "$(val "$INCLUDE_UTIL_LINUX")"
     )
 fi
@@ -756,12 +769,13 @@ if [[ $SKIPPED -eq 1 ]]; then
     :
 else
     if [[ $BUNDLED =~ "c3270" ]];           then INCLUDE_C3270=true;            else INCLUDE_C3270=false;         fi
-    #if [[ $BUNDLED =~ "cmatrix" ]];        then INCLUDE_CMATRIX=true;          else INCLUDE_CMATRIX=false;         fi
+    #if [[ $BUNDLED =~ "cmatrix" ]];         then INCLUDE_CMATRIX=true;          else INCLUDE_CMATRIX=false;         fi
     if [[ $BUNDLED =~ "dropbear" ]];        then INCLUDE_DROPBEAR=true;         else INCLUDE_DROPBEAR=false;        fi
     if [[ $BUNDLED =~ "file" ]];            then INCLUDE_FILE=true;             else INCLUDE_FILE=false;            fi
     if [[ $BUNDLED =~ "gcc" ]];             then INCLUDE_GCC=true;              else INCLUDE_GCC=false;             fi
     if [[ $BUNDLED =~ "git" ]];             then INCLUDE_GIT=true;              else INCLUDE_GIT=false;             fi
     if [[ $BUNDLED =~ "htop" ]];            then INCLUDE_HTOP=true;             else INCLUDE_HTOP=false;            fi
+    if [[ $BUNDLED =~ "joe" ]];             then INCLUDE_JOE=true;              else INCLUDE_JOE=false;             fi
     if [[ $BUNDLED =~ "lynx" ]];            then INCLUDE_LYNX=true;             else INCLUDE_LYNX=false;            fi
     if [[ $BUNDLED =~ "mg" ]];              then INCLUDE_MG=true;               else INCLUDE_MG=false;              fi
     if [[ $BUNDLED =~ "micropython" ]];     then INCLUDE_MICROPYTHON=true;      else INCLUDE_MICROPYTHON=false;     fi
@@ -770,6 +784,7 @@ else
     if [[ $BUNDLED =~ "shorktainment" ]];   then INCLUDE_SHORKTAINMENT=true;    else INCLUDE_SHORKTAINMENT=false;   fi
     if [[ $BUNDLED =~ "strace" ]];          then INCLUDE_STRACE=true;           else INCLUDE_STRACE=false;          fi
     if [[ $BUNDLED =~ "tcc" ]];             then INCLUDE_TCC=true;              else INCLUDE_TCC=false;             fi
+    #if [[ $BUNDLED =~ "tilde" ]];           then INCLUDE_TILDE=true;            else INCLUDE_TILDE=false;           fi
     if [[ $BUNDLED =~ "tmux" ]];            then INCLUDE_TMUX=true;             else INCLUDE_TMUX=false;            fi
     if [[ $BUNDLED =~ "tn5250" ]];          then INCLUDE_TN5250=true;           else INCLUDE_TN5250=false;          fi
     if [[ $BUNDLED =~ "tnftp" ]];           then INCLUDE_TNFTP=true;            else INCLUDE_TNFTP=false;           fi
