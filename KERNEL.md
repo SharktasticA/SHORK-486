@@ -11,7 +11,9 @@ Whilst SHORK 486 itself is licensed under GPL 3.0 terms, the contents of the `sh
 ### 7.2.x
 
 * Restore 586 support: https://www.phoronix.com/news/AMD-K5-CPUs
+* Restore ARCnet ISA/PCMCIA drivers: https://www.phoronix.com/news/Linux-To-Drop-ARCnet-ISA-PCMCIA
 * Restore AMD Élan drivers: https://www.phoronix.com/news/AMD-Elan-Linux-Driver-Removal
+* Restore Double Talk driver: https://www.phoronix.com/news/Linux-Dropping-Double-Talk
 
 ### 7.1.x
 
