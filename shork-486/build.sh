@@ -404,8 +404,8 @@ if [ -n "$TARGET_SWAP" ] || [ "$TARGET_SWAP" -ne 0 ]; then
         echo -e "${RED}ERROR: the target swap value must be an integer (whole number)${RESET}"
         exit 1
     fi
-    if [ "$TARGET_SWAP" -lt 0 ] || [ "$TARGET_SWAP" -gt 64 ]; then
-        echo -e "${RED}ERROR: the target swap value must be between 1 and 64${RESET}"
+    if [ "$TARGET_SWAP" -lt 0 ]; then
+        echo -e "${RED}ERROR: the target swap value must more than 0${RESET}"
         exit 1
     fi
     TARGET_SWAP=$((TARGET_SWAP))
@@ -5707,11 +5707,11 @@ get_installed_programs_features()
         EXCLUDED_FEATURES+="\n * tic"
     fi
 
-    if [ -f "$DESTDIR/usr/bin/tilde" ]; then
-        INCLUDED_FEATURES+="\n * tilde ($TILDE_VER)"
-    else
-        EXCLUDED_FEATURES+="\n * tilde"
-    fi
+    #if [ -f "$DESTDIR/usr/bin/tilde" ]; then
+    #    INCLUDED_FEATURES+="\n * tilde ($TILDE_VER)"
+    #else
+    #    EXCLUDED_FEATURES+="\n * tilde"
+    #fi
 
     if [ -f "$DESTDIR/usr/bin/tmux" ]; then
         INCLUDED_FEATURES+="\n * tmux ($TMUX_VER)"
