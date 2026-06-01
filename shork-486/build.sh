@@ -161,6 +161,8 @@ ROVER_SRC="https://github.com/lecram/rover.git"
 ROVER_VER="1.0.1"
 SC_IM_SRC="https://github.com/andmarti1424/sc-im.git"
 SC_IM_VER="0.8.5"
+SHORKFETCH_SRC="https://github.com/SharktasticA/shorkfetch.git"
+SHORKFETCH_VER="0.4.0"
 STRACE_SRC="https://github.com/strace/strace.git"
 STRACE_VER="7.0"
 TCC_SRC="https://github.com/Tiny-C-Compiler/tinycc-mirror-repository.git"
@@ -1171,8 +1173,8 @@ get_busybox()
     # Ensure BusyBox behaves with our toolchain
     sed -i "s|^CONFIG_CROSS_COMPILER_PREFIX=.*|CONFIG_CROSS_COMPILER_PREFIX=\"${PREFIX}/bin/${ARCH}-linux-musl-\"|" .config
     sed -i "s|^CONFIG_SYSROOT=.*|CONFIG_SYSROOT=\"${CURR_DIR}/build/${ARCH}-linux-musl-cross\"|" .config
-    sed -i "s|^CONFIG_EXTRA_CFLAGS=.*|CONFIG_EXTRA_CFLAGS=\"-I${PREFIX}/include\"|" .config
-    sed -i "s|^CONFIG_EXTRA_LDFLAGS=.*|CONFIG_EXTRA_LDFLAGS=\"-L${PREFIX}/lib\"|" .config
+    sed -i "s|^CONFIG_EXTRA_CFLAGS=.*|CONFIG_EXTRA_CFLAGS=\"-no-pie -fno-pie -march=i486 -mtune=i486 -I${PREFIX}/include\"|" .config
+    sed -i "s|^CONFIG_EXTRA_LDFLAGS=.*|CONFIG_EXTRA_LDFLAGS=\"-no-pie -static -L${PREFIX}/lib\"|" .config
 
     if $ENABLE_MULTIUSER_REAL; then
         echo -e "${GREEN}Enabling BusyBox's multi-user utilities...${RESET}"
@@ -1180,7 +1182,6 @@ get_busybox()
         
         echo -e "${GREEN}Applying 1.37.0_musl_utmp patch...${RESET}"
         patch -p1 < "$CURR_DIR/patches/1.37.0_musl_utmp.patch"
-
     fi
     
     if $ENABLE_NET_ETH; then
@@ -4423,7 +4424,6 @@ get_tn5250()
     cp COPYING "$CURR_DIR/build/LICENCES/tn5250.txt"
 }
 
-
 # Download and compile tnftp
 get_tnftp()
 {
@@ -4544,7 +4544,7 @@ get_shorkfetch()
 
     # Download source
     echo -e "${GREEN}Downloading shorkfetch...${RESET}"
-    git clone https://github.com/SharktasticA/shorkfetch.git
+    git clone --branch "${SHORKFETCH_VER}" $SHORKFETCH_SRC
     cd shorkfetch
 
     # Compile and install
@@ -4579,8 +4579,6 @@ get_shorkfont()
     echo -e "${GREEN}Compiling shorkfont...${RESET}"
     make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
     sudo make DESTDIR=$DESTDIR install
-    mkdir -p $DESTDIR/etc
-    copy_sysfile $CURR_DIR/sysfiles/shorkfont.conf $DESTDIR/etc/shorkfont.conf
 }
 
 # Download and compile shorkhelp
@@ -4916,7 +4914,7 @@ build_file_system()
     cd $DESTDIR
 
     echo -e "${GREEN}Creating required directories...${RESET}"
-    sudo mkdir -p {dev,proc,etc/init.d,sys,tmp,usr/share,usr/libexec,banners,root}
+    sudo mkdir -p {dev,proc,etc/init.d,sys,tmp,usr/share,usr/libexec,banners,root/.config/shorkutils}
 
     echo -e "${GREEN}Configure permissions...${RESET}"
     chmod +x $CURR_DIR/sysfiles/rc
@@ -5030,6 +5028,10 @@ build_file_system()
         cd $CURR_DIR/
         sudo python3 -c "from helpers import *; build_pci_ids()"
     fi
+
+    echo -e "${GREEN}Copying SHORK Utilities configuration files...${RESET}"
+    copy_sysfile $CURR_DIR/sysfiles/shorkfetch.conf $DESTDIR/root/.config/shorkutils/shorkfetch.conf
+    copy_sysfile $CURR_DIR/sysfiles/shorkfont.conf $DESTDIR/etc/shorkfont.conf
 
     if $INCLUDE_TESTS; then
         copy_tests
