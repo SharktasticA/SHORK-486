@@ -110,7 +110,7 @@ CURL_VER="8.20.0"
 DROPBEAR_SRC="https://github.com/mkj/dropbear.git"
 DROPBEAR_VER="2026.91"
 FILE_SRC="https://github.com/file/file.git"
-FILE_VER="5_47"
+FILE_VER="5_48"
 GIT_SRC="https://github.com/git/git.git"
 GIT_VER="2.54.0"
 HTOP_SRC="https://github.com/htop-dev/htop.git"
@@ -137,7 +137,7 @@ LIBXML2_VER="2.15.3"
 LIBZIP_SRC="https://github.com/nih-at/libzip.git"
 LIBZIP_VER="1.11.4"
 LYNX_SRC="https://github.com/ThomasDickey/lynx-snapshots.git"
-LYNX_VER="2-9-2x"
+LYNX_VER="2-9-3a"
 MG_SRC="https://github.com/troglobit/mg.git"
 MG_VER="3.7"
 MICROPYTHON_SRC="https://github.com/micropython/micropython.git"
@@ -169,7 +169,7 @@ TCC_SRC="https://github.com/Tiny-C-Compiler/tinycc-mirror-repository.git"
 TCC_VER="e5eedc0"
 TILDE_VER="1.1.3"
 TMUX_SRC="https://github.com/tmux/tmux.git"
-TMUX_VER="3.6a"
+TMUX_VER="3.6b"
 TN5250_SRC="https://github.com/tn5250/tn5250.git"
 TN5250_VER="0.18.0"
 TNFTP_SRC="https://ftp.netbsd.org/pub/NetBSD/misc/tnftp"
@@ -3567,7 +3567,16 @@ get_file()
     # Compile and install
     echo -e "${GREEN}Compiling file...${RESET}"
     autoreconf -fiv
-    ./configure --host=${HOST} --prefix=/usr --disable-shared --enable-static CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" CFLAGS="-Os -march=${ARCH}" LDFLAGS="-static"
+    ./configure \
+        --host=${HOST} \
+        --prefix=/usr \
+        --disable-shared \
+        --enable-static \
+        CC="${CC_STATIC}" \
+        AR="${AR}" \
+        RANLIB="${RANLIB}" \
+        CFLAGS="-Os -march=${ARCH} -D__NR_landlock_create_ruleset=444 -D__NR_landlock_add_rule=445 -D__NR_landlock_restrict_self=446" \
+        LDFLAGS="-static"
     make -j$(nproc)
     sudo make DESTDIR=$DESTDIR install
 
