@@ -730,7 +730,7 @@ if [ "$ENABLE_NET_ETH" == true ]; then
         "tn5250"        "TCP/IP 5250 terminal emulator (+6.4MiB)"           "$(val "$INCLUDE_TN5250")"
         "tnftp"         "*FTP client (+0.3MiB)"                             "$(val "$INCLUDE_TNFTP")"
         "tmux"          "*Terminal multiplexer (+1.7MiB)"                   "$(val "$INCLUDE_TMUX")"
-        "util-linux"    "*lsblk, partx, sfdisk & whereis (+1.9MiB)"         "$(val "$INCLUDE_UTIL_LINUX")"
+        "util-linux"    "*partx, sfdisk & whereis (+1.9MiB)"                "$(val "$INCLUDE_UTIL_LINUX")"
     )
 else
     BUNDLED_ITEMS+=(
@@ -749,7 +749,7 @@ else
         "strace"        "*System calls & signals tracer (+1.1MiB)"          "$(val "$INCLUDE_STRACE")"
         "tcc"           "*Tiny C Compiler + musl (+4MiB)"                   "$(val "$INCLUDE_TCC")"
         #"tilde"         "GUI-like text editor (+4.5MiB)"                    "$(val "$INCLUDE_TILDE")"
-        "util-linux"    "*lsblk, partx, sfdisk & whereis (+1.9MiB)"         "$(val "$INCLUDE_UTIL_LINUX")"
+        "util-linux"    "*partx, sfdisk & whereis (+1.2MiB)"                "$(val "$INCLUDE_UTIL_LINUX")"
     )
 fi
 

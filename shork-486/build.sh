@@ -99,8 +99,8 @@ STRIP="${PREFIX}/bin/${ARCH}-linux-musl-strip"
 SYSROOT="${PREFIX}/${ARCH}-linux-musl"
 
 # Target software/feature versions
-BUSYBOX_SRC="https://github.com/vda-linux/busybox_mirror.git"
-BUSYBOX_VER="1_37_0"
+BUSYBOX_SRC="https://busybox.net/downloads"
+BUSYBOX_VER="1.38.0"
 C3270_SRC="https://github.com/pmattes/x3270.git"
 C3270_VER="4.5ga5"
 CMATRIX_SRC="https://github.com/abishekvashok/cmatrix.git"
@@ -110,7 +110,7 @@ CURL_VER="8.20.0"
 DROPBEAR_SRC="https://github.com/mkj/dropbear.git"
 DROPBEAR_VER="2026.91"
 FILE_SRC="https://github.com/file/file.git"
-FILE_VER="5_47"
+FILE_VER="5_48"
 GIT_SRC="https://github.com/git/git.git"
 GIT_VER="2.54.0"
 HTOP_SRC="https://github.com/htop-dev/htop.git"
@@ -137,7 +137,7 @@ LIBXML2_VER="2.15.3"
 LIBZIP_SRC="https://github.com/nih-at/libzip.git"
 LIBZIP_VER="1.11.4"
 LYNX_SRC="https://github.com/ThomasDickey/lynx-snapshots.git"
-LYNX_VER="2-9-2x"
+LYNX_VER="2-9-3a"
 MG_SRC="https://github.com/troglobit/mg.git"
 MG_VER="3.7"
 MICROPYTHON_SRC="https://github.com/micropython/micropython.git"
@@ -169,7 +169,7 @@ TCC_SRC="https://github.com/Tiny-C-Compiler/tinycc-mirror-repository.git"
 TCC_VER="e5eedc0"
 TILDE_VER="1.1.3"
 TMUX_SRC="https://github.com/tmux/tmux.git"
-TMUX_VER="3.6a"
+TMUX_VER="3.6b"
 TN5250_SRC="https://github.com/tn5250/tn5250.git"
 TN5250_VER="0.18.0"
 TNFTP_SRC="https://ftp.netbsd.org/pub/NetBSD/misc/tnftp"
@@ -1145,17 +1145,21 @@ get_busybox()
 {
     cd "$CURR_DIR/build"
 
+    BUSYBOX="busybox-${BUSYBOX_VER}"
+    BUSYBOX_ARC="${BUSYBOX}.tar.bz2"
+    BUSYBOX_URI="${BUSYBOX_SRC}/${BUSYBOX_ARC}"
+
     # Download source
-    if [ -d busybox_mirror ]; then
-        echo -e "${YELLOW}BusyBox source already present, resetting...${RESET}"
-        cd busybox_mirror
-        git config --global --add safe.directory "$CURR_DIR/build/busybox_mirror"
-        git reset --hard
-    else
-        echo -e "${GREEN}Downloading BusyBox...${RESET}"
-        git clone --branch $BUSYBOX_VER $BUSYBOX_SRC
-        cd busybox_mirror
+    echo -e "${GREEN}Downloading BusyBox...${RESET}"
+    [ -f $BUSYBOX_ARC ] || wget $BUSYBOX_URI
+
+    # Extract source
+    if [ -d $BUSYBOX ]; then
+        echo -e "${YELLOW}BusyBox's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -rf $BUSYBOX
     fi
+    tar -xjf $BUSYBOX_ARC
+    cd $BUSYBOX
 
     # Patch to fix error with running menuconfig
     sed -i 's/main() {}/int main() {}/' scripts/kconfig/lxdialog/check-lxdialog.sh
@@ -1176,12 +1180,16 @@ get_busybox()
     sed -i "s|^CONFIG_EXTRA_CFLAGS=.*|CONFIG_EXTRA_CFLAGS=\"-no-pie -fno-pie -march=i486 -mtune=i486 -I${PREFIX}/include\"|" .config
     sed -i "s|^CONFIG_EXTRA_LDFLAGS=.*|CONFIG_EXTRA_LDFLAGS=\"-no-pie -static -L${PREFIX}/lib\"|" .config
 
+    # Patch in swap partition identification in lsblk implementation
+    echo -e "${GREEN}Applying 1.38.0_lsblk_swap patch...${RESET}"
+    patch -p1 < "$CURR_DIR/patches/1.38.0_lsblk_swap.patch"
+
     if $ENABLE_MULTIUSER_REAL; then
         echo -e "${GREEN}Enabling BusyBox's multi-user utilities...${RESET}"
         merge_busybox_frag "$CURR_DIR/configs/busybox.config.multiuser.frag"
         
-        echo -e "${GREEN}Applying 1.37.0_musl_utmp patch...${RESET}"
-        patch -p1 < "$CURR_DIR/patches/1.37.0_musl_utmp.patch"
+        echo -e "${GREEN}Applying 1.37.0-1.38.0_musl_utmp patch...${RESET}"
+        patch -p1 < "$CURR_DIR/patches/1.37.0-1.38.0_musl_utmp.patch"
     fi
     
     if $ENABLE_NET_ETH; then
@@ -1244,14 +1252,14 @@ get_strace()
     cp COPYING $CURR_DIR/build/LICENCES/strace.txt
 }
 
-# Download and compile util-linux (lsblk, partx, sfdisk and whereis)
+# Download and compile util-linux (partx, sfdisk and whereis)
 get_util_linux()
 {
     cd "$CURR_DIR/build"
 
     # Skip if already compiled
-    if [ -f "$DESTDIR/usr/bin/lsblk" ] && [ -f "$DESTDIR/usr/bin/partx" ] && [ -f "$DESTDIR/usr/sbin/sfdisk" ] && [ -f "$DESTDIR/usr/bin/whereis" ]; then
-        echo -e "${LIGHT_RED}lsblk, partx, sfdisk and whereis from util-linux already compiled, skipping...${RESET}"
+    if [ -f "$DESTDIR/usr/bin/partx" ] && [ -f "$DESTDIR/usr/sbin/sfdisk" ] && [ -f "$DESTDIR/usr/bin/whereis" ]; then
+        echo -e "${LIGHT_RED}partx, sfdisk and whereis from util-linux already compiled, skipping...${RESET}"
         return
     fi
 
@@ -1269,7 +1277,7 @@ get_util_linux()
     fi
 
     # Compile and install
-    echo -e "${GREEN}Compiling util-linux for lsblk, partx, sfdisk and whereis...${RESET}"
+    echo -e "${GREEN}Compiling util-linux for partx, sfdisk and whereis...${RESET}"
 
     # In case "cannot find -ltinfo" error 
     export ac_cv_search_tigetstr='-lncursesw'
@@ -1312,10 +1320,9 @@ get_util_linux()
    
     make TINFO_LIBS="" -j$(nproc)
 
-    for bin in lsblk partx whereis; do
+    for bin in partx whereis; do
         sudo install -D -m 755 "${bin}" "$DESTDIR/usr/bin/${bin}"
     done
-
     for bin in sfdisk; do
         sudo install -D -m 755 "${bin}" "$DESTDIR/usr/sbin/${bin}"
     done
@@ -3571,7 +3578,16 @@ get_file()
     # Compile and install
     echo -e "${GREEN}Compiling file...${RESET}"
     autoreconf -fiv
-    ./configure --host=${HOST} --prefix=/usr --disable-shared --enable-static CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" CFLAGS="-Os -march=${ARCH}" LDFLAGS="-static"
+    ./configure \
+        --host=${HOST} \
+        --prefix=/usr \
+        --disable-shared \
+        --enable-static \
+        CC="${CC_STATIC}" \
+        AR="${AR}" \
+        RANLIB="${RANLIB}" \
+        CFLAGS="-Os -march=${ARCH} -D__NR_landlock_create_ruleset=444 -D__NR_landlock_add_rule=445 -D__NR_landlock_restrict_self=446" \
+        LDFLAGS="-static"
     make -j$(nproc)
     sudo make DESTDIR=$DESTDIR install
 
@@ -5628,12 +5644,6 @@ get_installed_programs_features()
         INCLUDED_FEATURES+="\n * joe ($JOE_VER)"
     else
         EXCLUDED_FEATURES+="\n * joe"
-    fi
-
-    if [ -f "$DESTDIR/usr/bin/lsblk" ]; then
-        INCLUDED_FEATURES+="\n * lsblk (util-linux, $UTIL_LINUX_VER)"
-    else
-        EXCLUDED_FEATURES+="\n * lsblk (util-linux)"
     fi
 
     if [ -f "$DESTDIR/usr/bin/lynx" ]; then
