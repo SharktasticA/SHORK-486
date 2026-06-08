@@ -99,8 +99,8 @@ STRIP="${PREFIX}/bin/${ARCH}-linux-musl-strip"
 SYSROOT="${PREFIX}/${ARCH}-linux-musl"
 
 # Target software/feature versions
-BUSYBOX_SRC="https://github.com/vda-linux/busybox_mirror.git"
-BUSYBOX_VER="1_37_0"
+BUSYBOX_SRC="https://busybox.net/downloads"
+BUSYBOX_VER="1.38.0"
 C3270_SRC="https://github.com/pmattes/x3270.git"
 C3270_VER="4.5ga5"
 CMATRIX_SRC="https://github.com/abishekvashok/cmatrix.git"
@@ -1145,17 +1145,21 @@ get_busybox()
 {
     cd "$CURR_DIR/build"
 
+    BUSYBOX="busybox-${BUSYBOX_VER}"
+    BUSYBOX_ARC="${BUSYBOX}.tar.bz2"
+    BUSYBOX_URI="${BUSYBOX_SRC}/${BUSYBOX_ARC}"
+
     # Download source
-    if [ -d busybox_mirror ]; then
-        echo -e "${YELLOW}BusyBox source already present, resetting...${RESET}"
-        cd busybox_mirror
-        git config --global --add safe.directory "$CURR_DIR/build/busybox_mirror"
-        git reset --hard
-    else
-        echo -e "${GREEN}Downloading BusyBox...${RESET}"
-        git clone --branch $BUSYBOX_VER $BUSYBOX_SRC
-        cd busybox_mirror
+    echo -e "${GREEN}Downloading BusyBox...${RESET}"
+    [ -f $BUSYBOX_ARC ] || wget $BUSYBOX_URI
+
+    # Extract source
+    if [ -d $BUSYBOX ]; then
+        echo -e "${YELLOW}BusyBox's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -rf $BUSYBOX
     fi
+    tar -xjf $BUSYBOX_ARC
+    cd $BUSYBOX
 
     # Patch to fix error with running menuconfig
     sed -i 's/main() {}/int main() {}/' scripts/kconfig/lxdialog/check-lxdialog.sh
@@ -1180,8 +1184,8 @@ get_busybox()
         echo -e "${GREEN}Enabling BusyBox's multi-user utilities...${RESET}"
         merge_busybox_frag "$CURR_DIR/configs/busybox.config.multiuser.frag"
         
-        echo -e "${GREEN}Applying 1.37.0_musl_utmp patch...${RESET}"
-        patch -p1 < "$CURR_DIR/patches/1.37.0_musl_utmp.patch"
+        echo -e "${GREEN}Applying 1.37.0-1.38.0_musl_utmp patch...${RESET}"
+        patch -p1 < "$CURR_DIR/patches/1.37.0-1.38.0_musl_utmp.patch"
     fi
     
     if $ENABLE_NET_ETH; then
@@ -1244,14 +1248,14 @@ get_strace()
     cp COPYING $CURR_DIR/build/LICENCES/strace.txt
 }
 
-# Download and compile util-linux (lsblk, partx, sfdisk and whereis)
+# Download and compile util-linux (partx, sfdisk and whereis)
 get_util_linux()
 {
     cd "$CURR_DIR/build"
 
     # Skip if already compiled
-    if [ -f "$DESTDIR/usr/bin/lsblk" ] && [ -f "$DESTDIR/usr/bin/partx" ] && [ -f "$DESTDIR/usr/sbin/sfdisk" ] && [ -f "$DESTDIR/usr/bin/whereis" ]; then
-        echo -e "${LIGHT_RED}lsblk, partx, sfdisk and whereis from util-linux already compiled, skipping...${RESET}"
+    if [ -f "$DESTDIR/usr/bin/partx" ] && [ -f "$DESTDIR/usr/sbin/sfdisk" ] && [ -f "$DESTDIR/usr/bin/whereis" ]; then
+        echo -e "${LIGHT_RED}partx, sfdisk and whereis from util-linux already compiled, skipping...${RESET}"
         return
     fi
 
@@ -1269,7 +1273,7 @@ get_util_linux()
     fi
 
     # Compile and install
-    echo -e "${GREEN}Compiling util-linux for lsblk, partx, sfdisk and whereis...${RESET}"
+    echo -e "${GREEN}Compiling util-linux for partx, sfdisk and whereis...${RESET}"
 
     # In case "cannot find -ltinfo" error 
     export ac_cv_search_tigetstr='-lncursesw'
@@ -1312,10 +1316,9 @@ get_util_linux()
    
     make TINFO_LIBS="" -j$(nproc)
 
-    for bin in lsblk partx whereis; do
+    for bin in partx whereis; do
         sudo install -D -m 755 "${bin}" "$DESTDIR/usr/bin/${bin}"
     done
-
     for bin in sfdisk; do
         sudo install -D -m 755 "${bin}" "$DESTDIR/usr/sbin/${bin}"
     done
@@ -5617,12 +5620,6 @@ get_installed_programs_features()
         INCLUDED_FEATURES+="\n * joe ($JOE_VER)"
     else
         EXCLUDED_FEATURES+="\n * joe"
-    fi
-
-    if [ -f "$DESTDIR/usr/bin/lsblk" ]; then
-        INCLUDED_FEATURES+="\n * lsblk (util-linux, $UTIL_LINUX_VER)"
-    else
-        EXCLUDED_FEATURES+="\n * lsblk (util-linux)"
     fi
 
     if [ -f "$DESTDIR/usr/bin/lynx" ]; then
