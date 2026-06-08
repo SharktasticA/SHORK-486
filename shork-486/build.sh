@@ -1180,6 +1180,10 @@ get_busybox()
     sed -i "s|^CONFIG_EXTRA_CFLAGS=.*|CONFIG_EXTRA_CFLAGS=\"-no-pie -fno-pie -march=i486 -mtune=i486 -I${PREFIX}/include\"|" .config
     sed -i "s|^CONFIG_EXTRA_LDFLAGS=.*|CONFIG_EXTRA_LDFLAGS=\"-no-pie -static -L${PREFIX}/lib\"|" .config
 
+    # Patch in swap partition identification in lsblk implementation
+    echo -e "${GREEN}Applying 1.38.0_lsblk_swap patch...${RESET}"
+    patch -p1 < "$CURR_DIR/patches/1.38.0_lsblk_swap.patch"
+
     if $ENABLE_MULTIUSER_REAL; then
         echo -e "${GREEN}Enabling BusyBox's multi-user utilities...${RESET}"
         merge_busybox_frag "$CURR_DIR/configs/busybox.config.multiuser.frag"

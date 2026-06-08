@@ -1,0 +1,48 @@
+--- busybox-1.38.0_clean/util-linux/lsblk.c	2026-02-06 07:45:29.000000000 +0000
++++ busybox-1.38.0/util-linux/lsblk.c	2026-06-08 23:14:39.227995755 +0100
+@@ -133,6 +133,45 @@
+ 		xasprintf_inplace(mountpoints, "%s%.*s",
+ 			mountpoints ? mountpoints : "", (int)(e - p), p);
+ 	}
++
++	// Check /proc/swaps for potential swap devices
++	p = xmalloc_xopen_read_close("/proc/swaps", NULL);
++	if (p) {
++		char *line = p;
++		// Skip header line
++		line = strchr(line, '\n');
++
++		while (line && *++line) {
++			// "Filename" column is the first whitespace-delimed field
++			char *end = skip_non_whitespace(line);
++			if (end != line) {
++				char *swapfile = xstrndup(line, end - line);
++				// Trim trailing white space
++				char *trim = swapfile + strlen(swapfile) - 1;
++				while (trim > swapfile && (*trim == ' ' || *trim == '\t' || *trim == '\n' || *trim == '\r'))
++					*trim-- = '\0';
++
++				struct stat st;
++				if (stat(swapfile, &st) == 0 && S_ISBLK(st.st_mode)) {
++					// Resolve swap device to maj:min for comparison
++					char *swap_majmin = xasprintf("%u:%u",
++						(unsigned)major(st.st_rdev),
++						(unsigned)minor(st.st_rdev)
++					
++					);
++					// If maj:min matches our device, flag it as "[SWAP]"
++					if (strcmp(swap_majmin, majmin) == 0)
++						xasprintf_inplace(mountpoints, "%s [SWAP]", mountpoints ? mountpoints : "");
++					free(swap_majmin);
++				}
++				free(swapfile);
++			}
++			line = strchr(line, '\n');
++		}
++
++		free(p);
++	}
++
+ 	return mountpoints;
+ }
+ 
