@@ -48,7 +48,7 @@ HOSTNAME="shork-486"
 ENABLE_MULTIUSER_REAL=false
 ROOT_PASSWD=""
 ENABLE_NET_ETH=false
-FIX_EXTLINUX=false
+FIX_EXTLINUX=true
 INCLUDE_C3270=false
 INCLUDE_CMATRIX=false
 INCLUDE_DROPBEAR=false
@@ -391,11 +391,11 @@ else
             HOSTNAME="$CHOICE"
             set_minimal_vars
             BUILD_TYPE="minimal"
+            TARGET_DISK=1
+            TARGET_SWAP=0
         fi
         DIST="SHORK DISKETTE"
         ID="$CHOICE"
-        TARGET_DISK=1
-        TARGET_SWAP=0
     fi
 fi
 
@@ -541,11 +541,17 @@ if [ "$ID" == "shork-486" ]; then
         break
     done
 elif [ "$ID" == "shork-diskette" ]; then
+    DEFAULT_FLAG=""
+    if [[ "$TARGET_DISK" -eq 2 ]]; then
+        DEFAULT_FLAG="--defaultno"
+    fi
+
     dialog --clear \
         --backtitle "SHORK 486 Build Configurator" \
         --title "Target Diskette Size" \
         --yes-label "1.44MB" \
         --no-label "2.88MB" \
+        $DEFAULT_FLAG \
         --yesno "Please select which floppy diskette size you are targeting so that the image will be created to the appropriate size." \
         6 "$WIDTH"
 
@@ -619,10 +625,15 @@ HOSTNAME=$(dialog --clear \
 
 # Get multi-user support choice
 if [ "$BUILD_TYPE" != "minimal" ] && [ "$ID" == "shork-486" ]; then
+    DEFAULT_FLAG="--defaultno"
+    if $ENABLE_MULTIUSER_REAL; then
+        DEFAULT_FLAG=""
+    fi
+
     dialog --clear \
         --backtitle "SHORK 486 Build Configurator" \
         --title "Multi-User Support" \
-        --defaultno \
+        $DEFAULT_FLAG \
         --yesno "Do you want to enable multi-user support in SHORK 486? It will enable BusyBox's multi-user-related utilities and you will be able to set a root password in the next prompt." \
         7 $WIDTH
 
@@ -716,9 +727,15 @@ fi
 
 # Get networking support choice
 if [ "$BUILD_TYPE" == "custom" ] && [ "$ID" == "shork-486" ]; then
+    DEFAULT_FLAG=""
+    if ! $ENABLE_NET_ETH; then
+        DEFAULT_FLAG="--defaultno"
+    fi
+
     dialog --clear \
         --backtitle "SHORK 486 Build Configurator" \
         --title "Ethernet Networking Support" \
+        $DEFAULT_FLAG \
         --yesno "Do you want to enable ethernet networking support in SHORK 486? It includes kernel-level ethernet networking support and BusyBox's networking-related utilities, and you will be able to choose software that requires an internet connection in the next prompt." \
         8 $WIDTH
 
@@ -739,9 +756,15 @@ fi
 
 
 # Get patched EXTLINUX/SYSLINUX choice
+DEFAULT_FLAG=""
+if ! $FIX_EXTLINUX; then
+    DEFAULT_FLAG="--defaultno"
+fi
+
 dialog --clear \
     --backtitle "SHORK 486 Build Configurator" \
     --title "Patched EXTLINUX/SYSLINUX" \
+    $DEFAULT_FLAG \
     --yesno "Do you want to use SHORK's patched fork of the EXTLINUX/SYSLINUX bootloader, instead of your host distribution's maintained package version? The patched fork fixes a memory detection issue that *may* prevent booting with certain old BIOS implementations. It is recommended to say \"Yes\" but it will increase build time.\n\nKnown computers that require this: Chicony NB5/derivatives, HP OmniBook 800CT, IBM 2625 ThinkPad 365E/365ED and IBM 6381 PS/ValuePoint" \
     12 $WIDTH
 

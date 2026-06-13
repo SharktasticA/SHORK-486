@@ -4949,10 +4949,9 @@ build_file_system()
     sudo mkdir -p {dev,proc,etc/init.d,sys,tmp,usr/share,usr/libexec,banners,root/.config/shorkutils}
 
     echo -e "${GREEN}Configure permissions...${RESET}"
+    chmod +x $CURR_DIR/sysfiles/*/rc
     chmod +x $CURR_DIR/sysfiles/default.script
     chmod +x $CURR_DIR/sysfiles/poweroff
-    chmod +x $CURR_DIR/sysfiles/rc
-    chmod +x $CURR_DIR/sysfiles/rc.diskette
     chmod +x $CURR_DIR/shorkutils/shorkgui
     chmod +x $CURR_DIR/sysfiles/shutdown
 
@@ -4963,17 +4962,17 @@ build_file_system()
     copy_sysfile $CURR_DIR/sysfiles/os-release $DESTDIR/etc/os-release
 
     if [ "$ID" == "shork-486" ]; then
+        copy_sysfile $CURR_DIR/sysfiles/486/rc $DESTDIR/etc/init.d/rc
+        copy_sysfile $CURR_DIR/sysfiles/486/profile $DESTDIR/etc/profile
         copy_sysfile $CURR_DIR/sysfiles/goodbye-80 $DESTDIR/banners/goodbye-80
         copy_sysfile $CURR_DIR/sysfiles/goodbye-100 $DESTDIR/banners/goodbye-100
         copy_sysfile $CURR_DIR/sysfiles/goodbye-128 $DESTDIR/banners/goodbye-128
         copy_sysfile $CURR_DIR/sysfiles/passwd $DESTDIR/etc/passwd
         copy_sysfile $CURR_DIR/sysfiles/poweroff $DESTDIR/sbin/poweroff
-        copy_sysfile $CURR_DIR/sysfiles/profile $DESTDIR/etc/profile
-        copy_sysfile $CURR_DIR/sysfiles/rc $DESTDIR/etc/init.d/rc
         copy_sysfile $CURR_DIR/sysfiles/shutdown $DESTDIR/sbin/shutdown
     elif [ "$ID" == "shork-diskette" ]; then
-        copy_sysfile $CURR_DIR/sysfiles/profile.diskette $DESTDIR/etc/profile
-        copy_sysfile $CURR_DIR/sysfiles/rc.diskette $DESTDIR/etc/init.d/rc
+        copy_sysfile $CURR_DIR/sysfiles/diskette/profile $DESTDIR/etc/profile
+        copy_sysfile $CURR_DIR/sysfiles/diskette/rc $DESTDIR/etc/init.d/rc
     fi
 
     if $ENABLE_FB; then
@@ -5025,7 +5024,7 @@ build_file_system()
 
         sudo mkdir -p $DESTDIR/home
 
-        copy_sysfile $CURR_DIR/sysfiles/inittab.getty $DESTDIR/etc/inittab
+        copy_sysfile $CURR_DIR/sysfiles/486/inittab.getty $DESTDIR/etc/inittab
         copy_sysfile $CURR_DIR/sysfiles/group $DESTDIR/etc/group
         copy_sysfile $CURR_DIR/sysfiles/shadow $DESTDIR/etc/shadow
 
@@ -5043,9 +5042,9 @@ build_file_system()
         sudo sed -i '/^export LOGIN_TIMEOUT=0$/d' "$DESTDIR/etc/profile"
     else
         if [ "$ID" == "shork-486" ]; then
-            copy_sysfile $CURR_DIR/sysfiles/inittab.nogetty $DESTDIR/etc/inittab
+            copy_sysfile $CURR_DIR/sysfiles/486/inittab.nogetty $DESTDIR/etc/inittab
         elif [ "$ID" == "shork-diskette" ]; then
-            copy_sysfile $CURR_DIR/sysfiles/inittab.diskette $DESTDIR/etc/inittab
+            copy_sysfile $CURR_DIR/sysfiles/diskette/inittab $DESTDIR/etc/inittab
         fi
     fi
 
@@ -5132,10 +5131,10 @@ install_grub_bootloader()
 
     if $ENABLE_MENU; then
         echo -e "${GREEN}Installing menu-based GRUB bootloader...${RESET}"
-        copy_sysfile $CURR_DIR/sysfiles/grub.cfg.menu "/mnt/${ID}/boot/grub/grub.cfg"
+        copy_sysfile $CURR_DIR/sysfiles/486/grub.cfg.menu "/mnt/${ID}/boot/grub/grub.cfg"
     else
         echo -e "${GREEN}Installing boot-only GRUB bootloader...${RESET}"
-        copy_sysfile $CURR_DIR/sysfiles/grub.cfg.boot "/mnt/${ID}/boot/grub/grub.cfg"
+        copy_sysfile $CURR_DIR/sysfiles/486/grub.cfg.boot "/mnt/${ID}/boot/grub/grub.cfg"
     fi
 
     # If required, specify the target scancode set
@@ -5176,7 +5175,7 @@ install_extlinux_bootloader()
 
     if $ENABLE_MENU; then
         echo -e "${GREEN}Installing menu-based EXTLINUX bootloader...${RESET}"
-        copy_sysfile $CURR_DIR/sysfiles/syslinux.cfg.menu  "/mnt/${ID}/boot/syslinux/syslinux.cfg"
+        copy_sysfile $CURR_DIR/sysfiles/486/syslinux.cfg.menu  "/mnt/${ID}/boot/syslinux/syslinux.cfg"
         
         SYSLINUX_DIRS="
         /usr/lib/syslinux/modules/bios
@@ -5203,7 +5202,7 @@ install_extlinux_bootloader()
         copy_syslinux_file libmenu.c32
     else
         echo -e "${GREEN}Installing boot-only EXTLINUX bootloader...${RESET}"
-        copy_sysfile $CURR_DIR/sysfiles/syslinux.cfg.boot  "/mnt/${ID}/boot/syslinux/syslinux.cfg"
+        copy_sysfile $CURR_DIR/sysfiles/486/syslinux.cfg.boot  "/mnt/${ID}/boot/syslinux/syslinux.cfg"
     fi
 
     # If required, specify the target scancode set
@@ -5440,7 +5439,7 @@ build_diskette_img()
 
     # Copy SYSLINUX configuration
     echo -e "${GREEN}Copying SYSLINUX configuration...${RESET}"
-    copy_sysfile $CURR_DIR/sysfiles/syslinux.cfg.diskette  "/mnt/${ID}/syslinux.cfg"
+    copy_sysfile $CURR_DIR/sysfiles/diskette/syslinux.cfg  "/mnt/${ID}/syslinux.cfg"
 
     # If required, specify the target scancode set
     if [[ $SCANCODE_SET != -1 ]]; then
@@ -5888,17 +5887,24 @@ generate_report()
         "==     $DATE     =="
         "=================================="
         ""
-        "Version:             $DIST $VER"
+        "OS/version:          $DIST $VER"
         "Kernel:              Linux $KERNEL_VER"
         "Base:                BusyBox $BUSYBOX_VER"
         "Bootloader:          $BOOTLDR_USED"
     )
 
-    lines+=(
-        ""
-        "Build type:          $BUILD_TYPE"
-        "Build time:          $MINS minutes, $SECS seconds"
-    )
+    if [ "$ID" == "shork-486" ]; then
+        lines+=(
+            ""
+            "Build type:          $BUILD_TYPE"
+            "Build time:          $MINS minutes, $SECS seconds"
+        )
+    elif [ "$ID" == "shork-diskette" ]; then
+        lines+=(
+            ""
+            "Build time:          $MINS minutes, $SECS seconds"
+        )
+    fi
 
     if [ -n "$USED_PARAMS" ]; then
         lines+=(
@@ -5912,25 +5918,35 @@ generate_report()
         lines+=(".env used:           no")
     fi
 
-    lines+=(
-        ""
-        "Est. minimum RAM:    ${EST_MIN_RAM}"
-        "Total disk size:     ${TOTAL_DISK_SIZE}MiB"
-        "Root partition size: ${ROOT_PART_SIZE}MiB"
-    )
+    if [ "$ID" == "shork-486" ]; then
+        lines+=(
+            ""
+            "Est. minimum RAM:    ${EST_MIN_RAM}"
+            "Total disk size:     ${TOTAL_DISK_SIZE}MiB"
+            "Root partition size: ${ROOT_PART_SIZE}MiB"
+        )
 
-    if [ "$TARGET_SWAP" -ne 0 ]; then
-        lines+=("Swap partition size: ${TARGET_SWAP}MiB")
-    fi
+        if [ "$TARGET_SWAP" -ne 0 ]; then
+            lines+=("Swap partition size: ${TARGET_SWAP}MiB")
+        fi
 
-    lines+=(
-        "CHS geometry:        $DISK_CYLINDERS/$DISK_HEADS/$DISK_SECTORS_TRACK"
-    )
+        lines+=(
+            "CHS geometry:        $DISK_CYLINDERS/$DISK_HEADS/$DISK_SECTORS_TRACK"
+        )
 
-    if $ENABLE_MENU; then
-        lines+=("Boot style:          menu")
-    else
-        lines+=("Boot style:          boot only")
+        if $ENABLE_MENU; then
+            lines+=("Boot style:          menu")
+        else
+            lines+=("Boot style:          boot only")
+        fi
+    elif [ "$ID" == "shork-diskette" ]; then
+        DISKETTE_B=$(( 1440 * TARGET_DISK ))
+        DISKETTE_MB=$(echo "scale=2; $DISKETTE_B / 1000" | bc)
+        lines+=(
+            ""
+            "Est. minimum RAM:    ${EST_MIN_RAM}"
+            "Diskette size:       ${DISKETTE_MB}MB"
+        )
     fi
 
     if [ -n "$INCLUDED_FEATURES" ]; then
@@ -6103,12 +6119,12 @@ if $INCLUDE_TNFTP; then
     get_tnftp
 fi
 
+get_shorkhelp
+get_shorkfetch
 if [ "$ID" == "shork-486" ]; then
     get_shorkcommon_sh
     get_shorkdir
-    get_shorkfetch
     get_shorkfont
-    get_shorkhelp
     if $INCLUDE_KEYMAPS; then
         get_shorkmap
     fi
