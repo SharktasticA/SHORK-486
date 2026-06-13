@@ -1,7 +1,8 @@
 ######################################################
-## /mnt/ID/boot/syslinux/syslinux.cfg               ##
+## /mnt/ID/syslinux.cfg                             ##
 ######################################################
-## EXTLINUX bootloader configuration (boot only)    ##
+## SYSLINUX bootloader configuration (SHORK         ##
+## DISKETTE version)                                ##
 ######################################################
 ## Kali (sharktastica.co.uk)                        ##
 ######################################################
@@ -10,5 +11,6 @@ DEFAULT @ID@
 
 LABEL @ID@
     SAY Starting @DIST@...
-    KERNEL /boot/bzImage
-    APPEND root=/dev/sda1 rootfstype=ext4 rw rootwait init=/sbin/init console=tty1 ip=off tsc=unstable quiet loglevel=3 vga=normal atkbd.extra=1
+    KERNEL bzImage
+    INITRD rootfs.cpio.xz
+    APPEND root=/dev/ram rdinit=/etc/init.d/rc console=tty1 tsc=unstable loglevel=4 atkbd.extra=1

@@ -100,7 +100,7 @@ if [ -f banners/welcome ]; then
     BUFFER="${BUFFER}$(printf "%*s\n" "$COLS" '')"
 
     # Show OS name
-    OS="@NAME@"
+    OS="@DIST@"
     TOTAL_PAD=$((COLS - ${#OS}))
     RIGHT_PAD=$((TOTAL_PAD / 2))
     LEFT_PAD=$((TOTAL_PAD - RIGHT_PAD))

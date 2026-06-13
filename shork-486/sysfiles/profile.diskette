@@ -1,0 +1,13 @@
+export TERM=linux
+export HOME=/home
+export USER=root
+export LOGNAME=root
+export SHELL=/bin/sh
+export PS1='\w$ '
+
+export PATH=/sbin:/bin:/usr/sbin:/usr/bin
+export PATH
+
+# Show welcome tip
+printf "Welcome, please check out \033[32mshorkhelp\033[0m to get started with @DIST@!"
+printf "\n\n"

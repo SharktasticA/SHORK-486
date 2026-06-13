@@ -1,8 +1,4 @@
-# SHORK 486
-
-Member of the SHORK family: **SHORK 486** | [SHORK DISKETTE](https://github.com/SharktasticA/SHORK-DISKETTE)
-
------
+# SHORK 486 & DISKETTE
 
 SHORK 486 is an operating system for 486 and Pentium (P5) era vintage PCs. The aim is to produce a 32-bit Linux distribution that is very lean and functional but still capable on such PCs, often with my '90s IBM ThinkPads in mind. A default SHORK 486 system aims to work with at least 16MiB system memory and take up no more than ~80MiB on your disk. Despite those constraints, the default SHORK 486 experience includes [Linux kernel 7.0.12](KERNEL.md), many typical Linux commands, custom SHORK Utilities such as shorkdir (TUI file browser) and shorkfetch (*fetch clone), a terminal multiplexer, a C compiler and Python 3.4-syntax interpreter, a text web browser, an FTP, SCP and SSH client, a Git source control client, the ed, Mg (Emacs-style), nano and vi editors, a spreadsheet editor, IDE CD-ROM and DVD-ROM support, SCSI tape drive support, ISA, PCI and PCMCIA ethernet support, support for most major national keyboard layouts, and a cute ASCII shark welcome screen!
 
@@ -186,26 +182,38 @@ The after-build report is provided to confirm whether the build was completed as
 When running the SHORK 486 Build Configurator, you will be prompted to select the following:
 
 * Build environment (Arch native, Debian native/Dockerised or Fedora native)
-* Build type (default, offline, minimal, maximal or custom)
-* Target disk size (size in MiB)
-* Swap partition size (size in MiB)
+* Target distribution (SHORK 486 or SHORK DISKETTE)
+* _If SHORK 486:_
+    * Build type (default, offline, minimal, maximal or custom)
+    * Target disk size (size in MiB)
+    * Swap partition size (size in MiB)
+* _If SHORK DISKETTE:_
+    * Target diskette size (1.44MB or 2.88MB)
 * Keyboard scancode set (skip, set 2 or set 3)
-* If not "Minimal" build type selected:
-    * Keyboard layout (keymap) (single choice)
+* _If SHORK 486:_
+    * If not "Minimal" build type selected:
+        * Keyboard layout (keymap) (single choice)
 * Hostname (text input)
-* If not "Minimal" build type selected:
-    * Multi-user support (yes/no)
-        * Root password (text input)
-* If "Custom" build type selected:
-    * Ethernet networking support (yes/no)
-* Patched EXTLINUX (yes/no)
-* If "Custom" build type selected:
-    * Bundled software (multiple choice)
-    * Options (all other configuration) (multiple choice)
+* _If SHORK 486:_
+    * If not "Minimal" build type selected:
+        * Multi-user support (yes/no)
+            * Root password (text input)
+    * If "Custom" build type selected:
+        * Ethernet networking support (yes/no)
+* Patched EXTLINUX/SYSLINUX (yes/no)
+* _If SHORK 486:_
+    * If "Custom" build type selected:
+        * Bundled software (multiple choice)
+        * Options (all other configuration) (multiple choice)
 
 Below are further explanations for options that could not fit into the configurator itself.
 
 
+#### Target distribution
+
+* **SHORK 486**: The main version of SHORK 486 designed to br written/installed to fixed disks (hard drives, solid-state drives, etc.) It is the most robust, complete and customisable version of this operating system, and likely the one you want. Its requirements vary from 8-24MiB system memory and 8-480MiB disk size depending on the build type selected in the next prompt.
+
+* **SHORK DISKETTE**: A specialised version of SHORK 486 that is cut-down enough to fit on a 1.44MB floppy diskette. Only a subset of BusyBox commands and utilities and SHORK Utilities are available for it due to space constraints. It requires 16MiB system memory to run due to its use of an initial RAM disk.
 
 #### Build Type
 
@@ -245,9 +253,9 @@ Selecting "Yes" here will enable ethernet networking support in SHORK 486. BusyB
 
 
 
-#### Patched EXTLINUX
+#### Patched EXTLINUX/SYSLINUX
 
-Selecting "Yes" here will tell the build script to use [my forked SYSLINUX/EXTLINUX repository](https://github.com/SharktasticA/syslinux) instead of your host Linux distribution's maintained packaged version. This version addresses a memory detection error to resolve the "Booting kernel failed: Invalid argument" or boot menu looping issue that the stock EXTLINUX may encounter with some BIOSes when attempting to boot the kernel with.
+EXTLINUX (SHORK 486) and SYSLINUX (SHORK DISKETTE) are the default bootloaders used for the SHORK 486 family. Selecting "Yes" here will tell the build script to use [my forked SYSLINUX repository](https://github.com/SharktasticA/syslinux) instead of your host Linux distribution's maintained packaged version. This version addresses a memory detection error to resolve the "Booting kernel failed: Invalid argument" or boot menu looping issue that the stock EXTLINUX/SYSLINUX may encounter with some BIOSes when attempting to boot the kernel with.
 
 * Some people need this, some people do not - see the list below, or try without first, then enable this if this error or something like it occurs.
 * Known hardware that need this includes: Chicony NB5 & [derivatives](https://www.macdat.net/laptops/chicony/nb5.php), HP OmniBook 800CT, IBM 2625 ThinkPad 365E/365ED, IBM 6381 PS/ValuePoint

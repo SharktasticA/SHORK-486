@@ -10,8 +10,8 @@ set timeout_style=hidden
 set timeout=0
 set default=0
 
-menuentry "@NAME@ @VER@" {
+menuentry "@DIST@ @VER@" {
     clear
-    echo "Starting @NAME@..."
+    echo "Starting @DIST@..."
     linux16 /boot/bzImage root=/dev/sda1 rootfstype=ext4 rw rootwait init=/sbin/init console=tty1 ip=off tsc=unstable quiet loglevel=3 vga=normal atkbd.extra=1
 }

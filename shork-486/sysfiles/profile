@@ -33,7 +33,7 @@ shorkfont()
 
 # Show welcome tip (if first boot marker does not exist)
 if [ ! -f /etc/.past_first_boot ] && [ "$(tty)" = "/dev/tty1" ]; then
-    printf "Welcome! If this is your first time using @NAME@, please check out \033[32mshorkhelp\033[0m!\n"
+    printf "Welcome! If this is your first time using @DIST@, please check out \033[32mshorkhelp\033[0m!\n"
     echo "1" > /etc/.past_first_boot
 
     # Padding specific for single-user use
