@@ -1174,7 +1174,11 @@ get_busybox()
     sed -i 's/getenv("LOGIN_TIMEOUT") ? : "60"/getenv("LOGIN_TIMEOUT") ? : "0"/' loginutils/login.c
 
     echo -e "${GREEN}Copying base ${DIST} BusyBox .config file...${RESET}"
-    cp $CURR_DIR/configs/busybox.config .config
+    if [ "$ID" == "shork-486" ]; then
+        cp $CURR_DIR/configs/busybox.config.base .config
+    elif [ "$ID" == "shork-diskette" ]; then
+        cp $CURR_DIR/configs/busybox.config.base.diskette .config
+    fi
 
     # Ensure BusyBox behaves with our toolchain
     sed -i "s|^CONFIG_CROSS_COMPILER_PREFIX=.*|CONFIG_CROSS_COMPILER_PREFIX=\"${PREFIX}/bin/${ARCH}-linux-musl-\"|" .config
@@ -5362,7 +5366,7 @@ build_disk_img()
 
 
     # Install the kernel
-    echo -e "${GREEN}Installing kernel image...${RESET}"
+    echo -e "${GREEN}Copying kernel image...${RESET}"
     sudo cp bzImage "/mnt/${ID}/boot/bzImage"
 
 
@@ -5444,7 +5448,7 @@ build_diskette_img()
     fi
 
     # Install the kernel
-    echo -e "${GREEN}Installing kernel image...${RESET}"
+    echo -e "${GREEN}Copying kernel image...${RESET}"
     sudo cp bzImage "/mnt/${ID}"
 
     # Copy compressed root file system
