@@ -22,11 +22,11 @@ SHORK 486 is not GNU/Linux as you may be accustomed to. Its init system and most
 
 ### Goals
 
-Besides being something fun to try on old PCs, SHORK 486 was founded on the belief that old PCs can still be useful to the right people, retrocomputing and gaming usage aside. SHORK 486 can be useful for lightweight desktop usage, SSH terminal usage, distraction-free typewriting ("writerdeck"), embedded applications, demonstrative use in academia/education, and as a technical demonstration of what old PCs and modern software targeted at them can actually still do! If it can save just one more PC from the landfills, it has done its job! 
+Besides being something fun to try on old PCs, SHORK 486 was founded on the belief that old PCs can still be useful to the right people, retrocomputing and gaming usage aside. SHORK 486 can be useful for lightweight desktop usage, SSH terminal usage, distraction-free typewriting ("writerdecks"), embedded applications, demonstrative use in academia/education, and as a technical demonstration of what old PCs and modern software targeted at them can actually still do! If it can save just one more PC from the landfills, it has done its job! 
 
 ### What's special
 
-Depending on configuration, SHORK 486 requires between just 8-24MiB system memory while still packing a lot of functionality for its size. As of 2026, support for 486 in the Linux kernel is to be removed, and 32-bit x86 support in general is being dropped by various mainstream distributions. System requirements are ever-increasing - even Micro Core and Tiny Core (otherwise excellent systems) require 26-46MB RAM, putting them out of range of many early 486 systems. Thus, SHORK 486 will try to fill this niche of a ready-to-go Linux distribution for such PCs!
+SHORK 486 is a modern and maintained Linux distribution that can run on a processor architecture from 1989. Depending on configuration, it only requires between 8 and 24MiB system memory whilst still packing a lot of functionality for its size. Due to various factors, making such a distribution is increasingly difficult in the 2020s. System requirements are ever-increasing, with even the otherwise excellent Micro Core and Tiny Core requiring at least 26-46MB RAM, putting them out of range of many early 486 systems. As of Linux kernel 7.1 and beyond, support for 486 processors and various ISA and PCMCIA networking hardware has been dropped, and 32-bit x86 support in general is currently dropped by most mainstream distributions. Given this situation, SHORK 486 will try to fill this niche of a ready-to-go Linux distribution for such PCs by sticking with a minimal-where-possible philosophy, customisability and restoring support for older hardware with newer Linux kernels!
 
 
 
