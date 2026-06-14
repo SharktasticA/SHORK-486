@@ -1446,7 +1446,7 @@ reset_kernel()
     cd "$CURR_DIR/build/linux"
 
     CURR_TAG=$(git describe --tags --exact-match 2>/dev/null || echo "")
-    if [ "$CURR_TAG" != "v${KERNEL_VER}" ]; then
+    if [ -n "$CURR_TAG" ] && [ "$CURR_TAG" != "v${KERNEL_VER}" ]; then
         echo -e "${GREEN}Switching kernel version from ${CURR_TAG} to v${KERNEL_VER}...${RESET}"
         reclone_kernel
         return
@@ -1457,6 +1457,7 @@ reset_kernel()
     git reset --hard || true
     git clean -fdx || true
     make clean
+    git checkout "v${KERNEL_VER}"
 
     configure_kernel
 }
@@ -1477,7 +1478,7 @@ compile_kernel()
     sudo sed -i "s/printf '%s' -dirty/printf '%s'/" scripts/setlocalversion
 
     # Apply our patches
-    if [[ "$KERNEL_VER" == 7.1* ]]; then
+    if [[ "$KERNEL_VER" == "7.1" ]]; then
         echo -e "${GREEN}Applying 7.1.x_restore-M486-M486SX-ELAN patch...${RESET}"
         patch -p1 < "$CURR_DIR/patches/7.1.x_restore-M486-M486SX-ELAN.patch"
 
@@ -1489,6 +1490,9 @@ compile_kernel()
 
         echo -e "${GREEN}Applying 7.1.x_restore-pc110pad patch...${RESET}"
         patch -p1 < "$CURR_DIR/patches/7.1.x_restore-pc110pad.patch"
+
+        echo -e "${GREEN}Applying 7.1.x_restore-isa-pcmcia-net patch...${RESET}"
+        patch -p1 < "$CURR_DIR/patches/7.1.x_restore-isa-pcmcia-net.patch"
     fi
 
     echo -e "${GREEN}Compiling Linux kernel...${RESET}"

@@ -18,10 +18,17 @@ Whilst SHORK 486 itself is licensed under GPL 3.0 terms, the contents of the `sh
 ### 7.1.x
 
 * Review implications of 64-bit `i_ino`: https://www.phoronix.com/news/Linux-7.1-VFS-Kino-32-bit
-* Review removed networking drivers: https://www.phoronix.com/news/Linux-7.1-Removes-Old-Net
+* Review removal of `CONFIG_NET_VENDOR_ALTEON` and `CONFIG_NET_VENDOR_PACKET_ENGINES`
 
 
 ## 7.1.x
+
+### [7.1.x_restore-isa-pcmcia-net.patch](shork-486/patches/7.1.x_restore-isa-pcmcia-net.patch)
+
+* Original kernel: *7.1*
+* Context: https://www.phoronix.com/news/Linux-7.1-Removes-Old-Net, https://lore.kernel.org/all/20260422-v7-0-0-net-next-driver-removal-v1-v2-0-08a5b59784d5@lunn.ch/
+
+This patch reverts the removal of several ISA and PCMCIA network drivers from [this removal series](https://github.com/search?q=repo%3Atorvalds%2Flinux+net-next+driver-removal&type=commits). It includes the ISA drivers `3c515`, `lance`, `smc9194`, `ultra` and `wd80x3`, and the PCMCIA drivers `3c574`, `3c589`, `ax88190`, `fmvj18x`, `nmclan` and `smc91c92`. Several of these drivers include hardware relevant for SHORK 486.
 
 
 

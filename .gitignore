@@ -1,5 +1,9 @@
 __pycache__
 shork-486/build/
 shork-486/images/
+/shork-486/patches/*/
+/shork-486/patches/*.sh
+/shork-486/patches/*.txt
+/shork-486/patches/tmp*
 shork-486/release/
 shork-486/.env
