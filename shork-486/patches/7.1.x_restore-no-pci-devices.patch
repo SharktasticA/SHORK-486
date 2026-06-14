@@ -1,0 +1,49 @@
+diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+index b63cd0c31..eaa4a3d66 100644
+--- a/drivers/pci/probe.c
++++ b/drivers/pci/probe.c
+@@ -67,6 +67,23 @@ static struct resource *get_pci_domain_busn_res(int domain_nr)
+ 	return &r->res;
+ }
+ 
++/*
++ * Some device drivers need know if PCI is initiated.
++ * Basically, we think PCI is not initiated when there
++ * is no device to be found on the pci_bus_type.
++ */
++int no_pci_devices(void)
++{
++	struct device *dev;
++	int no_devices;
++
++	dev = bus_find_next_device(&pci_bus_type, NULL);
++	no_devices = (dev == NULL);
++	put_device(dev);
++	return no_devices;
++}
++EXPORT_SYMBOL(no_pci_devices);
++
+ /*
+  * PCI Bus Class
+  */
+diff --git a/include/linux/pci.h b/include/linux/pci.h
+index 2c4454583..8f63de38f 100644
+--- a/include/linux/pci.h
++++ b/include/linux/pci.h
+@@ -1195,6 +1195,8 @@ extern const struct bus_type pci_bus_type;
+ /* Do NOT directly access these two variables, unless you are arch-specific PCI
+  * code, or PCI core code. */
+ extern struct list_head pci_root_buses;	/* List of all known PCI buses */
++/* Some device drivers need know if PCI is initiated */
++int no_pci_devices(void);
+ 
+ void pcibios_resource_survey_bus(struct pci_bus *bus);
+ void pcibios_bus_add_device(struct pci_dev *pdev);
+@@ -2138,6 +2140,7 @@ static inline struct pci_dev *pci_get_base_class(unsigned int class,
+ static inline int pci_dev_present(const struct pci_device_id *ids)
+ { return 0; }
+ 
++#define no_pci_devices()	(1)
+ #define pci_dev_put(dev)	do { } while (0)
+ 
+ static inline void pci_set_master(struct pci_dev *dev) { }
