@@ -5420,8 +5420,8 @@ build_diskette_img()
     # Create a diskette image
     DISKETTE_SIZE=$((1440 * TARGET_DISK))
     echo -e "${GREEN}Creating a ${DISKETTE_SIZE}-byte floppy diskette image...${RESET}"
-    sudo dd if=/dev/zero of=../images/shork-diskette.img bs=1k count=$DISKETTE_SIZE
-    sudo mkdosfs -n SHORKDISK ../images/shork-diskette.img
+    sudo dd if=/dev/zero of="../images/${ID}.img" bs=1k count=$DISKETTE_SIZE
+    sudo mkdosfs -n SHORKDISK "../images/${ID}.img"
 
     # Install a bootloader
     install_syslinux_bootloader
@@ -5434,8 +5434,8 @@ build_diskette_img()
 
     # Mount it for copying files
     echo -e "${GREEN}Mounting diskette image for copying files...${RESET}"
-    LOOP=$(sudo losetup -f --show ../images/shork-diskette.img)
-    sudo mount -t vfat "$LOOP" "/mnt/${ID}"
+    LOOP=$(sudo losetup -f --show "../images/${ID}.img")
+    sudo mount -t msdos "$LOOP" "/mnt/${ID}"
 
     # Copy SYSLINUX configuration
     echo -e "${GREEN}Copying SYSLINUX configuration...${RESET}"
