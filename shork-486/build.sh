@@ -118,7 +118,7 @@ HTOP_VER="3.5.1"
 JOE_SRC="https://github.com/joe-editor/joe"
 JOE_VER="4.8"
 KERNEL_SRC="https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
-KERNEL_VER="7.1-rc7"
+KERNEL_VER="7.1"
 LIBEVENT_SRC="https://github.com/libevent/libevent.git"
 LIBEVENT_VER="release-2.1.12-stable"
 LIBT3_SRC="https://os.ghalkes.nl/dist"
@@ -1444,11 +1444,20 @@ configure_kernel()
 reset_kernel()
 {
     cd "$CURR_DIR/build/linux"
+
+    CURR_TAG=$(git describe --tags --exact-match 2>/dev/null || echo "")
+    if [ "$CURR_TAG" != "v${KERNEL_VER}" ]; then
+        echo -e "${GREEN}Switching kernel version from ${CURR_TAG} to v${KERNEL_VER}...${RESET}"
+        reclone_kernel
+        return
+    fi
+
     echo -e "${GREEN}Resetting and cleaning Linux kernel...${RESET}"
     git config --global --add safe.directory $CURR_DIR/build/linux || true
     git reset --hard || true
     git clean -fdx || true
     make clean
+
     configure_kernel
 }
 
@@ -1468,17 +1477,19 @@ compile_kernel()
     sudo sed -i "s/printf '%s' -dirty/printf '%s'/" scripts/setlocalversion
 
     # Apply our patches
-    echo -e "${GREEN}Applying 7.1.x_restore-M486-M486SX-ELAN patch...${RESET}"
-    patch -p1 < "$CURR_DIR/patches/7.1.x_restore-M486-M486SX-ELAN.patch"
+    if [[ "$KERNEL_VER" == 7.1* ]]; then
+        echo -e "${GREEN}Applying 7.1.x_restore-M486-M486SX-ELAN patch...${RESET}"
+        patch -p1 < "$CURR_DIR/patches/7.1.x_restore-M486-M486SX-ELAN.patch"
 
-    echo -e "${GREEN}Applying 7.1.x_restore-pcmcia-hosts patch...${RESET}"
-    patch -p1 < "$CURR_DIR/patches/7.1.x_restore-pcmcia-hosts.patch"
+        echo -e "${GREEN}Applying 7.1.x_restore-pcmcia-hosts patch...${RESET}"
+        patch -p1 < "$CURR_DIR/patches/7.1.x_restore-pcmcia-hosts.patch"
 
-    echo -e "${GREEN}Applying 7.1.x_restore-no-pci-devices patch...${RESET}"
-    patch -p1 < "$CURR_DIR/patches/7.1.x_restore-no-pci-devices.patch"
+        echo -e "${GREEN}Applying 7.1.x_restore-no-pci-devices patch...${RESET}"
+        patch -p1 < "$CURR_DIR/patches/7.1.x_restore-no-pci-devices.patch"
 
-    echo -e "${GREEN}Applying 7.1.x_restore-pc110pad patch...${RESET}"
-    patch -p1 < "$CURR_DIR/patches/7.1.x_restore-pc110pad.patch"
+        echo -e "${GREEN}Applying 7.1.x_restore-pc110pad patch...${RESET}"
+        patch -p1 < "$CURR_DIR/patches/7.1.x_restore-pc110pad.patch"
+    fi
 
     echo -e "${GREEN}Compiling Linux kernel...${RESET}"
     make ARCH=x86 olddefconfig
