@@ -377,16 +377,28 @@ CHOICE=$(dialog --clear \
 
 if [[ ! -n "$CHOICE" ]]; then
     exit 0
-elif [ "$BUILD_TYPE" == "default" ]; then
-    set_default_vars
-elif [ "$BUILD_TYPE" == "offline" ]; then
-    set_offline_vars
-elif [ "$BUILD_TYPE" == "minimal" ]; then
-    set_minimal_vars
-elif [ "$BUILD_TYPE" == "maximal" ]; then
-    set_maximal_vars
-elif [ "$BUILD_TYPE" == "custom" ]; then
-    set_custom_vars
+else
+    if [ "$CHOICE" == "shork-486" ]; then
+        if [ "$CHOICE" != "$ID" ]; then
+            HOSTNAME="$CHOICE"
+            set_default_vars
+            BUILD_TYPE="default"
+            TARGET_DISK=80
+            TARGET_SWAP=8
+        fi
+        DIST="SHORK 486"
+        ID="$CHOICE"
+    elif [ "$CHOICE" == "shork-diskette" ]; then
+        if [ "$CHOICE" != "$ID" ]; then
+            HOSTNAME="$CHOICE"
+            set_minimal_vars
+            BUILD_TYPE="minimal"
+            TARGET_DISK=1
+            TARGET_SWAP=0
+        fi
+        DIST="SHORK DISKETTE"
+        ID="$CHOICE"
+    fi
 fi
 
 
@@ -404,41 +416,6 @@ KERNEL_VER=$(dialog --clear \
 
 if [[ ! -n "$KERNEL_VER" ]]; then
     exit 0
-fi
-
-
-
-CURR_MIN_DISK=0
-if [ "$BUILD_TYPE" == "default" ]; then
-    CURR_MIN_DISK=$DEFAULT_MIN_DISK
-    if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
-        TARGET_DISK=$DEFAULT_MIN_DISK
-        TARGET_SWAP=$DEFAULT_DEF_SWAP
-    fi
-elif [ "$BUILD_TYPE" == "offline" ]; then
-    CURR_MIN_DISK=$OFFLINE_MIN_DISK
-    if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
-        TARGET_DISK=$OFFLINE_MIN_DISK
-        TARGET_SWAP=$OFFLINE_DEF_SWAP
-    fi
-elif [ "$BUILD_TYPE" == "minimal" ]; then
-    CURR_MIN_DISK=$MINIMAL_MIN_DISK
-    if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
-        TARGET_DISK=$MINIMAL_MIN_DISK
-        TARGET_SWAP=$MINIMAL_DEF_SWAP
-    fi
-elif [ "$BUILD_TYPE" == "maximal" ]; then
-    CURR_MIN_DISK=$MAXIMAL_MIN_DISK
-    if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
-        TARGET_DISK=$MAXIMAL_MIN_DISK
-        TARGET_SWAP=$MAXIMAL_DEF_SWAP
-    fi
-elif [ "$BUILD_TYPE" == "custom" ]; then
-    CURR_MIN_DISK=$CUSTOM_MIN_DISK
-    if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
-        TARGET_DISK=$CUSTOM_MIN_DISK
-        TARGET_SWAP=$CUSTOM_DEF_SWAP
-    fi
 fi
 
 
