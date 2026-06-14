@@ -5257,12 +5257,13 @@ install_syslinux_bootloader()
 
     echo -e "${GREEN}Installing SYSLINUX bootloader...${RESET}"
 
-    EXTLINUX_BIN="syslinux"
+    SYSLINUX_BIN="syslinux"
     BOOTLDR_USED="SYSLINUX"
     if $FIX_SYSLINUX; then
         SYSLINUX_BIN="$CURR_DIR/build/syslinux/bios/linux/syslinux"
         BOOTLDR_USED="patched SYSLINUX"
     fi 
+    sudo chmod 666 "${CURR_DIR}/images/${ID}.img"
     sudo "$SYSLINUX_BIN" --install "${CURR_DIR}/images/${ID}.img"
 }
 
@@ -5448,6 +5449,8 @@ build_diskette_img()
             sudo kpartx -dv "$loop" 2>/dev/null || true
             sudo losetup -d "$loop" 2>/dev/null || true
         fi
+
+        sudo rm -rf /mnt/$ID || true
     }
     trap cleanup EXIT ERR INT TERM
 
@@ -5468,8 +5471,9 @@ build_diskette_img()
 
     # Mount it for copying files
     echo -e "${GREEN}Mounting diskette image for copying files...${RESET}"
+    sudo mkdir -p "/mnt/${ID}"
     LOOP=$(sudo losetup -f --show "../images/${ID}.img")
-    sudo mount -t msdos "$LOOP" "/mnt/${ID}"
+    sudo mount -t msdos -o rw "$LOOP" "/mnt/${ID}"
 
     # Copy SYSLINUX configuration
     echo -e "${GREEN}Copying SYSLINUX configuration...${RESET}"
