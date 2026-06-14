@@ -4605,6 +4605,11 @@ get_shorkfetch()
     git clone --branch "${SHORKFETCH_VER}" $SHORKFETCH_SRC
     cd shorkfetch
 
+    # SHORK DISKETTE-specific default fields
+    if [ "$ID" == "shork-diskette" ]; then
+        sed -i 's/char \*fields = strdup("[^"]*")/char *fields = strdup("os,krn,upt,trm,sh,---,cpu,gpu,ram,swap, ")/' src/main.c
+    fi
+
     # Compile and install
     echo -e "${GREEN}Compiling shorkfetch...${RESET}"
     make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
@@ -4972,7 +4977,7 @@ build_file_system()
     cd $DESTDIR
 
     echo -e "${GREEN}Creating required directories...${RESET}"
-    sudo mkdir -p {dev,proc,etc/init.d,sys,tmp,usr/share,usr/libexec,banners,root/.config/shorkutils}
+    sudo mkdir -p {dev,proc,etc/init.d,sys,tmp,usr/share,usr/libexec,banners}
 
     echo -e "${GREEN}Configure permissions...${RESET}"
     chmod +x $CURR_DIR/sysfiles/*/rc
@@ -5098,8 +5103,11 @@ build_file_system()
     fi
 
     echo -e "${GREEN}Copying SHORK Utilities configuration files...${RESET}"
-    copy_sysfile $CURR_DIR/sysfiles/shorkfetch.conf $DESTDIR/root/.config/shorkutils/shorkfetch.conf
-    copy_sysfile $CURR_DIR/sysfiles/shorkfont.conf $DESTDIR/etc/shorkfont.conf
+    if [ "$ID" == "shork-486" ]; then
+        sudo mkdir -p $DESTDIR/root/.config/shorkutils
+        copy_sysfile $CURR_DIR/sysfiles/shorkfetch.conf $DESTDIR/root/.config/shorkutils/shorkfetch.conf
+        copy_sysfile $CURR_DIR/sysfiles/shorkfont.conf $DESTDIR/etc/shorkfont.conf
+    fi
 
     if $INCLUDE_TESTS; then
         copy_tests
