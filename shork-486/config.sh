@@ -38,6 +38,7 @@ IS_ARCH=false
 IS_FEDORA=false
 IS_DEBIAN=true
 BUILD_TYPE="default"
+KERNEL_VER="7.1"
 TARGET_DISK=80
 TARGET_SWAP=8
 SCANCODE_SET=-1
@@ -131,6 +132,7 @@ IS_ARCH=$IS_ARCH
 IS_DEBIAN=$IS_DEBIAN
 IS_FEDORA=$IS_FEDORA
 BUILD_TYPE="$BUILD_TYPE"
+KERNEL_VER="$KERNEL_VER"
 TARGET_DISK=$TARGET_DISK
 TARGET_SWAP=$TARGET_SWAP
 SCANCODE_SET=$SCANCODE_SET
@@ -386,6 +388,23 @@ elif [ "$BUILD_TYPE" == "maximal" ]; then
     set_maximal_vars
 elif [ "$BUILD_TYPE" == "custom" ]; then
     set_custom_vars
+fi
+
+
+
+# Get Linux kernel version
+KERNEL_VER=$(dialog --clear \
+    --backtitle "SHORK 486 Build Configurator" \
+    --title "Linux Kernel Version" \
+    --cancel-label "Quit" \
+    --default-item "$KERNEL_VER" \
+    --menu "Please select which Linux kernel version you wish to use with SHORK 486. It is generally safe to use the newest major version, but if you experience hardware compatibility issues, try building with an older kernel to see if that resolves them. If so, please report it as an issue on the SHORK 486 GitHub repository." 13 $WIDTH 5 \
+    "7.1"       "7.1 (2026-06-14)" \
+    "7.0.12"    "7.0.12 (2026-06-09)" \
+    3>&1 1>&2 2>&3)
+
+if [[ ! -n "$KERNEL_VER" ]]; then
+    exit 0
 fi
 
 
