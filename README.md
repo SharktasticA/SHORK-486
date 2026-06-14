@@ -150,6 +150,12 @@ awk, basename, cat, clear, cp, date, dd, df, echo, expr, free, grep, hostname, l
 
 
 
+## Known issues
+
+* Despite working on a lot newer hardware, SHORK 486 and DISKETTE may run into a kernel panic with Intel Pentium Pro and some Intel Pentium II OverDrive processors. Research into the issue is ongoing.
+
+
+
 ## Building
 
 SHORK 486 and DISKETTE do not presently have or produce installation media, it must be compiled. The result are raw disk or diskette images you can write to real hardware or use as-is in emulation or virtualisation software. Building may require up to 5GiB of disk space. Please read "Notice & disclaimers" at the end of this readme before proceeding. 
@@ -198,6 +204,7 @@ When running the SHORK 486 Build Configurator, you will be prompted to select th
 
 * Build environment (Arch native, Debian native/Dockerised or Fedora native)
 * Target distribution (SHORK 486 or SHORK DISKETTE)
+* Linux kernel version (7.1 or 7.0.12)
 * _If SHORK 486:_
     * Build type (default, offline, minimal, maximal or custom)
     * Target disk size (size in MiB)

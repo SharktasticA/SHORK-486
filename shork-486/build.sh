@@ -1481,7 +1481,7 @@ reset_kernel()
 reclone_kernel()
 {
     cd "$CURR_DIR/build"
-    echo -e "${GREEN}Deleting and recloning Linux kernel...${RESET}"
+    echo -e "${GREEN}Recloning Linux kernel...${RESET}"
     sudo rm -r linux
     download_kernel
 }
