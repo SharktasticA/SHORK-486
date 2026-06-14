@@ -34,6 +34,8 @@ OFFLINE_DEF_SWAP=8
 OFFLINE_MIN_DISK=50
 
 ALWAYS_BUILD=true
+DIST="SHORK 486"
+ID="shork-486"
 IS_ARCH=false
 IS_FEDORA=false
 IS_DEBIAN=true
@@ -47,7 +49,7 @@ HOSTNAME="shork-486"
 ENABLE_MULTIUSER_REAL=false
 ROOT_PASSWD=""
 ENABLE_NET_ETH=false
-FIX_EXTLINUX=false
+FIX_EXTLINUX=true
 INCLUDE_C3270=false
 INCLUDE_CMATRIX=false
 INCLUDE_DROPBEAR=false
@@ -70,6 +72,7 @@ INCLUDE_TN5250=false
 INCLUDE_TNFTP=false
 INCLUDE_TMUX=false
 INCLUDE_UTIL_LINUX=false
+ENABLE_CDROM=false
 INCLUDE_CON_FONTS=false
 USE_GRUB=false
 ENABLE_FB=false
@@ -128,6 +131,8 @@ save_env()
 {
     cat > .env <<EOF
 ALWAYS_BUILD=$ALWAYS_BUILD
+DIST="$DIST"
+ID="$ID"
 IS_ARCH=$IS_ARCH
 IS_DEBIAN=$IS_DEBIAN
 IS_FEDORA=$IS_FEDORA
@@ -164,6 +169,7 @@ INCLUDE_TN5250=$INCLUDE_TN5250
 INCLUDE_TNFTP=$INCLUDE_TNFTP
 INCLUDE_TMUX=$INCLUDE_TMUX
 INCLUDE_UTIL_LINUX=$INCLUDE_UTIL_LINUX
+ENABLE_CDROM=$ENABLE_CDROM
 INCLUDE_CON_FONTS=$INCLUDE_CON_FONTS
 USE_GRUB=$USE_GRUB
 ENABLE_FB=$ENABLE_FB
@@ -200,6 +206,7 @@ val_str()
 
 set_minimal_vars()
 {
+    SET_KEYMAP="en_us"
     ENABLE_MULTIUSER_REAL=false
     ENABLE_NET_ETH=false
     INCLUDE_C3270=false
@@ -224,6 +231,7 @@ set_minimal_vars()
     INCLUDE_TNFTP=false
     INCLUDE_TMUX=false
     INCLUDE_UTIL_LINUX=false
+    ENABLE_CDROM=false
     INCLUDE_CON_FONTS=false
     USE_GRUB=false
     ENABLE_FB=false
@@ -265,6 +273,7 @@ set_default_vars()
     INCLUDE_TNFTP=true
     INCLUDE_TMUX=true
     INCLUDE_UTIL_LINUX=true
+    ENABLE_CDROM=true
     INCLUDE_CON_FONTS=true
     USE_GRUB=false
     ENABLE_FB=true
@@ -298,14 +307,8 @@ set_maximal_vars()
     INCLUDE_C3270=true
     INCLUDE_GCC=true
     INCLUDE_TN5250=true
-    INCLUDE_TNFTP=true
-    INCLUDE_TMUX=true
-    INCLUDE_UTIL_LINUX=true
-    INCLUDE_CON_FONTS=true
-    ENABLE_FB=true
     INCLUDE_GUI=true
     ENABLE_HIGHMEM=true
-    INCLUDE_KEYMAPS=true
     ENABLE_SATA=true
     ENABLE_SMP=true
     ENABLE_USB=true
@@ -361,33 +364,41 @@ fi
 
 
 
-# Get build type
-PREV_BUILD_TYPE=$BUILD_TYPE
-BUILD_TYPE=$(dialog --clear \
+# Get target distribution
+CHOICE=$(dialog --clear \
     --backtitle "SHORK 486 Build Configurator" \
-    --title "Build Type" \
+    --title "Target Distribution" \
     --cancel-label "Quit" \
-    --default-item "$BUILD_TYPE" \
-    --menu "Select the build type, presets for SHORK 486 feature levels. The minimum requirements for each are enclosed in brackets. The \"custom\" option will enable further prompts for software and feature selection." 14 $WIDTH 5 \
-    "default" "Typical experience (16MiB RAM + 80MiB disk)" \
-    "offline" "Default sans networking (12MiB RAM + 50MiB disk)" \
-    "minimal" "Minimal build (8MiB RAM + 8MiB disk)" \
-    "maximal" "Maximal build (24MiB RAM + 440MiB disk)" \
-    "custom"  "Requirements depend on subsequent choices" \
+    --default-item "$ID" \
+    --menu "Select which exact SHORK 486-based distribution you wish to build." 10 $WIDTH 3 \
+    "shork-486"         "SHORK 486 (for hard disks)" \
+    "shork-diskette"    "SHORK DISKETTE (for floppy diskettes)" \
     3>&1 1>&2 2>&3)
 
-if [[ ! -n "$BUILD_TYPE" ]]; then
+if [[ ! -n "$CHOICE" ]]; then
     exit 0
-elif [ "$BUILD_TYPE" == "default" ]; then
-    set_default_vars
-elif [ "$BUILD_TYPE" == "offline" ]; then
-    set_offline_vars
-elif [ "$BUILD_TYPE" == "minimal" ]; then
-    set_minimal_vars
-elif [ "$BUILD_TYPE" == "maximal" ]; then
-    set_maximal_vars
-elif [ "$BUILD_TYPE" == "custom" ]; then
-    set_custom_vars
+else
+    if [ "$CHOICE" == "shork-486" ]; then
+        if [ "$CHOICE" != "$ID" ]; then
+            HOSTNAME="$CHOICE"
+            set_default_vars
+            BUILD_TYPE="default"
+            TARGET_DISK=80
+            TARGET_SWAP=8
+        fi
+        DIST="SHORK 486"
+        ID="$CHOICE"
+    elif [ "$CHOICE" == "shork-diskette" ]; then
+        if [ "$CHOICE" != "$ID" ]; then
+            HOSTNAME="$CHOICE"
+            set_minimal_vars
+            BUILD_TYPE="minimal"
+            TARGET_DISK=1
+            TARGET_SWAP=0
+        fi
+        DIST="SHORK DISKETTE"
+        ID="$CHOICE"
+    fi
 fi
 
 
@@ -409,115 +420,168 @@ fi
 
 
 
-CURR_MIN_DISK=0
-if [ "$BUILD_TYPE" == "default" ]; then
-    CURR_MIN_DISK=$DEFAULT_MIN_DISK
-    if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
-        TARGET_DISK=$DEFAULT_MIN_DISK
-        TARGET_SWAP=$DEFAULT_DEF_SWAP
+if [ "$ID" == "shork-486" ]; then
+    # Get build type
+    PREV_BUILD_TYPE=$BUILD_TYPE
+    BUILD_TYPE=$(dialog --clear \
+        --backtitle "SHORK 486 Build Configurator" \
+        --title "Build Type" \
+        --cancel-label "Quit" \
+        --default-item "$BUILD_TYPE" \
+        --menu "Select the build type, presets for SHORK 486 feature levels. The minimum requirements for each are enclosed in brackets. The \"custom\" option will enable further prompts for software and feature selection." 14 $WIDTH 5 \
+        "default" "Typical experience (16MiB RAM + 80MiB disk)" \
+        "offline" "Default sans networking (12MiB RAM + 50MiB disk)" \
+        "minimal" "Minimal build (8MiB RAM + 8MiB disk)" \
+        "maximal" "Maximal build (24MiB RAM + 440MiB disk)" \
+        "custom"  "Requirements depend on subsequent choices" \
+        3>&1 1>&2 2>&3)
+
+    if [[ ! -n "$BUILD_TYPE" ]]; then
+        exit 0
+    elif [ "$BUILD_TYPE" == "default" ]; then
+        set_default_vars
+    elif [ "$BUILD_TYPE" == "offline" ]; then
+        set_offline_vars
+    elif [ "$BUILD_TYPE" == "minimal" ]; then
+        set_minimal_vars
+    elif [ "$BUILD_TYPE" == "maximal" ]; then
+        set_maximal_vars
+    elif [ "$BUILD_TYPE" == "custom" ]; then
+        set_custom_vars
     fi
-elif [ "$BUILD_TYPE" == "offline" ]; then
-    CURR_MIN_DISK=$OFFLINE_MIN_DISK
-    if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
-        TARGET_DISK=$OFFLINE_MIN_DISK
-        TARGET_SWAP=$OFFLINE_DEF_SWAP
+
+
+
+    # Get target disk size
+    CURR_MIN_DISK=0
+    if [ "$BUILD_TYPE" == "default" ]; then
+        CURR_MIN_DISK=$DEFAULT_MIN_DISK
+        if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
+            TARGET_DISK=$DEFAULT_MIN_DISK
+            TARGET_SWAP=$DEFAULT_DEF_SWAP
+        fi
+    elif [ "$BUILD_TYPE" == "offline" ]; then
+        CURR_MIN_DISK=$OFFLINE_MIN_DISK
+        if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
+            TARGET_DISK=$OFFLINE_MIN_DISK
+            TARGET_SWAP=$OFFLINE_DEF_SWAP
+        fi
+    elif [ "$BUILD_TYPE" == "minimal" ]; then
+        CURR_MIN_DISK=$MINIMAL_MIN_DISK
+        if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
+            TARGET_DISK=$MINIMAL_MIN_DISK
+            TARGET_SWAP=$MINIMAL_DEF_SWAP
+        fi
+    elif [ "$BUILD_TYPE" == "maximal" ]; then
+        CURR_MIN_DISK=$MAXIMAL_MIN_DISK
+        if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
+            TARGET_DISK=$MAXIMAL_MIN_DISK
+            TARGET_SWAP=$MAXIMAL_DEF_SWAP
+        fi
+    elif [ "$BUILD_TYPE" == "custom" ]; then
+        CURR_MIN_DISK=$CUSTOM_MIN_DISK
+        if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
+            TARGET_DISK=$CUSTOM_MIN_DISK
+            TARGET_SWAP=$CUSTOM_DEF_SWAP
+        fi
     fi
-elif [ "$BUILD_TYPE" == "minimal" ]; then
-    CURR_MIN_DISK=$MINIMAL_MIN_DISK
-    if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
-        TARGET_DISK=$MINIMAL_MIN_DISK
-        TARGET_SWAP=$MINIMAL_DEF_SWAP
+
+    while true; do
+        TARGET_DISK_TMP=$(dialog --clear \
+            --backtitle "SHORK 486 Build Configurator" \
+            --title "Target Disk Size" \
+            --cancel-label "Skip" \
+            --inputbox "Enter a target disk size in mebibytes (between $CURR_MIN_DISK and 4096) to use when creating the disk image containing SHORK 486. Whilst the build script will try to honour this, it may be increased automatically to satisfy 4MiB alignment requirements, or if the combined kernel size, root partition size, optional swap partition size, and partition table overhead exceeds the target disk size." \
+            12 $WIDTH "$TARGET_DISK" \
+            2>&1 >/dev/tty)
+
+        SKIPPED=$?
+
+        if [[ $SKIPPED -eq 1 ]]; then
+            break
+        fi
+
+        if ! [[ "$TARGET_DISK_TMP" =~ ^[0-9]+$ ]]; then
+            dialog --clear \
+                --backtitle "SHORK 486 Build Configurator" \
+                --title "Target Disk Size" \
+                --msgbox "The value must be numeric and a whole number (integer)." 5 $WIDTH
+            continue
+        fi
+
+        if (( TARGET_DISK_TMP < $CURR_MIN_DISK || TARGET_DISK_TMP > 4096 )); then
+            dialog --clear \
+                --backtitle "SHORK 486 Build Configurator" \
+                --title "Target Disk Size" \
+                --msgbox "The value must be between $CURR_MIN_DISK and 4096." 5 $WIDTH
+            continue
+        fi
+
+        TARGET_DISK=$TARGET_DISK_TMP
+        break
+    done
+
+
+
+    # Get swap partition size
+    while true; do
+        TARGET_SWAP_TMP=$(dialog --clear \
+            --backtitle "SHORK 486 Build Configurator" \
+            --title "Swap Partition Size" \
+            --cancel-label "Skip" \
+            --inputbox "If desired, enter a swap partition size in mebibytes (between 1 and 64) to use when creating the disk image containing SHORK 486. If a swap partition isn't needed or desired, please skip or enter \"0\"." \
+            9 $WIDTH "$TARGET_SWAP" \
+            2>&1 >/dev/tty)
+
+        SKIPPED=$?
+
+        if [[ $SKIPPED -eq 1 ]]; then
+            TARGET_SWAP=0
+            break
+        fi
+
+        if ! [[ "$TARGET_SWAP_TMP" =~ ^[0-9]+$ ]]; then
+            dialog --clear \
+                --backtitle "SHORK 486 Build Configurator" \
+                --title "Swap Partition Size" \
+                --msgbox "The value must be numeric and a whole number (integer)." 5 $WIDTH
+            continue
+        fi
+
+        if (( TARGET_SWAP_TMP < 0 || TARGET_SWAP_TMP > 64 )); then
+            dialog --clear \
+                --backtitle "SHORK 486 Build Configurator" \
+                --title "Swap Partition Size" \
+                --msgbox "The value must be between 0 and 64." 5 $WIDTH
+            continue
+        fi
+
+        TARGET_SWAP=$TARGET_SWAP_TMP
+        break
+    done
+elif [ "$ID" == "shork-diskette" ]; then
+    DEFAULT_FLAG=""
+    if [[ "$TARGET_DISK" -eq 2 ]]; then
+        DEFAULT_FLAG="--defaultno"
     fi
-elif [ "$BUILD_TYPE" == "maximal" ]; then
-    CURR_MIN_DISK=$MAXIMAL_MIN_DISK
-    if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
-        TARGET_DISK=$MAXIMAL_MIN_DISK
-        TARGET_SWAP=$MAXIMAL_DEF_SWAP
-    fi
-elif [ "$BUILD_TYPE" == "custom" ]; then
-    CURR_MIN_DISK=$CUSTOM_MIN_DISK
-    if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
-        TARGET_DISK=$CUSTOM_MIN_DISK
-        TARGET_SWAP=$CUSTOM_DEF_SWAP
+
+    dialog --clear \
+        --backtitle "SHORK 486 Build Configurator" \
+        --title "Target Diskette Size" \
+        --yes-label "1.44MB" \
+        --no-label "2.88MB" \
+        $DEFAULT_FLAG \
+        --yesno "Please select which floppy diskette size you are targeting so that the image will be created to the appropriate size." \
+        6 "$WIDTH"
+
+    CHOICE=$?
+
+    if [[ $CHOICE -eq 0 ]]; then
+        TARGET_DISK=1
+    elif [[ $CHOICE -eq 1 ]]; then
+        TARGET_DISK=2
     fi
 fi
-
-
-
-# Get target disk size
-while true; do
-    TARGET_DISK_TMP=$(dialog --clear \
-        --backtitle "SHORK 486 Build Configurator" \
-        --title "Target Disk Size" \
-        --cancel-label "Skip" \
-        --inputbox "Enter a target disk size in mebibytes (between $CURR_MIN_DISK and 4096) to use when creating the disk image containing SHORK 486. Whilst the build script will try to honour this, it may be increased automatically to satisfy 4MiB alignment requirements, or if the combined kernel size, root partition size, optional swap partition size, and partition table overhead exceeds the target disk size." \
-        12 $WIDTH "$TARGET_DISK" \
-        2>&1 >/dev/tty)
-
-    SKIPPED=$?
-
-    if [[ $SKIPPED -eq 1 ]]; then
-        break
-    fi
-
-    if ! [[ "$TARGET_DISK_TMP" =~ ^[0-9]+$ ]]; then
-        dialog --clear \
-            --backtitle "SHORK 486 Build Configurator" \
-            --title "Target Disk Size" \
-            --msgbox "The value must be numeric and a whole number (integer)." 5 $WIDTH
-        continue
-    fi
-
-    if (( TARGET_DISK_TMP < $CURR_MIN_DISK || TARGET_DISK_TMP > 4096 )); then
-        dialog --clear \
-            --backtitle "SHORK 486 Build Configurator" \
-            --title "Target Disk Size" \
-            --msgbox "The value must be between $CURR_MIN_DISK and 4096." 5 $WIDTH
-        continue
-    fi
-
-    TARGET_DISK=$TARGET_DISK_TMP
-    break
-done
-
-
-
-# Get swap partition size
-while true; do
-    TARGET_SWAP_TMP=$(dialog --clear \
-        --backtitle "SHORK 486 Build Configurator" \
-        --title "Swap Partition Size" \
-        --cancel-label "Skip" \
-        --inputbox "If desired, enter a swap partition size in mebibytes (between 1 and 64) to use when creating the disk image containing SHORK 486. If a swap partition isn't needed or desired, please skip or enter \"0\"." \
-        9 $WIDTH "$TARGET_SWAP" \
-        2>&1 >/dev/tty)
-
-    SKIPPED=$?
-
-    if [[ $SKIPPED -eq 1 ]]; then
-        TARGET_SWAP=0
-        break
-    fi
-
-    if ! [[ "$TARGET_SWAP_TMP" =~ ^[0-9]+$ ]]; then
-        dialog --clear \
-            --backtitle "SHORK 486 Build Configurator" \
-            --title "Swap Partition Size" \
-            --msgbox "The value must be numeric and a whole number (integer)." 5 $WIDTH
-        continue
-    fi
-
-    if (( TARGET_SWAP_TMP < 0 || TARGET_SWAP_TMP > 64 )); then
-        dialog --clear \
-            --backtitle "SHORK 486 Build Configurator" \
-            --title "Swap Partition Size" \
-            --msgbox "The value must be between 0 and 64." 5 $WIDTH
-        continue
-    fi
-
-    TARGET_SWAP=$TARGET_SWAP_TMP
-    break
-done
 
 
 
@@ -548,7 +612,7 @@ esac
 
 
 # Get desired keymap
-if [ "$BUILD_TYPE" != "minimal" ]; then
+if [ "$BUILD_TYPE" != "minimal" ] && [ "$ID" == "shork-486" ]; then
     KEYMAP_ITEMS=()
     for f in "$CURR_DIR/sysfiles/keymaps/"*.kmap.bin; do
         name=$(basename "$f" .kmap.bin)
@@ -579,11 +643,16 @@ HOSTNAME=$(dialog --clear \
 
 
 # Get multi-user support choice
-if [ "$BUILD_TYPE" != "minimal" ]; then
+if [ "$BUILD_TYPE" != "minimal" ] && [ "$ID" == "shork-486" ]; then
+    DEFAULT_FLAG="--defaultno"
+    if $ENABLE_MULTIUSER_REAL; then
+        DEFAULT_FLAG=""
+    fi
+
     dialog --clear \
         --backtitle "SHORK 486 Build Configurator" \
         --title "Multi-User Support" \
-        --defaultno \
+        $DEFAULT_FLAG \
         --yesno "Do you want to enable multi-user support in SHORK 486? It will enable BusyBox's multi-user-related utilities and you will be able to set a root password in the next prompt." \
         7 $WIDTH
 
@@ -676,10 +745,16 @@ fi
 
 
 # Get networking support choice
-if [ "$BUILD_TYPE" == "custom" ]; then
+if [ "$BUILD_TYPE" == "custom" ] && [ "$ID" == "shork-486" ]; then
+    DEFAULT_FLAG=""
+    if ! $ENABLE_NET_ETH; then
+        DEFAULT_FLAG="--defaultno"
+    fi
+
     dialog --clear \
         --backtitle "SHORK 486 Build Configurator" \
         --title "Ethernet Networking Support" \
+        $DEFAULT_FLAG \
         --yesno "Do you want to enable ethernet networking support in SHORK 486? It includes kernel-level ethernet networking support and BusyBox's networking-related utilities, and you will be able to choose software that requires an internet connection in the next prompt." \
         8 $WIDTH
 
@@ -699,11 +774,17 @@ fi
 
 
 
-# Get patched EXTLINUX choice
+# Get patched EXTLINUX/SYSLINUX choice
+DEFAULT_FLAG=""
+if ! $FIX_EXTLINUX; then
+    DEFAULT_FLAG="--defaultno"
+fi
+
 dialog --clear \
     --backtitle "SHORK 486 Build Configurator" \
-    --title "Patched EXTLINUX" \
-    --yesno "Do you want to use SHORK's patched fork of the EXTLINUX bootloader, instead of your host distribution's maintained package version? The patched fork fixes a memory detection issue that *may* prevent booting with certain old BIOS implementations. It is recommended to say \"Yes\" but it will increase build time.\n\nKnown computers that require this: Chicony NB5/derivatives, HP OmniBook 800CT, IBM 2625 ThinkPad 365E/365ED and IBM 6381 PS/ValuePoint" \
+    --title "Patched EXTLINUX/SYSLINUX" \
+    $DEFAULT_FLAG \
+    --yesno "Do you want to use SHORK's patched fork of the EXTLINUX/SYSLINUX bootloader, instead of your host distribution's maintained package version? The patched fork fixes a memory detection issue that *may* prevent booting with certain old BIOS implementations. It is recommended to say \"Yes\" but it will increase build time.\n\nKnown computers that require this: Chicony NB5/derivatives, HP OmniBook 800CT, IBM 2625 ThinkPad 365E/365ED and IBM 6381 PS/ValuePoint" \
     12 $WIDTH
 
 CHOICE=$?
@@ -818,6 +899,7 @@ OPTIONS=$(dialog --clear \
     --title "Options" \
     --cancel-label "Skip" \
     --checklist "Select what other options to include. Some of these are benign, some may increase the RAM and disk space requirement considerably, some are experimental.\n* This option would be included in a \"default\" build\n** This option can raise system memory requirements" $HEIGHT $WIDTH 9 \
+    "cdrom"         "*Kernel-level CD-ROM & DVD-ROM support"                    $(val $ENABLE_CDROM) \
     "con-fonts"     "*Console fonts pack (+0.1MiB)"                             $(val $INCLUDE_CON_FONTS) \
     "grub"          "GRUB 2.x instead of EXTLINUX (+4MiB)"                      $(val $USE_GRUB) \
     "gui"           "**SHORKGUI (+46MiB, EXPERIMENTAL)"                         $(val $INCLUDE_GUI) \
@@ -838,6 +920,7 @@ SKIPPED=$?
 if [[ $SKIPPED -eq 1 ]]; then
     :
 else
+    if [[ $OPTIONS =~ "cdrom" ]];       then ENABLE_CDROM=true;         else ENABLE_CDROM=false;        fi
     if [[ $OPTIONS =~ "con-fonts" ]];   then INCLUDE_CON_FONTS=true;    else INCLUDE_CON_FONTS=false;   fi
     if [[ $OPTIONS =~ "grub" ]];        then USE_GRUB=true;             else USE_GRUB=false;            fi
     if [[ $OPTIONS =~ "gui" ]];         then INCLUDE_GUI=true;          else INCLUDE_GUI=false;         fi

@@ -1,14 +1,26 @@
 ######################################################
 ## /mnt/ID/boot/syslinux/syslinux.cfg               ##
 ######################################################
-## Syslinux bootloader configuration (boot only)    ##
+## EXTLINUX bootloader configuration (menu based)   ##
 ######################################################
 ## Kali (sharktastica.co.uk)                        ##
 ######################################################
 
+UI /boot/syslinux/menu.c32
+
+MENU TITLE @DIST@
+MENU ROWS 4
+
 DEFAULT @ID@
+PROMPT 0
+TIMEOUT 100
 
 LABEL @ID@
-    SAY Starting @NAME@...
+    MENU LABEL @DIST@ @VER@
     KERNEL /boot/bzImage
     APPEND root=/dev/sda1 rootfstype=ext4 rw rootwait init=/sbin/init console=tty1 ip=off tsc=unstable quiet loglevel=3 vga=normal atkbd.extra=1
+
+LABEL @ID@-debug
+    MENU LABEL @DIST@ @VER@ (debug/verbose)
+    KERNEL /boot/bzImage
+    APPEND root=/dev/sda1 rootfstype=ext4 rw rootwait init=/sbin/init console=tty1 ip=off tsc=unstable loglevel=7 vga=normal atkbd.extra=1

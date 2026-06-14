@@ -1,0 +1,73 @@
+#!/bin/sh
+
+# Mount core file systems
+mount -t proc none /proc
+mount -t sysfs none /sys
+
+# Populate /dev from sysfs
+mdev -s
+
+# Provide compatibility for tools expecting mtab
+ln -s /proc/mounts /etc/mtab
+
+# Mount floppy root & bind /home to persistent storage
+mkdir -p /mnt/floppy /mnt/cd /home
+mount -t msdos -o rw /dev/fd0 /mnt/floppy
+mkdir -p /mnt/floppy/data
+mount --bind /mnt/floppy/data /home
+
+[ -r /etc/hostname ] && hostname "$(cat /etc/hostname)"
+
+# Prepare to show the welcome banner
+clear
+
+# Show welcome banner and OS name
+if [ -f banners/welcome ]; then
+    COLS=80
+    BANNER_WIDTH=36
+    BUFFER=""
+    
+    TOTAL_PAD=$((COLS - BANNER_WIDTH))
+    RIGHT_PAD=$((TOTAL_PAD / 2))
+    LEFT_PAD=$((TOTAL_PAD - RIGHT_PAD))
+
+    # Print top border
+    BUFFER="$(printf "%*s\n" "$COLS" '')"
+
+    while IFS= read -r line; do
+        BUFFER="${BUFFER}$(printf "%*s%s%*s\n" "$LEFT_PAD" '' "$line" "$RIGHT_PAD" '')"
+    done < banners/welcome
+    BUFFER="${BUFFER}$(printf "%*s\n" "$COLS" '')"
+
+    # Show OS name
+    OS="@DIST@"
+    TOTAL_PAD=$((COLS - ${#OS}))
+    RIGHT_PAD=$((TOTAL_PAD / 2))
+    LEFT_PAD=$((TOTAL_PAD - RIGHT_PAD))
+    BUFFER="${BUFFER}$(printf "%*s%s%*s\n" "$LEFT_PAD" '' "$OS" "$RIGHT_PAD" '')"
+
+    # Show author
+    AUTHOR="Kali (links.sharktastica.co.uk)"
+    TOTAL_PAD=$((COLS - ${#AUTHOR}))
+    RIGHT_PAD=$((TOTAL_PAD / 2))
+    LEFT_PAD=$((TOTAL_PAD - RIGHT_PAD))
+    BUFFER="${BUFFER}$(printf "%*s%s%*s\n" "$LEFT_PAD" '' "$AUTHOR" "$RIGHT_PAD" '')"
+
+    # Print bottom border
+    BUFFER="${BUFFER}$(printf "%*s" "$COLS" '')"
+
+    # Set terminal to white on blue
+    printf "\x1b[37;44m"
+    # Print buffer
+    printf "%s" "$BUFFER"
+    # Reset colour
+    printf "\x1b[0m"
+
+    printf "\n\n"
+fi
+
+# Print welcome message
+printf "Welcome, please check out \033[32mshorkhelp\033[0m to get started with @DIST@!"
+printf "\n\n"
+
+/bin/sh -l -m

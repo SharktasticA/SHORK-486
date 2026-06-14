@@ -3,7 +3,7 @@
 ######################################################
 ## BusyBox init configuration defining startup      ##
 ## actions, how shell respawns, and handlers for    ##
-## Ctrl‑Alt‑Del and shutdown events (no getty)      ##
+## Ctrl‑Alt‑Del and shutdown events (getty)         ##
 ######################################################
 ## Kali (sharktastica.co.uk)                        ##
 ######################################################
@@ -12,9 +12,9 @@
 
 ::sysinit:/etc/init.d/rc
 
-tty1::respawn:/bin/sh -l -c 'cd "$HOME" || cd /home; exec /bin/sh -l'
-tty2::respawn:/bin/sh -l -c 'if [ ! -f /tmp/.tty2_seen ]; then echo "@NAME@ on tty2"; touch /tmp/.tty2_seen; fi; cd "$HOME" || cd /home; exec /bin/sh -l'
-tty3::respawn:/bin/sh -l -c 'if [ ! -f /tmp/.tty3_seen ]; then echo "@NAME@ on tty3"; touch /tmp/.tty3_seen; fi; cd "$HOME" || cd /home; exec /bin/sh -l'
+tty1::respawn:/sbin/getty -n 38400 tty1
+tty2::respawn:/bin/sh -c 'printf "%s %s %s tty2\n" "@DIST@" "@VER@" "@HOSTNAME@"; exec /sbin/getty -n 38400 tty2'
+tty3::respawn:/bin/sh -c 'printf "%s %s %s tty3\n" "@DIST@" "@VER@" "@HOSTNAME@"; exec /sbin/getty -n 38400 tty3'
 
 ::ctrlaltdel:/sbin/reboot
 ::shutdown:/bin/umount -a -r

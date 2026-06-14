@@ -77,11 +77,11 @@ USED_WM="TWM"
 
 # Branding
 ARCH="$(cat ${CURR_DIR}/branding/ARCH | tr -d '\n')"
-NAME="$(cat ${CURR_DIR}/branding/NAME | tr -d '\n')"
+DIST="SHORK 486"
 VER="$(cat ${CURR_DIR}/branding/VER | tr -d '\n')"
-ID="$(cat ${CURR_DIR}/branding/ID | tr -d '\n')"
+ID="shork-486"
 URL="$(cat ${CURR_DIR}/branding/URL | tr -d '\n')"
-HOSTNAME="$ID"
+HOSTNAME="$shork-486"
 
 # Common compiler/compiler-related locations
 CROSS="${ARCH}-linux-musl-cross"
@@ -201,6 +201,7 @@ SKIP_KRN=false
 TARGET_DISK=$DEFAULT_TARGET_DISK
 TARGET_SWAP=$DEFAULT_TARGET_SWAP
 
+ENABLE_CDROM=true
 ENABLE_FB=true
 ENABLE_HIGHMEM=false
 ENABLE_MENU=true
@@ -459,7 +460,7 @@ fi
 # Use commit ID-based versioning is VER is not numeric 
 if [[ ! "$VER" =~ [0-9] ]]; then
     if [ -n "$IN_DOCKER" ]; then
-        git config --global --add safe.directory "/var/${ID}"
+        git config --global --add safe.directory "/var/shork-486"
     fi
     if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
         COMMIT=$(git rev-parse --short=7 HEAD)
@@ -477,7 +478,7 @@ fi
 delete_root_dir()
 {
     if [ -n "$CURR_DIR" ] && [ -d $DESTDIR ]; then
-        echo -e "${GREEN}Deleting existing ${NAME} root directory to ensure fresh changes can be made...${RESET}"
+        echo -e "${GREEN}Deleting existing ${DIST} root directory to ensure fresh changes can be made...${RESET}"
         sudo rm -rf $DESTDIR
     fi
 }
@@ -541,7 +542,7 @@ copy_config()
     sudo sed -i -e "s|@CC@|$CC|g" -e "s|@CC_STATIC@|$CC_STATIC|g" -e "s|@AR@|$AR|g" -e "s|@STRIP@|$STRIP|g" "$DST"
 }
 
-# Copies a sysfile to a destination and makes sure any @NAME@ @VER@, @ID@, @HOSTNAME@
+# Copies a sysfile to a destination and makes sure any @DIST@ @VER@, @ID@, @HOSTNAME@
 # or @URL@ placeholders are replaced
 copy_sysfile()
 {
@@ -556,7 +557,7 @@ copy_sysfile()
     sudo cp "$SRC" "$DST"
 
     # Replace all placeholders with their respective values
-    sudo sed -i -e "s|@NAME@|$NAME|g" -e "s|@VER@|$VER|g" -e "s|@ID@|$ID|g" -e "s|@HOSTNAME@|$HOSTNAME|g" -e "s|@URL@|$URL|g" "$DST"
+    sudo sed -i -e "s|@DIST@|$DIST|g" -e "s|@VER@|$VER|g" -e "s|@ID@|$ID|g" -e "s|@HOSTNAME@|$HOSTNAME|g" -e "s|@URL@|$URL|g" "$DST"
 }
 
 
@@ -1073,25 +1074,26 @@ get_zlib()
     make DESTDIR="$SYSROOT" install
 }
 
-# Download and build our forked EXTLINUX (required if "Fix EXTLINUX" was used)
-get_patched_extlinux()
+# Download and build our forked EXTLINUX/SYSLINUX (required if "Fix
+# EXTLINUX/SYSLINUX" was used)
+get_patched_xlinux()
 {
     cd "$CURR_DIR/build"
 
     # Skip if already compiled
     if [ -f "$CURR_DIR/build/syslinux/bios/extlinux/extlinux" ]; then
-        echo -e "${LIGHT_RED}EXTLINUX already compiled, skipping...${RESET}"
+        echo -e "${LIGHT_RED}EXTLINUX/SYSLINUX already compiled, skipping...${RESET}"
         return
     fi
 
     # Download source
     if [ -d syslinux ]; then
-        echo -e "${YELLOW}EXTLINUX source already present, resetting...${RESET}"
+        echo -e "${YELLOW}EXTLINUX/SYSLINUX source already present, resetting...${RESET}"
         cd syslinux
         git reset --hard
         make clean || true
     else
-        echo -e "${GREEN}Downloading EXTLINUX...${RESET}"
+        echo -e "${GREEN}Downloading EXTLINUX/SYSLINUX...${RESET}"
         git clone https://github.com/SharktasticA/syslinux.git
         cd syslinux
     fi
@@ -1107,7 +1109,7 @@ get_patched_extlinux()
     fi
 
     # Compile and install
-    echo -e "${GREEN}Compiling EXTLINUX...${RESET}"
+    echo -e "${GREEN}Compiling EXTLINUX/SYSLINUX...${RESET}"
     CFLAGS="-fcommon" sudo make bios
 
     # Copy licence file
@@ -1171,8 +1173,12 @@ get_busybox()
     # Patch login timeout to 0
     sed -i 's/getenv("LOGIN_TIMEOUT") ? : "60"/getenv("LOGIN_TIMEOUT") ? : "0"/' loginutils/login.c
 
-    echo -e "${GREEN}Copying base ${NAME} BusyBox .config file...${RESET}"
-    cp $CURR_DIR/configs/busybox.config .config
+    echo -e "${GREEN}Copying base ${DIST} BusyBox .config file...${RESET}"
+    if [ "$ID" == "shork-486" ]; then
+        cp $CURR_DIR/configs/busybox.config.base .config
+    elif [ "$ID" == "shork-diskette" ]; then
+        cp $CURR_DIR/configs/busybox.config.base.diskette .config
+    fi
 
     # Ensure BusyBox behaves with our toolchain
     sed -i "s|^CONFIG_CROSS_COMPILER_PREFIX=.*|CONFIG_CROSS_COMPILER_PREFIX=\"${PREFIX}/bin/${ARCH}-linux-musl-\"|" .config
@@ -1356,13 +1362,23 @@ download_kernel()
 
 configure_kernel()
 {
-    echo -e "${GREEN}Copying base ${NAME} Linux kernel .config file...${RESET}"
-    cp $CURR_DIR/configs/linux.config .config
+    echo -e "${GREEN}Copying base ${DIST} kernel configuration file...${RESET}"
+
+    if [ "$ID" == "shork-486" ]; then
+        cp $CURR_DIR/configs/linux.config.base .config
+    elif [ "$ID" == "shork-diskette" ]; then
+        cp $CURR_DIR/configs/linux.config.base.diskette .config
+    fi
 
     FRAGS=""
+
+    if $ENABLE_CDROM; then
+        echo -e "${GREEN}Enabling kernel-level CD-ROM & DVD-ROM support...${RESET}"
+        FRAGS+="$CURR_DIR/configs/linux.config.cdrom.frag "
+    fi
     
     if $ENABLE_FB; then
-        echo -e "${GREEN}Enabling kernel-level framebuffer, VESA and enhanced VGA support...${RESET}"
+        echo -e "${GREEN}Enabling kernel-level framebuffer, VESA & enhanced VGA support...${RESET}"
         FRAGS+="$CURR_DIR/configs/linux.config.fb.frag "
     fi
 
@@ -1376,14 +1392,14 @@ configure_kernel()
         FRAGS+="$CURR_DIR/configs/linux.config.highmem.frag "
     fi
 
-    if $ENABLE_PCMCIA; then
-        echo -e "${GREEN}Enabling kernel-level PCMCIA support...${RESET}"
-        FRAGS+="$CURR_DIR/configs/linux.config.pcmcia.frag "
-    fi
-
     if $ENABLE_MULTIUSER_KRN; then
         echo -e "${GREEN}Enabling kernel-level multi-user support...${RESET}"
         FRAGS+="$CURR_DIR/configs/linux.config.multiuser.frag "
+    fi
+
+    if $ENABLE_PCMCIA; then
+        echo -e "${GREEN}Enabling kernel-level PCMCIA support...${RESET}"
+        FRAGS+="$CURR_DIR/configs/linux.config.pcmcia.frag "
     fi
 
     if $ENABLE_NET_BASE; then
@@ -1437,7 +1453,7 @@ configure_kernel()
     fi
     
     if [ -n "$FRAGS" ]; then
-        ./scripts/kconfig/merge_config.sh -m $CURR_DIR/configs/linux.config $FRAGS
+        ./scripts/kconfig/merge_config.sh -m .config $FRAGS
     fi
 }
 
@@ -1465,7 +1481,7 @@ reset_kernel()
 reclone_kernel()
 {
     cd "$CURR_DIR/build"
-    echo -e "${GREEN}Deleting and recloning Linux kernel...${RESET}"
+    echo -e "${GREEN}Recloning Linux kernel...${RESET}"
     sudo rm -r linux
     download_kernel
 }
@@ -4094,7 +4110,7 @@ get_rover()
     fi
 
     # Patch rover to support alternate key assignments
-    echo '// Alternate key binds for ${NAME}' | sudo tee -a config.h > /dev/null
+    echo '// Alternate key binds for ${DIST}' | sudo tee -a config.h > /dev/null
     echo '#define RVK_DOWN_ALT          "B"' | sudo tee -a config.h > /dev/null
     echo '#define RVK_UP_ALT            "A"' | sudo tee -a config.h > /dev/null
     #echo '#define RVK_JUMP_BOTTOM_ALT   "TODO"' | sudo tee -a config.h > /dev/null
@@ -4589,6 +4605,11 @@ get_shorkfetch()
     git clone --branch "${SHORKFETCH_VER}" $SHORKFETCH_SRC
     cd shorkfetch
 
+    # SHORK DISKETTE-specific default fields
+    if [ "$ID" == "shork-diskette" ]; then
+        sed -i 's/char \*fields = strdup("[^"]*")/char *fields = strdup("os,krn,upt,trm,sh,---,cpu,gpu,ram,swap, ")/' src/main.c
+    fi
+
     # Compile and install
     echo -e "${GREEN}Compiling shorkfetch...${RESET}"
     make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
@@ -4949,35 +4970,41 @@ copy_tests()
     cd $DESTDIR
 }
 
-# Builds the root system
+# Builds the root file system
 build_file_system()
 {
     echo -e "${GREEN}Building the root system...${RESET}"
     cd $DESTDIR
 
     echo -e "${GREEN}Creating required directories...${RESET}"
-    sudo mkdir -p {dev,proc,etc/init.d,sys,tmp,usr/share,usr/libexec,banners,root/.config/shorkutils}
+    sudo mkdir -p {dev,proc,etc/init.d,sys,tmp,usr/share,usr/libexec,banners}
 
     echo -e "${GREEN}Configure permissions...${RESET}"
-    chmod +x $CURR_DIR/sysfiles/rc
+    chmod +x $CURR_DIR/sysfiles/*/rc
     chmod +x $CURR_DIR/sysfiles/default.script
     chmod +x $CURR_DIR/sysfiles/poweroff
-    chmod +x $CURR_DIR/sysfiles/shutdown
     chmod +x $CURR_DIR/shorkutils/shorkgui
+    chmod +x $CURR_DIR/sysfiles/shutdown
 
     echo -e "${GREEN}Copying system files...${RESET}"
     copy_sysfile $CURR_DIR/sysfiles/welcome $DESTDIR/banners/welcome
-    copy_sysfile $CURR_DIR/sysfiles/goodbye-80 $DESTDIR/banners/goodbye-80
-    copy_sysfile $CURR_DIR/sysfiles/goodbye-100 $DESTDIR/banners/goodbye-100
-    copy_sysfile $CURR_DIR/sysfiles/goodbye-128 $DESTDIR/banners/goodbye-128
     copy_sysfile $CURR_DIR/sysfiles/hostname $DESTDIR/etc/hostname
     copy_sysfile $CURR_DIR/sysfiles/issue $DESTDIR/etc/issue
     copy_sysfile $CURR_DIR/sysfiles/os-release $DESTDIR/etc/os-release
-    copy_sysfile $CURR_DIR/sysfiles/rc $DESTDIR/etc/init.d/rc
-    copy_sysfile $CURR_DIR/sysfiles/profile $DESTDIR/etc/profile
-    copy_sysfile $CURR_DIR/sysfiles/passwd $DESTDIR/etc/passwd
-    copy_sysfile $CURR_DIR/sysfiles/poweroff $DESTDIR/sbin/poweroff
-    copy_sysfile $CURR_DIR/sysfiles/shutdown $DESTDIR/sbin/shutdown
+
+    if [ "$ID" == "shork-486" ]; then
+        copy_sysfile $CURR_DIR/sysfiles/486/rc $DESTDIR/etc/init.d/rc
+        copy_sysfile $CURR_DIR/sysfiles/486/profile $DESTDIR/etc/profile
+        copy_sysfile $CURR_DIR/sysfiles/goodbye-80 $DESTDIR/banners/goodbye-80
+        copy_sysfile $CURR_DIR/sysfiles/goodbye-100 $DESTDIR/banners/goodbye-100
+        copy_sysfile $CURR_DIR/sysfiles/goodbye-128 $DESTDIR/banners/goodbye-128
+        copy_sysfile $CURR_DIR/sysfiles/passwd $DESTDIR/etc/passwd
+        copy_sysfile $CURR_DIR/sysfiles/poweroff $DESTDIR/sbin/poweroff
+        copy_sysfile $CURR_DIR/sysfiles/shutdown $DESTDIR/sbin/shutdown
+    elif [ "$ID" == "shork-diskette" ]; then
+        copy_sysfile $CURR_DIR/sysfiles/diskette/profile $DESTDIR/etc/profile
+        copy_sysfile $CURR_DIR/sysfiles/diskette/rc $DESTDIR/etc/init.d/rc
+    fi
 
     if $ENABLE_FB; then
         echo -e "${GREEN}Copying and compiling terminfo database...${RESET}"
@@ -5028,7 +5055,7 @@ build_file_system()
 
         sudo mkdir -p $DESTDIR/home
 
-        copy_sysfile $CURR_DIR/sysfiles/inittab.getty $DESTDIR/etc/inittab
+        copy_sysfile $CURR_DIR/sysfiles/486/inittab.getty $DESTDIR/etc/inittab
         copy_sysfile $CURR_DIR/sysfiles/group $DESTDIR/etc/group
         copy_sysfile $CURR_DIR/sysfiles/shadow $DESTDIR/etc/shadow
 
@@ -5045,7 +5072,11 @@ build_file_system()
         sudo sed -i '/^export LOGNAME=root$/d' "$DESTDIR/etc/profile"
         sudo sed -i '/^export LOGIN_TIMEOUT=0$/d' "$DESTDIR/etc/profile"
     else
-        copy_sysfile $CURR_DIR/sysfiles/inittab.nogetty $DESTDIR/etc/inittab
+        if [ "$ID" == "shork-486" ]; then
+            copy_sysfile $CURR_DIR/sysfiles/486/inittab.nogetty $DESTDIR/etc/inittab
+        elif [ "$ID" == "shork-diskette" ]; then
+            copy_sysfile $CURR_DIR/sysfiles/diskette/inittab $DESTDIR/etc/inittab
+        fi
     fi
 
     if $ENABLE_NET_ETH; then
@@ -5072,8 +5103,11 @@ build_file_system()
     fi
 
     echo -e "${GREEN}Copying SHORK Utilities configuration files...${RESET}"
-    copy_sysfile $CURR_DIR/sysfiles/shorkfetch.conf $DESTDIR/root/.config/shorkutils/shorkfetch.conf
-    copy_sysfile $CURR_DIR/sysfiles/shorkfont.conf $DESTDIR/etc/shorkfont.conf
+    if [ "$ID" == "shork-486" ]; then
+        sudo mkdir -p $DESTDIR/root/.config/shorkutils
+        copy_sysfile $CURR_DIR/sysfiles/shorkfetch.conf $DESTDIR/root/.config/shorkutils/shorkfetch.conf
+        copy_sysfile $CURR_DIR/sysfiles/shorkfont.conf $DESTDIR/etc/shorkfont.conf
+    fi
 
     if $INCLUDE_TESTS; then
         copy_tests
@@ -5090,6 +5124,14 @@ build_file_system()
     sudo chown -R root:root "$DESTDIR"
     sudo find "$DESTDIR" -type d -exec chmod 755 {} +
     sudo find "$DESTDIR" -type f ! -perm -111 -exec chmod 644 {} +
+}
+
+# Compresses the root file system (SHORK DISKETTE)
+compress_file_system()
+{
+    cd "${DESTDIR}"
+    echo -e "${GREEN}Compressing root file system into one file...${RESET}"
+    find . | cpio -H newc -o | xz --check=crc32 --lzma2=dict=512KiB -e > $CURR_DIR/build/rootfs.cpio.xz
 }
 
 # Partition disk image
@@ -5114,7 +5156,7 @@ partition_image()
     ROOT_PART_SIZE=$((ROOT_SIZE / 2048))
 }
 
-# Install GRUB bootloader
+# Install GRUB bootloader (SHORK 486)
 install_grub_bootloader()
 {
     cd $CURR_DIR/build/
@@ -5123,10 +5165,10 @@ install_grub_bootloader()
 
     if $ENABLE_MENU; then
         echo -e "${GREEN}Installing menu-based GRUB bootloader...${RESET}"
-        copy_sysfile $CURR_DIR/sysfiles/grub.cfg.menu "/mnt/${ID}/boot/grub/grub.cfg"
+        copy_sysfile $CURR_DIR/sysfiles/486/grub.cfg.menu "/mnt/${ID}/boot/grub/grub.cfg"
     else
         echo -e "${GREEN}Installing boot-only GRUB bootloader...${RESET}"
-        copy_sysfile $CURR_DIR/sysfiles/grub.cfg.boot "/mnt/${ID}/boot/grub/grub.cfg"
+        copy_sysfile $CURR_DIR/sysfiles/486/grub.cfg.boot "/mnt/${ID}/boot/grub/grub.cfg"
     fi
 
     # If required, specify the target scancode set
@@ -5151,7 +5193,7 @@ install_grub_bootloader()
     BOOTLDR_USED="GRUB"
 }
 
-# Install EXTLINUX bootloader
+# Install EXTLINUX bootloader (SHORK 486)
 install_extlinux_bootloader()
 {
     cd $CURR_DIR/build/
@@ -5167,7 +5209,7 @@ install_extlinux_bootloader()
 
     if $ENABLE_MENU; then
         echo -e "${GREEN}Installing menu-based EXTLINUX bootloader...${RESET}"
-        copy_sysfile $CURR_DIR/sysfiles/syslinux.cfg.menu  "/mnt/${ID}/boot/syslinux/syslinux.cfg"
+        copy_sysfile $CURR_DIR/sysfiles/486/syslinux.cfg.menu  "/mnt/${ID}/boot/syslinux/syslinux.cfg"
         
         SYSLINUX_DIRS="
         /usr/lib/syslinux/modules/bios
@@ -5194,7 +5236,7 @@ install_extlinux_bootloader()
         copy_syslinux_file libmenu.c32
     else
         echo -e "${GREEN}Installing boot-only EXTLINUX bootloader...${RESET}"
-        copy_sysfile $CURR_DIR/sysfiles/syslinux.cfg.boot  "/mnt/${ID}/boot/syslinux/syslinux.cfg"
+        copy_sysfile $CURR_DIR/sysfiles/486/syslinux.cfg.boot  "/mnt/${ID}/boot/syslinux/syslinux.cfg"
     fi
 
     # If required, specify the target scancode set
@@ -5205,10 +5247,27 @@ install_extlinux_bootloader()
     sudo "$EXTLINUX_BIN" --install "/mnt/${ID}/boot/syslinux"
 
     # Install MBR boot code
-    sudo dd if="$MBR_BIN" of="../images/${ID}.img" bs=440 count=1 conv=notrunc
+    sudo dd if="$MBR_BIN" of="${CURR_DIR}/images/${ID}.img" bs=440 count=1 conv=notrunc
 }
 
-# Build a disk image containing our system
+# Install SYSLINUX bootloader (SHORK DISKETTE)
+install_syslinux_bootloader()
+{
+    cd $CURR_DIR/build/
+
+    echo -e "${GREEN}Installing SYSLINUX bootloader...${RESET}"
+
+    SYSLINUX_BIN="syslinux"
+    BOOTLDR_USED="SYSLINUX"
+    if $FIX_SYSLINUX; then
+        SYSLINUX_BIN="$CURR_DIR/build/syslinux/bios/linux/syslinux"
+        BOOTLDR_USED="patched SYSLINUX"
+    fi 
+    sudo chmod 666 "${CURR_DIR}/images/${ID}.img"
+    sudo "$SYSLINUX_BIN" --install "${CURR_DIR}/images/${ID}.img"
+}
+
+# Build a disk image containing our system (SHORK 486)
 build_disk_img()
 {
     cd $CURR_DIR/build/
@@ -5341,7 +5400,7 @@ build_disk_img()
 
 
     # Install the kernel
-    echo -e "${GREEN}Installing kernel image...${RESET}"
+    echo -e "${GREEN}Copying kernel image...${RESET}"
     sudo cp bzImage "/mnt/${ID}/boot/bzImage"
 
 
@@ -5362,12 +5421,84 @@ build_disk_img()
 }
 
 # Converts the disk image to VMware virtual machine disk format for testing
+# (SHORK 486)
 convert_disk_img()
 {
     cd $CURR_DIR/images/
 
     echo -e "${GREEN}Creating VMware virtual machine disk from disk image...${RESET}"
     qemu-img convert -f raw -O vmdk "${ID}.img" "${ID}.vmdk"
+}
+
+# Build a floppy diskette image containing our system (SHORK DISKETTE)
+build_diskette_img()
+{
+    cd $CURR_DIR/build/
+
+    # Cleans up all temporary block-device states when script exits, fails or interrupted
+    cleanup()
+    {
+        set +e
+
+        mountpoint="/mnt/${ID}"
+        if mountpoint -q "$mountpoint" 2>/dev/null; then
+            sudo umount -lf "$mountpoint" || true
+        fi
+
+        if [ -n "$loop" ]; then
+            sudo kpartx -dv "$loop" 2>/dev/null || true
+            sudo losetup -d "$loop" 2>/dev/null || true
+        fi
+
+        sudo rm -rf /mnt/$ID || true
+    }
+    trap cleanup EXIT ERR INT TERM
+
+    # Create a diskette image
+    DISKETTE_SIZE=$((1440 * TARGET_DISK))
+    echo -e "${GREEN}Creating a ${DISKETTE_SIZE}-byte floppy diskette image...${RESET}"
+    sudo dd if=/dev/zero of="../images/${ID}.img" bs=1k count=$DISKETTE_SIZE
+    sudo mkdosfs -n SHORKDISK "../images/${ID}.img"
+
+    # Install a bootloader
+    install_syslinux_bootloader
+
+    # Ensure loop devices exist (Docker does not always create them)
+    for i in $(seq 0 255); do
+        [ -e /dev/loop$i ] || sudo mknod /dev/loop$i b 7 $i
+    done
+    [ -e /dev/loop-control ] || sudo mknod /dev/loop-control c 10 237
+
+    # Mount it for copying files
+    echo -e "${GREEN}Mounting diskette image for copying files...${RESET}"
+    sudo mkdir -p "/mnt/${ID}"
+    LOOP=$(sudo losetup -f --show "../images/${ID}.img")
+    sudo mount -t msdos -o rw "$LOOP" "/mnt/${ID}"
+
+    # Copy SYSLINUX configuration
+    echo -e "${GREEN}Copying SYSLINUX configuration...${RESET}"
+    copy_sysfile $CURR_DIR/sysfiles/diskette/syslinux.cfg  "/mnt/${ID}/syslinux.cfg"
+
+    # If required, specify the target scancode set
+    if [[ $SCANCODE_SET != -1 ]]; then
+        sudo sed -i "s/atkbd.extra=1/atkbd.set=${SCANCODE_SET} atkbd.extra=1/" "/mnt/${ID}/syslinux.cfg"
+    fi
+
+    # Install the kernel
+    echo -e "${GREEN}Copying kernel image...${RESET}"
+    sudo cp bzImage "/mnt/${ID}"
+
+    # Copy compressed root file system
+    echo -e "${GREEN}Copying compressed root file system...${RESET}"
+    sudo cp rootfs.cpio.xz "/mnt/${ID}"
+
+    # Make directory to be used as /home when booted
+    sudo mkdir "/mnt/${ID}/data" || true
+
+    # Unmount the image
+    echo -e "${GREEN}Unmounting diskette image...${RESET}"
+    sudo umount "/mnt/${ID}"
+    sudo losetup -d "$LOOP"
 }
 
 
@@ -5385,6 +5516,12 @@ get_installed_programs_features()
         INCLUDED_FEATURES+="\n * kernel-level event interface support"
     else
         EXCLUDED_FEATURES+="\n * kernel-level event interface support"
+    fi
+
+    if $ENABLE_CDROM; then
+        INCLUDED_FEATURES+="\n * kernel-level CD-ROM & DVD-ROM support"
+    else
+        EXCLUDED_FEATURES+="\n * kernel-level CD-ROM & DVD-ROM support"
     fi
 
     if $ENABLE_FB; then
@@ -5788,17 +5925,24 @@ generate_report()
         "==     $DATE     =="
         "=================================="
         ""
-        "Version:             $NAME $VER"
+        "OS/version:          $DIST $VER"
         "Kernel:              Linux $KERNEL_VER"
         "Base:                BusyBox $BUSYBOX_VER"
         "Bootloader:          $BOOTLDR_USED"
     )
 
-    lines+=(
-        ""
-        "Build type:          $BUILD_TYPE"
-        "Build time:          $MINS minutes, $SECS seconds"
-    )
+    if [ "$ID" == "shork-486" ]; then
+        lines+=(
+            ""
+            "Build type:          $BUILD_TYPE"
+            "Build time:          $MINS minutes, $SECS seconds"
+        )
+    elif [ "$ID" == "shork-diskette" ]; then
+        lines+=(
+            ""
+            "Build time:          $MINS minutes, $SECS seconds"
+        )
+    fi
 
     if [ -n "$USED_PARAMS" ]; then
         lines+=(
@@ -5812,25 +5956,35 @@ generate_report()
         lines+=(".env used:           no")
     fi
 
-    lines+=(
-        ""
-        "Est. minimum RAM:    ${EST_MIN_RAM}"
-        "Total disk size:     ${TOTAL_DISK_SIZE}MiB"
-        "Root partition size: ${ROOT_PART_SIZE}MiB"
-    )
+    if [ "$ID" == "shork-486" ]; then
+        lines+=(
+            ""
+            "Est. minimum RAM:    ${EST_MIN_RAM}"
+            "Total disk size:     ${TOTAL_DISK_SIZE}MiB"
+            "Root partition size: ${ROOT_PART_SIZE}MiB"
+        )
 
-    if [ "$TARGET_SWAP" -ne 0 ]; then
-        lines+=("Swap partition size: ${TARGET_SWAP}MiB")
-    fi
+        if [ "$TARGET_SWAP" -ne 0 ]; then
+            lines+=("Swap partition size: ${TARGET_SWAP}MiB")
+        fi
 
-    lines+=(
-        "CHS geometry:        $DISK_CYLINDERS/$DISK_HEADS/$DISK_SECTORS_TRACK"
-    )
+        lines+=(
+            "CHS geometry:        $DISK_CYLINDERS/$DISK_HEADS/$DISK_SECTORS_TRACK"
+        )
 
-    if $ENABLE_MENU; then
-        lines+=("Boot style:          menu")
-    else
-        lines+=("Boot style:          boot only")
+        if $ENABLE_MENU; then
+            lines+=("Boot style:          menu")
+        else
+            lines+=("Boot style:          boot only")
+        fi
+    elif [ "$ID" == "shork-diskette" ]; then
+        DISKETTE_B=$(( 1440 * TARGET_DISK ))
+        DISKETTE_MB=$(echo "scale=2; $DISKETTE_B / 1000" | bc)
+        lines+=(
+            ""
+            "Est. minimum RAM:    ${EST_MIN_RAM}"
+            "Diskette size:       ${DISKETTE_MB}MB"
+        )
     fi
 
     if [ -n "$INCLUDED_FEATURES" ]; then
@@ -6003,17 +6157,19 @@ if $INCLUDE_TNFTP; then
     get_tnftp
 fi
 
-get_shorkcommon_sh
-get_shorkdir
-get_shorkfetch
-get_shorkfont
 get_shorkhelp
-if $INCLUDE_KEYMAPS; then
-    get_shorkmap
-fi
-get_shorkoff
-if $ENABLE_FB; then
-    get_shorkres
+get_shorkfetch
+if [ "$ID" == "shork-486" ]; then
+    get_shorkcommon_sh
+    get_shorkdir
+    get_shorkfont
+    if $INCLUDE_KEYMAPS; then
+        get_shorkmap
+    fi
+    get_shorkoff
+    if $ENABLE_FB; then
+        get_shorkres
+    fi
 fi
 
 if $INCLUDE_SHORKTAINMENT; then
@@ -6026,13 +6182,18 @@ trim_fat
 copy_licences
 
 if $FIX_EXTLINUX; then
-    get_patched_extlinux
+    get_patched_xlinux
 fi
 
 find_mbr_bin
 build_file_system
-build_disk_img
-convert_disk_img
+if [ "$ID" == "shork-diskette" ]; then
+    compress_file_system
+    build_diskette_img
+else
+    build_disk_img
+    convert_disk_img
+fi
 fix_perms
 clean_stale_mounts
 get_installed_programs_features

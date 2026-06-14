@@ -1,27 +1,17 @@
 ######################################################
 ## /mnt/ID/boot/grub/grub.cfg                       ##
 ######################################################
-## GRUB bootloader configuration (menu based)       ##
+## GRUB bootloader configuration (boot only)        ##
 ######################################################
 ## Kali (sharktastica.co.uk)                        ##
 ######################################################
 
-set color_normal=light-gray/blue
-set color_highlight=black/light-gray
-
-set timeout=10
+set timeout_style=hidden
+set timeout=0
 set default=0
 
-menuentry "@NAME@ @VER@" {
-    set color_normal=light-gray/black
+menuentry "@DIST@ @VER@" {
     clear
-    echo "Starting @NAME@..."
+    echo "Starting @DIST@..."
     linux16 /boot/bzImage root=/dev/sda1 rootfstype=ext4 rw rootwait init=/sbin/init console=tty1 ip=off tsc=unstable quiet loglevel=3 vga=normal atkbd.extra=1
-}
-
-menuentry "@NAME@ @VER@ (debug/verbose)" {
-    set color_normal=light-gray/black
-    clear
-    echo "Starting @NAME@..."
-    linux16 /boot/bzImage root=/dev/sda1 rootfstype=ext4 rw rootwait init=/sbin/init console=tty1 ip=off tsc=unstable loglevel=7 vga=normal atkbd.extra=1
 }
