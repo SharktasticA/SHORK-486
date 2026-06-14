@@ -3,7 +3,7 @@ export HOME=/home
 export USER=root
 export LOGNAME=root
 export SHELL=/bin/sh
-export PS1='\w$ '
+export PS1='$(sync)\w$ '
 
 export PATH=/sbin:/bin:/usr/sbin:/usr/bin
 export PATH
