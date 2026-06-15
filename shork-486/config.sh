@@ -327,7 +327,7 @@ load_env
 
 
 
-# Get build environment
+# Get build environment (all)
 if [[ $IS_ARCH == true ]]; then 
     CHOICE_DEFAULT="Arch"
 elif [[ $IS_FEDORA == true ]]; then
@@ -364,13 +364,13 @@ fi
 
 
 
-# Get target distribution
+# Get target distribution (all)
 CHOICE=$(dialog --clear \
     --backtitle "SHORK 486 Build Configurator" \
     --title "Target Distribution" \
     --cancel-label "Quit" \
     --default-item "$ID" \
-    --menu "Select which exact SHORK 486-based distribution you wish to build." 10 $WIDTH 3 \
+    --menu "Select which exact SHORK 486-based distribution you wish to build." 9 $WIDTH 3 \
     "shork-486"         "SHORK 486 (for hard disks)" \
     "shork-diskette"    "SHORK DISKETTE (for floppy diskettes)" \
     3>&1 1>&2 2>&3)
@@ -403,7 +403,7 @@ fi
 
 
 
-# Get Linux kernel version
+# Get Linux kernel version (all)
 KERNEL_VER=$(dialog --clear \
     --backtitle "SHORK 486 Build Configurator" \
     --title "Linux Kernel Version" \
@@ -421,7 +421,7 @@ fi
 
 
 if [ "$ID" == "shork-486" ]; then
-    # Get build type
+    # Get build type (486)
     PREV_BUILD_TYPE=$BUILD_TYPE
     BUILD_TYPE=$(dialog --clear \
         --backtitle "SHORK 486 Build Configurator" \
@@ -452,7 +452,7 @@ if [ "$ID" == "shork-486" ]; then
 
 
 
-    # Get target disk size
+    # Get target disk size (486)
     CURR_MIN_DISK=0
     if [ "$BUILD_TYPE" == "default" ]; then
         CURR_MIN_DISK=$DEFAULT_MIN_DISK
@@ -523,7 +523,7 @@ if [ "$ID" == "shork-486" ]; then
 
 
 
-    # Get swap partition size
+    # Get swap partition size (496)
     while true; do
         TARGET_SWAP_TMP=$(dialog --clear \
             --backtitle "SHORK 486 Build Configurator" \
@@ -560,6 +560,7 @@ if [ "$ID" == "shork-486" ]; then
         break
     done
 elif [ "$ID" == "shork-diskette" ]; then
+    # Get target diskette size (DISKETTE)
     DEFAULT_FLAG=""
     if [[ "$TARGET_DISK" -eq 2 ]]; then
         DEFAULT_FLAG="--defaultno"
@@ -585,7 +586,7 @@ fi
 
 
 
-# Get keyboard scancode set choice
+# Get keyboard scancode set choice (all)
 case $SCANCODE_SET in
     2)  CHOICE_DEFAULT="2" ;;
     3)  CHOICE_DEFAULT="3" ;;
@@ -611,7 +612,7 @@ esac
 
 
 
-# Get desired keymap
+# Get desired keymap (486)
 if [ "$BUILD_TYPE" != "minimal" ] && [ "$ID" == "shork-486" ]; then
     KEYMAP_ITEMS=()
     for f in "$CURR_DIR/sysfiles/keymaps/"*.kmap.bin; do
@@ -631,7 +632,34 @@ fi
 
 
 
-# Get hostname
+# Get CD-ROM & DVD-ROM support choice (DISKETTE)
+if [ "$ID" == "shork-diskette" ] && [ "$TARGET_DISK" -eq 2 ]; then
+    DEFAULT_FLAG=""
+    if ! $ENABLE_CDROM; then
+        DEFAULT_FLAG="--defaultno"
+    fi
+
+    dialog --clear \
+        --backtitle "SHORK 486 Build Configurator" \
+        --title "Hard Drive, CD-ROM & DVD-ROM Support" \
+        $DEFAULT_FLAG \
+        --yesno "Do you want to enable kernel-level hard drive, CD-ROM & DVD-ROM support in SHORK DISKETTE? This will allow SHORK DISKETTE to recognise and mount SCSI and IDE fixed disks and optical media, but will increase the kernel's size by ~200KiB, limiting persistent storage." \
+        8 $WIDTH
+
+    CHOICE=$?
+
+    if [[ $CHOICE -eq 0 ]]; then
+        ENABLE_CDROM=true
+    elif [[ $CHOICE -eq 1 ]]; then
+        ENABLE_CDROM=false
+    fi
+else if [ "$ID" == "shork-diskette" ]
+    ENABLE_CDROM=false
+fi
+
+
+
+# Get hostname (all)
 HOSTNAME=$(dialog --clear \
     --backtitle "SHORK 486 Build Configurator" \
     --title "Hostname" \
@@ -642,7 +670,7 @@ HOSTNAME=$(dialog --clear \
 
 
 
-# Get multi-user support choice
+# Get multi-user support choice (486)
 if [ "$BUILD_TYPE" != "minimal" ] && [ "$ID" == "shork-486" ]; then
     DEFAULT_FLAG="--defaultno"
     if $ENABLE_MULTIUSER_REAL; then
@@ -744,7 +772,7 @@ fi
 
 
 
-# Get networking support choice
+# Get networking support choice (486)
 if [ "$BUILD_TYPE" == "custom" ] && [ "$ID" == "shork-486" ]; then
     DEFAULT_FLAG=""
     if ! $ENABLE_NET_ETH; then
@@ -774,7 +802,7 @@ fi
 
 
 
-# Get patched EXTLINUX/SYSLINUX choice
+# Get patched EXTLINUX/SYSLINUX choice (all)
 DEFAULT_FLAG=""
 if ! $FIX_EXTLINUX; then
     DEFAULT_FLAG="--defaultno"
@@ -804,7 +832,7 @@ fi
 
 
 
-# Get bundled software choices
+# Get bundled software choices (486)
 BUNDLED_ITEMS=()
 
 if [ "$ENABLE_NET_ETH" == true ]; then
@@ -893,7 +921,7 @@ fi
 
 
 
-# Get option choices
+# Get option choices (486)
 OPTIONS=$(dialog --clear \
     --backtitle "SHORK 486 Build Configurator" \
     --title "Options" \

@@ -1374,7 +1374,11 @@ configure_kernel()
 
     if $ENABLE_CDROM; then
         echo -e "${GREEN}Enabling kernel-level CD-ROM & DVD-ROM support...${RESET}"
-        FRAGS+="$CURR_DIR/configs/linux.config.cdrom.frag "
+        if [ "$ID" == "shork-486" ]; then
+            FRAGS+="$CURR_DIR/configs/linux.config.cdrom.frag "
+        elif [ "$ID" == "shork-diskette" ]; then
+            FRAGS+="$CURR_DIR/configs/linux.config.cdrom.diskette.frag "
+        fi
     fi
     
     if $ENABLE_FB; then
