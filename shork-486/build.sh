@@ -162,7 +162,7 @@ ROVER_VER="1.0.1"
 SC_IM_SRC="https://github.com/andmarti1424/sc-im.git"
 SC_IM_VER="0.8.5"
 SHORKFETCH_SRC="https://github.com/SharktasticA/shorkfetch.git"
-SHORKFETCH_VER="0.4.0"
+SHORKFETCH_VER="0.4.2"
 STRACE_SRC="https://github.com/strace/strace.git"
 STRACE_VER="7.0"
 TCC_SRC="https://github.com/Tiny-C-Compiler/tinycc-mirror-repository.git"
@@ -4609,14 +4609,14 @@ get_shorkfetch()
     git clone --branch "${SHORKFETCH_VER}" $SHORKFETCH_SRC
     cd shorkfetch
 
-    # SHORK DISKETTE-specific default fields
-    if [ "$ID" == "shork-diskette" ]; then
-        sed -i 's/char \*fields = strdup("[^"]*")/char *fields = strdup("os,krn,upt,trm,sh,---,cpu,gpu,ram,swap, ")/' src/main.c
-    fi
-
     # Compile and install
     echo -e "${GREEN}Compiling shorkfetch...${RESET}"
-    make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+    make clean
+    if [ "$ID" == "shork-486" ]; then
+        make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+    elif [ "$ID" == "shork-diskette" ]; then
+        make EMBEDDED=1 -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+    fi
     sudo make DESTDIR=$DESTDIR install
 }
 
@@ -4674,6 +4674,11 @@ get_shorkhelp()
     echo -e "${GREEN}Compiling shorkhelp...${RESET}"
     make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
     sudo make DESTDIR=$DESTDIR install
+
+    # If SHORK DISKETTE, prune programs.csv of programs it never has
+    if [ "$ID" == "shork-diskette" ]; then
+        sudo sed -i '/,IsOptional,\|,0,busybox,\|,shorkutil,/!d' "$DESTDIR/usr/share/shorkhelp/programs.csv"
+    fi
 }
 
 # Download and copy shorkmap

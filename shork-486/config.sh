@@ -579,6 +579,7 @@ elif [ "$ID" == "shork-diskette" ]; then
 
     if [[ $CHOICE -eq 0 ]]; then
         TARGET_DISK=1
+        ENABLE_CDROM=false
     elif [[ $CHOICE -eq 1 ]]; then
         TARGET_DISK=2
     fi
@@ -653,8 +654,6 @@ if [ "$ID" == "shork-diskette" ] && [ "$TARGET_DISK" -eq 2 ]; then
     elif [[ $CHOICE -eq 1 ]]; then
         ENABLE_CDROM=false
     fi
-else if [ "$ID" == "shork-diskette" ]
-    ENABLE_CDROM=false
 fi
 
 
