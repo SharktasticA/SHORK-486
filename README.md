@@ -36,7 +36,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 
 ### Hardware requirements
 
-* Processor: Intel 486SX or compatible (math emulation is enabled, so no FPU is required)
+* Processor: Intel 486SX or compatible (no FPU required)
 * RAM: 16MiB minimum/24MiB recommended (default build); 8/10MiB (minimal); 24/32MiB (maximal)
 * Disk: 80MiB IDE or SCSI (default); 8MiB (minimal); 440MiB (maximal)
 * Graphics: IBM VGA or compatible (for most programs); VBE 2.0-compatible (for `shorkgui` and `shorkres`)
@@ -130,11 +130,11 @@ _The planned SHORK 686 will make these modern system-orientated options obsolete
 
 ## SHORK DISKETTE
 
-SHORK DISKETTE is a specialised version of the SHORK 486 Operating System that is cut-down enough to fit on a 1.44MB floppy diskette. Only a subset of BusyBox commands and utilities and SHORK Utilities are available for it due to space constraints, and is only offered as a single-user (root) system. It is envisioned as a diagnostic aid and a CD-ROM boot disk.
+SHORK DISKETTE is a specialised version of the SHORK 486 Operating System that is cut-down enough to fit on a 1.44MB floppy diskette. Only a subset of BusyBox commands and utilities and SHORK Utilities are available for it due to space constraints, and is only offered as a single-user (root) system. It is envisioned as a diagnostic aid or a CD-ROM boot disk (2.88MB only at present).
 
 ### Hardware requirements
 
-* Processor: Intel 486SX or compatible (math emulation is enabled, so no FPU is required)
+* Processor: Intel 486SX or compatible (no FPU required)
 * RAM: 16MiB minimum/24MiB recommended
 * Diskette: 1.44 or 2.88MiB
 * Graphics: IBM VGA or compatible

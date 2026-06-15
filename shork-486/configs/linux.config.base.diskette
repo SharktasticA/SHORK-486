@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/x86 7.0.12 Kernel Configuration
+# Linux/x86 7.1.0 Kernel Configuration
 #
 CONFIG_CC_VERSION_TEXT="gcc (Debian 14.2.0-19) 14.2.0"
 CONFIG_CC_IS_GCC=y
@@ -53,7 +53,7 @@ CONFIG_KERNEL_XZ=y
 # CONFIG_KERNEL_LZ4 is not set
 # CONFIG_KERNEL_ZSTD is not set
 CONFIG_DEFAULT_INIT=""
-CONFIG_DEFAULT_HOSTNAME="(none)"
+CONFIG_DEFAULT_HOSTNAME="shork-diskette"
 # CONFIG_SYSVIPC is not set
 # CONFIG_WATCH_QUEUE is not set
 # CONFIG_CROSS_MEMORY_ATTACH is not set
@@ -87,7 +87,6 @@ CONFIG_HZ_PERIODIC=y
 # CONFIG_NO_HZ_IDLE is not set
 # CONFIG_NO_HZ is not set
 # CONFIG_HIGH_RES_TIMERS is not set
-CONFIG_CLOCKSOURCE_WATCHDOG_MAX_SKEW_US=125
 # end of Timers subsystem
 
 CONFIG_HAVE_EBPF_JIT=y
@@ -305,8 +304,7 @@ CONFIG_NR_CPUS=1
 # end of Performance monitoring
 
 # CONFIG_X86_LEGACY_VM86 is not set
-CONFIG_X86_16BIT=y
-CONFIG_X86_ESPFIX32=y
+# CONFIG_X86_16BIT is not set
 # CONFIG_X86_IOPL_IOPERM is not set
 # CONFIG_TOSHIBA is not set
 # CONFIG_X86_REBOOTFIXUPS is not set
@@ -372,7 +370,6 @@ CONFIG_FUNCTION_PADDING_BYTES=16
 # Power management and ACPI options
 #
 # CONFIG_SUSPEND is not set
-# CONFIG_HIBERNATION is not set
 # CONFIG_PM is not set
 CONFIG_ARCH_SUPPORTS_ACPI=y
 # CONFIG_ACPI is not set
@@ -581,7 +578,7 @@ CONFIG_EFI_PARTITION=y
 #
 # IO Schedulers
 #
-CONFIG_MQ_IOSCHED_DEADLINE=y
+# CONFIG_MQ_IOSCHED_DEADLINE is not set
 # CONFIG_MQ_IOSCHED_KYBER is not set
 # CONFIG_IOSCHED_BFQ is not set
 # end of IO Schedulers
@@ -607,8 +604,7 @@ CONFIG_BINFMT_SCRIPT=y
 #
 # Memory Management options
 #
-CONFIG_SWAP=y
-# CONFIG_ZSWAP is not set
+# CONFIG_SWAP is not set
 
 #
 # Slab allocator options
@@ -689,6 +685,7 @@ CONFIG_GENERIC_PCI_IOMAP=y
 #
 # CONFIG_UEVENT_HELPER is not set
 # CONFIG_DEVTMPFS is not set
+CONFIG_DRIVER_DEFERRED_PROBE_TIMEOUT=0
 # CONFIG_STANDALONE is not set
 # CONFIG_PREVENT_FIRMWARE_BUILD is not set
 
@@ -844,7 +841,6 @@ CONFIG_SERIO=y
 CONFIG_ARCH_MIGHT_HAVE_PC_SERIO=y
 CONFIG_SERIO_I8042=y
 CONFIG_SERIO_SERPORT=y
-# CONFIG_SERIO_CT82C710 is not set
 CONFIG_SERIO_LIBPS2=y
 # CONFIG_SERIO_RAW is not set
 # CONFIG_SERIO_ALTERA_PS2 is not set
@@ -1171,9 +1167,9 @@ CONFIG_CLKBLD_I8253=y
 # CONFIG_BCM_KONA_USB2_PHY is not set
 # end of PHY drivers for Broadcom platforms
 
+# CONFIG_PHY_INTEL_LGM_EMMC is not set
 # CONFIG_PHY_PXA_28NM_HSIC is not set
 # CONFIG_PHY_PXA_28NM_USB2 is not set
-# CONFIG_PHY_INTEL_LGM_EMMC is not set
 # end of PHY Subsystem
 
 # CONFIG_POWERCAP is not set
@@ -1203,6 +1199,7 @@ CONFIG_CLKBLD_I8253=y
 
 # CONFIG_FPGA is not set
 # CONFIG_TEE is not set
+# CONFIG_MUX_CORE is not set
 # CONFIG_SIOX is not set
 # CONFIG_SLIMBUS is not set
 # CONFIG_INTERCONNECT is not set
@@ -1259,8 +1256,8 @@ CONFIG_MSDOS_FS=y
 # CONFIG_VFAT_FS is not set
 CONFIG_FAT_DEFAULT_CODEPAGE=437
 # CONFIG_EXFAT_FS is not set
-# CONFIG_NTFS3_FS is not set
 # CONFIG_NTFS_FS is not set
+# CONFIG_NTFS3_FS is not set
 # end of DOS/FAT/EXFAT/NT Filesystems
 
 #
@@ -1399,14 +1396,8 @@ CONFIG_ARCH_HAS_FAST_MULTIPLIER=y
 CONFIG_ARCH_USE_SYM_ANNOTATIONS=y
 CONFIG_CRC32=y
 # CONFIG_CRC_OPTIMIZATIONS is not set
-
-#
-# Crypto library routines
-#
 CONFIG_CRYPTO_LIB_POLY1305_RSIZE=1
 CONFIG_CRYPTO_LIB_SHA256=y
-# end of Crypto library routines
-
 # CONFIG_RANDOM32_SELFTEST is not set
 CONFIG_XZ_DEC=y
 # CONFIG_XZ_DEC_X86 is not set
