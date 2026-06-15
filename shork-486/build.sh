@@ -524,8 +524,8 @@ clean_stale_mounts()
 ## Copy functions                                   ##
 ######################################################
 
-# Copies a config file to a destination and makes sure any @CC@, @CC_STATIC@, @AR@
-# or @STRIP@ placeholders are replaced
+# Copies a config file to a destination and makes sure any @CC@, @CC_STATIC@,
+# @AR@ or @STRIP@ placeholders are replaced
 copy_config()
 {
     # Input parameters
@@ -542,8 +542,8 @@ copy_config()
     sudo sed -i -e "s|@CC@|$CC|g" -e "s|@CC_STATIC@|$CC_STATIC|g" -e "s|@AR@|$AR|g" -e "s|@STRIP@|$STRIP|g" "$DST"
 }
 
-# Copies a sysfile to a destination and makes sure any @DIST@ @VER@, @ID@, @HOSTNAME@
-# or @URL@ placeholders are replaced
+# Copies a sysfile to a destination and makes sure any @DIST@, @VER@, @ID@,
+# @HOSTNAME@ or @URL@ placeholders are replaced
 copy_sysfile()
 {
     # Input parameters

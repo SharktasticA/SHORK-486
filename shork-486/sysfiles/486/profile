@@ -36,6 +36,12 @@ if [ ! -f /etc/.past_first_boot ] && [ "$(tty)" = "/dev/tty1" ]; then
     printf "Welcome! If this is your first time using @DIST@, please check out \033[32mshorkhelp\033[0m!\n"
     echo "1" > /etc/.past_first_boot
 
+    # Public Test build disclaimer
+    if grep -q "PT" /etc/issue 2>/dev/null; then
+        TERM_WIDTH=$(stty size 2>/dev/null | cut -d' ' -f2)
+        printf "\n@DIST@ is a work-in-progress and this pre-release build is intended for testing purposes only with no warranty provided. See the \"Public Test 1\" guide in shorkhelp for more information.\n" | fold -s -w "$TERM_WIDTH"
+    fi
+
     # Padding specific for single-user use
     if [ ! -d /home ]; then
         printf "\n"
