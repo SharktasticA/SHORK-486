@@ -39,7 +39,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 * Processor: Intel 486SX or compatible (no FPU required)
 * RAM: 16MiB minimum/24MiB recommended (default build); 8/10MiB (minimal); 24/32MiB (maximal)
 * Disk: 80MiB IDE or SCSI (default); 8MiB (minimal); 440MiB (maximal)
-* Graphics: IBM VGA or compatible (for most programs); VBE 2.0-compatible (for `shorkgui` and `shorkres`)
+* Graphics: IBM VGA or compatible (for most programs); VBE 2.0-compatible (for `shorkgui` and `shorkset`)
 
 ### BusyBox & util-linux
 

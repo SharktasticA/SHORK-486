@@ -4698,15 +4698,15 @@ get_shorkset()
     fi
 
     # Delete if present
-    if [ -d shorkres ]; then
+    if [ -d shorkset ]; then
         echo -e "${YELLOW}shorkset source already present, recloning...${RESET}"
-        sudo rm -r shorkres
+        sudo rm -r shorkset
     fi
 
     # Download source
     echo -e "${GREEN}Downloading shorkset...${RESET}"
-    git clone https://github.com/SharktasticA/shorkres.git
-    cd shorkres
+    git clone https://github.com/SharktasticA/shorkset.git
+    cd shorkset
 
     # Compile and install
     make clean
