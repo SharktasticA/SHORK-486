@@ -4694,18 +4694,18 @@ get_shorkset()
     # Skip if already compiled
     if [ "$SHORKUTILS_RECLONE" != "true" ] && [ -f "$DESTDIR/usr/libexec/shorkset" ]; then
         echo -e "${LIGHT_RED}shorkset already compiled, skipping...${RESET}"
-        #return
+        return
     fi
 
     # Delete if present
     if [ -d shorkres ]; then
         echo -e "${YELLOW}shorkset source already present, recloning...${RESET}"
-        #sudo rm -r shorkres
+        sudo rm -r shorkres
     fi
 
     # Download source
     echo -e "${GREEN}Downloading shorkset...${RESET}"
-    #git clone https://github.com/SharktasticA/shorkres.git
+    git clone https://github.com/SharktasticA/shorkres.git
     cd shorkres
 
     # Compile and install
