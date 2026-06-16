@@ -46,19 +46,18 @@ fi
 
 [ -r /etc/hostname ] && hostname "$(cat /etc/hostname)"
 
-# Load custom console font (if applicable)
+# Load SHORKSET settings
 if [ -f /etc/shorkset.conf ]; then
     . /etc/shorkset.conf
+
+    # Load custom console font
     if [ "$FONT_PSF" != "default" ] && [ -c /dev/tty1 ]; then
         setfont -C /dev/tty1 $FONT_PSF
     fi
-fi
 
-# Load persistent keymap (if present)
-if [ -f /etc/keymap ]; then
-    KM="$(cat /etc/keymap)"
-    if [ -f "/usr/share/keymaps/$KM.kmap.bin" ]; then
-        loadkmap < "/usr/share/keymaps/$KM.kmap.bin"
+    # Load persistent keymap
+    if [ "$KEYMAP" != "us" ] && [ -f "/usr/share/keymaps/$KEYMAP.kmap.bin" ]; then
+        loadkmap < "/usr/share/keymaps/$KEYMAP.kmap.bin"
     fi
 fi
 

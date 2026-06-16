@@ -626,7 +626,7 @@ if [ "$BUILD_TYPE" != "minimal" ] && [ "$ID" == "shork-486" ]; then
         --title "Keyboard Layout" \
         --cancel-label "Skip" \
         --default-item "$SET_KEYMAP" \
-        --menu "Select what keyboard layout (keymap) you wish to use. This can later be changed inside SHORK 486 by running shorkmap." $HEIGHT $WIDTH 25 \
+        --menu "Select what keyboard layout (keymap) you wish to use. This can later be changed inside SHORK 486 by running shorkset." $HEIGHT $WIDTH 25 \
         "${KEYMAP_ITEMS[@]}" \
         3>&1 1>&2 2>&3)
 fi

@@ -4658,34 +4658,6 @@ get_shorkhelp()
     fi
 }
 
-# Download and copy shorkmap
-get_shorkmap()
-{
-    cd "$CURR_DIR/build"
-
-    # Skip if already copied
-    if [ "$SHORKUTILS_RECLONE" != "true" ] && [ -f "$DESTDIR/usr/bin/shorkmap" ]; then
-        echo -e "${LIGHT_RED}shorkmap already copied, skipping...${RESET}"
-        return
-    fi
-
-    # Delete if present
-    if [ -d shorkmap ]; then
-        echo -e "${YELLOW}shorkmap source already present, recloning...${RESET}"
-        sudo rm -r shorkmap
-    fi
-
-    # Download source
-    echo -e "${GREEN}Downloading shorkmap...${RESET}"
-    git clone https://github.com/SharktasticA/shorkmap.git
-    cd shorkmap
-
-    # Copy
-    echo -e "${GREEN}Copying shorkmap...${RESET}"
-    sudo cp shorkmap.486 $DESTDIR/usr/bin/shorkmap
-    sudo chmod +x $DESTDIR/usr/bin/shorkmap
-}
-
 # Download and copy shorkoff
 get_shorkoff()
 {
@@ -5030,9 +5002,9 @@ build_file_system()
         sudo cp $CURR_DIR/sysfiles/keymaps/*.kmap.bin "$DESTDIR/usr/share/keymaps/"
         sudo chmod 644 "$DESTDIR/usr/share/keymaps/"*.kmap.bin
 
-        if [ -n "$SET_KEYMAP" ]; then
+        if [ -n "$SET_KEYMAP" ] && [ -f "$DESTDIR/etc/shorkset.conf" ]; then
             echo -e "${GREEN}Setting default keymap...${RESET}"
-            echo "$SET_KEYMAP" | sudo tee "$DESTDIR/etc/keymap" > /dev/null
+            sudo sed -i "s|^KEYMAP=.*|KEYMAP=\"$SET_KEYMAP\"|" "$DESTDIR/etc/shorkset.conf"
         fi
     fi
 
@@ -5632,11 +5604,6 @@ get_installed_programs_features()
     else
         EXCLUDED_FEATURES+="\n * shorkhelp"
     fi
-    if [ -f "$DESTDIR/usr/bin/shorkmap" ]; then
-        INCLUDED_FEATURES+="\n * shorkmap"
-    else
-        EXCLUDED_FEATURES+="\n * shorkmap"
-    fi
     if [ -f "$DESTDIR/sbin/shorkoff" ]; then
         INCLUDED_FEATURES+="\n * shorkoff"
     else
@@ -6147,9 +6114,6 @@ get_shorkfetch
 if [ "$ID" == "shork-486" ]; then
     get_shorkcommon_sh
     get_shorkdir
-    if $INCLUDE_KEYMAPS; then
-        get_shorkmap
-    fi
     get_shorkoff
     get_shorkset
 fi
