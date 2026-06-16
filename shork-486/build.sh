@@ -300,22 +300,27 @@ fi
 ######################################################
 
 # Overrides to ensure the correct estimated RAM requirement is shown in the after-build report
-if [ "$BUILD_TYPE" = "custom" ]; then
-    echo -e "${GREEN}Noting minimum RAM requirement for a custom build...${RESET}"
-    if [ "$INCLUDE_GCC" = true ]; then
+if [ "$ID" == "shork-486" ]; then
+    if [ "$BUILD_TYPE" = "custom" ]; then
+        echo -e "${GREEN}Noting minimum RAM requirement for a SHORK 486 custom build...${RESET}"
+        if [ "$INCLUDE_GCC" = true ]; then
+            EST_MIN_RAM="32MiB/24MiB + 8MiB swap"
+        elif [ "$INCLUDE_GUI" = true ] || [ "$ENABLE_HIGHMEM" = true ] || [ "$ENABLE_SATA" = true ]; then
+            EST_MIN_RAM="24MiB/16MiB + 8MiB swap"
+        fi
+    elif [ "$BUILD_TYPE" = "maximal" ]; then
+        echo -e "${GREEN}Noting minimum RAM requirement for a SHORK 486 maximal build...${RESET}"
         EST_MIN_RAM="32MiB/24MiB + 8MiB swap"
-    elif [ "$INCLUDE_GUI" = true ] || [ "$ENABLE_HIGHMEM" = true ] || [ "$ENABLE_SATA" = true ]; then
-        EST_MIN_RAM="24MiB/16MiB + 8MiB swap"
+    elif [ "$BUILD_TYPE" = "offline" ]; then
+        echo -e "${GREEN}Noting minimum RAM requirement for a SHORK 486 offline build...${RESET}"
+        EST_MIN_RAM="12MiB"
+    elif [ "$BUILD_TYPE" = "minimal" ]; then
+        echo -e "${GREEN}Noting minimum RAM requirement for a SHORK 486 minimal build...${RESET}"
+        EST_MIN_RAM="8MiB"
     fi
-elif [ "$BUILD_TYPE" = "maximal" ]; then
-    echo -e "${GREEN}Noting minimum RAM requirement for a maximal build...${RESET}"
-    EST_MIN_RAM="32MiB/24MiB + 8MiB swap"
-elif [ "$BUILD_TYPE" = "offline" ]; then
-    echo -e "${GREEN}Noting minimum RAM requirement for an offline build...${RESET}"
-    EST_MIN_RAM="12MiB"
-elif [ "$BUILD_TYPE" = "minimal" ]; then
-    echo -e "${GREEN}Noting minimum RAM requirement for a minimal build...${RESET}"
-    EST_MIN_RAM="8MiB"
+elif [ "$ID" == "shork-diskette" ]; then
+    echo -e "${GREEN}Noting minimum RAM requirement for a SHORK DISKETTE build...${RESET}"
+    EST_MIN_RAM="16MiB"
 fi
 
 # Override to ensure the USED_WM is empty when the "use GUI" parameter is not used
@@ -4742,9 +4747,9 @@ get_shorkres()
 {
     cd "$CURR_DIR/build"
 
-    # Skip if already copied
+    # Skip if already compiled
     if [ "$SHORKUTILS_RECLONE" != "true" ] && [ -f "$DESTDIR/usr/bin/shorkres" ]; then
-        echo -e "${LIGHT_RED}shorkres already copied, skipping...${RESET}"
+        echo -e "${LIGHT_RED}shorkres already compiled, skipping...${RESET}"
         return
     fi
 
@@ -4759,10 +4764,10 @@ get_shorkres()
     git clone https://github.com/SharktasticA/shorkres.git
     cd shorkres
 
-    # Copy
-    echo -e "${GREEN}Copying shorkres...${RESET}"
-    sudo cp shorkres.486 $DESTDIR/usr/bin/shorkres
-    sudo chmod +x $DESTDIR/usr/bin/shorkres
+    # Compile and install
+    echo -e "${GREEN}Compiling shorkres...${RESET}"
+    make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+    sudo make DESTDIR=$DESTDIR install
 }
 
 
@@ -5928,11 +5933,11 @@ generate_report()
     BUSYBOX_VER="${BUSYBOX_VER//_/.}"
 
     local lines=(
-        "=================================="
-        "==   SHORK after-build report   =="
-        "=================================="
-        "==     $DATE     =="
-        "=================================="
+        "================================================================================"
+        "==                          SHORK after-build report                          =="
+        "================================================================================"
+        "==                            $DATE                            =="
+        "================================================================================"
         ""
         "OS/version:          $DIST $VER"
         "Kernel:              Linux $KERNEL_VER"
@@ -6176,9 +6181,7 @@ if [ "$ID" == "shork-486" ]; then
         get_shorkmap
     fi
     get_shorkoff
-    if $ENABLE_FB; then
-        get_shorkres
-    fi
+    get_shorkres
 fi
 
 if $INCLUDE_SHORKTAINMENT; then

@@ -70,7 +70,7 @@ fi
 printf "Welcome, please check out \033[32mshorkhelp\033[0m to get started with @DIST@!\n"
 # Public Test build disclaimer
 if grep -q "PT" /etc/issue 2>/dev/null; then
-    printf "\n@DIST@ is a work-in-progress and this pre-release build is intended for\ntesting purposes only with no warranty provided. See the \"Public Test 1\" guide\nin shorkhelp for more information.\n"
+    printf "\n@DIST@ is a work-in-progress and this pre-release build is for testing\npurposes only. See the shorkhelp's \"Public Test 1\" guide for more information.\n"
 fi
 printf "\n"
 
