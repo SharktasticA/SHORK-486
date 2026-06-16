@@ -906,6 +906,7 @@ else
     if [[ $BUNDLED =~ "lynx" ]];            then INCLUDE_LYNX=true;             else INCLUDE_LYNX=false;            fi
     if [[ $BUNDLED =~ "mg" ]];              then INCLUDE_MG=true;               else INCLUDE_MG=false;              fi
     if [[ $BUNDLED =~ "micropython" ]];     then INCLUDE_MICROPYTHON=true;      else INCLUDE_MICROPYTHON=false;     fi
+    if [[ $BUNDLED =~ "mt-st" ]];           then INCLUDE_MT_ST=true;            else INCLUDE_MT_ST=false;           fi
     if [[ $BUNDLED =~ "nano" ]];            then INCLUDE_NANO=true;             else INCLUDE_NANO=false;            fi
     if [[ $BUNDLED =~ "sc-im" ]];           then INCLUDE_SC_IM=true;            else INCLUDE_SC_IM=false;           fi
     if [[ $BUNDLED =~ "shorktainment" ]];   then INCLUDE_SHORKTAINMENT=true;    else INCLUDE_SHORKTAINMENT=false;   fi
@@ -940,7 +941,7 @@ OPTIONS=$(dialog --clear \
     "usb"           "Kernel-level USB & HID support & lsusb (+0.2MiB)"          $(val $ENABLE_USB) \
     "zswap"         "*Kernel-level zswap support"                               $(val $ENABLE_ZSWAP) \
     2>&1 >/dev/tty)
-    #"keymaps"   "Keymaps & shorkmap (+0.06MiB)"             $(val $INCLUDE_KEYMAPS) \
+    #"keymaps"   "Keymaps (+0.06MiB)"             $(val $INCLUDE_KEYMAPS) \
     
 SKIPPED=$?
 
