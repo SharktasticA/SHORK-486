@@ -3,7 +3,7 @@
 ######################################################
 ## System-wide shell profile defining core          ##
 ## environment variables, prompt settings, and a    ##
-## helper function for the shorkfont utility        ##
+## helper function for the shorkset utility         ##
 ######################################################
 ## Kali (sharktastica.co.uk)                        ##
 ######################################################
@@ -24,9 +24,9 @@ if [ -d /opt/i486-linux-musl-native/bin ]; then
 fi
 export PATH
 
-shorkfont()
+shorkset()
 {
-    /usr/libexec/shorkfont "$@" || return
+    /usr/libexec/shorkset "$@" || return
     sync
     exit
 }
@@ -35,6 +35,12 @@ shorkfont()
 if [ ! -f /etc/.past_first_boot ] && [ "$(tty)" = "/dev/tty1" ]; then
     printf "Welcome! If this is your first time using @DIST@, please check out \033[32mshorkhelp\033[0m!\n"
     echo "1" > /etc/.past_first_boot
+
+    # Public Test build disclaimer
+    if grep -q "PT" /etc/issue 2>/dev/null; then
+        TERM_WIDTH=$(stty size 2>/dev/null | cut -d' ' -f2)
+        printf "\n@DIST@ is a work-in-progress and this pre-release build is for testing purposes only. See the shorkhelp's \"Public Test 1\" guide for more information.\n" | fold -s -w "$TERM_WIDTH"
+    fi
 
     # Padding specific for single-user use
     if [ ! -d /home ]; then
