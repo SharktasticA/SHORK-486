@@ -3,7 +3,7 @@
 ######################################################
 ## System-wide shell profile defining core          ##
 ## environment variables, prompt settings, and a    ##
-## helper function for the shorkfont utility        ##
+## helper function for the shorkset utility         ##
 ######################################################
 ## Kali (sharktastica.co.uk)                        ##
 ######################################################
@@ -24,9 +24,9 @@ if [ -d /opt/i486-linux-musl-native/bin ]; then
 fi
 export PATH
 
-shorkfont()
+shorkset()
 {
-    /usr/libexec/shorkfont "$@" || return
+    /usr/libexec/shorkset "$@" || return
     sync
     exit
 }

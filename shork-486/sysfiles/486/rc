@@ -47,10 +47,10 @@ fi
 [ -r /etc/hostname ] && hostname "$(cat /etc/hostname)"
 
 # Load custom console font (if applicable)
-if [ -f /etc/shorkfont.conf ]; then
-    . /etc/shorkfont.conf
-    if [ "$FONT" != "default" ] && [ -c /dev/tty1 ]; then
-        setfont -C /dev/tty1 $FONT
+if [ -f /etc/shorkset.conf ]; then
+    . /etc/shorkset.conf
+    if [ "$FONT_PSF" != "default" ] && [ -c /dev/tty1 ]; then
+        setfont -C /dev/tty1 $FONT_PSF
     fi
 fi
 

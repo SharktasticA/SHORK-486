@@ -793,7 +793,7 @@ get_ncurses()
     cp COPYING $CURR_DIR/build/LICENCES/ncurses.txt
 }
 
-# Download and compile tic (required for shorkfont)
+# Download and compile tic (required for shorkset)
 get_tic()
 {
     cd "$CURR_DIR/build/ncurses"
@@ -4625,34 +4625,6 @@ get_shorkfetch()
     sudo make DESTDIR=$DESTDIR install
 }
 
-# Download and compile shorkfont
-get_shorkfont()
-{
-    cd "$CURR_DIR/build"
-
-    # Skip if already copied
-    if [ "$SHORKUTILS_RECLONE" != "true" ] && [ -f "$DESTDIR/usr/libexec/shorkfont" ]; then
-        echo -e "${LIGHT_RED}shorkfont already copied, skipping...${RESET}"
-        return
-    fi
-
-    # Delete if present
-    if [ -d shorkfont ]; then
-        echo -e "${YELLOW}shorkfont source already present, recloning...${RESET}"
-        sudo rm -r shorkfont
-    fi
-
-    # Download source
-    echo -e "${GREEN}Downloading shorkfont...${RESET}"
-    git clone https://github.com/SharktasticA/shorkfont.git
-    cd shorkfont
-
-    # Compile and install
-    echo -e "${GREEN}Compiling shorkfont...${RESET}"
-    make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
-    sudo make DESTDIR=$DESTDIR install
-}
-
 # Download and compile shorkhelp
 get_shorkhelp()
 {
@@ -4742,31 +4714,36 @@ get_shorkoff()
     sudo chmod +x $DESTDIR/sbin/shorkoff
 }
 
-# Download and copy shorkres
-get_shorkres()
+# Download and copy shorkset
+get_shorkset()
 {
     cd "$CURR_DIR/build"
 
     # Skip if already compiled
-    if [ "$SHORKUTILS_RECLONE" != "true" ] && [ -f "$DESTDIR/usr/bin/shorkres" ]; then
-        echo -e "${LIGHT_RED}shorkres already compiled, skipping...${RESET}"
-        return
+    if [ "$SHORKUTILS_RECLONE" != "true" ] && [ -f "$DESTDIR/usr/libexec/shorkset" ]; then
+        echo -e "${LIGHT_RED}shorkset already compiled, skipping...${RESET}"
+        #return
     fi
 
     # Delete if present
     if [ -d shorkres ]; then
-        echo -e "${YELLOW}shorkres source already present, recloning...${RESET}"
-        sudo rm -r shorkres
+        echo -e "${YELLOW}shorkset source already present, recloning...${RESET}"
+        #sudo rm -r shorkres
     fi
 
     # Download source
-    echo -e "${GREEN}Downloading shorkres...${RESET}"
-    git clone https://github.com/SharktasticA/shorkres.git
+    echo -e "${GREEN}Downloading shorkset...${RESET}"
+    #git clone https://github.com/SharktasticA/shorkres.git
     cd shorkres
 
     # Compile and install
-    echo -e "${GREEN}Compiling shorkres...${RESET}"
-    make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+    make clean
+    echo -e "${GREEN}Compiling shorkset...${RESET}"
+    if $ENABLE_FB; then
+        make FB=1 -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+    else
+        make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+    fi
     sudo make DESTDIR=$DESTDIR install
 }
 
@@ -5120,7 +5097,6 @@ build_file_system()
     if [ "$ID" == "shork-486" ]; then
         sudo mkdir -p $DESTDIR/root/.config/shorkutils
         copy_sysfile $CURR_DIR/sysfiles/shorkfetch.conf $DESTDIR/root/.config/shorkutils/shorkfetch.conf
-        copy_sysfile $CURR_DIR/sysfiles/shorkfont.conf $DESTDIR/etc/shorkfont.conf
     fi
 
     if $INCLUDE_TESTS; then
@@ -5646,11 +5622,6 @@ get_installed_programs_features()
     else
         EXCLUDED_FEATURES+="\n * shorkfetch"
     fi
-    if [ -f "$DESTDIR/usr/libexec/shorkfont" ]; then
-        INCLUDED_FEATURES+="\n * shorkfont"
-    else
-        EXCLUDED_FEATURES+="\n * shorkfont"
-    fi
     if [ -f "$DESTDIR/usr/bin/shorkgui" ]; then
         INCLUDED_FEATURES+="\n * shorkgui"
     else
@@ -5671,10 +5642,10 @@ get_installed_programs_features()
     else
         EXCLUDED_FEATURES+="\n * shorkoff"
     fi
-    if [ -f "$DESTDIR/usr/bin/shorkres" ]; then
-        INCLUDED_FEATURES+="\n * shorkres"
+    if [ -f "$DESTDIR/usr/libexec/shorkset" ]; then
+        INCLUDED_FEATURES+="\n * shorkset"
     else
-        EXCLUDED_FEATURES+="\n * shorkres"
+        EXCLUDED_FEATURES+="\n * shorkset"
     fi
 
     # SHORK Entertainment
@@ -6176,12 +6147,11 @@ get_shorkfetch
 if [ "$ID" == "shork-486" ]; then
     get_shorkcommon_sh
     get_shorkdir
-    get_shorkfont
     if $INCLUDE_KEYMAPS; then
         get_shorkmap
     fi
     get_shorkoff
-    get_shorkres
+    get_shorkset
 fi
 
 if $INCLUDE_SHORKTAINMENT; then
