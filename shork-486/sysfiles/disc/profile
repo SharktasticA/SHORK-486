@@ -1,0 +1,11 @@
+export TERM=linux
+export HOME=/root
+export USER=root
+export LOGNAME=root
+export SHELL=/bin/sh
+export PS1='$(sync)\w$ '
+
+export PATH=/sbin:/bin:/usr/sbin:/usr/bin
+export PATH
+
+cd ~

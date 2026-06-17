@@ -320,6 +320,22 @@ set_custom_vars()
     ENABLE_FB=true
 }
 
+set_disc_vars()
+{
+    set_minimal_vars
+    ENABLE_CDROM=true
+    INCLUDE_FILE=true
+    INCLUDE_SHORKTAINMENT=true
+    INCLUDE_STRACE=true
+    INCLUDE_UTIL_LINUX=true
+    INCLUDE_PCI_IDS=true
+}
+
+set_diskette_vars()
+{
+    set_minimal_vars
+}
+
 
 
 trap 'tput reset; save_env' EXIT
@@ -370,8 +386,9 @@ CHOICE=$(dialog --clear \
     --title "Target Distribution" \
     --cancel-label "Quit" \
     --default-item "$ID" \
-    --menu "Select which exact SHORK 486-based distribution you wish to build." 9 $WIDTH 3 \
-    "shork-486"         "SHORK 486 (for hard disks)" \
+    --menu "Select which exact SHORK 486-based distribution you wish to build." 10 $WIDTH 3 \
+    "shork-486"         "SHORK 486 (for hard and solid-state disks)" \
+    "shork-disc"        "SHORK DISC (for CD and DVD discs)" \
     "shork-diskette"    "SHORK DISKETTE (for floppy diskettes)" \
     3>&1 1>&2 2>&3)
 
@@ -379,6 +396,7 @@ if [[ ! -n "$CHOICE" ]]; then
     exit 0
 else
     if [ "$CHOICE" == "shork-486" ]; then
+        DIST="SHORK 486"
         if [ "$CHOICE" != "$ID" ]; then
             HOSTNAME="$CHOICE"
             set_default_vars
@@ -386,19 +404,26 @@ else
             TARGET_DISK=80
             TARGET_SWAP=8
         fi
-        DIST="SHORK 486"
-        ID="$CHOICE"
-    elif [ "$CHOICE" == "shork-diskette" ]; then
+    elif [ "$CHOICE" == "shork-disc" ]; then
+        DIST="SHORK DISC"
         if [ "$CHOICE" != "$ID" ]; then
             HOSTNAME="$CHOICE"
-            set_minimal_vars
+            set_disc_vars
+            BUILD_TYPE="minimal"
+            TARGET_DISK=0
+            TARGET_SWAP=0
+        fi
+    elif [ "$CHOICE" == "shork-diskette" ]; then
+        DIST="SHORK DISKETTE"
+        if [ "$CHOICE" != "$ID" ]; then
+            HOSTNAME="$CHOICE"
+            set_diskette_vars
             BUILD_TYPE="minimal"
             TARGET_DISK=1
             TARGET_SWAP=0
         fi
-        DIST="SHORK DISKETTE"
-        ID="$CHOICE"
     fi
+    ID="$CHOICE"
 fi
 
 
@@ -801,17 +826,26 @@ fi
 
 
 
-# Get patched EXTLINUX/SYSLINUX choice (all)
+# Get patched *LINUX choice (all)
 DEFAULT_FLAG=""
 if ! $FIX_EXTLINUX; then
     DEFAULT_FLAG="--defaultno"
 fi
 
+VARIANT="*LINUX"
+if [ "$ID" == "shork-486" ]; then
+    VARIANT="EXTLINUX"
+elif [ "$ID" == "shork-disc" ]; then
+    VARIANT="ISOLINUX"
+elif [ "$ID" == "shork-diskette" ]; then
+    VARIANT="SYSLINUX"
+fi
+
 dialog --clear \
     --backtitle "SHORK 486 Build Configurator" \
-    --title "Patched EXTLINUX/SYSLINUX" \
+    --title "Patched $VARIANT" \
     $DEFAULT_FLAG \
-    --yesno "Do you want to use SHORK's patched fork of the EXTLINUX/SYSLINUX bootloader, instead of your host distribution's maintained package version? The patched fork fixes a memory detection issue that *may* prevent booting with certain old BIOS implementations. It is recommended to say \"Yes\" but it will increase build time.\n\nKnown computers that require this: Chicony NB5/derivatives, HP OmniBook 800CT, IBM 2625 ThinkPad 365E/365ED and IBM 6381 PS/ValuePoint" \
+    --yesno "Do you want to use SHORK's patched fork of the $VARIANT bootloader, instead of your host distribution's maintained package version? The patched fork fixes a memory detection issue that *may* prevent booting with certain old BIOS implementations. It is recommended to say \"Yes\" but it will increase build time.\n\nKnown computers that require this: Chicony NB5/derivatives, HP OmniBook 800CT, IBM 2625 ThinkPad 365E/365ED and IBM 6381 PS/ValuePoint" \
     12 $WIDTH
 
 CHOICE=$?
