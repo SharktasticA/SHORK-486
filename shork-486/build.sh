@@ -1653,7 +1653,7 @@ get_libxdmcp()
  
     LIBXDMCP="libXdmcp-1.1.5"
     LIBXDMCP_ARC="${LIBXDMCP}.tar.xz"
-    LIBXDMCP_URI="https://www.x.org/releases/individual/lib/${LIBXDMCP_ARC}"
+    LIBXDMCP_URI="https://xorg.freedesktop.org/archive/individual/lib/${LIBXDMCP_ARC}"
 
     # Download source
     [ -f $LIBXDMCP_ARC ] || wget $LIBXDMCP_URI
@@ -1690,7 +1690,7 @@ get_libxau()
 
     LIBXAU="libXau-1.0.12"
     LIBXAU_ARC="${LIBXAU}.tar.xz"
-    LIBXAU_URI="https://www.x.org/releases/individual/lib/${LIBXAU_ARC}"
+    LIBXAU_URI="https://xorg.freedesktop.org/archive/individual/lib/${LIBXAU_ARC}"
 
     # Download source
     [ -f $LIBXAU_ARC ] || wget $LIBXAU_URI
@@ -1801,7 +1801,7 @@ get_xtrans()
 
     XTRANS="xtrans-1.6.0"
     XTRANS_ARC="${XTRANS}.tar.xz"
-    XTRANS_URI="https://www.x.org/releases/individual/lib/${XTRANS_ARC}"
+    XTRANS_URI="https://xorg.freedesktop.org/archive/individual/lib/${XTRANS_ARC}"
 
     # Download source
     [ -f $XTRANS_ARC ] || wget $XTRANS_URI
@@ -1838,7 +1838,7 @@ get_libx11()
 
     LIBX11="libX11-1.8.12"
     LIBX11_ARC="${LIBX11}.tar.xz"
-    LIBX11_URI="https://www.x.org/releases/individual/lib/${LIBX11_ARC}"
+    LIBX11_URI="https://xorg.freedesktop.org/archive/individual/lib/${LIBX11_ARC}"
 
     # Download source
     [ -f $LIBX11_ARC ] || wget $LIBX11_URI
@@ -1875,7 +1875,7 @@ get_libxext()
 
     LIBXEXT="libXext-1.3.7"
     LIBXEXT_ARC="${LIBXEXT}.tar.xz"
-    LIBXEXT_URI="https://www.x.org/releases/individual/lib//${LIBXEXT_ARC}"
+    LIBXEXT_URI="https://xorg.freedesktop.org/archive/individual/lib//${LIBXEXT_ARC}"
 
     # Download source
     [ -f $LIBXEXT_ARC ] || wget $LIBXEXT_URI
@@ -1912,7 +1912,7 @@ get_libxfixes()
 
     LIBXFIXES="libXfixes-6.0.2"
     LIBXFIXES_ARC="${LIBXFIXES}.tar.xz"
-    LIBXFIXES_URI="https://www.x.org/releases/individual/lib/${LIBXFIXES_ARC}"
+    LIBXFIXES_URI="https://xorg.freedesktop.org/archive/individual/lib/${LIBXFIXES_ARC}"
 
     # Download source
     [ -f $LIBXFIXES_ARC ] || wget $LIBXFIXES_URI
@@ -1949,7 +1949,7 @@ get_libxi()
 
     LIBXI="libXi-1.8.2"
     LIBXI_ARC="${LIBXI}.tar.xz"
-    LIBXI_URI="https://www.x.org/releases/individual/lib/${LIBXI_ARC}"
+    LIBXI_URI="https://xorg.freedesktop.org/archive/individual/lib/${LIBXI_ARC}"
 
     # Download source
     [ -f $LIBXI_ARC ] || wget $LIBXI_URI
@@ -1986,7 +1986,7 @@ get_libxtst()
 
     LIBXTST="libXtst-1.2.5"
     LIBXTST_ARC="${LIBXTST}.tar.xz"
-    LIBXTST_URI="https://www.x.org/releases/individual/lib/${LIBXTST_ARC}"
+    LIBXTST_URI="https://xorg.freedesktop.org/archive/individual/lib/${LIBXTST_ARC}"
 
     # Download source
     [ -f $LIBXTST_ARC ] || wget $LIBXTST_URI
@@ -2023,7 +2023,7 @@ get_libice()
 
     LIBICE="libICE-1.1.2"
     LIBICE_ARC="${LIBICE}.tar.xz"
-    LIBICE_URI="https://www.x.org/releases/individual/lib/${LIBICE_ARC}"
+    LIBICE_URI="https://xorg.freedesktop.org/archive/individual/lib/${LIBICE_ARC}"
 
     # Download source
     [ -f $LIBICE_ARC ] || wget $LIBICE_URI
@@ -2060,7 +2060,7 @@ get_libsm()
 
     LIBSM="libSM-1.2.6"
     LIBSM_ARC="${LIBSM}.tar.xz"
-    LIBSM_URI="https://www.x.org/releases/individual/lib/${LIBSM_ARC}"
+    LIBSM_URI="https://xorg.freedesktop.org/archive/individual/lib/${LIBSM_ARC}"
 
     # Download source
     [ -f $LIBSM_ARC ] || wget $LIBSM_URI
@@ -2097,7 +2097,7 @@ get_libxt()
 
     LIBXT="libXt-1.3.1"
     LIBXT_ARC="${LIBXT}.tar.xz"
-    LIBXT_URI="https://www.x.org/releases/individual/lib/${LIBXT_ARC}"
+    LIBXT_URI="https://xorg.freedesktop.org/archive/individual/lib/${LIBXT_ARC}"
 
     # Download source
     [ -f $LIBXT_ARC ] || wget $LIBXT_URI
@@ -2172,7 +2172,7 @@ get_libxpm()
 
     LIBXPM="libXpm-3.5.18"
     LIBXPM_ARC="${LIBXPM}.tar.xz"
-    LIBXPM_URI="https://www.x.org/archive/individual/lib/${LIBXPM_ARC}"
+    LIBXPM_URI="https://xorg.freedesktop.org/archive/individual/lib/${LIBXPM_ARC}"
 
     # Download source
     [ -f $LIBXPM_ARC ] || wget $LIBXPM_URI
@@ -2209,7 +2209,7 @@ get_libxmu()
 
     LIBXMU="libXmu-1.3.1"
     LIBXMU_ARC="${LIBXMU}.tar.xz"
-    LIBXMU_URI="https://www.x.org/releases/individual/lib/${LIBXMU_ARC}"
+    LIBXMU_URI="https://xorg.freedesktop.org/archive/individual/lib/${LIBXMU_ARC}"
 
     # Download source
     [ -f $LIBXMU_ARC ] || wget $LIBXMU_URI
@@ -2244,7 +2244,7 @@ get_utilmacros()
 
     UTILMACROS="util-macros-1.20.2"
     UTILMACROS_ARC="${UTILMACROS}.tar.xz"
-    UTILMACROS_URI="https://www.x.org/releases/individual/util/${UTILMACROS_ARC}"
+    UTILMACROS_URI="https://xorg.freedesktop.org/archive/individual/util/${UTILMACROS_ARC}"
 
     echo -e "${GREEN}Downloading util-macros...${RESET}"
 
@@ -2395,7 +2395,7 @@ get_libxrender()
 
     LIBXRENDER="libXrender-0.9.12"
     LIBXRENDER_ARC="${LIBXRENDER}.tar.xz"
-    LIBXRENDER_URI="https://www.x.org/archive/individual/lib/${LIBXRENDER_ARC}"
+    LIBXRENDER_URI="https://xorg.freedesktop.org/archive/individual/lib/${LIBXRENDER_ARC}"
 
     # Download source
     [ -f $LIBXRENDER_ARC ] || wget $LIBXRENDER_URI
@@ -2432,7 +2432,7 @@ get_libxft()
 
     LIBXFT="libXft-2.3.9"
     LIBXFT_ARC="${LIBXFT}.tar.xz"
-    LIBXFT_URI="https://www.x.org/archive/individual/lib/${LIBXFT_ARC}"
+    LIBXFT_URI="https://xorg.freedesktop.org/archive/individual/lib/${LIBXFT_ARC}"
 
     # Download source
     [ -f $LIBXFT_ARC ] || wget $LIBXFT_URI
@@ -2469,7 +2469,7 @@ get_libfontenc()
 
     LIBFONTENC="libfontenc-1.1.8"
     LIBFONTENC_ARC="${LIBFONTENC}.tar.xz"
-    LIBFONTENC_URI="https://www.x.org/releases/individual/lib/${LIBFONTENC_ARC}"
+    LIBFONTENC_URI="https://xorg.freedesktop.org/archive/individual/lib/${LIBFONTENC_ARC}"
 
     # Download source
     [ -f $LIBFONTENC_ARC ] || wget $LIBFONTENC_URI
@@ -2506,7 +2506,7 @@ get_libxfont()
 
     LIBXFONT="libXfont-1.5.4"
     LIBXFONT_ARC="${LIBXFONT}.tar.gz"
-    LIBXFONT_URI="https://www.x.org/releases/individual/lib/${LIBXFONT_ARC}"
+    LIBXFONT_URI="https://xorg.freedesktop.org/archive/individual/lib/${LIBXFONT_ARC}"
 
     # Download source
     [ -f $LIBXFONT_ARC ] || wget $LIBXFONT_URI
@@ -2543,7 +2543,7 @@ get_fontutil()
 
     FONTUTIL="font-util-1.4.1"
     FONTUTIL_ARC="${FONTUTIL}.tar.xz"
-    FONTUTIL_URI="https://www.x.org/releases/individual/font/${FONTUTIL_ARC}"
+    FONTUTIL_URI="https://xorg.freedesktop.org/archive/individual/font/${FONTUTIL_ARC}"
 
     # Download source
     [ -f $FONTUTIL_ARC ] || wget $FONTUTIL_URI
@@ -2584,7 +2584,7 @@ get_fonts()
     for FONT in font-misc-misc-1.1.3 font-cursor-misc-1.0.4; do
         echo -e "${GREEN}Building $FONT...${RESET}"
         ARC="${FONT}.tar.xz"
-        URI="https://www.x.org/releases/individual/font/${ARC}"
+        URI="https://xorg.freedesktop.org/archive/individual/font/${ARC}"
         [ -f $ARC ] || wget $URI
         tar xf $ARC
         cd $FONT
@@ -2650,7 +2650,7 @@ get_libxaw()
 
     LIBXAW="libXaw-1.0.16"
     LIBXAW_ARC="${LIBXAW}.tar.xz"
-    LIBXAW_URI="https://www.x.org/releases/individual/lib/${LIBXAW_ARC}"
+    LIBXAW_URI="https://xorg.freedesktop.org/archive/individual/lib/${LIBXAW_ARC}"
 
     # Download source
     [ -f $LIBXAW_ARC ] || wget $LIBXAW_URI
@@ -2687,7 +2687,7 @@ get_libxkbfile()
 
     LIBXKBFILE="libxkbfile-1.1.3"
     LIBXKBFILE_ARC="${LIBXKBFILE}.tar.xz"
-    LIBXKBFILE_URI="https://www.x.org/releases/individual/lib/${LIBXKBFILE_ARC}"
+    LIBXKBFILE_URI="https://xorg.freedesktop.org/archive/individual/lib/${LIBXKBFILE_ARC}"
 
     # Download source
     [ -f $LIBXKBFILE_ARC ] || wget $LIBXKBFILE_URI
@@ -2724,7 +2724,7 @@ get_xbitmaps()
 
     XBITMAPS="xbitmaps-1.1.3"
     XBITMAPS_ARC="${XBITMAPS}.tar.xz"
-    XBITMAPS_URI="https://www.x.org/releases/individual/data/${XBITMAPS_ARC}"
+    XBITMAPS_URI="https://xorg.freedesktop.org/archive/individual/data/${XBITMAPS_ARC}"
 
     # Download source
     [ -f $XBITMAPS_ARC ] || wget $XBITMAPS_URI
@@ -2818,7 +2818,7 @@ get_xbiff()
 
     XBIFF="xbiff-1.0.5"
     XBIFF_ARC="${XBIFF}.tar.gz"
-    XBIFF_URI="https://www.x.org/archive//individual/app/${XBIFF_ARC}"
+    XBIFF_URI="https://xorg.freedesktop.org/archive/individual/app/${XBIFF_ARC}"
 
     # Download source
     [ -f $XBIFF_ARC ] || wget $XBIFF_URI
@@ -3127,7 +3127,7 @@ get_xcalc()
 
     XCALC="xcalc-1.1.2"
     XCALC_ARC="${XCALC}.tar.gz"
-    XCALC_URI="https://www.x.org/archive/individual/app/${XCALC_ARC}"
+    XCALC_URI="https://xorg.freedesktop.org/archive/individual/app/${XCALC_ARC}"
 
     # Download source
     [ -f $XCALC_ARC ] || wget $XCALC_URI
@@ -3161,7 +3161,7 @@ get_xclock()
 
     XCLOCK="xclock-1.1.1"
     XCLOCK_ARC="${XCLOCK}.tar.gz"
-    XCLOCK_URI="https://www.x.org/archive/individual/app/${XCLOCK_ARC}"
+    XCLOCK_URI="https://xorg.freedesktop.org/archive/individual/app/${XCLOCK_ARC}"
 
     # Download source
     [ -f $XCLOCK_ARC ] || wget $XCLOCK_URI
@@ -3195,7 +3195,7 @@ get_xedit()
 
     XEDIT="xedit-1.2.4"
     XEDIT_ARC="${XEDIT}.tar.gz"
-    XEDIT_URI="https://www.x.org/archive/individual/app/${XEDIT_ARC}"
+    XEDIT_URI="https://xorg.freedesktop.org/archive/individual/app/${XEDIT_ARC}"
 
     # Download source
     [ -f $XEDIT_ARC ] || wget $XEDIT_URI
@@ -3229,7 +3229,7 @@ get_xeyes()
 
     XEYES="xeyes-1.3.1"
     XEYES_ARC="${XEYES}.tar.gz"
-    XEYES_URI="https://www.x.org/archive/individual/app/${XEYES_ARC}"
+    XEYES_URI="https://xorg.freedesktop.org/archive/individual/app/${XEYES_ARC}"
 
     # Download source
     [ -f $XEYES_ARC ] || wget $XEYES_URI
@@ -3313,7 +3313,7 @@ get_xload()
 
     XLOAD="xload-1.2.0"
     XLOAD_ARC="${XLOAD}.tar.gz"
-    XLOAD_URI="https://www.x.org/archive/individual/app/${XLOAD_ARC}"
+    XLOAD_URI="https://xorg.freedesktop.org/archive/individual/app/${XLOAD_ARC}"
 
     # Download source
     [ -f $XLOAD_ARC ] || wget $XLOAD_URI
@@ -3350,7 +3350,7 @@ get_xset()
 
     XSET="xset-1.2.5"
     XSET_ARC="${XSET}.tar.gz"
-    XSET_URI="https://www.x.org/archive/individual/app/${XSET_ARC}"
+    XSET_URI="https://xorg.freedesktop.org/archive/individual/app/${XSET_ARC}"
 
     # Download source
     [ -f $XSET_ARC ] || wget $XSET_URI
