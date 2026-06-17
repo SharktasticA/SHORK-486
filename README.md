@@ -80,7 +80,7 @@ addgroup, adduser, ar, arch, ascii, awk, basename, bc, beep, blkid, cal, cat, ch
 * **[shorkfetch](https://github.com/SharktasticA/shorkfetch)** - Displays basic system and environment information. Similar to fastfetch, neofetch, etc.
 * **[shorkhelp](https://github.com/SharktasticA/shorkhelp)** - Informs of SHORK 486's capabilities and provides guidance.
 * **[shorkoff](https://github.com/SharktasticA/shorkoff)** - A shutdown helper that safely brings the system to a controlled halt before a manual power off.
-* **[shorkset](https://github.com/SharktasticA/shokres)** - A settings program for changing display resolution (VGA, and if compatible, VESA), keyboard layout (keymap), the terminal's PSF font, and the terminal's font colour.
+* **[shorkset](https://github.com/SharktasticA/shorkset)** - A settings program for changing display resolution (VGA, and if compatible, VESA), keyboard layout (keymap), the terminal's PSF font, and the terminal's font colour.
 
 ### SHORK Entertainment (shorktainment)
 
