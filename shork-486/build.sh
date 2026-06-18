@@ -1266,7 +1266,7 @@ get_strace()
     ./bootstrap
     ./configure --host=${HOST} --prefix=/usr --disable-shared --enable-static CC="${CC_STATIC}" CFLAGS="-Os -march=${ARCH}" LDFLAGS="-static"
     make -j$(nproc)
-    sudo make install DESTDIR="$DESTDIR"
+    make install DESTDIR="$DESTDIR"
 
     # Copy licence file
     cp COPYING $CURR_DIR/build/LICENCES/strace.txt
@@ -4949,7 +4949,7 @@ build_file_system()
     cd $DESTDIR
 
     echo -e "${GREEN}Creating required directories...${RESET}"
-    sudo mkdir -p {dev,proc,etc/init.d,sys,tmp,usr/share,usr/libexec,banners}
+    sudo mkdir -p {dev,proc,etc/init.d,sys,tmp,usr/share,usr/libexec,banners,mnt}
 
     echo -e "${GREEN}Configure permissions...${RESET}"
     chmod +x $CURR_DIR/sysfiles/*/rc
@@ -5098,6 +5098,13 @@ build_file_system()
         copy_sysfile /etc/ssl/certs/ca-certificates.crt $DESTDIR/etc/ssl/cert.pem
     fi
 
+    # Copy any payload
+    if [ "$ID" == "shork-disc" ]; then
+        find "$CURR_DIR/payload/" -mindepth 1 -not -name "notice.txt" | while read -r item; do
+            sudo cp -r "$item" "$DESTDIR/root/"
+        done
+    fi
+
     echo -e "${GREEN}Ensure file permissions are correct...${RESET}"
     sudo chown -R root:root "$DESTDIR"
     sudo find "$DESTDIR" -type d -exec chmod 755 {} +
@@ -5113,7 +5120,7 @@ compress_file_system()
 }
 
 # Partition disk image
-partition_image()
+partition_disk_img()
 {
     cd $CURR_DIR/build/
 
@@ -5248,14 +5255,19 @@ install_isolinux_bootloader()
         /usr/share/syslinux/isolinux.bin
         "
 
+        ISOLINUX_BIN_FOUND=false
         for c in $ISOLINUX_BIN_CANS; do
             if [ -f "$c" ]; then
                 sudo cp "$c" "${DESTDIR}/boot/isolinux"
-                return 0
+                ISOLINUX_BIN_FOUND=true
+                break
             fi
-            echo "ERROR: ISOLINUX binary not found"
-            exit 1
         done
+
+        if ! $ISOLINUX_BIN_FOUND; then
+            echo -e "${RED}ERROR: ISOLINUX binary not found${RESET}"
+            exit 1
+        fi
     fi
 
     # Copy helper(s)
@@ -5397,7 +5409,7 @@ build_disk_img()
 
     # Partition the image
     echo -e "${GREEN}Partitioning the disk image...${RESET}"
-    partition_image "$ALIGNED_SECTORS"
+    partition_disk_img "$ALIGNED_SECTORS"
 
     # Ensure loop devices exist (Docker does not always create them)
     for i in $(seq 0 255); do
@@ -5468,7 +5480,7 @@ build_disc_img()
 
     sudo mkdir -p "${DESTDIR}/boot/isolinux"
 
-    # Install a bootloader
+    # Install bootloader
     install_isolinux_bootloader
 
     # Copy ISOLINUX configuration
@@ -5477,7 +5489,7 @@ build_disc_img()
 
     # Install the kernel
     echo -e "${GREEN}Copying kernel image...${RESET}"
-    sudo cp bzImage "${DESTDIR}/boot/"
+    sudo cp bzImage "${DESTDIR}/boot/bzImage"
 
     sudo genisoimage \
         -o "${CURR_DIR}/images/${ID}.iso" \
@@ -5486,7 +5498,7 @@ build_disc_img()
         -no-emul-boot \
         -boot-load-size 4 \
         -boot-info-table \
-        -R -J -v \
+        -R -J \
         -V "SHORKDISC" \
         "$DESTDIR"
 }

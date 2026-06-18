@@ -7,13 +7,16 @@ mount -t sysfs none /sys
 # Populate /dev from sysfs
 mdev -s
 
+# Shadow /mnt with tmpfs
+mount -t tmpfs tmpfs /mnt
+
 [ -r /etc/hostname ] && hostname "$(cat /etc/hostname)"
 
 # Prepare to show the welcome banner
 clear
 
 # Show welcome banner and OS name
-if [ -f banners/welcome ]; then
+if [ -f /banners/welcome ]; then
     COLS=80
     BANNER_WIDTH=36
     BUFFER=""

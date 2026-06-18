@@ -39,7 +39,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 * Processor: Intel 486SX or compatible (no FPU required)
 * RAM: 16MiB minimum/24MiB recommended (default build); 8/10MiB (minimal); 24/32MiB (maximal)
 * Disk: 80MiB IDE or SCSI (default); 8MiB (minimal); 440MiB (maximal)
-* Graphics: IBM VGA or compatible (for most programs); VBE 2.0-compatible (for `shorkgui` and `shorkset`)
+* Graphics: IBM VGA or compatible (for most programs); VBE 2.0-compatible (for `shorkgui` and VBE resolutions in `shorkset`)
 
 ### BusyBox & util-linux
 
@@ -132,7 +132,7 @@ SHORK DISC is a specialised version of the SHORK 486 Operating System that can b
 ### Hardware requirements
 
 * Processor: Intel 486SX or compatible (no FPU required)
-* RAM: 8MiB minimum/10MiB recommended
+* RAM: 8MiB minimum/16MiB recommended
 * Disc: any CD+/-R/RW
 * Graphics: IBM VGA or compatible
 
@@ -313,6 +313,8 @@ EXTLINUX (SHORK 486) and SYSLINUX (SHORK DISKETTE) are the default bootloaders u
 
 
 #### Bundled Software
+
+* **file**: Adds the `file` command, which can identify a file's type by checking its contents against a database of possible magic signatures. Due to the size of said database, 16MiB RAM is required for it to work correctly.
 
 * **gcc**: Adds the GNU Assembler, GCC's C, C++ and Fortran compiler and musl C standard library. Using `g++` requires more system memory than usual, hence it is not included by default. RAM requirements are ideally 32MiB if no swap partition, 24MiB with 8MiB swap or 16MiB with 16MiB swap.
 

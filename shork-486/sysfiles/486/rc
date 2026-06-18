@@ -81,7 +81,7 @@ rm -f /tmp/.tty*_seen
 clear
 
 # Show welcome banner and OS name
-if [ -f banners/welcome ]; then
+if [ -f /banners/welcome ]; then
     COLS=$(stty size 2>/dev/null | awk '{print $2}')
     BANNER_WIDTH=36
     BUFFER=""

@@ -873,7 +873,7 @@ if [ "$ENABLE_NET_ETH" == true ]; then
         "c3270"        "3270 terminal emulator (+1.8MiB)"                   "$(val "$INCLUDE_C3270")"
         #"cmatrix"       "Scrolling text screensaver (+0.4MiB)"              "$(val "$INCLUDE_CMATRIX")"
         "dropbear"      "*SCP & SSH client (+0.4MiB)"                       "$(val "$INCLUDE_DROPBEAR")"
-        "file"          "*File type identification (+10MiB)"                "$(val "$INCLUDE_FILE")"
+        "file"          "**File type identification (+10MiB)"               "$(val "$INCLUDE_FILE")"
         "gcc"           "**GCC (as, g++, gcc, gfortran) + musl (+215MiB)"   "$(val "$INCLUDE_GCC")"
         "git"           "*Source control client (+19MiB)"                   "$(val "$INCLUDE_GIT")"
         "htop"          "*Interactive process viewer (+0.6MiB)"             "$(val "$INCLUDE_HTOP")"
@@ -897,7 +897,7 @@ else
     BUNDLED_ITEMS+=(
         "c3270"        "3270 terminal emulator (+1.8MiB)"                   "$(val "$INCLUDE_C3270")"
         #"cmatrix"       "Scrolling text screensaver (+0.4MiB)"              "$(val "$INCLUDE_CMATRIX")"
-        "file"          "*File type identification (+10MiB)"                "$(val "$INCLUDE_FILE")"
+        "file"          "**File type identification (+10MiB)"               "$(val "$INCLUDE_FILE")"
         "gcc"           "**GCC (as, g++, gcc, gfortran) + musl (+215MiB)"   "$(val "$INCLUDE_GCC")"
         "htop"          "*Interactive process viewer (+0.6MiB)"             "$(val "$INCLUDE_HTOP")"
         "joe"           "Joe's Own Editor (+1.9MiB)"                        "$(val "$INCLUDE_JOE")"
