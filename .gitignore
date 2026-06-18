@@ -7,5 +7,5 @@ shork-486/patches/*.txt
 shork-486/patches/tmp*
 shork-486/payload/*
 !shork-486/payload/notice.txt
-shork-486/release/
+shork-486/release/images/
 shork-486/.env
