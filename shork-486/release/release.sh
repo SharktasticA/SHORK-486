@@ -17,6 +17,9 @@ VER=$(cat ../branding/VER)
 ENVS="
 1-shork-diskette.env
 3-shork-486-min.env
+4-shork-486-off.env
+5-shork-486-def.env
+6-shork-486-max.env
 7-shork-disc.env
 "
 
@@ -59,5 +62,5 @@ done
 # release/images
 cd ..
 find "payload/" -mindepth 1 -not -name "notice.txt" | while read -r item; do
-    mv -r "$item" "release/images/"
+    mv "$item" "release/images/"
 done
