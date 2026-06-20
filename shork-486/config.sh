@@ -31,7 +31,7 @@ MAXIMAL_MIN_DISK=440
 MINIMAL_DEF_SWAP=0
 MINIMAL_MIN_DISK=8
 OFFLINE_DEF_SWAP=8
-OFFLINE_MIN_DISK=50
+OFFLINE_MIN_DISK=60
 
 ALWAYS_BUILD=true
 DIST="SHORK 486"
@@ -310,6 +310,7 @@ set_maximal_vars()
     set_default_vars
     INCLUDE_C3270=true
     INCLUDE_GCC=true
+    INCLUDE_JOE=true
     INCLUDE_TN5250=true
     INCLUDE_GUI=true
     ENABLE_HIGHMEM=true
@@ -459,7 +460,7 @@ if [ "$ID" == "shork-486" ]; then
         --default-item "$BUILD_TYPE" \
         --menu "Select the build type, presets for SHORK 486 feature levels. The minimum requirements for each are enclosed in brackets. The \"custom\" option will enable further prompts for software and feature selection." 14 $WIDTH 5 \
         "default" "Typical experience (16MiB RAM + 80MiB disk)" \
-        "offline" "Default sans networking (12MiB RAM + 50MiB disk)" \
+        "offline" "Default sans networking (12MiB RAM + 60MiB disk)" \
         "minimal" "Minimal build (8MiB RAM + 8MiB disk)" \
         "maximal" "Maximal build (24MiB RAM + 440MiB disk)" \
         "custom"  "Requirements depend on subsequent choices" \

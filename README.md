@@ -268,7 +268,7 @@ Below are further explanations for options that could not fit into the configura
 
 * **Default**: Builds SHORK 486 to the author's recommended configuration, trying to balance features and bundled software variety with system requirements. A default build requires 16MiB system memory and ~80MiB disk size.
 
-* **Offline**: The same as a default build but _without_ full networking support or software that requires an internet connection. An offline build requires 12MiB system memory and ~50MiB disk size.
+* **Offline**: The same as a default build but _without_ full networking support or software that requires an internet connection. An offline build requires 12MiB system memory and ~60MiB disk size.
     * The after-build report will still report that "kernel-level networking support (base)" is included. This is required to satisfy htop's kernel requirements, but the kernel is still incapable of supporting real network connections.
 
 * **Minimal**: Builds SHORK 486 to its most minimal configuration. All bundled software and additional features are excluded, and multi-user system, networking and non-US keyboard layout support are disabled. A minimal build requires 8MiB system memory and ~8MiB disk size.
