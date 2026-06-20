@@ -24,7 +24,7 @@ clear
 # Show welcome banner and OS name
 if [ -f /banners/welcome ]; then
     COLS=80
-    BANNER_WIDTH=36
+    BANNER_WIDTH=30
     BUFFER=""
     
     TOTAL_PAD=$((COLS - BANNER_WIDTH))

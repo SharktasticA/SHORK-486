@@ -236,6 +236,7 @@ INCLUDE_MT_ST=true
 INCLUDE_NANO=true
 INCLUDE_PCI_IDS=true
 INCLUDE_SC_IM=true
+INCLUDE_SHORKSTALL=false
 INCLUDE_SHORKTAINMENT=true
 INCLUDE_STRACE=true
 INCLUDE_TESTS=false
@@ -4695,7 +4696,7 @@ get_shorkoff()
     sudo chmod +x $DESTDIR/sbin/shorkoff
 }
 
-# Download and copy shorkset
+# Download and compile shorkset
 get_shorkset()
 {
     cd "$CURR_DIR/build"
@@ -4725,6 +4726,35 @@ get_shorkset()
     else
         make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
     fi
+    sudo make DESTDIR=$DESTDIR install
+}
+
+# Download and compile shorkstall
+get_shorkstall()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ "$SHORKUTILS_RECLONE" != "true" ] && [ -f "$DESTDIR/usr/bin/shorkstall" ]; then
+        echo -e "${LIGHT_RED}shorkstall already compiled, skipping...${RESET}"
+        #return
+    fi
+
+    # Delete if present
+    if [ -d shorkstall ]; then
+        echo -e "${YELLOW}shorkstall source already present, recloning...${RESET}"
+        #sudo rm -r shorkstall
+    fi
+
+    # Download source
+    echo -e "${GREEN}Downloading shorkstall...${RESET}"
+    #git clone https://github.com/SharktasticA/shorkstall.git
+    cd shorkstall
+
+    # Compile and install
+    make clean
+    echo -e "${GREEN}Compiling shorkstall...${RESET}"
+    make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
     sudo make DESTDIR=$DESTDIR install
 }
 
@@ -4959,7 +4989,6 @@ build_file_system()
     chmod +x $CURR_DIR/sysfiles/shutdown
 
     echo -e "${GREEN}Copying system files...${RESET}"
-    copy_sysfile $CURR_DIR/sysfiles/welcome $DESTDIR/banners/welcome
     copy_sysfile $CURR_DIR/sysfiles/hostname $DESTDIR/etc/hostname
     copy_sysfile $CURR_DIR/sysfiles/issue $DESTDIR/etc/issue
     copy_sysfile $CURR_DIR/sysfiles/os-release $DESTDIR/etc/os-release
@@ -4967,6 +4996,7 @@ build_file_system()
     if [ "$ID" == "shork-486" ]; then
         copy_sysfile $CURR_DIR/sysfiles/486/rc $DESTDIR/etc/init.d/rc
         copy_sysfile $CURR_DIR/sysfiles/486/profile $DESTDIR/etc/profile
+        copy_sysfile $CURR_DIR/sysfiles/486/welcome $DESTDIR/banners/welcome
         copy_sysfile $CURR_DIR/sysfiles/goodbye-80 $DESTDIR/banners/goodbye-80
         copy_sysfile $CURR_DIR/sysfiles/goodbye-100 $DESTDIR/banners/goodbye-100
         copy_sysfile $CURR_DIR/sysfiles/goodbye-128 $DESTDIR/banners/goodbye-128
@@ -4976,9 +5006,11 @@ build_file_system()
     elif [ "$ID" == "shork-disc" ]; then
         copy_sysfile $CURR_DIR/sysfiles/disc/profile $DESTDIR/etc/profile
         copy_sysfile $CURR_DIR/sysfiles/disc/rc $DESTDIR/etc/init.d/rc
+        copy_sysfile $CURR_DIR/sysfiles/disc/welcome $DESTDIR/banners/welcome
     elif [ "$ID" == "shork-diskette" ]; then
         copy_sysfile $CURR_DIR/sysfiles/diskette/profile $DESTDIR/etc/profile
         copy_sysfile $CURR_DIR/sysfiles/diskette/rc $DESTDIR/etc/init.d/rc
+        copy_sysfile $CURR_DIR/sysfiles/diskette/welcome $DESTDIR/banners/welcome
     fi
 
     if $ENABLE_FB; then
@@ -6292,6 +6324,11 @@ if [ "$ID" == "shork-486" ]; then
     get_shorkcommon_sh
     get_shorkoff
     get_shorkset
+fi
+if [ "$ID" == "shork-disc" ]; then
+    if $INCLUDE_SHORKSTALL; then
+        get_shorkstall
+    fi
 fi
 
 if $INCLUDE_SHORKTAINMENT; then

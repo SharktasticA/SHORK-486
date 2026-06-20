@@ -37,9 +37,10 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 ### Hardware requirements
 
 * Processor: Intel 486SX or compatible (no FPU required)
-* RAM: 16MiB minimum/24MiB recommended (default build); 8/10MiB (minimal); 24/32MiB (maximal)
+* Memory: 16MiB minimum/24MiB recommended (default build); 8/10MiB (minimal); 24/32MiB (maximal)
 * Disk: 80MiB IDE or SCSI (default); 8MiB (minimal); 440MiB (maximal)
 * Graphics: IBM VGA or compatible (for most programs); VBE 2.0-compatible (for `shorkgui` and VBE resolutions in `shorkset`)
+* Monitor: VGA (640x480) or higher
 
 ### BusyBox & util-linux
 
@@ -132,13 +133,14 @@ SHORK DISC is a specialised version of the SHORK 486 Operating System that can b
 ### Hardware requirements
 
 * Processor: Intel 486SX or compatible (no FPU required)
-* RAM: 8MiB minimum/16MiB recommended
+* Memory: 8MiB minimum/16MiB recommended
 * Disc: any CD+/-R/RW
 * Graphics: IBM VGA or compatible
+* Monitor: VGA (640x480) or higher
 
 ### BusyBox & util-linux
 
-awk, basename, cat, clear, cp, diff, dirname, date, dd, df, echo, ed, eject, expr, fdformat, fdisk, free, grep, hexdump, hostname, less, ln, ls, lsblk, mdev, mkdir, mount, mv, partx, patch, printf, pwd, rev, rm, sed, sfdisk, strace, sync, tee, test, touch, true, umount, uname, vi, whereis, which, xxd
+awk, basename, cat, clear, cp, date, dd, df, diff, dirname, dmesg, echo, ed, eject, expr, fdformat, fdisk, free, grep, hexdump, hostname, less, ln, ls, lsblk, mdev, mkdir, mount, mv, partx, patch, printf, pwd, rev, rm, sed, sfdisk, strace, sync, tee, test, touch, true, umount, uname, vi, whereis, which, xxd
 
 ### Bundled software
 
@@ -164,9 +166,10 @@ SHORK DISKETTE is a specialised version of the SHORK 486 Operating System that i
 ### Hardware requirements
 
 * Processor: Intel 486SX or compatible (no FPU required)
-* RAM: 16MiB minimum/24MiB recommended
-* Diskette: 1.44 or 2.88MiB
+* Memory: 16MiB minimum/24MiB recommended
+* Diskette: 1.44 or 2.88MB
 * Graphics: IBM VGA or compatible
+* Monitor: VGA (640x480) or higher
 
 ### BusyBox
 
@@ -377,7 +380,11 @@ These build script parameters are provided to help automate its use, especially 
 
 * `patches`: Contains diff patches for the Linux kernel and BusyBox to restore removed functionality/implement new functionality required for SHORK 486.
 
-* `shorkutils`: Contains custom SHORK utilities to be copied to the root file system 
+* `payload`: 
+
+* `release`: 
+
+* `shorkutils`: Contains custom SHORK Utilities to be copied into the root file system 
 
 * `sysfiles`: Contains important system files to be copied into the root file system.
 
