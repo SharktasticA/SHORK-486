@@ -4899,8 +4899,8 @@ trim_fat()
         sudo mkdir -p "$DESTDIR/usr/share/git-core/templates"
     fi
 
-    if $INCLUDE_GUI; then
-        sudo rm -rf "$DESTDIR/home/kali"
+    if $INCLUDE_GUI && ! $ENABLE_MULTIUSER_REAL; then
+        sudo rm -rf "$DESTDIR/home"
     fi
 
     if $INCLUDE_JOE; then
