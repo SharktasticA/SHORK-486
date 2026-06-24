@@ -495,27 +495,25 @@ delete_root_dir()
 # Fixes directory and file permissions after root build
 fix_perms()
 {
-    if [ "$(id -u)" -eq 0 ]; then
-        echo -e "${GREEN}Tidying up and fixing directory and file permissions for non-root access...${RESET}"
+    echo -e "${GREEN}Tidying up and fixing directory and file permissions for non-root access...${RESET}"
 
-        HOST_GID=${HOST_GID:-1000}
-        HOST_UID=${HOST_UID:-1000}
+    HOST_GID=${HOST_GID:-1000}
+    HOST_UID=${HOST_UID:-1000}
 
-        sudo chown -R "$HOST_UID:$HOST_GID" $CURR_DIR/build || true
-        sudo chmod 755 $CURR_DIR/build || true
+    sudo chown -R "$HOST_UID:$HOST_GID" $CURR_DIR/build || true
+    sudo chmod 755 $CURR_DIR/build || true
 
-        sudo chown -R "$HOST_UID:$HOST_GID" $CURR_DIR/images || true
-        sudo chmod 755 $CURR_DIR/images || true
+    sudo chown -R "$HOST_UID:$HOST_GID" $CURR_DIR/images || true
+    sudo chmod 755 $CURR_DIR/images || true
 
-        sudo chown -R "$HOST_UID:$HOST_GID" $CURR_DIR/__pycache__ || true
-        sudo chmod 755 $CURR_DIR/__pycache__ || true
+    for f in "$CURR_DIR/images/"*; do
+        [ -f "$f" ] || continue
+        sudo chown "$HOST_UID:$HOST_GID" "$f"
+        sudo chmod 644 "$f"
+    done
 
-        for f in $CURR_DIR/images/$ID.img $CURR_DIR/images/$ID.vmdk; do
-            [ -f "$f" ] || continue
-            sudo chown "$HOST_UID:$HOST_GID" "$f"
-            sudo chmod 644 "$f"
-        done
-    fi
+    sudo chown -R "$HOST_UID:$HOST_GID" $CURR_DIR/__pycache__ || true
+    sudo chmod 755 $CURR_DIR/__pycache__ || true
 }
 
 # Cleans up any stale mounts and block-device mappings left by image builds
