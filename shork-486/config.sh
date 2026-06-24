@@ -27,7 +27,7 @@ CUSTOM_MIN_DISK=8
 DEFAULT_DEF_SWAP=8
 DEFAULT_MIN_DISK=80
 MAXIMAL_DEF_SWAP=8
-MAXIMAL_MIN_DISK=440
+MAXIMAL_MIN_DISK=400
 MINIMAL_DEF_SWAP=0
 MINIMAL_MIN_DISK=8
 OFFLINE_DEF_SWAP=8
@@ -462,7 +462,7 @@ if [ "$ID" == "shork-486" ]; then
         "default" "Typical experience (16MiB RAM + 80MiB disk)" \
         "offline" "Default sans networking (12MiB RAM + 60MiB disk)" \
         "minimal" "Minimal build (8MiB RAM + 8MiB disk)" \
-        "maximal" "Maximal build (24MiB RAM + 440MiB disk)" \
+        "maximal" "Maximal build (24MiB RAM + 400MiB disk)" \
         "custom"  "Requirements depend on subsequent choices" \
         3>&1 1>&2 2>&3)
 

@@ -4825,6 +4825,7 @@ trim_fat()
 }
 
 # Copies all licences for included software
+# TODO: GCC, GRUB, xcalc, xclock, xeyes
 copy_licences()
 {
     cd "$CURR_DIR/build"
@@ -4832,8 +4833,6 @@ copy_licences()
     echo -e "${GREEN}Copying all needed licences for included software...${RESET}"
     mkdir -p "$DESTDIR/LICENCES"
     CSV="Name,Type,File"
-
-    # TODO: GCC, GRUB, xcalc, xclock, xeyes
 
     if [ -f "../../COPYING" ]; then
         cp "../../COPYING" "$DESTDIR/LICENCES/shork.txt" || true
