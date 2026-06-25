@@ -1079,26 +1079,26 @@ get_zlib()
     make DESTDIR="$SYSROOT" install
 }
 
-# Download and build our forked EXTLINUX/SYSLINUX (required if "Fix
-# EXTLINUX/SYSLINUX" was used)
+# Download and build our forked ISOLINUX/EXTLINUX/SYSLINUX (required if "Fix
+# ISOLINUX/EXTLINUX/SYSLINUX" was used)
 get_patched_xlinux()
 {
     cd "$CURR_DIR/build"
 
     # Skip if already compiled
     if [ -f "$CURR_DIR/build/syslinux/bios/extlinux/extlinux" ]; then
-        echo -e "${LIGHT_RED}EXTLINUX/SYSLINUX already compiled, skipping...${RESET}"
+        echo -e "${LIGHT_RED}ISOLINUX/EXTLINUX/SYSLINUX already compiled, skipping...${RESET}"
         return
     fi
 
     # Download source
     if [ -d syslinux ]; then
-        echo -e "${YELLOW}EXTLINUX/SYSLINUX source already present, resetting...${RESET}"
+        echo -e "${YELLOW}ISOLINUX/EXTLINUX/SYSLINUX source already present, resetting...${RESET}"
         cd syslinux
         git reset --hard
         make clean || true
     else
-        echo -e "${GREEN}Downloading EXTLINUX/SYSLINUX...${RESET}"
+        echo -e "${GREEN}Downloading ISOLINUX/EXTLINUX/SYSLINUX...${RESET}"
         git clone https://github.com/SharktasticA/syslinux.git
         cd syslinux
     fi
@@ -1114,7 +1114,7 @@ get_patched_xlinux()
     fi
 
     # Compile and install
-    echo -e "${GREEN}Compiling EXTLINUX/SYSLINUX...${RESET}"
+    echo -e "${GREEN}Compiling ISOLINUX/EXTLINUX/SYSLINUX...${RESET}"
     CFLAGS="-fcommon" sudo make bios
 }
 
