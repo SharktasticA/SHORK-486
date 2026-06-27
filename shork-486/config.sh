@@ -40,7 +40,7 @@ IS_ARCH=false
 IS_FEDORA=false
 IS_DEBIAN=true
 BUILD_TYPE="default"
-KERNEL_VER="7.1.1"
+KERNEL_VER="7.1.2"
 TARGET_DISK=80
 TARGET_SWAP=8
 SCANCODE_SET=-1
@@ -410,8 +410,8 @@ KERNEL_VER=$(dialog --clear \
     --cancel-label "Quit" \
     --default-item "$KERNEL_VER" \
     --menu "Please select which Linux kernel version you wish to use with SHORK 486. It is generally safe to use the newest major version, but if you experience hardware compatibility issues, try building with an older kernel to see if that resolves them. If so, please report it as an issue on the SHORK 486 GitHub repository." 13 $WIDTH 5 \
-    "7.1.1"     "7.1.1 (2026-06-19)" \
-    "7.0.13"    "7.0.13 (2026-06-19)" \
+    "7.1.2"     "7.1.2 (2026-06-27)" \
+    "7.0.14"    "7.0.14 (2026-06-27)" \
     3>&1 1>&2 2>&3)
 
 if [[ ! -n "$KERNEL_VER" ]]; then
