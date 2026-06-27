@@ -118,7 +118,7 @@ HTOP_VER="3.5.1"
 JOE_SRC="https://github.com/joe-editor/joe"
 JOE_VER="4.8"
 KERNEL_SRC="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git"
-KERNEL_VER="7.1.1"
+KERNEL_VER="7.1.2"
 LIBEVENT_SRC="https://github.com/libevent/libevent.git"
 LIBEVENT_VER="release-2.1.12-stable"
 LIBT3_SRC="https://os.ghalkes.nl/dist"
@@ -1497,7 +1497,7 @@ compile_kernel()
     sudo sed -i "s/printf '%s' -dirty/printf '%s'/" scripts/setlocalversion
 
     # Apply our patches
-    if [[ "$KERNEL_VER" == "7.1.1" ]]; then
+    if [[ "$KERNEL_VER" == "7.1.2" ]]; then
         echo -e "${GREEN}Applying 7.1.x_restore-M486-M486SX-ELAN patch...${RESET}"
         patch -p1 < "$CURR_DIR/patches/7.1.x_restore-M486-M486SX-ELAN.patch"
 
