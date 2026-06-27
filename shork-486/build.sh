@@ -1256,14 +1256,17 @@ get_strace()
     make install DESTDIR="$DESTDIR"
 }
 
-# Download and compile util-linux (partx, sfdisk and whereis)
+# Download and compile util-linux (lscpu, partx, sfdisk and whereis)
 get_util_linux()
 {
     cd "$CURR_DIR/build"
 
     # Skip if already compiled
-    if [ -f "$DESTDIR/usr/bin/partx" ] && [ -f "$DESTDIR/usr/sbin/sfdisk" ] && [ -f "$DESTDIR/usr/bin/whereis" ]; then
-        echo -e "${LIGHT_RED}partx, sfdisk and whereis from util-linux already compiled, skipping...${RESET}"
+    if [ -f "$DESTDIR/usr/bin/lscpu" ] &&
+       [ -f "$DESTDIR/usr/bin/partx" ] &&
+       [ -f "$DESTDIR/usr/sbin/sfdisk" ] &&
+       [ -f "$DESTDIR/usr/bin/whereis" ]; then
+        echo -e "${LIGHT_RED}lscpu, partx, sfdisk and whereis from util-linux already compiled, skipping...${RESET}"
         return
     fi
 
@@ -1281,7 +1284,7 @@ get_util_linux()
     fi
 
     # Compile and install
-    echo -e "${GREEN}Compiling util-linux for partx, sfdisk and whereis...${RESET}"
+    echo -e "${GREEN}Compiling util-linux for lscpu, partx, sfdisk and whereis...${RESET}"
 
     # In case "cannot find -ltinfo" error 
     export ac_cv_search_tigetstr='-lncursesw'
@@ -1297,6 +1300,7 @@ get_util_linux()
         --enable-lsblk \
         --enable-partx \
         --enable-whereis \
+        --enable-lscpu \
         --enable-libblkid \
         --enable-libfdisk \
         --enable-libmount \
@@ -1324,7 +1328,7 @@ get_util_linux()
    
     make TINFO_LIBS="" -j$(nproc)
 
-    for bin in partx whereis; do
+    for bin in lscpu partx whereis; do
         sudo install -D -m 755 "${bin}" "$DESTDIR/usr/bin/${bin}"
     done
     for bin in sfdisk; do
@@ -6065,11 +6069,17 @@ get_installed_programs_features()
             EXCLUDED_FEATURES+="\n * htop"
         fi
 
-        if [ -f "$DESTDIR/usr/bin/joe" ]; then
-            INCLUDED_FEATURES+="\n * joe ($JOE_VER)"
-        else
-            EXCLUDED_FEATURES+="\n * joe"
-        fi
+    if [ -f "$DESTDIR/usr/bin/joe" ]; then
+        INCLUDED_FEATURES+="\n * joe ($JOE_VER)"
+    else
+        EXCLUDED_FEATURES+="\n * joe"
+    fi
+
+    if [ -f "$DESTDIR/usr/bin/lscpu" ]; then
+        INCLUDED_FEATURES+="\n * lscpu (util-linux, $UTIL_LINUX_VER)"
+    else
+        EXCLUDED_FEATURES+="\n * lscpu (util-linux)"
+    fi
 
         if [ -f "$DESTDIR/usr/bin/lynx" ]; then
             INCLUDED_FEATURES+="\n * lynx ($LYNX_VER)"
