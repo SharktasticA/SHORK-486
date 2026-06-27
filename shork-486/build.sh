@@ -6257,18 +6257,22 @@ get_installed_programs_features()
             EXCLUDED_FEATURES+="\n * htop"
         fi
 
-    if [ -f "$DESTDIR/usr/bin/joe" ]; then
-        INCLUDED_FEATURES+="\n * joe ($JOE_VER)"
-    else
-        EXCLUDED_FEATURES+="\n * joe"
+        if [ -f "$DESTDIR/usr/bin/joe" ]; then
+            INCLUDED_FEATURES+="\n * joe ($JOE_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * joe"
+        fi
     fi
 
-    if [ -f "$DESTDIR/usr/bin/lscpu" ]; then
-        INCLUDED_FEATURES+="\n * lscpu (util-linux, $UTIL_LINUX_VER)"
-    else
-        EXCLUDED_FEATURES+="\n * lscpu (util-linux)"
+    if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
+        if [ -f "$DESTDIR/usr/bin/lscpu" ]; then
+            INCLUDED_FEATURES+="\n * lscpu (util-linux, $UTIL_LINUX_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * lscpu (util-linux)"
+        fi
     fi
 
+    if [ "$ID" == "shork-486" ]; then
         if [ -f "$DESTDIR/usr/bin/lynx" ]; then
             INCLUDED_FEATURES+="\n * lynx ($LYNX_VER)"
         else
