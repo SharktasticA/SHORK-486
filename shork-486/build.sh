@@ -4632,18 +4632,18 @@ get_shorkstall()
     # Skip if already compiled
     if [ "$SHORKUTILS_RECLONE" != "true" ] && [ -f "$DESTDIR/usr/bin/shorkstall" ]; then
         echo -e "${LIGHT_RED}shorkstall already compiled, skipping...${RESET}"
-        #return
+        return
     fi
 
     # Delete if present
     if [ -d shorkstall ]; then
         echo -e "${YELLOW}shorkstall source already present, recloning...${RESET}"
-        #sudo rm -r shorkstall
+        sudo rm -r shorkstall
     fi
 
     # Download source
     echo -e "${GREEN}Downloading shorkstall...${RESET}"
-    #git clone https://github.com/SharktasticA/shorkstall.git
+    git clone https://github.com/SharktasticA/shorkstall.git
     cd shorkstall
 
     # Compile and install
