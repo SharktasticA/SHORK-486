@@ -140,7 +140,7 @@ SHORK DISC is a specialised version of the SHORK 486 Operating System that can b
 
 ### BusyBox & util-linux
 
-awk, basename, cat, clear, cp, date, dd, df, diff, dirname, dmesg, echo, ed, eject, expr, fdformat, fdisk, free, grep, hexdump, hostname, less, ln, ls, lsblk, mdev, mkdir, mount, mv, partx, patch, printf, pwd, rev, rm, sed, sfdisk, strace, sync, tee, test, touch, true, umount, uname, vi, whereis, which, xxd
+awk, basename, cat, clear, cp, date, dd, df, diff, dirname, dmesg, echo, ed, eject, expr, fdformat, fdisk, free, grep, hexdump, hostname, less, ln, ls, lsblk, lscpu, mdev, mkdir, mount, mv, partx, patch, printf, pwd, rev, rm, sed, sfdisk, strace, sync, tee, test, touch, true, umount, uname, vi, whereis, which, xxd
 
 ### Bundled software
 
