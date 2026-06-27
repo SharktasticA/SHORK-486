@@ -33,17 +33,24 @@ shorkset()
 
 # Show welcome tip (if first boot marker does not exist)
 if [ ! -f /etc/.past_first_boot ] && [ "$(tty)" = "/dev/tty1" ]; then
-    printf "Welcome! If this is your first time using @DIST@, please check out \033[32mshorkhelp\033[0m!\n"
-    echo "1" > /etc/.past_first_boot
+    TERM_WIDTH=$(stty size 2>/dev/null | cut -d' ' -f2)
+
+    # Base message
+    TIP="Welcome! Please check out shorkhelp to learn more about SHORK and get started."
 
     # Public Test build disclaimer
     if grep -q "PT" /etc/issue 2>/dev/null; then
-        TERM_WIDTH=$(stty size 2>/dev/null | cut -d' ' -f2)
-        printf "\n@DIST@ is a work-in-progress and this pre-release build is for testing purposes only. See the shorkhelp's \"Public Test 1\" guide for more information.\n" | fold -s -w "$TERM_WIDTH"
+        TIP="${TIP} This is a pre-release build for testing purposes only. See shorkhelp's \"Public Test 1\" guide for more information."
     fi
+
+    ESC=$(printf '\033')
+    TIP_FOLDED=$(printf "%s\n" "$TIP" | fold -s -w "$TERM_WIDTH" | sed "s/shorkhelp/${ESC}[32mshorkhelp${ESC}[0m/g")
+    printf "%s\n" "$TIP_FOLDED"
 
     # Padding specific for single-user use
     if [ ! -d /home ]; then
         printf "\n"
     fi
+
+    echo "1" > /etc/.past_first_boot
 fi
