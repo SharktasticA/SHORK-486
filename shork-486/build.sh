@@ -4976,6 +4976,15 @@ copy_licences()
         CSV+="\noneko,public domain,oneko.txt"
     fi
 
+    if $INCLUDE_PCI_IDS && 
+       [ -f "../../COPYING" ]; then
+        {
+            printf "The pci.ids file is distributed with SHORK under the GNU General Public License\nv3. The PCI ID database is a compilation of factual data, and as such the\ncopyright only covers the aggregation and formatting. The copyright is held by\nMartin Mares and Albert Pool.\n\n--------------------------------------------------------------------------------\n\n"
+            cat "../../COPYING"
+        } > "$DESTDIR/LICENCES/pci-ids.txt" || true
+        CSV+="\npci.ids,GNU GPLv3,pci-ids.txt"
+    fi
+
     if [ -f "$DESTDIR/usr/bin/rover" ]; then
         echo "Public domain" | sudo tee "$DESTDIR/LICENCES/rover.txt" > /dev/null
         CSV+="\nRover,public domain,rover.txt"
