@@ -67,7 +67,9 @@ DISK_SECTORS_TRACK=63
 DONT_DEL_ROOT=false
 DOTENV_USED=false
 EST_MIN_RAM="16MiB"
+EXCLUDED_BB_CMDS=()
 EXCLUDED_FEATURES=""
+INCLUDED_BB_CMDS=()
 INCLUDED_FEATURES=""
 MINIMAL_TARGET_DISK=8
 ROOT_PART_SIZE=0
@@ -5754,8 +5756,194 @@ build_diskette_img()
 ## End of build report generation                   ##
 ######################################################
 
-# Checks what kernel-level support, programs and features are enabled and makes a list
-# for the after-build report
+# Checks if a given BusyBox .config feature is included and puts it in either
+# an EXCLUDED or INCLUDED list for the after-build report to display
+check_bb_config()
+{
+    DOT_CONFIG="${CURR_DIR}/build/busybox-${BUSYBOX_VER}/.config"
+
+    local symbol="$1"
+    local name="$2"
+
+    if [ -z "$symbol" ] && [ -z "$name" ] ; then
+        return
+    fi
+
+    if [ -z "$name" ]; then
+        name="${symbol#CONFIG_}"
+        name="${name,,}"
+    fi
+
+    if grep -q "${symbol}=y" "$DOT_CONFIG"; then
+        INCLUDED_BB_CMDS+=("$name")
+    else
+        EXCLUDED_BB_CMDS+=("$name")
+    fi
+}
+
+# Checks what BusyBox commands are enabled
+get_included_busybox_commands()
+{
+    check_bb_config "CONFIG_AR" ""
+    check_bb_config "CONFIG_XZ" ""
+    check_bb_config "CONFIG_GZIP" ""
+    check_bb_config "CONFIG_TAR" ""
+    check_bb_config "CONFIG_UNZIP" ""
+    check_bb_config "CONFIG_BASENAME" ""
+    check_bb_config "CONFIG_CAT" ""
+    check_bb_config "CONFIG_CHGRP" ""
+    check_bb_config "CONFIG_CHMOD" ""
+    check_bb_config "CONFIG_CHOWN" ""
+    check_bb_config "CONFIG_CHROOT" ""
+    check_bb_config "CONFIG_CP" ""
+    check_bb_config "CONFIG_CUT" ""
+    check_bb_config "CONFIG_DATE" ""
+    check_bb_config "CONFIG_DD" ""
+    check_bb_config "CONFIG_DF" ""
+    check_bb_config "CONFIG_DIRNAME" ""
+    check_bb_config "CONFIG_DOS2UNIX" ""
+    check_bb_config "CONFIG_UNIX2DOS" ""
+    check_bb_config "CONFIG_DU" ""
+    check_bb_config "CONFIG_ECHO" ""
+    check_bb_config "CONFIG_ENV" ""
+    check_bb_config "CONFIG_EXPAND" ""
+    check_bb_config "CONFIG_UNEXPAND" ""
+    check_bb_config "CONFIG_EXPR" ""
+    check_bb_config "CONFIG_FALSE" ""
+    check_bb_config "CONFIG_FOLD" ""
+    check_bb_config "CONFIG_HEAD" ""
+    check_bb_config "CONFIG_LN" ""
+    check_bb_config "CONFIG_LS" ""
+    check_bb_config "CONFIG_MKDIR" ""
+    check_bb_config "CONFIG_MKNOD" ""
+    check_bb_config "CONFIG_MV" ""
+    check_bb_config "CONFIG_NICE" ""
+    check_bb_config "CONFIG_NOHUP" ""
+    check_bb_config "CONFIG_NPROC" ""
+    check_bb_config "CONFIG_PASTE" ""
+    check_bb_config "CONFIG_PRINTENV" ""
+    check_bb_config "CONFIG_PRINTF" ""
+    check_bb_config "CONFIG_PWD" ""
+    check_bb_config "CONFIG_READLINK" ""
+    check_bb_config "CONFIG_RM" ""
+    check_bb_config "CONFIG_RMDIR" ""
+    check_bb_config "CONFIG_SEQ" ""
+    check_bb_config "CONFIG_SLEEP" ""
+    check_bb_config "CONFIG_STAT" ""
+    check_bb_config "CONFIG_STTY" ""
+    check_bb_config "CONFIG_SYNC" ""
+    check_bb_config "CONFIG_TEE" ""
+    check_bb_config "CONFIG_TEST" ""
+    check_bb_config "CONFIG_TOUCH" ""
+    check_bb_config "CONFIG_TR" ""
+    check_bb_config "CONFIG_TRUE" ""
+    check_bb_config "CONFIG_TRUNCATE" ""
+    check_bb_config "CONFIG_TTY" ""
+    check_bb_config "CONFIG_UNAME" ""
+    check_bb_config "CONFIG_BB_ARCH" "arch"
+    check_bb_config "CONFIG_USLEEP" ""
+    check_bb_config "CONFIG_WC" ""
+    check_bb_config "CONFIG_WHO" ""
+    check_bb_config "CONFIG_W" ""
+    check_bb_config "CONFIG_USERS" ""
+    check_bb_config "CONFIG_WHOAMI" ""
+    check_bb_config "CONFIG_YES" ""
+    check_bb_config "CONFIG_CHVT" ""
+    check_bb_config "CONFIG_CLEAR" ""
+    check_bb_config "CONFIG_SETFONT" ""
+    check_bb_config "CONFIG_LOADKMAP" ""
+    check_bb_config "CONFIG_SHOWKEY" ""
+    check_bb_config "CONFIG_WHICH" ""
+    check_bb_config "CONFIG_AWK" ""
+    check_bb_config "CONFIG_DIFF" ""
+    check_bb_config "CONFIG_ED" ""
+    check_bb_config "CONFIG_PATCH" ""
+    check_bb_config "CONFIG_SED" ""
+    check_bb_config "CONFIG_VI" ""
+    check_bb_config "CONFIG_FIND" ""
+    check_bb_config "CONFIG_GREP" ""
+    check_bb_config "CONFIG_HALT" ""
+    check_bb_config "CONFIG_INIT" ""
+    check_bb_config "CONFIG_ADDGROUP" ""
+    check_bb_config "CONFIG_ADDUSER" ""
+    check_bb_config "CONFIG_CHPASSWD" ""
+    check_bb_config "CONFIG_CRYPTPW" ""
+    check_bb_config "CONFIG_MKPASSWD" ""
+    check_bb_config "CONFIG_DELUSER" ""
+    check_bb_config "CONFIG_DELGROUP" ""
+    check_bb_config "CONFIG_GETTY" ""
+    check_bb_config "CONFIG_LOGIN" ""
+    check_bb_config "CONFIG_PASSWD" ""
+    check_bb_config "CONFIG_SU" ""
+    check_bb_config "CONFIG_SULOGIN" ""
+    check_bb_config "CONFIG_BLKID" ""
+    check_bb_config "CONFIG_CAL" ""
+    check_bb_config "CONFIG_DMESG" ""
+    check_bb_config "CONFIG_EJECT" ""
+    check_bb_config "CONFIG_FDFORMAT" ""
+    check_bb_config "CONFIG_FDISK" ""
+    check_bb_config "CONFIG_HEXDUMP" ""
+    check_bb_config "CONFIG_XXD" ""
+    check_bb_config "CONFIG_LOSETUP" ""
+    check_bb_config "CONFIG_LSBLK" ""
+    check_bb_config "CONFIG_LSPCI" ""
+    check_bb_config "CONFIG_LSUSB" ""
+    check_bb_config "CONFIG_MDEV" ""
+    check_bb_config "CONFIG_MKFS_EXT2" "mkdosfs/mkfs.ext2"
+    check_bb_config "CONFIG_MKFS_VFAT" "mke2fs/mkfs.vfat"
+    check_bb_config "CONFIG_MKSWAP" ""
+    check_bb_config "CONFIG_MOUNT" ""
+    check_bb_config "CONFIG_MOUNTPOINT" ""
+    check_bb_config "CONFIG_REV" ""
+    check_bb_config "CONFIG_SWAPON" ""
+    check_bb_config "CONFIG_SWAPOFF" ""
+    check_bb_config "CONFIG_TASKSET" ""
+    check_bb_config "CONFIG_UMOUNT" ""
+    check_bb_config "CONFIG_UUIDGEN" ""
+    check_bb_config "CONFIG_ASCII" ""
+    check_bb_config "CONFIG_BC" ""
+    check_bb_config "CONFIG_DC" ""
+    check_bb_config "CONFIG_BEEP" ""
+    check_bb_config "CONFIG_CRONTAB" ""
+    check_bb_config "CONFIG_GETFATTR" ""
+    check_bb_config "CONFIG_LESS" ""
+    check_bb_config "CONFIG_MAN" ""
+    check_bb_config "CONFIG_PARTPROBE" ""
+    check_bb_config "CONFIG_SETFATTR" ""
+    check_bb_config "CONFIG_TIME" ""
+    check_bb_config "CONFIG_TREE" ""
+    check_bb_config "CONFIG_VOLNAME" ""
+    check_bb_config "CONFIG_FTPGET" ""
+    check_bb_config "CONFIG_FTPPUT" ""
+    check_bb_config "CONFIG_HOSTNAME" ""
+    check_bb_config "CONFIG_IFCONFIG" ""
+    check_bb_config "CONFIG_IP" ""
+    check_bb_config "CONFIG_PING" ""
+    check_bb_config "CONFIG_ROUTE" ""
+    check_bb_config "CONFIG_TELNET" ""
+    check_bb_config "CONFIG_TRACEROUTE" ""
+    check_bb_config "CONFIG_WGET" ""
+    check_bb_config "CONFIG_WHOIS" ""
+    check_bb_config "CONFIG_UDHCPC" ""
+    check_bb_config "CONFIG_FREE" ""
+    check_bb_config "CONFIG_KILL" ""
+    check_bb_config "CONFIG_KILLALL" ""
+    check_bb_config "CONFIG_PKILL" ""
+    check_bb_config "CONFIG_PMAP" ""
+    check_bb_config "CONFIG_PS" ""
+    check_bb_config "CONFIG_PSTREE" ""
+    check_bb_config "CONFIG_TOP" ""
+    check_bb_config "CONFIG_UPTIME" ""
+    check_bb_config "CONFIG_VMSTAT" ""
+    check_bb_config "CONFIG_ASH" ""
+
+    readarray -t INCLUDED_BB_CMDS < <(printf '%s\n' "${INCLUDED_BB_CMDS[@]}" | sort)
+    readarray -t EXCLUDED_BB_CMDS < <(printf '%s\n' "${EXCLUDED_BB_CMDS[@]}" | sort)
+}
+
+# Checks what kernel-level support, programs and features are enabled and
+# puts them in either an EXCLUDED or INCLUDED list for the after-build report
+# to display
 get_installed_programs_features()
 {
     # Kernel features
@@ -6293,12 +6481,73 @@ generate_report()
         )
     fi
 
+
+
+    if [[ ${#INCLUDED_BB_CMDS[@]} -gt 0 ]]; then
+        INCL_BB_CMDS_LINES=()
+        line=""
+        for CMD in "${INCLUDED_BB_CMDS[@]}"; do
+            if [[ -z "$line" ]]; then
+                NEW=" * $CMD"
+            else
+                NEW="$line, $CMD"
+            fi
+            if (( ${#NEW} > 80 )); then
+                INCL_BB_CMDS_LINES+=("$line")
+                line=" * $CMD"
+            else
+                line="$NEW"
+            fi
+        done
+        INCL_BB_CMDS_LINES+=("$line")
+
+        lines+=(
+            ""
+            "Included BusyBox commands:"
+        )
+        for l in "${INCL_BB_CMDS_LINES[@]}"; do
+            lines+=("$l")
+        done
+    fi
+
+
+
     if [ -n "$INCLUDED_FEATURES" ]; then
         lines+=(
             ""
             "Included programs & features:$INCLUDED_FEATURES"
         )
     fi
+
+
+    if [ "$ID" == "shork-486" ] && [[ ${#EXCLUDED_BB_CMDS[@]} -gt 0 ]]; then
+        EXCL_BB_CMDS_LINES=()
+        line=""
+        for CMD in "${EXCLUDED_BB_CMDS[@]}"; do
+            if [[ -z "$line" ]]; then
+                NEW=" * $CMD"
+            else
+                NEW="$line, $CMD"
+            fi
+            if (( ${#NEW} > 80 )); then
+                EXCL_BB_CMDS_LINES+=("$line")
+                line=" * $CMD"
+            else
+                line="$NEW"
+            fi
+        done
+        EXCL_BB_CMDS_LINES+=("$line")
+
+        lines+=(
+            ""
+            "Excluded BusyBox commands:"
+        )
+        for l in "${EXCL_BB_CMDS_LINES[@]}"; do
+            lines+=("$l")
+        done
+    fi
+
+
 
     if [ -n "$EXCLUDED_FEATURES" ]; then
         lines+=(
@@ -6506,5 +6755,6 @@ elif [ "$ID" == "shork-diskette" ]; then
 fi
 fix_perms
 clean_stale_mounts
+get_included_busybox_commands
 get_installed_programs_features
 generate_report

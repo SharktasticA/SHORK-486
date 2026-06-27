@@ -301,7 +301,7 @@ CONFIG_MV=y
 # CONFIG_NPROC is not set
 # CONFIG_OD is not set
 # CONFIG_PASTE is not set
-# CONFIG_PRINTENV is not set
+CONFIG_PRINTENV=y
 CONFIG_PRINTF=y
 CONFIG_PWD=y
 # CONFIG_READLINK is not set

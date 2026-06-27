@@ -44,7 +44,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 
 ### BusyBox & util-linux
 
-addgroup, adduser, ar, arch, ascii, awk, basename, bc, beep, blkid, cal, cat, chgrp, chmod, chown, chpasswd, chroot, chvt, clear, cp, crontab, cryptpw, cut, date, dc, dd, df, diff, dirname, dmesg, du, echo, ed, eject, expand, expr, false, fdformat, fdisk, find, fold, free, ftpget, ftpput, getfattr, getty, grep, gzip, halt, head, hexdump, hostname, ifconfig, ip, kill, killall, less, ln, loadkmap, login, losetup, ls, lsblk, lscpu, lspci, man, mdev, mkdir, mknod, mkpasswd, mkswap, mount, mountpoint, mv, nice, nohup, nproc, partprobe, partx, paste, patch, ping, pkill, pmap, printf, ps, pstree, pwd, readlink, rev, rm, rmdir, route, sed, seq, setfattr, setfont, sfdisk, showkey, sleep, stat, strace, stty, su, sulogin, swapoff, swapon, sync, tar, taskset, tee, telnet, test, time, top, touch, tr, traceroute, tree, true, truncate, udhcpc, umount, uname, unexpand, unzip, usleep, users, vi, volname, w, wc, wget, whereis, which, who, whoami, whois, xxd, xz, yes
+addgroup, adduser, ar, arch, ascii, ash, awk, basename, bc, beep, blkid, cal, cat, chgrp, chmod, chown, chpasswd, chroot, chvt, clear, cp, crontab, cryptpw, cut, date, dc, dd, delgroup, deluser, df, diff, dirname, dmesg, dos2unix, du, echo, ed, eject, env, expand, expr, false, fdformat, fdisk, find, fold, free, ftpget, ftpput, getfattr, getty, grep, gzip, halt, head, hexdump, hostname, ifconfig, init, ip, kill, killall, less, ln, loadkmap, login, losetup, ls, lsblk, lscpu, lspci, lsusb, man, mdev, mkdir, mkdosfs/mkfs.ext2, mke2fs/mkfs.vfat, mknod, mkpasswd, mkswap, mount, mountpoint, mv, nice, nohup, nproc, partprobe, partx, passwd, paste, patch, ping, pkill, pmap, printenv, printf, ps, pstree, pwd, readlink, rev, rm, rmdir, route, sed, seq, setfattr, setfont, sfdisk, showkey, sleep, stat, strace, stty, su, sulogin, swapoff, swapon, sync, tar, taskset, tee, telnet, test, time, top, touch, tr, traceroute, tree, true, truncate, tty, udhcpc, umount, uname, unexpand, unix2dos, unzip, uptime, users, usleep, uuidgen, vi, vmstat, volname, w, wc, wget, whereis, which, who, whoami, whois, xxd, xz, yes
 
 ### Bundled software
 
@@ -140,7 +140,7 @@ SHORK DISC is a specialised version of the SHORK 486 Operating System that can b
 
 ### BusyBox & util-linux
 
-awk, basename, cat, clear, cp, date, dd, df, diff, dirname, dmesg, echo, ed, eject, expr, fdformat, fdisk, free, grep, hexdump, hostname, less, ln, ls, lsblk, lscpu, mdev, mkdir, mount, mv, partx, patch, printf, pwd, rev, rm, sed, sfdisk, strace, sync, tee, test, touch, true, umount, uname, vi, whereis, which, xxd
+ash, awk, basename, cat, clear, cp, date, dd, df, diff, dirname, dmesg, echo, ed, eject, expr, fdformat, fdisk, free, grep, hexdump, hostname, init, less, ln, ls, lsblk, lscpu, mdev, mkdir, mount, mv, partx, patch, printenv, printf, pwd, rev, rm, sed, sfdisk, strace, sync, tee, test, touch, true, umount, uname, vi, whereis, which, xxd
 
 ### Bundled software
 
@@ -173,7 +173,7 @@ SHORK DISKETTE is a specialised version of the SHORK 486 Operating System that i
 
 ### BusyBox
 
-awk, basename, cat, clear, cp, date, dd, df, echo, expr, free, grep, hostname, less, ln, ls, lsblk, mdev, mkdir, mount, mv, printf, pwd, rev, rm, sed, sync, tee, test, touch, true, umount, uname, vi, which
+ash, awk, basename, cat, clear, cp, date, dd, df, echo, expr, free, grep, hostname, init, less, ln, ls, lsblk, mdev, mkdir, mount, mv, printenv, printf, pwd, rev, rm, sed, sync, tee, test, touch, true, umount, uname, vi, which
 
 ### SHORK Utilities (shorkutils)
 
@@ -292,7 +292,7 @@ Allows you to specify an IBM scancode set for SHORK 486 to request. For most AT 
 
 #### Multi-User Support
 
-Selecting "Yes" here will enable multi-user and password-protected user support in SHORK 486. BusyBox will include implementations for the `addgroup`, `adduser`, `chgrp`, `chown`, `chpasswd`, `chroot`, `cryptpw`, `delgroup`, `deluser`, `getty`, `login`, `mkpasswd`, `su`, `sulogin`, `users`, `w` and `who` commands. You will be asked to input a root password in the following prompt.
+Selecting "Yes" here will enable multi-user and password-protected user support in SHORK 486. BusyBox will include implementations for the `addgroup`, `adduser`, `chgrp`, `chown`, `chpasswd`, `chroot`, `cryptpw`, `delgroup`, `deluser`, `getty`, `login`, `mkpasswd`, `passwd`, `su`, `sulogin`, `users`, `w` and `who` commands. You will be asked to input a root password in the following prompt.
 
 
 
