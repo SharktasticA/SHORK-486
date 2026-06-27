@@ -1,8 +1,8 @@
-# SHORK 486 & DISKETTE
+# SHORK 486, DISC & DISKETTE
 
 SHORK 486 is an operating system for 486 and Pentium (P5) era vintage PCs. The aim is to produce a 32-bit Linux distribution that is very lean and functional but still capable on such PCs, often with my '90s IBM ThinkPads in mind. A default SHORK 486 system aims to work with at least 16MiB system memory and take up no more than ~80MiB on your disk. Despite those constraints, the default SHORK 486 experience includes [Linux kernel 7.1.2](KERNEL.md), many typical Linux commands, custom SHORK Utilities such as shorkdir (TUI file browser) and shorkfetch (*fetch clone), a terminal multiplexer, a C compiler and Python 3.4-syntax interpreter, a text web browser, an FTP, SCP and SSH client, a Git source control client, the ed, Mg (Emacs-style), nano and vi editors, a spreadsheet editor, IDE CD-ROM and DVD-ROM support, SCSI tape drive support, ISA, PCI and PCMCIA ethernet support, support for most major national keyboard layouts, and a cute ASCII shark welcome screen!
 
-A build configurator is available to alter SHORK 486 to your liking. For example, you can select the "minimal" build type that requires just 8MiB RAM and ~8MiB disk space, whilst still including most typical commands as before, some custom SHORK Utilities, and the ed and vi editors. If not a "minimal" build, multi-user support can be included. You can also select the "custom" build type, which lets you pick and choose specific software and features. A cut-down version of SHORK 486 that fits on a 1.44MB floppy diskette, SHORK DISKETTE, is also available.
+A build configurator is available to alter SHORK 486 to your liking. For example, you can select the "minimal" build type that requires just 8MiB RAM and ~8MiB disk space, whilst still including most typical commands as before, some custom SHORK Utilities, and the ed and vi editors. If not a "minimal" build, multi-user support can be included. You can also select the "custom" build type, which lets you pick and choose specific software and features. Versions of SHORK 486 that can be burned to a CD (SHORK DISC) or small enough to fit on a 1.44MB floppy diskette (SHORK DISKETTE) are also available.
 
 <p align="center"><img alt="A photo of SHORK 486 running on an IBM ThinkPad 365ED after a cold boot" src="photos/20260223_365ed.jpg" width="512"></p>
 
@@ -37,13 +37,14 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 ### Hardware requirements
 
 * Processor: Intel 486SX or compatible (no FPU required)
-* RAM: 16MiB minimum/24MiB recommended (default build); 8/10MiB (minimal); 24/32MiB (maximal)
-* Disk: 80MiB IDE or SCSI (default); 8MiB (minimal); 440MiB (maximal)
-* Graphics: IBM VGA or compatible (for most programs); VBE 2.0-compatible (for `shorkgui` and `shorkset`)
+* Memory: 16MiB minimum/24MiB recommended (default build); 8/10MiB (minimal); 24/32MiB (maximal)
+* Disk: 80MiB IDE or SCSI (default); 8MiB (minimal); 400MiB (maximal)
+* Graphics: IBM VGA or compatible (for most programs); VBE 2.0-compatible (for `shorkgui` and VBE resolutions in `shorkset`)
+* Monitor: VGA (640x480) or higher
 
 ### BusyBox & util-linux
 
-addgroup, adduser, ar, arch, ascii, awk, basename, bc, beep, blkid, cal, cat, chgrp, chmod, chown, chpasswd, chroot, chvt, clear, cp, crontab, cryptpw, cut, date, dc, dd, df, diff, dirname, dmesg, du, ed, eject, expand, expr, false, fdformat, fdisk, find, fold, free, ftpget, ftpput, getfattr, getty, grep, gzip, halt, head, hexdump, hostname, ifconfig, ip, kill, killall, less, ln, loadkmap, login, losetup, ls, lsblk, lscpu, lspci, man, mdev, mkdir, mknod, mkpasswd, mkswap, mount, mountpoint, mv, nice, nohup, nproc, partprobe, partx, paste, patch, ping, pkill, pmap, printf, ps, pstree, pwd, readlink, rev, rm, rmdir, route, sed, seq, setfattr, setfont, sfdisk, showkey, sleep, stat, strace, stty, su, sulogin, swapoff, swapon, sync, tar, taskset, tee, telnet, test, time, top, touch, tr, traceroute, tree, true, truncate, udhcpc, umount, uname, unexpand, unzip, usleep, users, vi, volname, w, wc, wget, whereis, which, who, whoami, whois, xxd, xz, yes
+addgroup, adduser, ar, arch, ascii, ash, awk, basename, bc, beep, blkid, cal, cat, chgrp, chmod, chown, chpasswd, chroot, chvt, clear, cp, crontab, cryptpw, cut, date, dc, dd, delgroup, deluser, df, diff, dirname, dmesg, dos2unix, du, echo, ed, eject, env, expand, expr, false, fdformat, fdisk, find, fold, free, ftpget, ftpput, getfattr, getty, grep, gzip, halt, head, hexdump, hostname, ifconfig, init, ip, kill, killall, less, ln, loadkmap, login, losetup, ls, lsblk, lscpu, lspci, lsusb, man, mdev, mkdir, mkdosfs/mkfs.ext2, mke2fs/mkfs.vfat, mknod, mkpasswd, mkswap, mount, mountpoint, mv, nice, nohup, nproc, partprobe, partx, passwd, paste, patch, ping, pkill, pmap, printenv, printf, ps, pstree, pwd, readlink, rev, rm, rmdir, route, sed, seq, setfattr, setfont, sfdisk, showkey, sleep, stat, strace, stty, su, sulogin, swapoff, swapon, sync, tar, taskset, tee, telnet, test, time, top, touch, tr, traceroute, tree, true, truncate, tty, udhcpc, umount, uname, unexpand, unix2dos, unzip, uptime, users, usleep, uuidgen, vi, vmstat, volname, w, wc, wget, whereis, which, who, whoami, whois, xxd, xz, yes
 
 ### Bundled software
 
@@ -80,7 +81,7 @@ addgroup, adduser, ar, arch, ascii, awk, basename, bc, beep, blkid, cal, cat, ch
 * **[shorkfetch](https://github.com/SharktasticA/shorkfetch)** - Displays basic system and environment information. Similar to fastfetch, neofetch, etc.
 * **[shorkhelp](https://github.com/SharktasticA/shorkhelp)** - Informs of SHORK 486's capabilities and provides guidance.
 * **[shorkoff](https://github.com/SharktasticA/shorkoff)** - A shutdown helper that safely brings the system to a controlled halt before a manual power off.
-* **[shorkset](https://github.com/SharktasticA/shokres)** - A settings program for changing display resolution (VGA, and if compatible, VESA), keyboard layout (keymap), the terminal's PSF font, and the terminal's font colour.
+* **[shorkset](https://github.com/SharktasticA/shorkset)** - A settings program for changing display resolution (VGA, and if compatible, VESA), keyboard layout (keymap), the terminal's PSF font, and the terminal's font colour.
 
 ### SHORK Entertainment (shorktainment)
 
@@ -125,25 +126,59 @@ _The planned SHORK 686 will make these modern system-orientated options obsolete
 
 
 
-## SHORK DISKETTE
+## SHORK DISC
 
-SHORK DISKETTE is a specialised version of the SHORK 486 Operating System that is cut-down enough to fit on a 1.44MB floppy diskette. Only a subset of BusyBox commands and utilities and SHORK Utilities are available for it due to space constraints, and is only offered as a single-user (root) system. It is envisioned as a diagnostic aid or a CD-ROM boot disk (2.88MB only at present).
+SHORK DISC is a specialised version of the SHORK 486 Operating System that can be burned to a CD or DVD. Only a subset of BusyBox commands, utilities and software are available for it, it is only offered as a single-user (root) system, and has no persistent storage. It is envisioned as a completely immutable system or diagnostic aid, and is to be used as SHORK 486's installation media.
 
 ### Hardware requirements
 
 * Processor: Intel 486SX or compatible (no FPU required)
-* RAM: 16MiB minimum/24MiB recommended
-* Diskette: 1.44 or 2.88MiB
+* Memory: 8MiB minimum/16MiB recommended
+* Disc: any CD+/-R/RW
 * Graphics: IBM VGA or compatible
+* Monitor: VGA (640x480) or higher
 
-### BusyBox
+### BusyBox & util-linux
 
-awk, basename, cat, clear, cp, date, dd, df, echo, expr, free, grep, hostname, less, ln, ls, lsblk, mdev, mkdir, mount, mv, printf, pwd, rev, rm, sed, sync, tee, test, touch, true, umount, uname, vi, which
+ash, awk, basename, cat, clear, cp, date, dd, df, diff, dirname, dmesg, echo, ed, eject, expr, fdformat, fdisk, free, grep, hexdump, hostname, init, less, ln, ls, lsblk, lscpu, mdev, mkdir, mount, mv, partx, patch, printenv, printf, pwd, rev, rm, sed, sfdisk, strace, sync, tee, test, touch, true, umount, uname, vi, whereis, which, xxd
+
+### Bundled software
+
+* [file](https://github.com/file/file)
 
 ### SHORK Utilities (shorkutils)
 
-* **[shorkfetch](https://github.com/SharktasticA/shorkfetch)** - Displays basic system and environment information. Similar to fastfetch, neofetch, etc.
-* **[shorkhelp](https://github.com/SharktasticA/shorkhelp)** - Informs of SHORK DISKETTE's capabilities and provides guidance.
+* **[shorkfetch](https://github.com/SharktasticA/shorkfetch)**
+* **[shorkhelp](https://github.com/SharktasticA/shorkhelp)**
+
+### SHORK Entertainment (shorktainment)
+
+* **[shorklocomotive](https://github.com/SharktasticA/shorklocomotive)**
+* **[shorkmatrix](https://github.com/SharktasticA/shorkmatrix)**
+* **[shorksay](https://github.com/SharktasticA/shorksay)**
+
+
+
+## SHORK DISKETTE
+
+SHORK DISKETTE is a specialised version of the SHORK 486 Operating System that is cut-down enough to fit on a 1.44MB floppy diskette. Only a subset of BusyBox commands and utilities and SHORK Utilities are available for it due to space constraints, and is only offered as a single-user (root) system with a small amount of persistent storage in `/home`. It is envisioned as a diagnostic aid or a CD-ROM boot disk (2.88MB only at present).
+
+### Hardware requirements
+
+* Processor: Intel 486SX or compatible (no FPU required)
+* Memory: 16MiB minimum/24MiB recommended
+* Diskette: 1.44 or 2.88MB
+* Graphics: IBM VGA or compatible
+* Monitor: VGA (640x480) or higher
+
+### BusyBox
+
+ash, awk, basename, cat, clear, cp, date, dd, df, echo, expr, free, grep, hostname, init, less, ln, ls, lsblk, mdev, mkdir, mount, mv, printenv, printf, pwd, rev, rm, sed, sync, tee, test, touch, true, umount, uname, vi, which
+
+### SHORK Utilities (shorkutils)
+
+* **[shorkfetch](https://github.com/SharktasticA/shorkfetch)**
+* **[shorkhelp](https://github.com/SharktasticA/shorkhelp)**
 
 
 
@@ -233,7 +268,7 @@ Below are further explanations for options that could not fit into the configura
 
 * **Default**: Builds SHORK 486 to the author's recommended configuration, trying to balance features and bundled software variety with system requirements. A default build requires 16MiB system memory and ~80MiB disk size.
 
-* **Offline**: The same as a default build but _without_ full networking support or software that requires an internet connection. An offline build requires 12MiB system memory and ~50MiB disk size.
+* **Offline**: The same as a default build but _without_ full networking support or software that requires an internet connection. An offline build requires 12MiB system memory and ~60MiB disk size.
     * The after-build report will still report that "kernel-level networking support (base)" is included. This is required to satisfy htop's kernel requirements, but the kernel is still incapable of supporting real network connections.
 
 * **Minimal**: Builds SHORK 486 to its most minimal configuration. All bundled software and additional features are excluded, and multi-user system, networking and non-US keyboard layout support are disabled. A minimal build requires 8MiB system memory and ~8MiB disk size.
@@ -257,7 +292,7 @@ Allows you to specify an IBM scancode set for SHORK 486 to request. For most AT 
 
 #### Multi-User Support
 
-Selecting "Yes" here will enable multi-user and password-protected user support in SHORK 486. BusyBox will include implementations for the `addgroup`, `adduser`, `chgrp`, `chown`, `chpasswd`, `chroot`, `cryptpw`, `delgroup`, `deluser`, `getty`, `login`, `mkpasswd`, `su`, `sulogin`, `users`, `w` and `who` commands. You will be asked to input a root password in the following prompt.
+Selecting "Yes" here will enable multi-user and password-protected user support in SHORK 486. BusyBox will include implementations for the `addgroup`, `adduser`, `chgrp`, `chown`, `chpasswd`, `chroot`, `cryptpw`, `delgroup`, `deluser`, `getty`, `login`, `mkpasswd`, `passwd`, `su`, `sulogin`, `users`, `w` and `who` commands. You will be asked to input a root password in the following prompt.
 
 
 
@@ -281,6 +316,8 @@ EXTLINUX (SHORK 486) and SYSLINUX (SHORK DISKETTE) are the default bootloaders u
 
 
 #### Bundled Software
+
+* **file**: Adds the `file` command, which can identify a file's type by checking its contents against a database of possible magic signatures. Due to the size of said database, 16MiB RAM is required for it to work correctly.
 
 * **gcc**: Adds the GNU Assembler, GCC's C, C++ and Fortran compiler and musl C standard library. Using `g++` requires more system memory than usual, hence it is not included by default. RAM requirements are ideally 32MiB if no swap partition, 24MiB with 8MiB swap or 16MiB with 16MiB swap.
 
@@ -343,7 +380,11 @@ These build script parameters are provided to help automate its use, especially 
 
 * `patches`: Contains diff patches for the Linux kernel and BusyBox to restore removed functionality/implement new functionality required for SHORK 486.
 
-* `shorkutils`: Contains custom SHORK utilities to be copied to the root file system 
+* `payload`: 
+
+* `release`: 
+
+* `shorkutils`: Contains custom SHORK Utilities to be copied into the root file system 
 
 * `sysfiles`: Contains important system files to be copied into the root file system.
 

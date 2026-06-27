@@ -1,11 +1,12 @@
 --- busybox-1.38.0_clean/util-linux/lsblk.c	2026-02-06 07:45:29.000000000 +0000
 +++ busybox-1.38.0/util-linux/lsblk.c	2026-06-08 23:14:39.227995755 +0100
-@@ -133,6 +133,45 @@
+@@ -133,6 +133,46 @@
  		xasprintf_inplace(mountpoints, "%s%.*s",
  			mountpoints ? mountpoints : "", (int)(e - p), p);
  	}
 +
 +	// Check /proc/swaps for potential swap devices
++	if (access("/proc/swaps", F_OK) != 0) return mountpoints;
 +	p = xmalloc_xopen_read_close("/proc/swaps", NULL);
 +	if (p) {
 +		char *line = p;

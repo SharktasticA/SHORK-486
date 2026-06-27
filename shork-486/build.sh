@@ -67,7 +67,9 @@ DISK_SECTORS_TRACK=63
 DONT_DEL_ROOT=false
 DOTENV_USED=false
 EST_MIN_RAM="16MiB"
+EXCLUDED_BB_CMDS=()
 EXCLUDED_FEATURES=""
+INCLUDED_BB_CMDS=()
 INCLUDED_FEATURES=""
 MINIMAL_TARGET_DISK=8
 ROOT_PART_SIZE=0
@@ -236,6 +238,7 @@ INCLUDE_MT_ST=true
 INCLUDE_NANO=true
 INCLUDE_PCI_IDS=true
 INCLUDE_SC_IM=true
+INCLUDE_SHORKSTALL=false
 INCLUDE_SHORKTAINMENT=true
 INCLUDE_STRACE=true
 INCLUDE_TESTS=false
@@ -318,6 +321,9 @@ if [ "$ID" == "shork-486" ]; then
         echo -e "${GREEN}Noting minimum RAM requirement for a SHORK 486 minimal build...${RESET}"
         EST_MIN_RAM="8MiB"
     fi
+elif [ "$ID" == "shork-disc" ]; then
+    echo -e "${GREEN}Noting minimum RAM requirement for a SHORK DISC build...${RESET}"
+    EST_MIN_RAM="8MiB"
 elif [ "$ID" == "shork-diskette" ]; then
     echo -e "${GREEN}Noting minimum RAM requirement for a SHORK DISKETTE build...${RESET}"
     EST_MIN_RAM="16MiB"
@@ -491,27 +497,25 @@ delete_root_dir()
 # Fixes directory and file permissions after root build
 fix_perms()
 {
-    if [ "$(id -u)" -eq 0 ]; then
-        echo -e "${GREEN}Tidying up and fixing directory and file permissions for non-root access...${RESET}"
+    echo -e "${GREEN}Tidying up and fixing directory and file permissions...${RESET}"
 
-        HOST_GID=${HOST_GID:-1000}
-        HOST_UID=${HOST_UID:-1000}
+    HOST_GID=${HOST_GID:-1000}
+    HOST_UID=${HOST_UID:-1000}
 
-        sudo chown -R "$HOST_UID:$HOST_GID" $CURR_DIR/build || true
-        sudo chmod 755 $CURR_DIR/build || true
+    sudo chown -R "$HOST_UID:$HOST_GID" $CURR_DIR/build || true
+    sudo chmod 755 $CURR_DIR/build || true
 
-        sudo chown -R "$HOST_UID:$HOST_GID" $CURR_DIR/images || true
-        sudo chmod 755 $CURR_DIR/images || true
+    sudo chown -R "$HOST_UID:$HOST_GID" $CURR_DIR/images || true
+    sudo chmod 755 $CURR_DIR/images || true
 
-        sudo chown -R "$HOST_UID:$HOST_GID" $CURR_DIR/__pycache__ || true
-        sudo chmod 755 $CURR_DIR/__pycache__ || true
+    for f in "$CURR_DIR/images/"*; do
+        [ -f "$f" ] || continue
+        sudo chown "$HOST_UID:$HOST_GID" "$f"
+        sudo chmod 644 "$f"
+    done
 
-        for f in $CURR_DIR/images/$ID.img $CURR_DIR/images/$ID.vmdk; do
-            [ -f "$f" ] || continue
-            sudo chown "$HOST_UID:$HOST_GID" "$f"
-            sudo chmod 644 "$f"
-        done
-    fi
+    sudo chown -R "$HOST_UID:$HOST_GID" $CURR_DIR/__pycache__ || true
+    sudo chmod 755 $CURR_DIR/__pycache__ || true
 }
 
 # Cleans up any stale mounts and block-device mappings left by image builds
@@ -575,7 +579,7 @@ install_arch_prerequisites()
 {
     echo -e "${GREEN}Installing prerequisite packages for an Arch-based system...${RESET}"
 
-    PACKAGES="autoconf bc base-devel bison bzip2 ca-certificates cpio dosfstools e2fsprogs flex gettext git libtool make multipath-tools ncurses pciutils python qemu-img systemd texinfo util-linux wget xz"
+    PACKAGES="autoconf bc base-devel bison bzip2 ca-certificates cdrtools cpio dosfstools e2fsprogs flex gettext git libtool make multipath-tools ncurses pciutils python qemu-img systemd texinfo util-linux wget xz"
 
     if $INCLUDE_GUI; then
         PACKAGES+=" fontconfig gperf unzip xorg-bdftopcf xorg-font-util xorg-mkfontscale"
@@ -612,7 +616,7 @@ install_debian_prerequisites()
     sudo dpkg --add-architecture i386
     sudo apt-get update
 
-    PACKAGES="autopoint bc bison bzip2 e2fsprogs extlinux fdisk flex git kpartx libtool libtool-bin make pkg-config python3 python-is-python3 qemu-utils syslinux wget xz-utils"
+    PACKAGES="autopoint bc bison bzip2 e2fsprogs extlinux fdisk flex genisoimage git kpartx libtool libtool-bin make pkg-config python3 python-is-python3 qemu-utils wget xz-utils"
 
     if $INCLUDE_GUI; then
         PACKAGES+=" fontconfig gettext gperf unzip xfonts-utils"
@@ -644,6 +648,8 @@ install_debian_prerequisites()
 
     if $USE_GRUB; then
         PACKAGES+=" grub-common grub-pc"
+    else
+        PACKAGES+=" isolinux syslinux"
     fi
 
     sudo apt-get install -y $PACKAGES
@@ -656,7 +662,7 @@ install_fedora_prerequisites()
     echo -e "${GREEN}Installing prerequisite packages for a Fedora-based system...${RESET}"
     sudo dnf -y update
 
-    PACKAGES="autoconf automake bison dialog docbook2pdf docbook2X flex gcc gettext git libtool make patch perl python3 syslinux-extlinux qemu-img"
+    PACKAGES="autoconf automake bison dialog docbook2pdf docbook2X flex gcc genisoimage gettext git libtool make patch perl python3 qemu-img"
 
     if $INCLUDE_GUI; then
         PACKAGES+=" bdftopcf fontconfig gperf mkfontscale xorg-x11-font-utils"
@@ -684,6 +690,8 @@ install_fedora_prerequisites()
 
     if $USE_GRUB; then
         PACKAGES+=" grub2-common grub2-pc"
+    else
+        PACKAGES+=" syslinux-extlinux syslinux-nonlinux"
     fi
 
     sudo dnf install -y $PACKAGES || true
@@ -788,9 +796,6 @@ get_ncurses()
 
     ln -sf "${PREFIX}/lib/libncursesw.a" "${PREFIX}/lib/libncurses.a"
     ln -sf "${PREFIX}/lib/libncursesw.a" "${PREFIX}/lib/libtinfo.a"
-
-    # Copy licence file
-    cp COPYING $CURR_DIR/build/LICENCES/ncurses.txt
 }
 
 # Download and compile tic (required for shorkset)
@@ -818,9 +823,6 @@ get_tic()
         CFLAGS="-Os -static"
     make -C progs tic -j$(nproc)
     sudo install -D progs/tic "$DESTDIR/usr/bin/tic"
-
-    # Copy licence file
-    cp COPYING $CURR_DIR/build/LICENCES/ncurses.txt
 }
 
 # Download and compile curl (required for Git/HTTPS remote)
@@ -1079,26 +1081,26 @@ get_zlib()
     make DESTDIR="$SYSROOT" install
 }
 
-# Download and build our forked EXTLINUX/SYSLINUX (required if "Fix
-# EXTLINUX/SYSLINUX" was used)
+# Download and build our forked ISOLINUX/EXTLINUX/SYSLINUX (required if "Fix
+# ISOLINUX/EXTLINUX/SYSLINUX" was used)
 get_patched_xlinux()
 {
     cd "$CURR_DIR/build"
 
     # Skip if already compiled
     if [ -f "$CURR_DIR/build/syslinux/bios/extlinux/extlinux" ]; then
-        echo -e "${LIGHT_RED}EXTLINUX/SYSLINUX already compiled, skipping...${RESET}"
+        echo -e "${LIGHT_RED}ISOLINUX/EXTLINUX/SYSLINUX already compiled, skipping...${RESET}"
         return
     fi
 
     # Download source
     if [ -d syslinux ]; then
-        echo -e "${YELLOW}EXTLINUX/SYSLINUX source already present, resetting...${RESET}"
+        echo -e "${YELLOW}ISOLINUX/EXTLINUX/SYSLINUX source already present, resetting...${RESET}"
         cd syslinux
         git reset --hard
         make clean || true
     else
-        echo -e "${GREEN}Downloading EXTLINUX/SYSLINUX...${RESET}"
+        echo -e "${GREEN}Downloading ISOLINUX/EXTLINUX/SYSLINUX...${RESET}"
         git clone https://github.com/SharktasticA/syslinux.git
         cd syslinux
     fi
@@ -1114,11 +1116,8 @@ get_patched_xlinux()
     fi
 
     # Compile and install
-    echo -e "${GREEN}Compiling EXTLINUX/SYSLINUX...${RESET}"
+    echo -e "${GREEN}Compiling ISOLINUX/EXTLINUX/SYSLINUX...${RESET}"
     CFLAGS="-fcommon" sudo make bios
-
-    # Copy licence file
-    cp COPYING $CURR_DIR/build/LICENCES/syslinux.txt
 }
 
 
@@ -1181,6 +1180,8 @@ get_busybox()
     echo -e "${GREEN}Copying base ${DIST} BusyBox .config file...${RESET}"
     if [ "$ID" == "shork-486" ]; then
         cp $CURR_DIR/configs/busybox.config.base .config
+    elif [ "$ID" == "shork-disc" ]; then
+        cp $CURR_DIR/configs/busybox.config.base.disc .config
     elif [ "$ID" == "shork-diskette" ]; then
         cp $CURR_DIR/configs/busybox.config.base.diskette .config
     fi
@@ -1224,9 +1225,6 @@ get_busybox()
         sudo rm -r $DESTDIR
     fi
     mv _install $DESTDIR
-
-    # Copy licence file
-    cp LICENSE $CURR_DIR/build/LICENCES/busybox.txt
 }
 
 # Download and compile strace
@@ -1258,9 +1256,6 @@ get_strace()
     ./configure --host=${HOST} --prefix=/usr --disable-shared --enable-static CC="${CC_STATIC}" CFLAGS="-Os -march=${ARCH}" LDFLAGS="-static"
     make -j$(nproc)
     make install DESTDIR="$DESTDIR"
-
-    # Copy licence file
-    cp COPYING $CURR_DIR/build/LICENCES/strace.txt
 }
 
 # Download and compile util-linux (lscpu, partx, sfdisk and whereis)
@@ -1342,9 +1337,6 @@ get_util_linux()
         sudo install -D -m 755 "${bin}" "$DESTDIR/usr/sbin/${bin}"
     done
 
-    # Copy licence file
-    cp COPYING $CURR_DIR/build/LICENCES/util-linux.txt
-
     # Fix potential linking issues with ncurses
     unset LIBS
     unset CFLAGS
@@ -1373,7 +1365,7 @@ configure_kernel()
 {
     echo -e "${GREEN}Copying base ${DIST} kernel configuration file...${RESET}"
 
-    if [ "$ID" == "shork-486" ]; then
+    if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
         cp $CURR_DIR/configs/linux.config.base .config
     elif [ "$ID" == "shork-diskette" ]; then
         cp $CURR_DIR/configs/linux.config.base.diskette .config
@@ -1383,7 +1375,7 @@ configure_kernel()
 
     if $ENABLE_CDROM; then
         echo -e "${GREEN}Enabling kernel-level CD-ROM & DVD-ROM support...${RESET}"
-        if [ "$ID" == "shork-486" ]; then
+        if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
             FRAGS+="$CURR_DIR/configs/linux.config.cdrom.frag "
         elif [ "$ID" == "shork-diskette" ]; then
             FRAGS+="$CURR_DIR/configs/linux.config.cdrom.diskette.frag "
@@ -1529,7 +1521,6 @@ compile_kernel()
     make ARCH=x86 bzImage -j$(nproc)
 
     sudo mv arch/x86/boot/bzImage "$CURR_DIR/build" || true
-    cp COPYING $CURR_DIR/build/LICENCES/linux.txt
 }
 
 # Download and compile Linux kernel
@@ -2626,7 +2617,6 @@ get_fonts()
     unzip -oj "$IBMPM_ARC" "ibm-plex-mono/LICENSE.txt" -d $CURR_DIR/build/plex
     cd plex
     sudo cp IBMPlexMono-Regular.otf $OTF_FONT_DIR/ibm-plex-mono
-    sudo cp LICENSE.txt $CURR_DIR/build/LICENCES/ibm-plex.txt
 
 
 
@@ -2931,9 +2921,6 @@ get_tinyx()
         LIBS="$LINK_LIBS" \XSERVERCFLAGS_CFLAGS="-I$SYSROOT/usr/include -I$SYSROOT/usr/include/freetype2" XSERVERLIBS_LIBS="$LINK_LIBS"
     make -j$(nproc)
     make DESTDIR=$DESTDIR install
-
-    # Copy licence file
-    cp COPYING $CURR_DIR/build/LICENCES/tinyx.txt
 }
 
 get_twm()
@@ -2977,9 +2964,6 @@ get_twm()
         LDFLAGS="-static -L$SYSROOT/usr/lib --sysroot=$SYSROOT"
     make -j$(nproc)
     make DESTDIR="$DESTDIR" install
-
-    # Copy licence file
-    cp COPYING $CURR_DIR/build/LICENCES/twm.txt
 }
 
 get_nedit()
@@ -3025,9 +3009,6 @@ get_nedit()
     make CC="${CC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}" CFLAGS="${CFLAGS}" LDFLAGS="${LDFLAGS}" PREFIX=/usr
 
     make install PREFIX=/usr
-    
-    # Copy licence file
-    cp COPYRIGHT $CURR_DIR/build/LICENCES/nedit.txt
 }
 
 get_oneko()
@@ -3057,9 +3038,6 @@ get_oneko()
     echo -e "${GREEN}Compiling oneko...${RESET}"
     "$CC_STATIC" -Wno-parentheses -std=c11 -pedantic -D_DEFAULT_SOURCE -I"$SYSROOT/usr/include" "$CURR_DIR/build/oneko/oneko.c" -L"$SYSROOT/usr/lib" -lX11 -lxcb -lXau -lXdmcp -lXext -lc -lm -o oneko
     sudo cp oneko $DESTDIR/usr/bin/
-
-    # Create "licence" file
-    echo "Public domain" | sudo tee "$CURR_DIR/build/LICENCES/oneko.txt" > /dev/null
 }
 
 get_st()
@@ -3084,8 +3062,6 @@ get_st()
         git clone git://git.suckless.org/st
         cd st
     fi
-
-
 
     # Patch to fix "select: function not implemented" error
     sudo sed -i 's/pselect(\(.*\), NULL)/select(\1)/' st.c
@@ -3112,9 +3088,6 @@ get_st()
         LDFLAGS="-static -L$SYSROOT/usr/lib --sysroot=$SYSROOT" \
         LIBS="-lXft -lfontconfig -lfreetype -lXrender -lX11 -lxcb -lXau -lXdmcp -lexpat -lpng -lz -lm"
     make DESTDIR="$DESTDIR" PREFIX=/usr install CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-
-    # Copy licence file
-    cp LICENSE $CURR_DIR/build/LICENCES/st.txt
 }
 
 get_xcalc()
@@ -3298,9 +3271,6 @@ get_xli()
     echo -e "${GREEN}Compiling xli...${RESET}"
     make -f Makefile.std all CC="${CC_STATIC}" CFLAGS="-I${PREFIX}/include -DSYSPATHFILE=\\\"/usr/lib/X11/Xli\\\" -DNO_JPEG" LDFLAGS="-L${PREFIX}/lib"
     install -Dm755 xli "$DESTDIR/usr/bin/xli"
-
-    # Copy licence file
-    cp LICENSE $CURR_DIR/build/LICENCES/xli.txt
 }
 
 get_xload()
@@ -3372,9 +3342,6 @@ get_xset()
     ./configure --host="$HOST" --prefix=/usr --x-includes="$SYSROOT/usr/include" --x-libraries="$SYSROOT/usr/lib" CC="$CC_STATIC" LIBS="-lxcb -lXau -lXdmcp"
     make -j$(nproc)
     make DESTDIR="$DESTDIR" install
-
-    # Copy licence file
-    cp COPYING $CURR_DIR/build/LICENCES/xset.txt
 }
 
 
@@ -3450,8 +3417,6 @@ get_console_fonts()
         done
     fi
 
-    tar -xzf $TERMINUS_ARC -O terminus-font-4.49.1/OFL.TXT > $CURR_DIR/build/LICENCES/Terminus.txt
-
     cd $DESTDIR
 }
 
@@ -3507,9 +3472,6 @@ get_c3270()
         LDFLAGS="-static -L${PREFIX}/lib"
     make -j$(nproc)
     sudo make DESTDIR=$DESTDIR install
-
-    # Copy licence file
-    cp LICENSE.md $CURR_DIR/build/LICENCES/c3270.txt
 }
 
 # Download and compile CMatrix
@@ -3548,9 +3510,6 @@ get_cmatrix()
         LDFLAGS="-static -L${PREFIX}/lib"
     make -j$(nproc)
     sudo make DESTDIR=$DESTDIR install
-
-    # Copy licence file
-    cp COPYING $CURR_DIR/build/LICENCES/cmatrix.txt
 }
 
 # Download and compile Dropbear
@@ -3583,9 +3542,6 @@ get_dropbear()
     make PROGRAMS="dbclient scp" -j$(nproc)
     sudo make DESTDIR=$DESTDIR install PROGRAMS="dbclient scp"
     sudo mv "$DESTDIR/usr/bin/dbclient" "$DESTDIR/usr/bin/ssh"
-
-    # Copy licence file
-    cp LICENSE $CURR_DIR/build/LICENCES/dropbear.txt
 }
 
 # Download and compile file
@@ -3634,9 +3590,6 @@ get_file()
         LDFLAGS="-static"
     make -j$(nproc)
     sudo make DESTDIR=$DESTDIR install
-
-    # Copy licence file
-    cp COPYING $CURR_DIR/build/LICENCES/file.txt
 }
 
 # Download and extract GCC + musl
@@ -3674,7 +3627,7 @@ get_gcc()
     done
 
     # Copy licence file
-    #cp TODO $CURR_DIR/build/LICENCES/${ARCH}-linux-musl-native.txt
+    #cp TODO $DESTDIR/LICENCES/${ARCH}-linux-musl-native.txt
 }
 
 # Download and compile Git
@@ -3707,9 +3660,6 @@ get_git()
     sudo cp $CURR_DIR/configs/git.config.mak config.mak
     make -j$(nproc)
     sudo make DESTDIR=$DESTDIR install
-
-    # Copy licence file
-    cp COPYING $CURR_DIR/build/LICENCES/git.txt
 }
 
 # Download and compile htop
@@ -3741,9 +3691,6 @@ get_htop()
     ./configure --host=${HOST} --prefix=/usr CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" CFLAGS="-Os -march=${ARCH} -I${PREFIX}/include -I${PREFIX}/include/ncursesw" LDFLAGS="-static -L${PREFIX}/lib"
     make -j$(nproc)
     sudo cp htop $DESTDIR/usr/bin
-
-    # Copy licence file
-    cp COPYING $CURR_DIR/build/LICENCES/htop.txt
 }
 
 # Download and compile lapifetch
@@ -3778,9 +3725,6 @@ get_lapifetch()
     echo -e "${GREEN}Compiling lapifetch...${RESET}"
     make -j$(nproc) CXX="${CXX_STATIC}"
     sudo make DESTDIR=$DESTDIR install
-
-    # Copy licence file
-    cp LICENSE $CURR_DIR/build/LICENCES/lapifetch.txt
 }
 
 # Download and compile JOE
@@ -3820,9 +3764,6 @@ get_joe()
         CC="${CC_STATIC}"
     make -j$(nproc)
     sudo make DESTDIR=$DESTDIR install
-
-    # Copy licence file
-    cp COPYING $CURR_DIR/build/LICENCES/joe.txt
 }
 
 # Download and compile Lynx
@@ -3867,9 +3808,6 @@ get_lynx()
         LIBS="-lncursesw -ltinfo -latomic"
     make -j$(nproc)
     sudo make DESTDIR=$DESTDIR install
-
-    # Copy licence file
-    cp COPYING $CURR_DIR/build/LICENCES/lynx.txt
 }
 
 # Download and compile musl
@@ -3906,9 +3844,6 @@ get_musl()
     ./configure --host=${HOST} CC=$CC_STATIC AR=$AR RANLIB=$RANLIB
     make -j$(nproc)
     sudo make DESTDIR=$DESTDIR install
-
-    # Copy licence file
-    cp COPYRIGHT $CURR_DIR/build/LICENCES/musl.txt
 }
 
 # Download and compile Mg
@@ -3950,9 +3885,6 @@ get_mg()
 
     # Symlink emacs to mg
     ln -sf mg "$DESTDIR/usr/bin/emacs"
-
-    # Copy licence file
-    cp UNLICENSE $CURR_DIR/build/LICENCES/mg.txt
 }
 
 # Download and compile MicroPython
@@ -4009,10 +3941,6 @@ get_micropython()
     # Symlink python and python3 to mg
     sudo ln -sf micropython "$DESTDIR/usr/bin/python"
     sudo ln -sf micropython "$DESTDIR/usr/bin/python3"
-
-    # Copy licence file
-    cd ../..
-    cp LICENSE $CURR_DIR/build/LICENCES/micropython.txt
 }
 
 # Download and compile mt-st
@@ -4043,9 +3971,6 @@ get_mt_st()
     echo -e "${GREEN}Compiling mt-st...${RESET}"
     make -j$(nproc) CC=$CC_STATIC
     sudo make DESTDIR=$DESTDIR install
-
-    # Copy licence file
-    cp COPYING $CURR_DIR/build/LICENCES/mt-st.txt
 }
 
 # Download and compile nano
@@ -4093,9 +4018,6 @@ get_nano()
 
     make TINFO_LIBS="" -j$(nproc)
     sudo make DESTDIR=$DESTDIR install
-
-    # Copy licence file
-    cp COPYING $CURR_DIR/build/LICENCES/nano.txt
 }
 
 # Download and compile Rover
@@ -4141,9 +4063,6 @@ get_rover()
     echo -e "${GREEN}Compiling Rover...${RESET}"
     make -j$(nproc) CC="${CC_STATIC}" CFLAGS="-I${PREFIX}/include -I${PREFIX}/include/ncursesw -D_POSIX_C_SOURCE=200809L" LDFLAGS="-L${PREFIX}/lib -lncursesw -static" rover
     sudo make PREFIX=/usr DESTDIR=$DESTDIR install
-
-    # Create "licence" file
-    echo "Public domain" | sudo tee "$CURR_DIR/build/LICENCES/rover.txt" > /dev/null
 }
 
 # Download and compile sc-im
@@ -4190,9 +4109,6 @@ get_sc_im()
         LDFLAGS="-static -L${PREFIX}/lib" \
         -j$(nproc)
     sudo make -C src DESTDIR="$DESTDIR" prefix=/usr install
-
-    # Copy licence file
-    cp LICENSE $CURR_DIR/build/LICENCES/sc-im.txt
 }
 
 # Download and compile Tiny C Compiler
@@ -4232,9 +4148,6 @@ get_tcc()
     sudo make DESTDIR=$DESTDIR install
     
     ln -sf /usr/local/bin/i386-tcc $DESTDIR/usr/bin/tcc || true
-
-    # Copy licence file
-    cp COPYING $CURR_DIR/build/LICENCES/tcc.txt
 }
 
 # Download and compile tilde
@@ -4392,9 +4305,6 @@ get_tilde()
 
         cd "$CURR_DIR/build"
     done
-
-    # Copy licence file
-    cp "tilde-${TILDE_VER}/COPYING" "$CURR_DIR/build/LICENCES/tilde.txt"
 }
 
 # Download and compile tmux
@@ -4440,9 +4350,6 @@ get_tmux()
         LIBS="-levent -lncursesw -lutil -lrt -lpthread -lm"
     make -j$(nproc)
     sudo make DESTDIR=$DESTDIR install
-
-    # Copy licence file
-    cp COPYING $CURR_DIR/build/LICENCES/tmux.txt
 }
 
 # Download and compile tn5250
@@ -4490,9 +4397,6 @@ get_tn5250()
         LIBS="-lssl -lcrypto -lncursesw ${LIBATOMIC_A} -lpthread -ldl"
     make -j"$(nproc)"
     sudo make DESTDIR="$DESTDIR" install
-
-    # Copy licence file
-    cp COPYING "$CURR_DIR/build/LICENCES/tn5250.txt"
 }
 
 # Download and compile tnftp
@@ -4530,9 +4434,6 @@ get_tnftp()
     make -j$(nproc)
     sudo make DESTDIR=$DESTDIR install
     ln -sf tnftp "$DESTDIR/usr/bin/ftp"
-
-    # Copy licence file
-    cp COPYING $CURR_DIR/build/LICENCES/tnftp.txt
 }
 
 
@@ -4621,7 +4522,7 @@ get_shorkfetch()
     # Compile and install
     echo -e "${GREEN}Compiling shorkfetch...${RESET}"
     make clean
-    if [ "$ID" == "shork-486" ]; then
+    if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
         make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
     elif [ "$ID" == "shork-diskette" ]; then
         make EMBEDDED=1 -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
@@ -4690,7 +4591,7 @@ get_shorkoff()
     sudo chmod +x $DESTDIR/sbin/shorkoff
 }
 
-# Download and copy shorkset
+# Download and compile shorkset
 get_shorkset()
 {
     cd "$CURR_DIR/build"
@@ -4720,6 +4621,35 @@ get_shorkset()
     else
         make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
     fi
+    sudo make DESTDIR=$DESTDIR install
+}
+
+# Download and compile shorkstall
+get_shorkstall()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ "$SHORKUTILS_RECLONE" != "true" ] && [ -f "$DESTDIR/usr/bin/shorkstall" ]; then
+        echo -e "${LIGHT_RED}shorkstall already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Delete if present
+    if [ -d shorkstall ]; then
+        echo -e "${YELLOW}shorkstall source already present, recloning...${RESET}"
+        sudo rm -r shorkstall
+    fi
+
+    # Download source
+    echo -e "${GREEN}Downloading shorkstall...${RESET}"
+    git clone https://github.com/SharktasticA/shorkstall.git
+    cd shorkstall
+
+    # Compile and install
+    make clean
+    echo -e "${GREEN}Compiling shorkstall...${RESET}"
+    make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
     sudo make DESTDIR=$DESTDIR install
 }
 
@@ -4864,8 +4794,8 @@ trim_fat()
         sudo mkdir -p "$DESTDIR/usr/share/git-core/templates"
     fi
 
-    if $INCLUDE_GUI; then
-        sudo rm -rf "$DESTDIR/home/kali"
+    if $INCLUDE_GUI && ! $ENABLE_MULTIUSER_REAL; then
+        sudo rm -rf "$DESTDIR/home"
     fi
 
     if $INCLUDE_JOE; then
@@ -4901,11 +4831,260 @@ trim_fat()
 }
 
 # Copies all licences for included software
+# TODO: GCC, GRUB, xcalc, xclock, xeyes
 copy_licences()
 {
+    cd "$CURR_DIR/build"
+
     echo -e "${GREEN}Copying all needed licences for included software...${RESET}"
-    sudo mkdir -p "$DESTDIR/LICENCES"
-    sudo cp -a "$CURR_DIR/build/LICENCES/." "$DESTDIR/LICENCES/"
+    mkdir -p "$DESTDIR/LICENCES"
+    CSV="Name,Type,File"
+
+    if [ -f "../../COPYING" ]; then
+        cp "../../COPYING" "$DESTDIR/LICENCES/shork.txt" || true
+        CSV+="\nSHORK,GNU GPLv3,shork.txt"
+    fi
+
+    if [ -f "$CURR_DIR/build/linux/COPYING" ]; then
+        cp "$CURR_DIR/build/linux/COPYING" "$DESTDIR/LICENCES/linux.txt" || true
+        CSV+="\nLinux,GNU GPLv2,linux.txt"
+    fi
+
+    if [ -f "$CURR_DIR/build/busybox-$BUSYBOX_VER/LICENSE" ]; then
+        cp "$CURR_DIR/build/busybox-$BUSYBOX_VER/LICENSE" "$DESTDIR/LICENCES/busybox.txt" || true
+        CSV+="\nBusyBox,GNU GPLv2,busybox.txt"
+    fi
+
+    if $INCLUDE_C3270 && 
+       [ -f "$CURR_DIR/build/x3270/LICENSE.md" ]; then
+        cp "$CURR_DIR/build/x3270/LICENSE.md" "$DESTDIR/LICENCES/c3270.txt" || true
+        CSV+="\nc3270,BSD 3-Clause,c3270.txt"
+    fi
+
+    if $INCLUDE_CMATRIX && 
+       [ -f "$CURR_DIR/build/cmatrix/COPYING" ]; then
+        cp "$CURR_DIR/build/cmatrix/COPYING" "$DESTDIR/LICENCES/cmatrix.txt" || true
+        CSV+="\nCMatrix,GNU GPLv3,cmatrix.txt"
+    fi
+
+    if $INCLUDE_DROPBEAR && 
+       [ -f "$CURR_DIR/build/dropbear/LICENSE" ]; then
+        cp "$CURR_DIR/build/dropbear/LICENSE" "$DESTDIR/LICENCES/dropbear.txt" || true
+        CSV+="\nDropbear,MIT + BSD 2-Clause,dropbear.txt"
+    fi
+
+    if [ "$ID" == "shork-486" ] &&
+       $FIX_EXTLINUX &&
+       [ -f "$CURR_DIR/build/syslinux/COPYING" ]; then
+        cp "$CURR_DIR/build/syslinux/COPYING" "$DESTDIR/LICENCES/extlinux.txt" || true
+        CSV+="\nEXTLINUX,GNU GPLv2,extlinux.txt"
+    fi
+
+    if $INCLUDE_FILE && 
+       [ -f "$CURR_DIR/build/file/COPYING" ]; then
+        cp "$CURR_DIR/build/file/COPYING" "$DESTDIR/LICENCES/file.txt" || true
+        CSV+="\nfile,BSD 2-Clause,file.txt"
+    fi
+
+    if $INCLUDE_GIT && 
+       [ -f "$CURR_DIR/build/git/COPYING" ]; then
+        cp "$CURR_DIR/build/git/COPYING" "$DESTDIR/LICENCES/git.txt" || true
+        CSV+="\nGit,GNU GPLv2,git.txt"
+    fi
+
+    if $INCLUDE_HTOP && 
+       [ -f "$CURR_DIR/build/htop/COPYING" ]; then
+        cp "$CURR_DIR/build/htop/COPYING" "$DESTDIR/LICENCES/htop.txt" || true
+        CSV+="\nhtop,GNU GPLv2,htop.txt"
+    fi
+
+    if [ -f "$DESTDIR/usr/share/fonts/opentype/ibm-plex-mono/IBMPlexMono-Regular.otf" ] && 
+       [ -f "$CURR_DIR/build/plex/LICENSE.txt" ]; then
+        cp "$CURR_DIR/build/plex/LICENSE.txt" "$DESTDIR/LICENCES/ibm-plex.txt" || true
+        CSV+="\nIBM Plex,OFL 1.1,ibm-plex.txt"
+    fi
+
+    if [ "$ID" == "shork-disc" ] &&
+       $FIX_EXTLINUX &&
+       [ -f "$CURR_DIR/build/syslinux/COPYING" ]; then
+        cp "$CURR_DIR/build/syslinux/COPYING" "$DESTDIR/LICENCES/isolinux.txt" || true
+        CSV+="\nISOLINUX,GNU GPLv2,isolinux.txt"
+    fi
+
+    if $INCLUDE_JOE && 
+       [ -f "$CURR_DIR/build/joe/COPYING" ]; then
+        cp "$CURR_DIR/build/joe/COPYING" "$DESTDIR/LICENCES/joe.txt" || true
+        CSV+="\nJoe's Own Editor,GNU GPLv2,joe.txt"
+    fi
+
+    if [ -f "$DESTDIR/usr/local/bin/lapifetch" ] && 
+       [ -f "$CURR_DIR/build/lapifetch/LICENSE" ]; then
+        cp "$CURR_DIR/build/lapifetch/LICENSE" "$DESTDIR/LICENCES/lapifetch.txt" || true
+        CSV+="\nlapitfetch,MIT,lapifetch.txt"
+    fi
+
+    if $INCLUDE_LYNX && 
+       [ -f "$CURR_DIR/build/lynx-snapshots/COPYING" ]; then
+        cp "$CURR_DIR/build/lynx-snapshots/COPYING" "$DESTDIR/LICENCES/lynx.txt" || true
+        CSV+="\nLynx,GNU GPLv2,lynx.txt"
+    fi
+
+    if [ -f "$DESTDIR/usr/local/musl/lib/libc.so" ] &&
+       [ -f "$CURR_DIR/build/musl-$MUSL_VER/COPYRIGHT" ]; then
+        cp "$CURR_DIR/build/musl-$MUSL_VER/COPYRIGHT" "$DESTDIR/LICENCES/musl.txt" || true
+        CSV+="\nmusl,MIT,musl.txt"
+    fi
+
+    if $INCLUDE_MG && 
+       [ -f "$CURR_DIR/build/mg/UNLICENSE" ]; then
+        cp "$CURR_DIR/build/mg/UNLICENSE" "$DESTDIR/LICENCES/mg.txt" || true
+        CSV+="\nMg,unlicense,mg.txt"
+    fi
+
+    if $INCLUDE_MICROPYTHON && 
+       [ -f "$CURR_DIR/build/micropython/LICENSE" ]; then
+        cp "$CURR_DIR/build/micropython/LICENSE" "$DESTDIR/LICENCES/micropython.txt" || true
+        CSV+="\nMicroPython,MIT,micropython.txt"
+    fi
+
+    if $INCLUDE_MT_ST && 
+       [ -f "$CURR_DIR/build/mt-st/COPYING" ]; then
+        cp "$CURR_DIR/build/mt-st/COPYING" "$DESTDIR/LICENCES/mt-st.txt" || true
+        CSV+="\nmt-st,GNU GPLv2,mt-st.txt"
+    fi
+
+    if $INCLUDE_NANO && 
+       [ -f "$CURR_DIR/build/nano-$NANO_VER/COPYING" ]; then
+        cp "$CURR_DIR/build/nano-$NANO_VER/COPYING" "$DESTDIR/LICENCES/nano.txt" || true
+        CSV+="\nnano,GNU GPLv3,nano.txt"
+    fi
+
+    if [ -f "${PREFIX}/lib/libncursesw.a" ] && 
+       [ -f "$CURR_DIR/build/ncurses/COPYING" ]; then
+        cp "$CURR_DIR/build/ncurses/COPYING" "$DESTDIR/LICENCES/ncurses.txt" || true
+        CSV+="\nncurses,MIT,ncurses.txt"
+    fi
+
+    if [ -f "$DESTDIR/usr/bin/nedit" ] && 
+       [ -f "$CURR_DIR/build/nedit/COPYRIGHT" ]; then
+        cp "$CURR_DIR/build/nedit/COPYRIGHT" "$DESTDIR/LICENCES/nedit.txt" || true
+        CSV+="\nNEdit,GNU GPLv2,nedit.txt"
+    fi
+
+    if [ -f "$DESTDIR/usr/bin/oneko" ]; then
+        echo "Public domain" | sudo tee "$DESTDIR/LICENCES/oneko.txt" > /dev/null
+        CSV+="\noneko,public domain,oneko.txt"
+    fi
+
+    if [ -f "$DESTDIR/usr/bin/rover" ]; then
+        echo "Public domain" | sudo tee "$DESTDIR/LICENCES/rover.txt" > /dev/null
+        CSV+="\nRover,public domain,rover.txt"
+    fi
+
+    if $INCLUDE_SC_IM && 
+       [ -f "$CURR_DIR/build/sc-im/LICENSE" ]; then
+        cp "$CURR_DIR/build/sc-im/LICENSE" "$DESTDIR/LICENCES/sc-im.txt" || true
+        CSV+="\nsc-im,BSD 4-Clause,sc-im.txt"
+    fi
+
+    if [ -f "$DESTDIR/usr/bin/st" ] && 
+       [ -f "$CURR_DIR/build/st/LICENSE" ]; then
+        cp "$CURR_DIR/build/st/LICENSE" "$DESTDIR/LICENCES/st.txt" || true
+        CSV+="\nst,MIT,st.txt"
+    fi
+
+    if $INCLUDE_STRACE && 
+       [ -f "$CURR_DIR/build/strace/COPYING" ]; then
+        cp "$CURR_DIR/build/strace/COPYING" "$DESTDIR/LICENCES/strace.txt" || true
+        CSV+="\nstrace,GNU LGPLv2.1,strace.txt"
+    fi
+
+    if [ "$ID" == "shork-diskette" ] &&
+       $FIX_EXTLINUX &&
+       [ -f "$CURR_DIR/build/syslinux/COPYING" ]; then
+        cp "$CURR_DIR/build/syslinux/COPYING" "$DESTDIR/LICENCES/syslinux.txt" || true
+        CSV+="\nSYSLINUX,GNU GPLv2,syslinux.txt"
+    fi
+
+    if $INCLUDE_TCC && 
+       [ -f "$CURR_DIR/build/tinycc-mirror-repository/COPYING" ]; then
+        cp "$CURR_DIR/build/tinycc-mirror-repository/COPYING" "$DESTDIR/LICENCES/tcc.txt" || true
+        CSV+="\nTiny C Compiler,GNU LGPLv2.1,tcc.txt"
+    fi
+
+    if $INCLUDE_CON_FONTS && 
+       [ -f "$CURR_DIR/build/terminus-font-4.49.1.tar.gz" ]; then
+        tar -xzf "$CURR_DIR/build/terminus-font-4.49.1.tar.gz" -O terminus-font-4.49.1/OFL.TXT > $DESTDIR/LICENCES/terminus.txt
+        CSV+="\nTerminus,OFL 1.1,terminus.txt"
+    fi
+
+    if [ -f "$DESTDIR/usr/bin/tic" ] && 
+       [ -f "$CURR_DIR/build/ncurses/COPYING" ]; then
+        cp "$CURR_DIR/build/ncurses/COPYING" "$DESTDIR/LICENCES/ncurses.txt" || true
+        CSV+="\ntic,MIT,ncurses.txt"
+    fi
+
+    if $INCLUDE_TILDE && 
+       [ -f "$CURR_DIR/build/tilde-$TILDE_VER/COPYING" ]; then
+        cp "$CURR_DIR/build/tilde-$TILDE_VER/COPYING" "$DESTDIR/LICENCES/tilde.txt" || true
+        CSV+="\nTilde,GNU GPLv3,tilde.txt"
+    fi
+
+    if [ -f "$DESTDIR/usr/bin/Xfbdev" ] &&
+       [ -f "$CURR_DIR/build/tinyx/COPYING" ]; then
+        cp "$CURR_DIR/build/tinyx/COPYING" "$DESTDIR/LICENCES/tinyx.txt" || true
+        CSV+="\nTinyX,GNU GPLv3,tinyx.txt"
+    fi
+
+    if $INCLUDE_TMUX && 
+       [ -f "$CURR_DIR/build/tmux/COPYING" ]; then
+        cp "$CURR_DIR/build/tmux/COPYING" "$DESTDIR/LICENCES/tmux.txt" || true
+        CSV+="\ntmux,ISC,tmux.txt"
+    fi
+
+    if $INCLUDE_TN5250 && 
+       [ -f "$CURR_DIR/build/tn5250/COPYING" ]; then
+        cp "$CURR_DIR/build/tn5250/COPYING" "$DESTDIR/LICENCES/tn5250.txt" || true
+        CSV+="\ntn5250,GNU LGPLv2.1,tn5250.txt"
+    fi
+
+    if $INCLUDE_TNFTP && 
+       [ -f "$CURR_DIR/build/tnftp-$TNFTP_VER/COPYING" ]; then
+        cp "$CURR_DIR/build/tnftp-$TNFTP_VER/COPYING" "$DESTDIR/LICENCES/tnftp.txt" || true
+        CSV+="\ntnftp,BSD 2-Clause,tnftp.txt"
+    fi
+
+    if [ -f "$DESTDIR/usr/bin/twm" ] && 
+       [ -f "$CURR_DIR/build/twm/COPYING" ]; then
+        cp "$CURR_DIR/build/twm/COPYING" "$DESTDIR/LICENCES/twm.txt" || true
+        CSV+="\nTWM,MIT,twm.txt"
+    fi
+
+    if $INCLUDE_UTIL_LINUX && 
+       [ -f "$CURR_DIR/build/util-linux/COPYING" ]; then
+        cp "$CURR_DIR/build/util-linux/COPYING" "$DESTDIR/LICENCES/util-linux.txt" || true
+        CSV+="\nutil-linux,GNU GPLv2,util-linux.txt"
+    fi
+
+    if [ -f "$DESTDIR/usr/bin/xli" ] && 
+       [ -f "$CURR_DIR/build/xli/LICENSE" ]; then
+        cp "$CURR_DIR/build/xli/LICENSE" "$DESTDIR/LICENCES/xli.txt" || true
+        CSV+="\nxli,MIT,xli.txt"
+    fi
+
+    if [ -f "$DESTDIR/usr/bin/xload" ] && 
+       [ -f "$CURR_DIR/build/xload-1.2.0/COPYING" ]; then
+        cp "$CURR_DIR/build/xload-1.2.0/COPYING" "$DESTDIR/LICENCES/xload.txt" || true
+        CSV+="\nxload,MIT,xload.txt"
+    fi
+
+    if [ -f "$DESTDIR/usr/bin/xset" ] && 
+       [ -f "$CURR_DIR/build/xset-1.2.5/COPYING" ]; then
+        cp "$CURR_DIR/build/xset-1.2.5/COPYING" "$DESTDIR/LICENCES/xset.txt" || true
+        CSV+="\nxset,MIT,xset.txt"
+    fi
+
+    echo -e "$CSV" > "$DESTDIR/LICENCES/manifest.csv"
 }
 
 
@@ -4944,7 +5123,7 @@ build_file_system()
     cd $DESTDIR
 
     echo -e "${GREEN}Creating required directories...${RESET}"
-    sudo mkdir -p {dev,proc,etc/init.d,sys,tmp,usr/share,usr/libexec,banners}
+    sudo mkdir -p {dev,proc,etc/init.d,sys,tmp,usr/share,usr/libexec,banners,mnt}
 
     echo -e "${GREEN}Configure permissions...${RESET}"
     chmod +x $CURR_DIR/sysfiles/*/rc
@@ -4954,7 +5133,6 @@ build_file_system()
     chmod +x $CURR_DIR/sysfiles/shutdown
 
     echo -e "${GREEN}Copying system files...${RESET}"
-    copy_sysfile $CURR_DIR/sysfiles/welcome $DESTDIR/banners/welcome
     copy_sysfile $CURR_DIR/sysfiles/hostname $DESTDIR/etc/hostname
     copy_sysfile $CURR_DIR/sysfiles/issue $DESTDIR/etc/issue
     copy_sysfile $CURR_DIR/sysfiles/os-release $DESTDIR/etc/os-release
@@ -4962,15 +5140,21 @@ build_file_system()
     if [ "$ID" == "shork-486" ]; then
         copy_sysfile $CURR_DIR/sysfiles/486/rc $DESTDIR/etc/init.d/rc
         copy_sysfile $CURR_DIR/sysfiles/486/profile $DESTDIR/etc/profile
+        copy_sysfile $CURR_DIR/sysfiles/486/welcome $DESTDIR/banners/welcome
         copy_sysfile $CURR_DIR/sysfiles/goodbye-80 $DESTDIR/banners/goodbye-80
         copy_sysfile $CURR_DIR/sysfiles/goodbye-100 $DESTDIR/banners/goodbye-100
         copy_sysfile $CURR_DIR/sysfiles/goodbye-128 $DESTDIR/banners/goodbye-128
         copy_sysfile $CURR_DIR/sysfiles/passwd $DESTDIR/etc/passwd
         copy_sysfile $CURR_DIR/sysfiles/poweroff $DESTDIR/sbin/poweroff
         copy_sysfile $CURR_DIR/sysfiles/shutdown $DESTDIR/sbin/shutdown
+    elif [ "$ID" == "shork-disc" ]; then
+        copy_sysfile $CURR_DIR/sysfiles/disc/profile $DESTDIR/etc/profile
+        copy_sysfile $CURR_DIR/sysfiles/disc/rc $DESTDIR/etc/init.d/rc
+        copy_sysfile $CURR_DIR/sysfiles/disc/welcome $DESTDIR/banners/welcome
     elif [ "$ID" == "shork-diskette" ]; then
         copy_sysfile $CURR_DIR/sysfiles/diskette/profile $DESTDIR/etc/profile
         copy_sysfile $CURR_DIR/sysfiles/diskette/rc $DESTDIR/etc/init.d/rc
+        copy_sysfile $CURR_DIR/sysfiles/diskette/welcome $DESTDIR/banners/welcome
     fi
 
     if $ENABLE_FB; then
@@ -5040,7 +5224,11 @@ build_file_system()
         sudo sed -i '/^export LOGIN_TIMEOUT=0$/d' "$DESTDIR/etc/profile"
     else
         if [ "$ID" == "shork-486" ]; then
+            sudo mkdir -p $DESTDIR/root
             copy_sysfile $CURR_DIR/sysfiles/486/inittab.nogetty $DESTDIR/etc/inittab
+        elif [ "$ID" == "shork-disc" ]; then
+            sudo mkdir -p $DESTDIR/root
+            copy_sysfile $CURR_DIR/sysfiles/disc/inittab $DESTDIR/etc/inittab
         elif [ "$ID" == "shork-diskette" ]; then
             copy_sysfile $CURR_DIR/sysfiles/diskette/inittab $DESTDIR/etc/inittab
         fi
@@ -5070,7 +5258,7 @@ build_file_system()
     fi
 
     echo -e "${GREEN}Copying SHORK Utilities configuration files...${RESET}"
-    if [ "$ID" == "shork-486" ]; then
+    if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
         sudo mkdir -p $DESTDIR/root/.config/shorkutils
         copy_sysfile $CURR_DIR/sysfiles/shorkfetch.conf $DESTDIR/root/.config/shorkutils/shorkfetch.conf
     fi
@@ -5084,6 +5272,13 @@ build_file_system()
         echo -e "${GREEN}Installing CA certificates for OpenSSL...${RESET}"
         sudo mkdir -p $DESTDIR/etc/ssl
         copy_sysfile /etc/ssl/certs/ca-certificates.crt $DESTDIR/etc/ssl/cert.pem
+    fi
+
+    # Copy any payload
+    if [ "$ID" == "shork-disc" ]; then
+        find "$CURR_DIR/payload/" -mindepth 1 -not -name "notice.txt" | while read -r item; do
+            sudo cp -r "$item" "$DESTDIR/root/"
+        done
     fi
 
     echo -e "${GREEN}Ensure file permissions are correct...${RESET}"
@@ -5101,7 +5296,7 @@ compress_file_system()
 }
 
 # Partition disk image
-partition_image()
+partition_disk_img()
 {
     cd $CURR_DIR/build/
 
@@ -5120,43 +5315,6 @@ partition_image()
     fi
 
     ROOT_PART_SIZE=$((ROOT_SIZE / 2048))
-}
-
-# Install GRUB bootloader (SHORK 486)
-install_grub_bootloader()
-{
-    cd $CURR_DIR/build/
-
-    sudo mkdir -p "/mnt/${ID}/boot/grub"
-
-    if $ENABLE_MENU; then
-        echo -e "${GREEN}Installing menu-based GRUB bootloader...${RESET}"
-        copy_sysfile $CURR_DIR/sysfiles/486/grub.cfg.menu "/mnt/${ID}/boot/grub/grub.cfg"
-    else
-        echo -e "${GREEN}Installing boot-only GRUB bootloader...${RESET}"
-        copy_sysfile $CURR_DIR/sysfiles/486/grub.cfg.boot "/mnt/${ID}/boot/grub/grub.cfg"
-    fi
-
-    # If required, specify the target scancode set
-    if [[ $SCANCODE_SET != -1 ]]; then
-        sudo sed -i "s/atkbd.extra=1/atkbd.set=${SCANCODE_SET} atkbd.extra=1/" "/mnt/${ID}/boot/grub/grub.cfg"
-    fi
-
-    sudo mount --bind /dev  "/mnt/${ID}/dev"
-    sudo mount --bind /proc "/mnt/${ID}/proc"
-    sudo mount --bind /sys  "/mnt/${ID}/sys"
-
-    GRUB_CMD="grub-install"
-    if ! command -v "$GRUB_CMD" >/dev/null 2>&1; then
-        GRUB_CMD="/usr/sbin/grub2-install"
-    fi
-    sudo $GRUB_CMD --target=i386-pc --boot-directory="/mnt/${ID}/boot" --modules="ext2 part_msdos biosdisk" --force "$1"
-
-    sudo umount "/mnt/${ID}/dev"
-    sudo umount "/mnt/${ID}/proc"
-    sudo umount "/mnt/${ID}/sys"
-
-    BOOTLDR_USED="GRUB"
 }
 
 # Install EXTLINUX bootloader (SHORK 486)
@@ -5216,6 +5374,101 @@ install_extlinux_bootloader()
     sudo dd if="$MBR_BIN" of="${CURR_DIR}/images/${ID}.img" bs=440 count=1 conv=notrunc
 }
 
+# Install GRUB bootloader (SHORK 486)
+install_grub_bootloader()
+{
+    cd $CURR_DIR/build/
+
+    sudo mkdir -p "/mnt/${ID}/boot/grub"
+
+    if $ENABLE_MENU; then
+        echo -e "${GREEN}Installing menu-based GRUB bootloader...${RESET}"
+        copy_sysfile $CURR_DIR/sysfiles/486/grub.cfg.menu "/mnt/${ID}/boot/grub/grub.cfg"
+    else
+        echo -e "${GREEN}Installing boot-only GRUB bootloader...${RESET}"
+        copy_sysfile $CURR_DIR/sysfiles/486/grub.cfg.boot "/mnt/${ID}/boot/grub/grub.cfg"
+    fi
+
+    # If required, specify the target scancode set
+    if [[ $SCANCODE_SET != -1 ]]; then
+        sudo sed -i "s/atkbd.extra=1/atkbd.set=${SCANCODE_SET} atkbd.extra=1/" "/mnt/${ID}/boot/grub/grub.cfg"
+    fi
+
+    sudo mount --bind /dev  "/mnt/${ID}/dev"
+    sudo mount --bind /proc "/mnt/${ID}/proc"
+    sudo mount --bind /sys  "/mnt/${ID}/sys"
+
+    GRUB_CMD="grub-install"
+    if ! command -v "$GRUB_CMD" >/dev/null 2>&1; then
+        GRUB_CMD="/usr/sbin/grub2-install"
+    fi
+    sudo $GRUB_CMD --target=i386-pc --boot-directory="/mnt/${ID}/boot" --modules="ext2 part_msdos biosdisk" --force "$1"
+
+    sudo umount "/mnt/${ID}/dev"
+    sudo umount "/mnt/${ID}/proc"
+    sudo umount "/mnt/${ID}/sys"
+
+    BOOTLDR_USED="GRUB"
+}
+
+# Install ISOLINUX bootloader (SHORK DISC)
+install_isolinux_bootloader()
+{
+    cd $CURR_DIR/build/
+
+    echo -e "${GREEN}Installing ISOLINUX bootloader...${RESET}"
+
+    BOOTLDR_USED="ISOLINUX"
+
+    # Copy main bootloader binary
+    if $FIX_EXTLINUX; then
+        BOOTLDR_USED="patched ISOLINUX"
+        sudo cp "${CURR_DIR}/build/syslinux/bios/core/isolinux.bin" "${DESTDIR}/boot/isolinux"
+    else
+        ISOLINUX_BIN_CANS="
+        /usr/lib/ISOLINUX/isolinux.bin
+        /usr/lib/syslinux/bios/isolinux.bin
+        /usr/share/syslinux/isolinux.bin
+        "
+
+        ISOLINUX_BIN_FOUND=false
+        for c in $ISOLINUX_BIN_CANS; do
+            if [ -f "$c" ]; then
+                sudo cp "$c" "${DESTDIR}/boot/isolinux"
+                ISOLINUX_BIN_FOUND=true
+                break
+            fi
+        done
+
+        if ! $ISOLINUX_BIN_FOUND; then
+            echo -e "${RED}ERROR: ISOLINUX binary not found${RESET}"
+            exit 1
+        fi
+    fi
+
+    # Copy helper(s)
+    SYSLINUX_DIRS="
+    /usr/lib/syslinux/modules/bios
+    /usr/lib/syslinux/bios
+    /usr/share/syslinux
+    /usr/lib/syslinux
+    "
+
+    copy_syslinux_file()
+    {
+        for d in $SYSLINUX_DIRS; do
+            if [ -f "$d/$1" ]; then
+                sudo cp "$d/$1" "${DESTDIR}/boot/isolinux"
+                return 0
+            fi
+        done
+        echo "ERROR: $1 not found"
+        exit 1
+    }
+
+    copy_syslinux_file ldlinux.c32
+}
+
 # Install SYSLINUX bootloader (SHORK DISKETTE)
 install_syslinux_bootloader()
 {
@@ -5225,7 +5478,7 @@ install_syslinux_bootloader()
 
     SYSLINUX_BIN="syslinux"
     BOOTLDR_USED="SYSLINUX"
-    if $FIX_SYSLINUX; then
+    if $FIX_EXTLINUX; then
         SYSLINUX_BIN="$CURR_DIR/build/syslinux/bios/linux/syslinux"
         BOOTLDR_USED="patched SYSLINUX"
     fi 
@@ -5332,7 +5585,7 @@ build_disk_img()
 
     # Partition the image
     echo -e "${GREEN}Partitioning the disk image...${RESET}"
-    partition_image "$ALIGNED_SECTORS"
+    partition_disk_img "$ALIGNED_SECTORS"
 
     # Ensure loop devices exist (Docker does not always create them)
     for i in $(seq 0 255); do
@@ -5394,6 +5647,36 @@ convert_disk_img()
 
     echo -e "${GREEN}Creating VMware virtual machine disk from disk image...${RESET}"
     qemu-img convert -f raw -O vmdk "${ID}.img" "${ID}.vmdk"
+}
+
+# Build an optical disc image containing our system (SHORK DISC)
+build_disc_img()
+{
+    cd $CURR_DIR/build/
+
+    sudo mkdir -p "${DESTDIR}/boot/isolinux"
+
+    # Install bootloader
+    install_isolinux_bootloader
+
+    # Copy ISOLINUX configuration
+    echo -e "${GREEN}Copying ISOLINUX configuration...${RESET}"
+    copy_sysfile $CURR_DIR/sysfiles/disc/isolinux.cfg  "${DESTDIR}/boot/isolinux/isolinux.cfg"
+
+    # Install the kernel
+    echo -e "${GREEN}Copying kernel image...${RESET}"
+    sudo cp bzImage "${DESTDIR}/boot/bzImage"
+
+    sudo genisoimage \
+        -o "${CURR_DIR}/images/${ID}.iso" \
+        -b boot/isolinux/isolinux.bin \
+        -c boot/isolinux/boot.cat \
+        -no-emul-boot \
+        -boot-load-size 4 \
+        -boot-info-table \
+        -R -J \
+        -V "SHORKDISC" \
+        "$DESTDIR"
 }
 
 # Build a floppy diskette image containing our system (SHORK DISKETTE)
@@ -5473,399 +5756,644 @@ build_diskette_img()
 ## End of build report generation                   ##
 ######################################################
 
-# Checks what kernel-level support, programs and features are enabled and makes a list
-# for the after-build report
+# Checks if a given BusyBox .config feature is included and puts it in either
+# an EXCLUDED or INCLUDED list for the after-build report to display
+check_bb_config()
+{
+    DOT_CONFIG="${CURR_DIR}/build/busybox-${BUSYBOX_VER}/.config"
+
+    local symbol="$1"
+    local name="$2"
+
+    if [ -z "$symbol" ] && [ -z "$name" ] ; then
+        return
+    fi
+
+    if [ -z "$name" ]; then
+        name="${symbol#CONFIG_}"
+        name="${name,,}"
+    fi
+
+    if grep -q "${symbol}=y" "$DOT_CONFIG"; then
+        INCLUDED_BB_CMDS+=("$name")
+    else
+        EXCLUDED_BB_CMDS+=("$name")
+    fi
+}
+
+# Checks what BusyBox commands are enabled
+get_included_busybox_commands()
+{
+    check_bb_config "CONFIG_AR" ""
+    check_bb_config "CONFIG_XZ" ""
+    check_bb_config "CONFIG_GZIP" ""
+    check_bb_config "CONFIG_TAR" ""
+    check_bb_config "CONFIG_UNZIP" ""
+    check_bb_config "CONFIG_BASENAME" ""
+    check_bb_config "CONFIG_CAT" ""
+    check_bb_config "CONFIG_CHGRP" ""
+    check_bb_config "CONFIG_CHMOD" ""
+    check_bb_config "CONFIG_CHOWN" ""
+    check_bb_config "CONFIG_CHROOT" ""
+    check_bb_config "CONFIG_CP" ""
+    check_bb_config "CONFIG_CUT" ""
+    check_bb_config "CONFIG_DATE" ""
+    check_bb_config "CONFIG_DD" ""
+    check_bb_config "CONFIG_DF" ""
+    check_bb_config "CONFIG_DIRNAME" ""
+    check_bb_config "CONFIG_DOS2UNIX" ""
+    check_bb_config "CONFIG_UNIX2DOS" ""
+    check_bb_config "CONFIG_DU" ""
+    check_bb_config "CONFIG_ECHO" ""
+    check_bb_config "CONFIG_ENV" ""
+    check_bb_config "CONFIG_EXPAND" ""
+    check_bb_config "CONFIG_UNEXPAND" ""
+    check_bb_config "CONFIG_EXPR" ""
+    check_bb_config "CONFIG_FALSE" ""
+    check_bb_config "CONFIG_FOLD" ""
+    check_bb_config "CONFIG_HEAD" ""
+    check_bb_config "CONFIG_LN" ""
+    check_bb_config "CONFIG_LS" ""
+    check_bb_config "CONFIG_MKDIR" ""
+    check_bb_config "CONFIG_MKNOD" ""
+    check_bb_config "CONFIG_MV" ""
+    check_bb_config "CONFIG_NICE" ""
+    check_bb_config "CONFIG_NOHUP" ""
+    check_bb_config "CONFIG_NPROC" ""
+    check_bb_config "CONFIG_PASTE" ""
+    check_bb_config "CONFIG_PRINTENV" ""
+    check_bb_config "CONFIG_PRINTF" ""
+    check_bb_config "CONFIG_PWD" ""
+    check_bb_config "CONFIG_READLINK" ""
+    check_bb_config "CONFIG_RM" ""
+    check_bb_config "CONFIG_RMDIR" ""
+    check_bb_config "CONFIG_SEQ" ""
+    check_bb_config "CONFIG_SLEEP" ""
+    check_bb_config "CONFIG_STAT" ""
+    check_bb_config "CONFIG_STTY" ""
+    check_bb_config "CONFIG_SYNC" ""
+    check_bb_config "CONFIG_TEE" ""
+    check_bb_config "CONFIG_TEST" ""
+    check_bb_config "CONFIG_TOUCH" ""
+    check_bb_config "CONFIG_TR" ""
+    check_bb_config "CONFIG_TRUE" ""
+    check_bb_config "CONFIG_TRUNCATE" ""
+    check_bb_config "CONFIG_TTY" ""
+    check_bb_config "CONFIG_UNAME" ""
+    check_bb_config "CONFIG_BB_ARCH" "arch"
+    check_bb_config "CONFIG_USLEEP" ""
+    check_bb_config "CONFIG_WC" ""
+    check_bb_config "CONFIG_WHO" ""
+    check_bb_config "CONFIG_W" ""
+    check_bb_config "CONFIG_USERS" ""
+    check_bb_config "CONFIG_WHOAMI" ""
+    check_bb_config "CONFIG_YES" ""
+    check_bb_config "CONFIG_CHVT" ""
+    check_bb_config "CONFIG_CLEAR" ""
+    check_bb_config "CONFIG_SETFONT" ""
+    check_bb_config "CONFIG_LOADKMAP" ""
+    check_bb_config "CONFIG_SHOWKEY" ""
+    check_bb_config "CONFIG_WHICH" ""
+    check_bb_config "CONFIG_AWK" ""
+    check_bb_config "CONFIG_DIFF" ""
+    check_bb_config "CONFIG_ED" ""
+    check_bb_config "CONFIG_PATCH" ""
+    check_bb_config "CONFIG_SED" ""
+    check_bb_config "CONFIG_VI" ""
+    check_bb_config "CONFIG_FIND" ""
+    check_bb_config "CONFIG_GREP" ""
+    check_bb_config "CONFIG_HALT" ""
+    check_bb_config "CONFIG_INIT" ""
+    check_bb_config "CONFIG_ADDGROUP" ""
+    check_bb_config "CONFIG_ADDUSER" ""
+    check_bb_config "CONFIG_CHPASSWD" ""
+    check_bb_config "CONFIG_CRYPTPW" ""
+    check_bb_config "CONFIG_MKPASSWD" ""
+    check_bb_config "CONFIG_DELUSER" ""
+    check_bb_config "CONFIG_DELGROUP" ""
+    check_bb_config "CONFIG_GETTY" ""
+    check_bb_config "CONFIG_LOGIN" ""
+    check_bb_config "CONFIG_PASSWD" ""
+    check_bb_config "CONFIG_SU" ""
+    check_bb_config "CONFIG_SULOGIN" ""
+    check_bb_config "CONFIG_BLKID" ""
+    check_bb_config "CONFIG_CAL" ""
+    check_bb_config "CONFIG_DMESG" ""
+    check_bb_config "CONFIG_EJECT" ""
+    check_bb_config "CONFIG_FDFORMAT" ""
+    check_bb_config "CONFIG_FDISK" ""
+    check_bb_config "CONFIG_HEXDUMP" ""
+    check_bb_config "CONFIG_XXD" ""
+    check_bb_config "CONFIG_LOSETUP" ""
+    check_bb_config "CONFIG_LSBLK" ""
+    check_bb_config "CONFIG_LSPCI" ""
+    check_bb_config "CONFIG_LSUSB" ""
+    check_bb_config "CONFIG_MDEV" ""
+    check_bb_config "CONFIG_MKFS_EXT2" "mkdosfs/mkfs.ext2"
+    check_bb_config "CONFIG_MKFS_VFAT" "mke2fs/mkfs.vfat"
+    check_bb_config "CONFIG_MKSWAP" ""
+    check_bb_config "CONFIG_MOUNT" ""
+    check_bb_config "CONFIG_MOUNTPOINT" ""
+    check_bb_config "CONFIG_REV" ""
+    check_bb_config "CONFIG_SWAPON" ""
+    check_bb_config "CONFIG_SWAPOFF" ""
+    check_bb_config "CONFIG_TASKSET" ""
+    check_bb_config "CONFIG_UMOUNT" ""
+    check_bb_config "CONFIG_UUIDGEN" ""
+    check_bb_config "CONFIG_ASCII" ""
+    check_bb_config "CONFIG_BC" ""
+    check_bb_config "CONFIG_DC" ""
+    check_bb_config "CONFIG_BEEP" ""
+    check_bb_config "CONFIG_CRONTAB" ""
+    check_bb_config "CONFIG_GETFATTR" ""
+    check_bb_config "CONFIG_LESS" ""
+    check_bb_config "CONFIG_MAN" ""
+    check_bb_config "CONFIG_PARTPROBE" ""
+    check_bb_config "CONFIG_SETFATTR" ""
+    check_bb_config "CONFIG_TIME" ""
+    check_bb_config "CONFIG_TREE" ""
+    check_bb_config "CONFIG_VOLNAME" ""
+    check_bb_config "CONFIG_FTPGET" ""
+    check_bb_config "CONFIG_FTPPUT" ""
+    check_bb_config "CONFIG_HOSTNAME" ""
+    check_bb_config "CONFIG_IFCONFIG" ""
+    check_bb_config "CONFIG_IP" ""
+    check_bb_config "CONFIG_PING" ""
+    check_bb_config "CONFIG_ROUTE" ""
+    check_bb_config "CONFIG_TELNET" ""
+    check_bb_config "CONFIG_TRACEROUTE" ""
+    check_bb_config "CONFIG_WGET" ""
+    check_bb_config "CONFIG_WHOIS" ""
+    check_bb_config "CONFIG_UDHCPC" ""
+    check_bb_config "CONFIG_FREE" ""
+    check_bb_config "CONFIG_KILL" ""
+    check_bb_config "CONFIG_KILLALL" ""
+    check_bb_config "CONFIG_PKILL" ""
+    check_bb_config "CONFIG_PMAP" ""
+    check_bb_config "CONFIG_PS" ""
+    check_bb_config "CONFIG_PSTREE" ""
+    check_bb_config "CONFIG_TOP" ""
+    check_bb_config "CONFIG_UPTIME" ""
+    check_bb_config "CONFIG_VMSTAT" ""
+    check_bb_config "CONFIG_ASH" ""
+
+    readarray -t INCLUDED_BB_CMDS < <(printf '%s\n' "${INCLUDED_BB_CMDS[@]}" | sort)
+    readarray -t EXCLUDED_BB_CMDS < <(printf '%s\n' "${EXCLUDED_BB_CMDS[@]}" | sort)
+}
+
+# Checks what kernel-level support, programs and features are enabled and
+# puts them in either an EXCLUDED or INCLUDED list for the after-build report
+# to display
 get_installed_programs_features()
 {
     # Kernel features
-    if $INCLUDE_GUI; then
-        INCLUDED_FEATURES+="\n * kernel-level event interface support"
-    else
-        EXCLUDED_FEATURES+="\n * kernel-level event interface support"
+    if [ "$ID" == "shork-486" ]; then
+        if $INCLUDE_GUI; then
+            INCLUDED_FEATURES+="\n * kernel-level event interface support"
+        else
+            EXCLUDED_FEATURES+="\n * kernel-level event interface support"
+        fi
     fi
 
-    if $ENABLE_CDROM; then
-        INCLUDED_FEATURES+="\n * kernel-level CD-ROM & DVD-ROM support"
-    else
-        EXCLUDED_FEATURES+="\n * kernel-level CD-ROM & DVD-ROM support"
+    if [ "$ID" != "shork-disc" ]; then
+        if $ENABLE_CDROM; then
+            INCLUDED_FEATURES+="\n * kernel-level CD-ROM & DVD-ROM support"
+        else
+            EXCLUDED_FEATURES+="\n * kernel-level CD-ROM & DVD-ROM support"
+        fi
     fi
 
-    if $ENABLE_FB; then
-        INCLUDED_FEATURES+="\n * kernel-level framebuffer, VESA & enhanced VGA support"
-    else
-        EXCLUDED_FEATURES+="\n * kernel-level framebuffer, VESA & enhanced VGA support"
-    fi
+    if [ "$ID" == "shork-486" ]; then
+        if $ENABLE_FB; then
+            INCLUDED_FEATURES+="\n * kernel-level framebuffer, VESA & enhanced VGA support"
+        else
+            EXCLUDED_FEATURES+="\n * kernel-level framebuffer, VESA & enhanced VGA support"
+        fi
 
-    if $ENABLE_HIGHMEM; then
-        INCLUDED_FEATURES+="\n * kernel-level high memory support"
-    else
-        EXCLUDED_FEATURES+="\n * kernel-level high memory support"
-    fi
+        if $ENABLE_HIGHMEM; then
+            INCLUDED_FEATURES+="\n * kernel-level high memory support"
+        else
+            EXCLUDED_FEATURES+="\n * kernel-level high memory support"
+        fi
 
-    if $ENABLE_MULTIUSER_KRN; then
-        INCLUDED_FEATURES+="\n * kernel-level multi-user support"
-    else
-        EXCLUDED_FEATURES+="\n * kernel-level multi-user support"
-    fi
+        if $ENABLE_MULTIUSER_KRN; then
+            INCLUDED_FEATURES+="\n * kernel-level multi-user support"
+        else
+            EXCLUDED_FEATURES+="\n * kernel-level multi-user support"
+        fi
 
-    if $ENABLE_NET_BASE; then
-        INCLUDED_FEATURES+="\n * kernel-level networking support (base)"
-    else
-        EXCLUDED_FEATURES+="\n * kernel-level networking support (base)"
-    fi
+        if $ENABLE_NET_BASE; then
+            INCLUDED_FEATURES+="\n * kernel-level networking support (base)"
+        else
+            EXCLUDED_FEATURES+="\n * kernel-level networking support (base)"
+        fi
 
-    if $ENABLE_NET_ETH; then
-        INCLUDED_FEATURES+="\n * kernel-level networking support (ethernet)"
-    else
-        EXCLUDED_FEATURES+="\n * kernel-level networking support (ethernet)"
-    fi
+        if $ENABLE_NET_ETH; then
+            INCLUDED_FEATURES+="\n * kernel-level networking support (ethernet)"
+        else
+            EXCLUDED_FEATURES+="\n * kernel-level networking support (ethernet)"
+        fi
 
-    if $ENABLE_NET_PCMCIA; then
-        INCLUDED_FEATURES+="\n * kernel-level networking support (PCMCIA)"
-    else
-        EXCLUDED_FEATURES+="\n * kernel-level networking support (PCMCIA)"
-    fi
+        if $ENABLE_NET_PCMCIA; then
+            INCLUDED_FEATURES+="\n * kernel-level networking support (PCMCIA)"
+        else
+            EXCLUDED_FEATURES+="\n * kernel-level networking support (PCMCIA)"
+        fi
 
-    if $ENABLE_PCMCIA; then
-        INCLUDED_FEATURES+="\n * kernel-level PCMCIA support"
-    else
-        EXCLUDED_FEATURES+="\n * kernel-level PCMCIA support"
-    fi
+        if $ENABLE_PCMCIA; then
+            INCLUDED_FEATURES+="\n * kernel-level PCMCIA support"
+        else
+            EXCLUDED_FEATURES+="\n * kernel-level PCMCIA support"
+        fi
 
-    if $ENABLE_SATA; then
-        INCLUDED_FEATURES+="\n * kernel-level SATA support"
-    else
-        EXCLUDED_FEATURES+="\n * kernel-level SATA support"
-    fi
+        if $ENABLE_SATA; then
+            INCLUDED_FEATURES+="\n * kernel-level SATA support"
+        else
+            EXCLUDED_FEATURES+="\n * kernel-level SATA support"
+        fi
 
-    if $ENABLE_SCSI_EXP; then
-        INCLUDED_FEATURES+="\n * kernel-level SCSI media changer & tape drive support"
-    else
-        EXCLUDED_FEATURES+="\n * kernel-level SCSI media changer & tape drive support"
-    fi
+        if $ENABLE_SCSI_EXP; then
+            INCLUDED_FEATURES+="\n * kernel-level SCSI media changer & tape drive support"
+        else
+            EXCLUDED_FEATURES+="\n * kernel-level SCSI media changer & tape drive support"
+        fi
 
-    if $ENABLE_TASKSTATS; then
-        INCLUDED_FEATURES+="\n * kernel-level taskstats support"
-    else
-        EXCLUDED_FEATURES+="\n * kernel-level taskstats support"
-    fi
+        if $ENABLE_TASKSTATS; then
+            INCLUDED_FEATURES+="\n * kernel-level taskstats support"
+        else
+            EXCLUDED_FEATURES+="\n * kernel-level taskstats support"
+        fi
 
-    if $ENABLE_USB; then
-        INCLUDED_FEATURES+="\n * kernel-level USB & HID support"
-    else
-        EXCLUDED_FEATURES+="\n * kernel-level USB & HID support"
-    fi
+        if $ENABLE_USB; then
+            INCLUDED_FEATURES+="\n * kernel-level USB & HID support"
+        else
+            EXCLUDED_FEATURES+="\n * kernel-level USB & HID support"
+        fi
 
-    if $ENABLE_ZSWAP; then
-        INCLUDED_FEATURES+="\n * kernel-level zswap support"
-    else
-        EXCLUDED_FEATURES+="\n * kernel-level zswap support"
+        if $ENABLE_ZSWAP; then
+            INCLUDED_FEATURES+="\n * kernel-level zswap support"
+        else
+            EXCLUDED_FEATURES+="\n * kernel-level zswap support"
+        fi
     fi
 
     # Misc features
-    if [ -d "$DESTDIR/usr/share/consolefonts" ]; then
-        INCLUDED_FEATURES+="\n * console fonts pack"
-    else
-        EXCLUDED_FEATURES+="\n * console fonts pack"
-    fi
+    if [ "$ID" == "shork-486" ]; then
+        if [ -d "$DESTDIR/usr/share/consolefonts" ]; then
+            INCLUDED_FEATURES+="\n * console fonts pack"
+        else
+            EXCLUDED_FEATURES+="\n * console fonts pack"
+        fi
 
-    if [ -d "$DESTDIR/usr/share/keymaps" ]; then
-        INCLUDED_FEATURES+="\n * keymaps"
-    else
-        EXCLUDED_FEATURES+="\n * keymaps"
-    fi
+        if [ -d "$DESTDIR/usr/share/keymaps" ]; then
+            INCLUDED_FEATURES+="\n * keymaps"
+        else
+            EXCLUDED_FEATURES+="\n * keymaps"
+        fi
 
-    if [ -f "$DESTDIR/usr/local/musl/lib/libc.so" ]; then
-        INCLUDED_FEATURES+="\n * musl (for TCC, $MUSL_VER)"
-    else
-        EXCLUDED_FEATURES+="\n * musl (for TCC)"
-    fi
+        if [ -f "$DESTDIR/usr/local/musl/lib/libc.so" ]; then
+            INCLUDED_FEATURES+="\n * musl (for TCC, $MUSL_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * musl (for TCC)"
+        fi
 
-    if [ -f "$DESTDIR/usr/share/misc/pci.ids" ]; then
-        INCLUDED_FEATURES+="\n * pci.ids database"
-    else
-        EXCLUDED_FEATURES+="\n * pci.ids database"
+        if [ -f "$DESTDIR/usr/share/misc/pci.ids" ]; then
+            INCLUDED_FEATURES+="\n * pci.ids database"
+        else
+            EXCLUDED_FEATURES+="\n * pci.ids database"
+        fi
     fi
 
     # SHORK Utilities
-    if [ -f "$DESTDIR/usr/bin/shorkdir" ]; then
-        INCLUDED_FEATURES+="\n * shorkdir"
-    else
-        EXCLUDED_FEATURES+="\n * shorkdir"
+    if [ "$ID" != "shork-diskette" ]; then
+        if [ -f "$DESTDIR/usr/bin/shorkdir" ]; then
+            INCLUDED_FEATURES+="\n * shorkdir"
+        else
+            EXCLUDED_FEATURES+="\n * shorkdir"
+        fi
     fi
+
     if [ -f "$DESTDIR/usr/bin/shorkfetch" ]; then
         INCLUDED_FEATURES+="\n * shorkfetch"
     else
         EXCLUDED_FEATURES+="\n * shorkfetch"
     fi
-    if [ -f "$DESTDIR/usr/bin/shorkgui" ]; then
-        INCLUDED_FEATURES+="\n * shorkgui"
-    else
-        EXCLUDED_FEATURES+="\n * shorkgui"
+
+    if [ "$ID" == "shork-486" ]; then
+        if [ -f "$DESTDIR/usr/bin/shorkgui" ]; then
+            INCLUDED_FEATURES+="\n * shorkgui"
+        else
+            EXCLUDED_FEATURES+="\n * shorkgui"
+        fi
     fi
+
     if [ -f "$DESTDIR/usr/bin/shorkhelp" ]; then
         INCLUDED_FEATURES+="\n * shorkhelp"
     else
         EXCLUDED_FEATURES+="\n * shorkhelp"
     fi
-    if [ -f "$DESTDIR/sbin/shorkoff" ]; then
-        INCLUDED_FEATURES+="\n * shorkoff"
-    else
-        EXCLUDED_FEATURES+="\n * shorkoff"
-    fi
-    if [ -f "$DESTDIR/usr/libexec/shorkset" ]; then
-        INCLUDED_FEATURES+="\n * shorkset"
-    else
-        EXCLUDED_FEATURES+="\n * shorkset"
+
+    if [ "$ID" == "shork-486" ]; then
+        if [ -f "$DESTDIR/sbin/shorkoff" ]; then
+            INCLUDED_FEATURES+="\n * shorkoff"
+        else
+            EXCLUDED_FEATURES+="\n * shorkoff"
+        fi
+
+        if [ -f "$DESTDIR/usr/libexec/shorkset" ]; then
+            INCLUDED_FEATURES+="\n * shorkset"
+        else
+            EXCLUDED_FEATURES+="\n * shorkset"
+        fi
     fi
 
     # SHORK Entertainment
-    if [ -f "$DESTDIR/usr/bin/shorklocomotive" ]; then
-        INCLUDED_FEATURES+="\n * shorklocomotive"
-    else
-        EXCLUDED_FEATURES+="\n * shorklocomotive"
-    fi
-    if [ -f "$DESTDIR/usr/bin/shorkmatrix" ]; then
-        INCLUDED_FEATURES+="\n * shorkmatrix"
-    else
-        EXCLUDED_FEATURES+="\n * shorkmatrix"
-    fi
-    if [ -f "$DESTDIR/usr/bin/shorksay" ]; then
-        INCLUDED_FEATURES+="\n * shorksay"
-    else
-        EXCLUDED_FEATURES+="\n * shorksay"
+    if [ "$ID" != "shork-diskette" ]; then
+        if [ -f "$DESTDIR/usr/bin/shorklocomotive" ]; then
+            INCLUDED_FEATURES+="\n * shorklocomotive"
+        else
+            EXCLUDED_FEATURES+="\n * shorklocomotive"
+        fi
+
+        if [ -f "$DESTDIR/usr/bin/shorkmatrix" ]; then
+            INCLUDED_FEATURES+="\n * shorkmatrix"
+        else
+            EXCLUDED_FEATURES+="\n * shorkmatrix"
+        fi
+
+        if [ -f "$DESTDIR/usr/bin/shorksay" ]; then
+            INCLUDED_FEATURES+="\n * shorksay"
+        else
+            EXCLUDED_FEATURES+="\n * shorksay"
+        fi
     fi
 
     # SHORKGUI
-    if [ -f "$DESTDIR/usr/bin/oneko" ]; then
-        INCLUDED_FEATURES+="\n * oneko"
-    else
-        EXCLUDED_FEATURES+="\n * oneko"
-    fi
-    if [ -f "$DESTDIR/usr/bin/st" ]; then
-        INCLUDED_FEATURES+="\n * st"
-    else
-        EXCLUDED_FEATURES+="\n * st"
-    fi
-    if [ -f "$DESTDIR/usr/bin/twm" ]; then
-        INCLUDED_FEATURES+="\n * twm"
-    else
-        EXCLUDED_FEATURES+="\n * twm"
-    fi
-    if [ -f "$DESTDIR/usr/bin/xcalc" ]; then
-        INCLUDED_FEATURES+="\n * xcalc"
-    else
-        EXCLUDED_FEATURES+="\n * xcalc"
-    fi
-    if [ -f "$DESTDIR/usr/bin/xclock" ]; then
-        INCLUDED_FEATURES+="\n * xclock"
-    else
-        EXCLUDED_FEATURES+="\n * xclock"
-    fi
-    if [ -f "$DESTDIR/usr/bin/xeyes" ]; then
-        INCLUDED_FEATURES+="\n * xeyes"
-    else
-        EXCLUDED_FEATURES+="\n * xeyes"
-    fi
-    if [ -f "$DESTDIR/usr/bin/xli" ]; then
-        INCLUDED_FEATURES+="\n * xli"
-    else
-        EXCLUDED_FEATURES+="\n * xli"
-    fi
-    if [ -f "$DESTDIR/usr/bin/xload" ]; then
-        INCLUDED_FEATURES+="\n * xload"
-    else
-        EXCLUDED_FEATURES+="\n * xload"
-    fi
-    if [ -f "$DESTDIR/usr/bin/Xfbdev" ]; then
-        INCLUDED_FEATURES+="\n * Xfbdev (TinyX)"
-    else
-        EXCLUDED_FEATURES+="\n * Xfbdev (TinyX)"
-    fi
-    if [ -f "$DESTDIR/usr/bin/xset" ]; then
-        INCLUDED_FEATURES+="\n * xset"
-    else
-        EXCLUDED_FEATURES+="\n * xset"
+    if [ "$ID" == "shork-486" ]; then
+        if [ -f "$DESTDIR/usr/bin/oneko" ]; then
+            INCLUDED_FEATURES+="\n * oneko"
+        else
+            EXCLUDED_FEATURES+="\n * oneko"
+        fi
+
+        if [ -f "$DESTDIR/usr/bin/st" ]; then
+            INCLUDED_FEATURES+="\n * st"
+        else
+            EXCLUDED_FEATURES+="\n * st"
+        fi
+
+        if [ -f "$DESTDIR/usr/bin/twm" ]; then
+            INCLUDED_FEATURES+="\n * twm"
+        else
+            EXCLUDED_FEATURES+="\n * twm"
+        fi
+
+        if [ -f "$DESTDIR/usr/bin/xcalc" ]; then
+            INCLUDED_FEATURES+="\n * xcalc"
+        else
+            EXCLUDED_FEATURES+="\n * xcalc"
+        fi
+
+        if [ -f "$DESTDIR/usr/bin/xclock" ]; then
+            INCLUDED_FEATURES+="\n * xclock"
+        else
+            EXCLUDED_FEATURES+="\n * xclock"
+        fi
+
+        if [ -f "$DESTDIR/usr/bin/xeyes" ]; then
+            INCLUDED_FEATURES+="\n * xeyes"
+        else
+            EXCLUDED_FEATURES+="\n * xeyes"
+        fi
+
+        if [ -f "$DESTDIR/usr/bin/xli" ]; then
+            INCLUDED_FEATURES+="\n * xli"
+        else
+            EXCLUDED_FEATURES+="\n * xli"
+        fi
+
+        if [ -f "$DESTDIR/usr/bin/xload" ]; then
+            INCLUDED_FEATURES+="\n * xload"
+        else
+            EXCLUDED_FEATURES+="\n * xload"
+        fi
+
+        if [ -f "$DESTDIR/usr/bin/Xfbdev" ]; then
+            INCLUDED_FEATURES+="\n * Xfbdev (TinyX)"
+        else
+            EXCLUDED_FEATURES+="\n * Xfbdev (TinyX)"
+        fi
+
+        if [ -f "$DESTDIR/usr/bin/xset" ]; then
+            INCLUDED_FEATURES+="\n * xset"
+        else
+            EXCLUDED_FEATURES+="\n * xset"
+        fi
     fi
 
     # SHORKTUI
-    if $ENABLE_MULTIUSER_REAL; then
-        INCLUDED_FEATURES+="\n * BusyBox multi-user utilities"
-    else
-        EXCLUDED_FEATURES+="\n * BusyBox multi-user utilities"
-    fi
-    if $ENABLE_NET_ETH; then
-        INCLUDED_FEATURES+="\n * BusyBox networking utilities"
-    else
-        EXCLUDED_FEATURES+="\n * BusyBox networking utilities"
-    fi
+    if [ "$ID" == "shork-486" ]; then
+        if $ENABLE_MULTIUSER_REAL; then
+            INCLUDED_FEATURES+="\n * BusyBox multi-user utilities"
+        else
+            EXCLUDED_FEATURES+="\n * BusyBox multi-user utilities"
+        fi
 
-    if $INCLUDE_GCC; then
-        INCLUDED_FEATURES+="\n * as"
-        INCLUDED_FEATURES+="\n * g++"
-        INCLUDED_FEATURES+="\n * gcc"
-        INCLUDED_FEATURES+="\n * gfortran"
-    else
-        EXCLUDED_FEATURES+="\n * as"
-        EXCLUDED_FEATURES+="\n * g++"
-        EXCLUDED_FEATURES+="\n * gcc"
-        EXCLUDED_FEATURES+="\n * gfortran"
-    fi
+        if $ENABLE_NET_ETH; then
+            INCLUDED_FEATURES+="\n * BusyBox networking utilities"
+        else
+            EXCLUDED_FEATURES+="\n * BusyBox networking utilities"
+        fi
 
-    if [ -f "$DESTDIR/usr/bin/c3270" ]; then
-        INCLUDED_FEATURES+="\n * c3270 ($C3270_VER)"
-    else
-        EXCLUDED_FEATURES+="\n * c3270"
-    fi
+        if $INCLUDE_GCC; then
+            INCLUDED_FEATURES+="\n * as"
+            INCLUDED_FEATURES+="\n * g++"
+            INCLUDED_FEATURES+="\n * gcc"
+            INCLUDED_FEATURES+="\n * gfortran"
+        else
+            EXCLUDED_FEATURES+="\n * as"
+            EXCLUDED_FEATURES+="\n * g++"
+            EXCLUDED_FEATURES+="\n * gcc"
+            EXCLUDED_FEATURES+="\n * gfortran"
+        fi
 
-    if [ -f "$DESTDIR/usr/bin/cmatrix" ] && [ "$ENABLE_CMATRIX" = true ]; then
-        INCLUDED_FEATURES+="\n * cmatrix ($CMATRIX_VER)"
-    #else
-    #    EXCLUDED_FEATURES+="\n * cmatrix"
-    fi
+        if [ -f "$DESTDIR/usr/bin/c3270" ]; then
+            INCLUDED_FEATURES+="\n * c3270 ($C3270_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * c3270"
+        fi
 
-    if [ -f "$DESTDIR/usr/bin/file" ]; then
-        INCLUDED_FEATURES+="\n * file ($FILE_VER)"
-    else
-        EXCLUDED_FEATURES+="\n * file"
+        #if [ -f "$DESTDIR/usr/bin/cmatrix" ] && [ "$ENABLE_CMATRIX" = true ]; then
+        #    INCLUDED_FEATURES+="\n * cmatrix ($CMATRIX_VER)"
+        #else
+        #    EXCLUDED_FEATURES+="\n * cmatrix"
+        #fi
     fi
 
-    if [ -f "$DESTDIR/usr/bin/ftp" ]; then
-        INCLUDED_FEATURES+="\n * ftp (tnftp, $TNFTP_VER)"
-    else
-        EXCLUDED_FEATURES+="\n * ftp (tnftp)"
+    if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
+        if [ -f "$DESTDIR/usr/bin/file" ]; then
+            INCLUDED_FEATURES+="\n * file ($FILE_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * file"
+        fi
     fi
 
-    if [ -f "$DESTDIR/usr/bin/git" ]; then
-        INCLUDED_FEATURES+="\n * git ($GIT_VER)"
-    else
-        EXCLUDED_FEATURES+="\n * git"
+    if [ "$ID" == "shork-486" ]; then
+        if [ -f "$DESTDIR/usr/bin/ftp" ]; then
+            INCLUDED_FEATURES+="\n * ftp (tnftp, $TNFTP_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * ftp (tnftp)"
+        fi
+
+        if [ -f "$DESTDIR/usr/bin/git" ]; then
+            INCLUDED_FEATURES+="\n * git ($GIT_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * git"
+        fi
+
+        if [ -f "$DESTDIR/usr/bin/htop" ]; then
+            INCLUDED_FEATURES+="\n * htop ($HTOP_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * htop"
+        fi
+
+        if [ -f "$DESTDIR/usr/bin/joe" ]; then
+            INCLUDED_FEATURES+="\n * joe ($JOE_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * joe"
+        fi
     fi
 
-    if [ -f "$DESTDIR/usr/bin/htop" ]; then
-        INCLUDED_FEATURES+="\n * htop ($HTOP_VER)"
-    else
-        EXCLUDED_FEATURES+="\n * htop"
+    if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
+        if [ -f "$DESTDIR/usr/bin/lscpu" ]; then
+            INCLUDED_FEATURES+="\n * lscpu (util-linux, $UTIL_LINUX_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * lscpu (util-linux)"
+        fi
     fi
 
-    if [ -f "$DESTDIR/usr/bin/joe" ]; then
-        INCLUDED_FEATURES+="\n * joe ($JOE_VER)"
-    else
-        EXCLUDED_FEATURES+="\n * joe"
+    if [ "$ID" == "shork-486" ]; then
+        if [ -f "$DESTDIR/usr/bin/lynx" ]; then
+            INCLUDED_FEATURES+="\n * lynx ($LYNX_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * lynx"
+        fi
+
+        if [ -f "$DESTDIR/usr/bin/mg" ]; then
+            INCLUDED_FEATURES+="\n * mg ($MG_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * mg"
+        fi
+
+        if [ -f "$DESTDIR/usr/bin/micropython" ]; then
+            INCLUDED_FEATURES+="\n * micropython ($MICROPYTHON_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * micropython"
+        fi
+
+        if [ -f "$DESTDIR/bin/mt" ]; then
+            INCLUDED_FEATURES+="\n * mt (mt-st, $MT_ST_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * mt"
+        fi
+
+        if [ -f "$DESTDIR/usr/bin/nano" ]; then
+            INCLUDED_FEATURES+="\n * nano ($NANO_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * nano"
+        fi
     fi
 
-    if [ -f "$DESTDIR/usr/bin/lscpu" ]; then
-        INCLUDED_FEATURES+="\n * lscpu (util-linux, $UTIL_LINUX_VER)"
-    else
-        EXCLUDED_FEATURES+="\n * lscpu (util-linux)"
+    if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
+        if [ -f "$DESTDIR/usr/bin/partx" ]; then
+            INCLUDED_FEATURES+="\n * partx (util-linux, $UTIL_LINUX_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * partx (util-linux)"
+        fi
     fi
 
-    if [ -f "$DESTDIR/usr/bin/lynx" ]; then
-        INCLUDED_FEATURES+="\n * lynx ($LYNX_VER)"
-    else
-        EXCLUDED_FEATURES+="\n * lynx"
+    if [ "$ID" == "shork-486" ]; then
+        if [ -f "$DESTDIR/usr/bin/scp" ]; then
+            INCLUDED_FEATURES+="\n * scp (Dropbear, $DROPBEAR_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * scp (Dropbear)"
+        fi
+
+        if [ -f "$DESTDIR/usr/bin/sc-im" ]; then
+            INCLUDED_FEATURES+="\n * sc-im ($SC_IM_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * sc-im"
+        fi
     fi
 
-    if [ -f "$DESTDIR/usr/bin/mg" ]; then
-        INCLUDED_FEATURES+="\n * mg ($MG_VER)"
-    else
-        EXCLUDED_FEATURES+="\n * mg"
+    if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
+        if [ -f "$DESTDIR/usr/sbin/sfdisk" ]; then
+            INCLUDED_FEATURES+="\n * sfdisk (util-linux, $UTIL_LINUX_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * sfdisk (util-linux)"
+        fi
     fi
 
-    if [ -f "$DESTDIR/usr/bin/micropython" ]; then
-        INCLUDED_FEATURES+="\n * micropython ($MICROPYTHON_VER)"
-    else
-        EXCLUDED_FEATURES+="\n * micropython"
+    if [ "$ID" == "shork-486" ]; then
+        if [ -f "$DESTDIR/usr/bin/ssh" ]; then
+            INCLUDED_FEATURES+="\n * ssh (Dropbear, $DROPBEAR_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * ssh (Dropbear)"
+        fi
+
+        if [ -f "$DESTDIR/sbin/stinit" ]; then
+            INCLUDED_FEATURES+="\n * stinit (mt-st, $MT_ST_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * stinit"
+        fi
     fi
 
-    if [ -f "$DESTDIR/bin/mt" ]; then
-        INCLUDED_FEATURES+="\n * mt (mt-st, $MT_ST_VER)"
-    else
-        EXCLUDED_FEATURES+="\n * mt"
+    if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
+        if [ -f "$DESTDIR/usr/bin/strace" ]; then
+            INCLUDED_FEATURES+="\n * strace ($STRACE_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * strace"
+        fi
     fi
 
-    if [ -f "$DESTDIR/usr/bin/nano" ]; then
-        INCLUDED_FEATURES+="\n * nano ($NANO_VER)"
-    else
-        EXCLUDED_FEATURES+="\n * nano"
+    if [ "$ID" == "shork-486" ]; then
+        if [ -f "$DESTDIR/usr/local/bin/i386-tcc" ]; then
+            INCLUDED_FEATURES+="\n * tcc ($TCC_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * tcc"
+        fi
+
+        if [ -f "$DESTDIR/usr/bin/tic" ]; then
+            INCLUDED_FEATURES+="\n * tic ($NCURSES_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * tic"
+        fi
+
+        #if [ -f "$DESTDIR/usr/bin/tilde" ]; then
+        #    INCLUDED_FEATURES+="\n * tilde ($TILDE_VER)"
+        #else
+        #    EXCLUDED_FEATURES+="\n * tilde"
+        #fi
+
+        if [ -f "$DESTDIR/usr/bin/tmux" ]; then
+            INCLUDED_FEATURES+="\n * tmux ($TMUX_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * tmux"
+        fi
+
+        if [ -f "$DESTDIR/usr/bin/tn5250" ]; then
+            INCLUDED_FEATURES+="\n * tn5250 ($TN5250_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * tn5250"
+        fi
     fi
 
-    if [ -f "$DESTDIR/usr/bin/partx" ]; then
-        INCLUDED_FEATURES+="\n * partx (util-linux, $UTIL_LINUX_VER)"
-    else
-        EXCLUDED_FEATURES+="\n * partx (util-linux)"
-    fi
-
-    if [ -f "$DESTDIR/usr/bin/scp" ]; then
-        INCLUDED_FEATURES+="\n * scp (Dropbear, $DROPBEAR_VER)"
-    else
-        EXCLUDED_FEATURES+="\n * scp (Dropbear)"
-    fi
-
-    if [ -f "$DESTDIR/usr/bin/sc-im" ]; then
-        INCLUDED_FEATURES+="\n * sc-im ($SC_IM_VER)"
-    else
-        EXCLUDED_FEATURES+="\n * sc-im"
-    fi
-
-    if [ -f "$DESTDIR/usr/sbin/sfdisk" ]; then
-        INCLUDED_FEATURES+="\n * sfdisk (util-linux, $UTIL_LINUX_VER)"
-    else
-        EXCLUDED_FEATURES+="\n * sfdisk (util-linux)"
-    fi
-
-    if [ -f "$DESTDIR/usr/bin/ssh" ]; then
-        INCLUDED_FEATURES+="\n * ssh (Dropbear, $DROPBEAR_VER)"
-    else
-        EXCLUDED_FEATURES+="\n * ssh (Dropbear)"
-    fi
-
-    if [ -f "$DESTDIR/sbin/stinit" ]; then
-        INCLUDED_FEATURES+="\n * stinit (mt-st, $MT_ST_VER)"
-    else
-        EXCLUDED_FEATURES+="\n * stinit"
-    fi
-
-    if [ -f "$DESTDIR/usr/bin/strace" ]; then
-        INCLUDED_FEATURES+="\n * strace ($STRACE_VER)"
-    else
-        EXCLUDED_FEATURES+="\n * strace"
-    fi
-
-    if [ -f "$DESTDIR/usr/local/bin/i386-tcc" ]; then
-        INCLUDED_FEATURES+="\n * tcc ($TCC_VER)"
-    else
-        EXCLUDED_FEATURES+="\n * tcc"
-    fi
-
-    if [ -f "$DESTDIR/usr/bin/tic" ]; then
-        INCLUDED_FEATURES+="\n * tic ($NCURSES_VER)"
-    else
-        EXCLUDED_FEATURES+="\n * tic"
-    fi
-
-    #if [ -f "$DESTDIR/usr/bin/tilde" ]; then
-    #    INCLUDED_FEATURES+="\n * tilde ($TILDE_VER)"
-    #else
-    #    EXCLUDED_FEATURES+="\n * tilde"
-    #fi
-
-    if [ -f "$DESTDIR/usr/bin/tmux" ]; then
-        INCLUDED_FEATURES+="\n * tmux ($TMUX_VER)"
-    else
-        EXCLUDED_FEATURES+="\n * tmux"
-    fi
-
-    if [ -f "$DESTDIR/usr/bin/tn5250" ]; then
-        INCLUDED_FEATURES+="\n * tn5250 ($TN5250_VER)"
-    else
-        EXCLUDED_FEATURES+="\n * tn5250"
-    fi
-
-    if [ -f "$DESTDIR/usr/bin/whereis" ]; then
-        INCLUDED_FEATURES+="\n * whereis (util-linux, $UTIL_LINUX_VER)"
-    else
-        EXCLUDED_FEATURES+="\n * whereis (util-linux)"
+    if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
+        if [ -f "$DESTDIR/usr/bin/whereis" ]; then
+            INCLUDED_FEATURES+="\n * whereis (util-linux, $UTIL_LINUX_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * whereis (util-linux)"
+        fi
     fi
 }
 
@@ -5899,7 +6427,7 @@ generate_report()
             "Build type:          $BUILD_TYPE"
             "Build time:          $MINS minutes, $SECS seconds"
         )
-    elif [ "$ID" == "shork-diskette" ]; then
+    else
         lines+=(
             ""
             "Build time:          $MINS minutes, $SECS seconds"
@@ -5939,6 +6467,14 @@ generate_report()
         else
             lines+=("Boot style:          boot only")
         fi
+    elif [ "$ID" == "shork-disc" ]; then
+        DISC_B=$(stat -c%s "${CURR_DIR}/images/${ID}.iso")
+        DISC_MB=$(echo "scale=2; $DISC_B / 1000000" | bc)
+        lines+=(
+            ""
+            "Est. minimum RAM:    ${EST_MIN_RAM}"
+            "Disc size:           ${DISC_MB}MB"
+        )
     elif [ "$ID" == "shork-diskette" ]; then
         DISKETTE_B=$(( 1440 * TARGET_DISK ))
         DISKETTE_MB=$(echo "scale=2; $DISKETTE_B / 1000" | bc)
@@ -5949,12 +6485,73 @@ generate_report()
         )
     fi
 
+
+
+    if [[ ${#INCLUDED_BB_CMDS[@]} -gt 0 ]]; then
+        INCL_BB_CMDS_LINES=()
+        line=""
+        for CMD in "${INCLUDED_BB_CMDS[@]}"; do
+            if [[ -z "$line" ]]; then
+                NEW=" * $CMD"
+            else
+                NEW="$line, $CMD"
+            fi
+            if (( ${#NEW} > 80 )); then
+                INCL_BB_CMDS_LINES+=("$line")
+                line=" * $CMD"
+            else
+                line="$NEW"
+            fi
+        done
+        INCL_BB_CMDS_LINES+=("$line")
+
+        lines+=(
+            ""
+            "Included BusyBox commands:"
+        )
+        for l in "${INCL_BB_CMDS_LINES[@]}"; do
+            lines+=("$l")
+        done
+    fi
+
+
+
     if [ -n "$INCLUDED_FEATURES" ]; then
         lines+=(
             ""
             "Included programs & features:$INCLUDED_FEATURES"
         )
     fi
+
+
+    if [ "$ID" == "shork-486" ] && [[ ${#EXCLUDED_BB_CMDS[@]} -gt 0 ]]; then
+        EXCL_BB_CMDS_LINES=()
+        line=""
+        for CMD in "${EXCLUDED_BB_CMDS[@]}"; do
+            if [[ -z "$line" ]]; then
+                NEW=" * $CMD"
+            else
+                NEW="$line, $CMD"
+            fi
+            if (( ${#NEW} > 80 )); then
+                EXCL_BB_CMDS_LINES+=("$line")
+                line=" * $CMD"
+            else
+                line="$NEW"
+            fi
+        done
+        EXCL_BB_CMDS_LINES+=("$line")
+
+        lines+=(
+            ""
+            "Excluded BusyBox commands:"
+        )
+        for l in "${EXCL_BB_CMDS_LINES[@]}"; do
+            lines+=("$l")
+        done
+    fi
+
+
 
     if [ -n "$EXCLUDED_FEATURES" ]; then
         lines+=(
@@ -5987,13 +6584,14 @@ generate_report()
 
 
 
+fix_perms
+
 mkdir -p images
 
 if ! $DONT_DEL_ROOT; then
     delete_root_dir
 fi
 
-mkdir -p build/LICENCES
 mkdir -p build/staging
 get_prerequisites
 get_musl_cross
@@ -6121,11 +6719,18 @@ fi
 
 get_shorkhelp
 get_shorkfetch
+if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
+    get_shorkdir
+fi
 if [ "$ID" == "shork-486" ]; then
     get_shorkcommon_sh
-    get_shorkdir
     get_shorkoff
     get_shorkset
+fi
+if [ "$ID" == "shork-disc" ]; then
+    if $INCLUDE_SHORKSTALL; then
+        get_shorkstall
+    fi
 fi
 
 if $INCLUDE_SHORKTAINMENT; then
@@ -6143,14 +6748,17 @@ fi
 
 find_mbr_bin
 build_file_system
-if [ "$ID" == "shork-diskette" ]; then
-    compress_file_system
-    build_diskette_img
-else
+if [ "$ID" == "shork-486" ]; then
     build_disk_img
     convert_disk_img
+elif [ "$ID" == "shork-disc" ]; then
+    build_disc_img
+elif [ "$ID" == "shork-diskette" ]; then
+    compress_file_system
+    build_diskette_img
 fi
 fix_perms
 clean_stale_mounts
+get_included_busybox_commands
 get_installed_programs_features
 generate_report

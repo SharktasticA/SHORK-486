@@ -27,11 +27,11 @@ CUSTOM_MIN_DISK=8
 DEFAULT_DEF_SWAP=8
 DEFAULT_MIN_DISK=80
 MAXIMAL_DEF_SWAP=8
-MAXIMAL_MIN_DISK=440
+MAXIMAL_MIN_DISK=400
 MINIMAL_DEF_SWAP=0
 MINIMAL_MIN_DISK=8
 OFFLINE_DEF_SWAP=8
-OFFLINE_MIN_DISK=50
+OFFLINE_MIN_DISK=60
 
 ALWAYS_BUILD=true
 DIST="SHORK 486"
@@ -64,6 +64,7 @@ INCLUDE_MICROPYTHON=false
 INCLUDE_MT_ST=false
 INCLUDE_NANO=false
 INCLUDE_SC_IM=false
+INCLUDE_SHORKSTALL=false
 INCLUDE_SHORKTAINMENT=false
 INCLUDE_STRACE=false
 INCLUDE_TCC=false
@@ -161,6 +162,7 @@ INCLUDE_MICROPYTHON=$INCLUDE_MICROPYTHON
 INCLUDE_MT_ST=$INCLUDE_MT_ST
 INCLUDE_NANO=$INCLUDE_NANO
 INCLUDE_SC_IM=$INCLUDE_SC_IM
+INCLUDE_SHORKSTALL=$INCLUDE_SHORKSTALL
 INCLUDE_SHORKTAINMENT=$INCLUDE_SHORKTAINMENT
 INCLUDE_STRACE=$INCLUDE_STRACE
 INCLUDE_TCC=$INCLUDE_TCC
@@ -223,6 +225,7 @@ set_minimal_vars()
     INCLUDE_MT_ST=false
     INCLUDE_NANO=false
     INCLUDE_SC_IM=false
+    INCLUDE_SHORKSTALL=false
     INCLUDE_SHORKTAINMENT=false
     INCLUDE_STRACE=false
     INCLUDE_TCC=false
@@ -265,6 +268,7 @@ set_default_vars()
     INCLUDE_MT_ST=true
     INCLUDE_NANO=true
     INCLUDE_SC_IM=true
+    INCLUDE_SHORKSTALL=false
     INCLUDE_SHORKTAINMENT=true
     INCLUDE_STRACE=true
     INCLUDE_TCC=true
@@ -306,6 +310,7 @@ set_maximal_vars()
     set_default_vars
     INCLUDE_C3270=true
     INCLUDE_GCC=true
+    INCLUDE_JOE=true
     INCLUDE_TN5250=true
     INCLUDE_GUI=true
     ENABLE_HIGHMEM=true
@@ -318,6 +323,22 @@ set_custom_vars()
 {
     INCLUDE_KEYMAPS=true
     ENABLE_FB=true
+}
+
+set_disc_vars()
+{
+    set_minimal_vars
+    ENABLE_CDROM=true
+    INCLUDE_FILE=true
+    INCLUDE_SHORKTAINMENT=true
+    INCLUDE_STRACE=true
+    INCLUDE_UTIL_LINUX=true
+    INCLUDE_PCI_IDS=true
+}
+
+set_diskette_vars()
+{
+    set_minimal_vars
 }
 
 
@@ -370,8 +391,9 @@ CHOICE=$(dialog --clear \
     --title "Target Distribution" \
     --cancel-label "Quit" \
     --default-item "$ID" \
-    --menu "Select which exact SHORK 486-based distribution you wish to build." 9 $WIDTH 3 \
-    "shork-486"         "SHORK 486 (for hard disks)" \
+    --menu "Select which exact SHORK 486-based distribution you wish to build." 10 $WIDTH 3 \
+    "shork-486"         "SHORK 486 (for hard and solid-state disks)" \
+    "shork-disc"        "SHORK DISC (for CD and DVD discs)" \
     "shork-diskette"    "SHORK DISKETTE (for floppy diskettes)" \
     3>&1 1>&2 2>&3)
 
@@ -379,6 +401,7 @@ if [[ ! -n "$CHOICE" ]]; then
     exit 0
 else
     if [ "$CHOICE" == "shork-486" ]; then
+        DIST="SHORK 486"
         if [ "$CHOICE" != "$ID" ]; then
             HOSTNAME="$CHOICE"
             set_default_vars
@@ -386,19 +409,26 @@ else
             TARGET_DISK=80
             TARGET_SWAP=8
         fi
-        DIST="SHORK 486"
-        ID="$CHOICE"
-    elif [ "$CHOICE" == "shork-diskette" ]; then
+    elif [ "$CHOICE" == "shork-disc" ]; then
+        DIST="SHORK DISC"
         if [ "$CHOICE" != "$ID" ]; then
             HOSTNAME="$CHOICE"
-            set_minimal_vars
+            set_disc_vars
+            BUILD_TYPE="minimal"
+            TARGET_DISK=0
+            TARGET_SWAP=0
+        fi
+    elif [ "$CHOICE" == "shork-diskette" ]; then
+        DIST="SHORK DISKETTE"
+        if [ "$CHOICE" != "$ID" ]; then
+            HOSTNAME="$CHOICE"
+            set_diskette_vars
             BUILD_TYPE="minimal"
             TARGET_DISK=1
             TARGET_SWAP=0
         fi
-        DIST="SHORK DISKETTE"
-        ID="$CHOICE"
     fi
+    ID="$CHOICE"
 fi
 
 
@@ -430,9 +460,9 @@ if [ "$ID" == "shork-486" ]; then
         --default-item "$BUILD_TYPE" \
         --menu "Select the build type, presets for SHORK 486 feature levels. The minimum requirements for each are enclosed in brackets. The \"custom\" option will enable further prompts for software and feature selection." 14 $WIDTH 5 \
         "default" "Typical experience (16MiB RAM + 80MiB disk)" \
-        "offline" "Default sans networking (12MiB RAM + 50MiB disk)" \
+        "offline" "Default sans networking (12MiB RAM + 60MiB disk)" \
         "minimal" "Minimal build (8MiB RAM + 8MiB disk)" \
-        "maximal" "Maximal build (24MiB RAM + 440MiB disk)" \
+        "maximal" "Maximal build (24MiB RAM + 400MiB disk)" \
         "custom"  "Requirements depend on subsequent choices" \
         3>&1 1>&2 2>&3)
 
@@ -801,17 +831,26 @@ fi
 
 
 
-# Get patched EXTLINUX/SYSLINUX choice (all)
+# Get patched *LINUX choice (all)
 DEFAULT_FLAG=""
 if ! $FIX_EXTLINUX; then
     DEFAULT_FLAG="--defaultno"
 fi
 
+VARIANT="*LINUX"
+if [ "$ID" == "shork-486" ]; then
+    VARIANT="EXTLINUX"
+elif [ "$ID" == "shork-disc" ]; then
+    VARIANT="ISOLINUX"
+elif [ "$ID" == "shork-diskette" ]; then
+    VARIANT="SYSLINUX"
+fi
+
 dialog --clear \
     --backtitle "SHORK 486 Build Configurator" \
-    --title "Patched EXTLINUX/SYSLINUX" \
+    --title "Patched $VARIANT" \
     $DEFAULT_FLAG \
-    --yesno "Do you want to use SHORK's patched fork of the EXTLINUX/SYSLINUX bootloader, instead of your host distribution's maintained package version? The patched fork fixes a memory detection issue that *may* prevent booting with certain old BIOS implementations. It is recommended to say \"Yes\" but it will increase build time.\n\nKnown computers that require this: Chicony NB5/derivatives, HP OmniBook 800CT, IBM 2625 ThinkPad 365E/365ED and IBM 6381 PS/ValuePoint" \
+    --yesno "Do you want to use SHORK's patched fork of the $VARIANT bootloader, instead of your host distribution's maintained package version? The patched fork fixes a memory detection issue that *may* prevent booting with certain old BIOS implementations. It is recommended to say \"Yes\" but it will increase build time.\n\nKnown computers that require this: Chicony NB5/derivatives, HP OmniBook 800CT, IBM 2625 ThinkPad 365E/365ED and IBM 6381 PS/ValuePoint" \
     12 $WIDTH
 
 CHOICE=$?
@@ -836,34 +875,34 @@ BUNDLED_ITEMS=()
 
 if [ "$ENABLE_NET_ETH" == true ]; then
     BUNDLED_ITEMS+=(
-        "c3270"        "3270 terminal emulator (+1.8MiB)"                   "$(val "$INCLUDE_C3270")"
-        #"cmatrix"       "Scrolling text screensaver (+0.4MiB)"              "$(val "$INCLUDE_CMATRIX")"
-        "dropbear"      "*SCP & SSH client (+0.4MiB)"                       "$(val "$INCLUDE_DROPBEAR")"
-        "file"          "*File type identification (+10MiB)"                "$(val "$INCLUDE_FILE")"
-        "gcc"           "**GCC (as, g++, gcc, gfortran) + musl (+215MiB)"   "$(val "$INCLUDE_GCC")"
-        "git"           "*Source control client (+19MiB)"                   "$(val "$INCLUDE_GIT")"
-        "htop"          "*Interactive process viewer (+0.6MiB)"             "$(val "$INCLUDE_HTOP")"
-        "joe"           "WordStar-style text editor (+1.9MiB)"              "$(val "$INCLUDE_JOE")"
-        "lynx"          "*Terminal web browser (+7.3MiB)"                   "$(val "$INCLUDE_LYNX")"
-        "mg"            "*Emacs-style text editor (+0.3MiB)"                "$(val "$INCLUDE_MG")"
-        "micropython"   "*Python 3.4-syntax intepreter (+0.7MiB)"           "$(val "$INCLUDE_MICROPYTHON")"
-        "mt-st"         "*Tape drive tools (+0.2MiB)"                       "$(val "$INCLUDE_MT_ST")"
-        "nano"          "*Text editor (+0.8MiB)"                            "$(val "$INCLUDE_NANO")"
-        "sc-im"         "*Terminal spreadsheet editor (+2.8MiB)"            "$(val "$INCLUDE_SC_IM")"
-        "shorktainment" "*shorkmatrix, shorksay & sl (+0.1MiB)"             "$(val "$INCLUDE_SHORKTAINMENT")"
-        "strace"        "*System calls & signals tracer (+1.1MiB)"          "$(val "$INCLUDE_STRACE")"
-        "tcc"           "*Tiny C Compiler + musl (+4MiB)"                   "$(val "$INCLUDE_TCC")"
-        #"tilde"         "GUI-like text editor (+4.5MiB)"                    "$(val "$INCLUDE_TILDE")"
-        "tn5250"        "TCP/IP 5250 terminal emulator (+6.4MiB)"           "$(val "$INCLUDE_TN5250")"
-        "tnftp"         "*FTP client (+0.3MiB)"                             "$(val "$INCLUDE_TNFTP")"
-        "tmux"          "*Terminal multiplexer (+1.7MiB)"                   "$(val "$INCLUDE_TMUX")"
-        "util-linux"    "*lscpu, partx, sfdisk & whereis (+2.2MiB)"         "$(val "$INCLUDE_UTIL_LINUX")"
+        "c3270"        "3270 terminal emulator (+1.8MiB, EXPERIMENTAL)"         "$(val "$INCLUDE_C3270")"
+        #"cmatrix"       "Scrolling text screensaver (+0.4MiB)"                  "$(val "$INCLUDE_CMATRIX")"
+        "dropbear"      "*SCP & SSH client (+0.4MiB)"                           "$(val "$INCLUDE_DROPBEAR")"
+        "file"          "**File type identification (+10MiB)"                   "$(val "$INCLUDE_FILE")"
+        "gcc"           "**GCC (as, g++, gcc, gfortran) + musl (+215MiB)"       "$(val "$INCLUDE_GCC")"
+        "git"           "*Source control client (+19MiB)"                       "$(val "$INCLUDE_GIT")"
+        "htop"          "*Interactive process viewer (+0.6MiB)"                 "$(val "$INCLUDE_HTOP")"
+        "joe"           "WordStar-style text editor (+1.9MiB)"                  "$(val "$INCLUDE_JOE")"
+        "lynx"          "*Terminal web browser (+7.3MiB)"                       "$(val "$INCLUDE_LYNX")"
+        "mg"            "*Emacs-style text editor (+0.3MiB)"                    "$(val "$INCLUDE_MG")"
+        "micropython"   "*Python 3.4-syntax intepreter (+0.7MiB)"               "$(val "$INCLUDE_MICROPYTHON")"
+        "mt-st"         "*Tape drive tools (+0.2MiB)"                           "$(val "$INCLUDE_MT_ST")"
+        "nano"          "*Text editor (+0.8MiB)"                                "$(val "$INCLUDE_NANO")"
+        "sc-im"         "*Terminal spreadsheet editor (+2.8MiB)"                "$(val "$INCLUDE_SC_IM")"
+        "shorktainment" "*shorkmatrix, shorksay & sl (+0.1MiB)"                 "$(val "$INCLUDE_SHORKTAINMENT")"
+        "strace"        "*System calls & signals tracer (+1.1MiB)"              "$(val "$INCLUDE_STRACE")"
+        "tcc"           "*Tiny C Compiler + musl (+4MiB)"                       "$(val "$INCLUDE_TCC")"
+        #"tilde"         "GUI-like text editor (+4.5MiB)"                       "$(val "$INCLUDE_TILDE")"
+        "tn5250"        "TCP/IP 5250 terminal emulator (+6.4MiB, EXPERIMENTAL)" "$(val "$INCLUDE_TN5250")"
+        "tnftp"         "*FTP client (+0.3MiB)"                                 "$(val "$INCLUDE_TNFTP")"
+        "tmux"          "*Terminal multiplexer (+1.7MiB)"                       "$(val "$INCLUDE_TMUX")"
+        "util-linux"    "*lscpu, partx, sfdisk & whereis (+2.2MiB)"             "$(val "$INCLUDE_UTIL_LINUX")"
     )
 else
     BUNDLED_ITEMS+=(
-        "c3270"        "3270 terminal emulator (+1.8MiB)"                   "$(val "$INCLUDE_C3270")"
+        "c3270"        "3270 terminal emulator (+1.8MiB, EXPERIMENTAL)"     "$(val "$INCLUDE_C3270")"
         #"cmatrix"       "Scrolling text screensaver (+0.4MiB)"              "$(val "$INCLUDE_CMATRIX")"
-        "file"          "*File type identification (+10MiB)"                "$(val "$INCLUDE_FILE")"
+        "file"          "**File type identification (+10MiB)"               "$(val "$INCLUDE_FILE")"
         "gcc"           "**GCC (as, g++, gcc, gfortran) + musl (+215MiB)"   "$(val "$INCLUDE_GCC")"
         "htop"          "*Interactive process viewer (+0.6MiB)"             "$(val "$INCLUDE_HTOP")"
         "joe"           "Joe's Own Editor (+1.9MiB)"                        "$(val "$INCLUDE_JOE")"

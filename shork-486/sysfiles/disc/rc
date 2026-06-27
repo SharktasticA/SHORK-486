@@ -3,18 +3,11 @@
 # Mount core file systems
 mount -t proc none /proc
 mount -t sysfs none /sys
+mount -t tmpfs tmpfs /mnt
+mount -t tmpfs tmpfs /tmp
 
 # Populate /dev from sysfs
 mdev -s
-
-# Provide compatibility for tools expecting mtab
-ln -s /proc/mounts /etc/mtab
-
-# Mount floppy root & bind /home to persistent storage
-mkdir -p /mnt/floppy /mnt/cd /home
-mount -t msdos -o rw /dev/fd0 /mnt/floppy
-mkdir -p /mnt/floppy/data
-mount --bind /mnt/floppy/data /home
 
 [ -r /etc/hostname ] && hostname "$(cat /etc/hostname)"
 
@@ -24,7 +17,7 @@ clear
 # Show welcome banner and OS name
 if [ -f /banners/welcome ]; then
     COLS=80
-    BANNER_WIDTH=30
+    BANNER_WIDTH=31
     BUFFER=""
     
     TOTAL_PAD=$((COLS - BANNER_WIDTH))
@@ -67,7 +60,13 @@ if [ -f /banners/welcome ]; then
 fi
 
 # Print welcome message
-printf "Welcome, please check out \033[32mshorkhelp\033[0m to get started with @DIST@!\n"
+printf "Welcome, please check out \033[32mshorkhelp\033[0m to get started with @DIST@!"
+# Print SHORKSTALL hint if applicable
+if [ -f /usr/bin/shorkstall ]; then
+    printf " To install\nSHORK to a fixed disk or floppy diskette, please run \033[32mshorkstall\033[0m."
+fi
+printf "\n"
+
 # Public Test build disclaimer
 if grep -q "PT" /etc/issue 2>/dev/null; then
     printf "\n@DIST@ is a work-in-progress and this pre-release build is for testing\npurposes only. See the shorkhelp's \"Public Test 1\" guide for more information.\n"
