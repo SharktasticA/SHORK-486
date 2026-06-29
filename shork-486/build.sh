@@ -90,9 +90,9 @@ CROSS="${ARCH}-linux-musl-cross"
 PREFIX="${CURR_DIR}/build/${CROSS}"
 AR="${PREFIX}/bin/${ARCH}-linux-musl-ar"
 CC="${PREFIX}/bin/${ARCH}-linux-musl-gcc"
-CC_STATIC="${CURR_DIR}/${ARCH}-linux-musl-gcc-static"
+CC_STATIC="${CURR_DIR}/compilation/${ARCH}-linux-musl-gcc-static"
 CXX="${PREFIX}/bin/${ARCH}-linux-musl-g++"
-CXX_STATIC="${CURR_DIR}/${ARCH}-linux-musl-gxx-static"
+CXX_STATIC="${CURR_DIR}/compilation/${ARCH}-linux-musl-gxx-static"
 DESTDIR="${CURR_DIR}/build/root"
 HOST="${ARCH}-linux-musl"
 LD="${PREFIX}/bin/${ARCH}-linux-musl-ld"
@@ -101,8 +101,15 @@ STRIP="${PREFIX}/bin/${ARCH}-linux-musl-strip"
 SYSROOT="${PREFIX}/${ARCH}-linux-musl"
 
 # Target software/feature versions
+LINUX_SRC="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git"
+LINUX_VER="7.1.2"
+
 BUSYBOX_SRC="https://busybox.net/downloads"
 BUSYBOX_VER="1.38.0"
+
+SHORKFETCH_SRC="https://github.com/SharktasticA/shorkfetch.git"
+SHORKFETCH_VER="0.4.2"
+
 C3270_SRC="https://github.com/pmattes/x3270.git"
 C3270_VER="4.5ga5"
 CMATRIX_SRC="https://github.com/abishekvashok/cmatrix.git"
@@ -113,16 +120,21 @@ DROPBEAR_SRC="https://github.com/mkj/dropbear.git"
 DROPBEAR_VER="2026.91"
 FILE_SRC="https://github.com/file/file.git"
 FILE_VER="5_48"
+GCC_SRC="https://more.musl.cc/11/i686-linux-musl"
 GIT_SRC="https://github.com/git/git.git"
 GIT_VER="2.54.0"
 HTOP_SRC="https://github.com/htop-dev/htop.git"
 HTOP_VER="3.5.1"
 JOE_SRC="https://github.com/joe-editor/joe"
 JOE_VER="4.8"
-KERNEL_SRC="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git"
-KERNEL_VER="7.1.2"
+LIBAO_SRC="https://github.com/xiph/libao.git"
+LIBAO_VER="1.2.2"
 LIBEVENT_SRC="https://github.com/libevent/libevent.git"
 LIBEVENT_VER="release-2.1.12-stable"
+LIBID3TAG_SRC="https://github.com/markjeee/libid3tag.git"
+LIBID3TAG_VER="7929736a334804dc5670b203c9129cac2708d31c"
+LIBMAD_SRC="https://github.com/markjeee/libmad.git"
+LIBMAD_VER="c2f96fa4166446ac99449bdf6905f4218fb7d6b5"
 LIBT3_SRC="https://os.ghalkes.nl/dist"
 LIBT3CONFIG_VER="1.0.0"
 LIBT3HIGHLIGHT_VER="0.5.0"
@@ -144,6 +156,8 @@ MG_SRC="https://github.com/troglobit/mg.git"
 MG_VER="3.7"
 MICROPYTHON_SRC="https://github.com/micropython/micropython.git"
 MICROPYTHON_VER="1.28.0"
+MPG321_SRC="https://github.com/GiterMirror/mpg321.git"
+MPG321_VER="a41a9397d10576d3aee39c2ed7628a78c285714d"
 MT_ST_SRC="https://github.com/iustin/mt-st.git"
 MT_ST_VER="1.8"
 MUSL_SRC="https://musl.libc.org/releases"
@@ -163,8 +177,6 @@ ROVER_SRC="https://github.com/lecram/rover.git"
 ROVER_VER="1.0.1"
 SC_IM_SRC="https://github.com/andmarti1424/sc-im.git"
 SC_IM_VER="0.8.5"
-SHORKFETCH_SRC="https://github.com/SharktasticA/shorkfetch.git"
-SHORKFETCH_VER="0.4.2"
 STRACE_SRC="https://github.com/strace/strace.git"
 STRACE_VER="7.1"
 TCC_SRC="https://github.com/Tiny-C-Compiler/tinycc-mirror-repository.git"
@@ -234,6 +246,7 @@ INCLUDE_KEYMAPS=true
 INCLUDE_LYNX=true
 INCLUDE_MG=true
 INCLUDE_MICROPYTHON=true
+INCLUDE_MPG321=false
 INCLUDE_MT_ST=true
 INCLUDE_NANO=true
 INCLUDE_PCI_IDS=true
@@ -440,7 +453,10 @@ fi
 # Check what other prerequisites we need
 NEED_CURL=false
 NEED_OPENSSL=false
+NEED_LIBAO=false
 NEED_LIBEVENT=false
+NEED_LIBID3TAG=false
+NEED_LIBMAD=false
 NEED_LIBXLSXWRITER=false
 NEED_LIBXML2=false
 NEED_LIBZIP=false
@@ -454,6 +470,12 @@ if $INCLUDE_GIT; then
     NEED_CURL=true
     NEED_OPENSSL=true
     NEED_ZLIB=true
+fi
+
+if $INCLUDE_MPG321; then
+    NEED_LIBAO=true
+    NEED_LIBID3TAG=true
+    NEED_LIBMAD=true
 fi
 
 if $INCLUDE_SC_IM; then
@@ -865,6 +887,61 @@ get_curl()
     make install
 }
 
+# Download and compile libao (required for mpg321) 
+get_libao()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/libao.a" ]; then
+        echo -e "${LIGHT_RED}libao already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d libao ]; then
+        echo -e "${YELLOW}libao source already present, resetting...${RESET}"
+        cd libao
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading libao...${RESET}"
+        git clone $LIBAO_SRC
+        cd libao
+        git checkout $LIBAO_VER
+    fi
+
+    # Compile and install
+    echo -e "${GREEN}Compiling libao...${RESET}"
+    ./autogen.sh
+    ./configure \
+        --host=$HOST \
+        --build=x86_64-linux-gnu \
+        --prefix=/usr \
+        --enable-shared \
+        --disable-static \
+        --disable-alsa \
+        --disable-esd \
+        --disable-arts \
+        --disable-pulse \
+        AR=$AR \
+        CC=$CC \
+        RANLIB=$RANLIB \
+        CPPFLAGS="-I$SYSROOT/usr/include" \
+        CFLAGS="-fPIC" \
+        LDFLAGS="-L$SYSROOT/usr/lib"
+
+    make -j$(nproc)
+    make DESTDIR=$SYSROOT install
+
+    sudo mkdir -p $DESTDIR/lib
+    sudo mkdir -p $DESTDIR/usr/lib/ao/plugins-4/
+    sudo cp $SYSROOT/lib/libc.so $DESTDIR/lib/
+    sudo cp $SYSROOT/usr/lib/libao.so* $DESTDIR/usr/lib/
+    sudo cp $SYSROOT/usr/lib/ao/plugins-4/liboss.so $DESTDIR/usr/lib/ao/plugins-4/
+    sudo ln -sf libc.so $DESTDIR/lib/ld-musl-i386.so.1
+}
+
 # Download and compile libevent (required for tmux)
 get_libevent()
 {
@@ -893,6 +970,96 @@ get_libevent()
     ./configure --host=${HOST} --prefix="${PREFIX}" --disable-shared  --enable-static --disable-samples --disable-openssl CC="${CC}"
     make -j$(nproc)
     make install
+}
+
+# Download and compile libmad (required for mpg321) 
+get_libmad()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/libmad.a" ]; then
+        echo -e "${LIGHT_RED}libmad already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d libmad ]; then
+        echo -e "${YELLOW}libmad source already present, resetting...${RESET}"
+        cd libmad
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading libmad...${RESET}"
+        git clone $LIBMAD_SRC libmad
+        cd libmad
+        git checkout $LIBMAD_VER
+    fi
+
+    # Its config.sub is too old to recognise musl
+    cp "${CURR_DIR}/compilation/config.guess" config.guess
+    cp "${CURR_DIR}/compilation/config.sub" config.sub
+
+    # Compile and install
+    echo -e "${GREEN}Compiling libmad...${RESET}"
+    ./configure \
+        --host=$HOST \
+        --prefix=/usr \
+        --enable-static \
+        --disable-shared \
+        AR=$AR \
+        CC=$CC_STATIC \
+        RANLIB=$RANLIB \
+        CFLAGS="-static -I$SYSROOT/usr/include" \
+        LDFLAGS="-static -L$SYSROOT/usr/lib"
+
+    make -j$(nproc)
+    make DESTDIR=$SYSROOT install
+}
+
+# Download and compile libid3tag (required for mpg321) 
+get_libid3tag()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/libid3tag.a" ]; then
+        echo -e "${LIGHT_RED}libid3tag already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d libid3tag ]; then
+        echo -e "${YELLOW}libid3tag source already present, resetting...${RESET}"
+        cd libid3tag
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading libid3tag...${RESET}"
+        git clone $LIBID3TAG_SRC libid3tag
+        cd libid3tag
+        git checkout $LIBID3TAG_VER
+    fi
+
+    # Its config.sub is too old to recognise musl
+    cp "${CURR_DIR}/compilation/config.guess" config.guess
+    cp "${CURR_DIR}/compilation/config.sub" config.sub
+
+    # Compile and install
+    echo -e "${GREEN}Compiling libid3tag...${RESET}"
+    ./configure \
+        --host=$HOST \
+        --prefix=/usr \
+        --enable-static \
+        --disable-shared \
+        AR=$AR \
+        CC=$CC_STATIC \
+        RANLIB=$RANLIB \
+        CFLAGS="-static -I$SYSROOT/usr/include" \
+        LDFLAGS="-static -L$SYSROOT/usr/lib"
+
+    make -j$(nproc)
+    make DESTDIR=$SYSROOT install
 }
 
 # Download and compile libxlsxwriter (required for sc-im)
@@ -1194,14 +1361,14 @@ get_busybox()
 
     # Patch in swap partition identification in lsblk implementation
     echo -e "${GREEN}Applying 1.38.0_lsblk_swap patch...${RESET}"
-    patch -p1 < "$CURR_DIR/patches/1.38.0_lsblk_swap.patch"
+    patch -p1 < "$CURR_DIR/patches/busybox/1.38.0_lsblk_swap.patch"
 
     if $ENABLE_MULTIUSER_REAL; then
         echo -e "${GREEN}Enabling BusyBox's multi-user utilities...${RESET}"
         merge_busybox_frag "$CURR_DIR/configs/busybox.config.multiuser.frag"
         
         echo -e "${GREEN}Applying 1.37.0-1.38.0_musl_utmp patch...${RESET}"
-        patch -p1 < "$CURR_DIR/patches/1.37.0-1.38.0_musl_utmp.patch"
+        patch -p1 < "$CURR_DIR/patches/busybox/1.37.0-1.38.0_musl_utmp.patch"
     fi
     
     if $ENABLE_NET_ETH; then
@@ -1355,7 +1522,7 @@ download_kernel()
     cd "$CURR_DIR/build"
     echo -e "${GREEN}Downloading the Linux kernel...${RESET}"
     if [ ! -d "linux" ]; then
-        git clone --depth=1 --branch "v$KERNEL_VER" $KERNEL_SRC || true
+        git clone --depth=1 --branch "v$LINUX_VER" $LINUX_SRC || true
         cd "$CURR_DIR/build/linux"
         configure_kernel
     fi
@@ -1437,6 +1604,9 @@ configure_kernel()
         FRAGS+="$CURR_DIR/configs/linux.config.smp.frag "
     fi
 
+        echo -e "${GREEN}Enabling kernel-level sound support...${RESET}"
+        FRAGS+="$CURR_DIR/configs/linux.config.sound.frag "
+
     if $ENABLE_TASKSTATS; then
         echo -e "${GREEN}Enabling kernel-level taskstats support...${RESET}"
         FRAGS+="$CURR_DIR/configs/linux.config.taskstats.frag "
@@ -1467,8 +1637,8 @@ reset_kernel()
     cd "$CURR_DIR/build/linux"
 
     CURR_TAG=$(git describe --tags --exact-match 2>/dev/null || echo "")
-    if [ -n "$CURR_TAG" ] && [ "$CURR_TAG" != "v${KERNEL_VER}" ]; then
-        echo -e "${GREEN}Switching kernel version from ${CURR_TAG} to v${KERNEL_VER}...${RESET}"
+    if [ -n "$CURR_TAG" ] && [ "$CURR_TAG" != "v${LINUX_VER}" ]; then
+        echo -e "${GREEN}Switching kernel version from ${CURR_TAG} to v${LINUX_VER}...${RESET}"
         reclone_kernel
         return
     fi
@@ -1478,7 +1648,7 @@ reset_kernel()
     git reset --hard || true
     git clean -fdx || true
     make clean
-    git checkout "v${KERNEL_VER}"
+    git checkout "v${LINUX_VER}"
 
     configure_kernel
 }
@@ -1499,21 +1669,21 @@ compile_kernel()
     sudo sed -i "s/printf '%s' -dirty/printf '%s'/" scripts/setlocalversion
 
     # Apply our patches
-    if [[ "$KERNEL_VER" == "7.1.2" ]]; then
+    if [[ "$LINUX_VER" == "7.1.2" ]]; then
         echo -e "${GREEN}Applying 7.1.x_restore-M486-M486SX-ELAN patch...${RESET}"
-        patch -p1 < "$CURR_DIR/patches/7.1.x_restore-M486-M486SX-ELAN.patch"
+        patch -p1 < "$CURR_DIR/patches/linx/7.1.x_restore-M486-M486SX-ELAN.patch"
 
         echo -e "${GREEN}Applying 7.1.x_restore-pcmcia-hosts patch...${RESET}"
-        patch -p1 < "$CURR_DIR/patches/7.1.x_restore-pcmcia-hosts.patch"
+        patch -p1 < "$CURR_DIR/patches/linx/7.1.x_restore-pcmcia-hosts.patch"
 
         echo -e "${GREEN}Applying 7.1.x_restore-no-pci-devices patch...${RESET}"
-        patch -p1 < "$CURR_DIR/patches/7.1.x_restore-no-pci-devices.patch"
+        patch -p1 < "$CURR_DIR/patches/linx/7.1.x_restore-no-pci-devices.patch"
 
         echo -e "${GREEN}Applying 7.1.x_restore-pc110pad patch...${RESET}"
-        patch -p1 < "$CURR_DIR/patches/7.1.x_restore-pc110pad.patch"
+        patch -p1 < "$CURR_DIR/patches/linx/7.1.x_restore-pc110pad.patch"
 
         echo -e "${GREEN}Applying 7.1.x_restore-isa-pcmcia-net patch...${RESET}"
-        patch -p1 < "$CURR_DIR/patches/7.1.x_restore-isa-pcmcia-net.patch"
+        patch -p1 < "$CURR_DIR/patches/linx/7.1.x_restore-isa-pcmcia-net.patch"
     fi
 
     echo -e "${GREEN}Compiling Linux kernel...${RESET}"
@@ -3607,7 +3777,7 @@ get_gcc()
 
     DIR="${ARCH}-linux-musl-native"
     ARC="${DIR}.tgz"
-    URI="https://musl.cc/${ARC}"
+    URI="${GCC_SRC}/${ARC}"
 
     # Download
     [ -f $ARC ] || wget $URI
@@ -3943,6 +4113,60 @@ get_micropython()
     sudo ln -sf micropython "$DESTDIR/usr/bin/python3"
 }
 
+# Download and compile mpg321 (WIP)
+# Once down, uncomment relevant part of get_installed_programs_features
+get_mpg321()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$DESTDIR/usr/mpg321" ]; then
+        echo -e "${LIGHT_RED}mpg321 already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d mpg321 ]; then
+        echo -e "${YELLOW}mpg321 source already present, resetting...${RESET}"
+        cd mpg321
+        git config --global --add safe.directory $CURR_DIR/build/mpg321
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading mpg321...${RESET}"
+        git clone $MPG321_SRC
+        cd mpg321
+        git checkout $MPG321_VER
+    fi
+
+    # Its config.sub is too old to recognise musl
+    cp "${CURR_DIR}/compilation/config.guess" config.guess
+    cp "${CURR_DIR}/compilation/config.sub" config.sub
+
+    # Prevent make from trying to regenerate autotools files
+    touch aclocal.m4 configure config.h.in Makefile.in
+
+    # Compile and install
+    echo -e "${GREEN}Compiling mpg321...${RESET}"
+    ./configure \
+        --host=$HOST \
+        --build=x86_64-linux-gnu \
+        --prefix=/usr \
+        --enable-alsa=no \
+        --with-default-audio=oss \
+        AR=$AR \
+        CC=$CC_STATIC \
+        RANLIB=$RANLIB \
+        CPPFLAGS="-nostdinc -I$SYSROOT/usr/include -I$SYSROOT/include -I${PREFIX}/lib/gcc/i486-linux-musl/11.2.1/include" \
+        CFLAGS="-static -fcommon -std=gnu89" \
+        LDFLAGS="-static -L$SYSROOT/usr/lib" \
+        PKG_CONFIG_PATH="$SYSROOT/usr/lib/pkgconfig" \
+        ac_cv_func_malloc_0_nonnull=yes \
+        ac_cv_func_realloc_0_nonnull=yes
+    make -j$(nproc)
+    sudo make DESTDIR=$DESTDIR install
+}
+
 # Download and compile mt-st
 get_mt_st()
 {
@@ -4150,7 +4374,8 @@ get_tcc()
     ln -sf /usr/local/bin/i386-tcc $DESTDIR/usr/bin/tcc || true
 }
 
-# Download and compile tilde
+# Download and compile tilde (WIP)
+# Once down, uncomment relevant part of get_installed_programs_features
 get_tilde()
 {
     cd "$CURR_DIR/build"
@@ -4182,7 +4407,7 @@ get_tilde()
     ln -sf "$CC"  "$CURR_DIR/build/fake-tools/gcc"
     ln -sf "$CXX" "$CURR_DIR/build/fake-tools/g++"
     ln -sf "$LD"  "$CURR_DIR/build/fake-tools/ld"
-    cp "$CURR_DIR/i486-linux-musl-pkg-config" "$CURR_DIR/build/fake-tools/"
+    cp "$CURR_DIR/compilation/i486-linux-musl-pkg-config" "$CURR_DIR/build/fake-tools/"
     sudo ln -sf $(which libtool) /usr/local/bin/i486-linux-musl-libtool
 
     export PATH="$CURR_DIR/build/fake-tools:$PATH"
@@ -4783,7 +5008,7 @@ trim_fat()
             fi
         done
     fi
-    
+
     if $INCLUDE_GIT; then
         cd "$DESTDIR/usr/libexec/git-core"
         sudo rm -f git-imap-send git-http-fetch git-http-backend git-daemon git-p4 git-svn git-send-email
@@ -4811,23 +5036,7 @@ trim_fat()
         sudo rm -rf "$DESTDIR/usr/share/mg"
     fi
 
-    for bin in "$DESTDIR"/bin/*; do
-        if [ -f "$bin" ]; then
-            sudo $STRIP $bin 2>/dev/null || true
-        fi
-    done
-
-    for bin in "$DESTDIR"/sbin/*; do
-        if [ -f "$bin" ]; then
-            sudo $STRIP $bin 2>/dev/null || true
-        fi
-    done
-
-    for bin in "$DESTDIR"/usr/bin/*; do
-        if [ -f "$bin" ]; then
-            sudo $STRIP $bin 2>/dev/null || true
-        fi
-    done
+    find "$DESTDIR" -type f -exec sudo "$STRIP" {} \; 2>/dev/null
 }
 
 # Copies all licences for included software
@@ -4945,6 +5154,12 @@ copy_licences()
        [ -f "$CURR_DIR/build/micropython/LICENSE" ]; then
         cp "$CURR_DIR/build/micropython/LICENSE" "$DESTDIR/LICENCES/micropython.txt" || true
         CSV+="\nMicroPython,MIT,micropython.txt"
+    fi
+
+    if $INCLUDE_MPG321 && 
+       [ -f "$CURR_DIR/build/mpg321/COPYING" ]; then
+        cp "$CURR_DIR/build/mpg321/COPYING" "$DESTDIR/LICENCES/mpg321.txt" || true
+        CSV+="\nmpg321,GNU GPLv2,mpg321.txt"
     fi
 
     if $INCLUDE_MT_ST && 
@@ -6300,6 +6515,12 @@ get_installed_programs_features()
             EXCLUDED_FEATURES+="\n * micropython"
         fi
 
+        #if [ -f "$DESTDIR/usr/bin/mpg321" ]; then
+        #    INCLUDED_FEATURES+="\n * mpg321 ($MPG321_VER)"
+        #else
+        #    EXCLUDED_FEATURES+="\n * mpg321"
+        #fi
+
         if [ -f "$DESTDIR/bin/mt" ]; then
             INCLUDED_FEATURES+="\n * mt (mt-st, $MT_ST_VER)"
         else
@@ -6425,7 +6646,7 @@ generate_report()
         "================================================================================"
         ""
         "OS/version:          $DIST $VER"
-        "Kernel:              Linux $KERNEL_VER"
+        "Kernel:              Linux $LINUX_VER"
         "Base:                BusyBox $BUSYBOX_VER"
         "Bootloader:          $BOOTLDR_USED"
     )
@@ -6604,6 +6825,7 @@ fi
 mkdir -p build/staging
 get_prerequisites
 get_musl_cross
+chmod +x "${CURR_DIR}/compilation/"*
 
 if ! $SKIP_BB; then
     get_busybox
@@ -6634,8 +6856,17 @@ fi
 if $NEED_CURL; then
     get_curl
 fi
+if $NEED_LIBAO; then
+    get_libao
+fi
 if $NEED_LIBEVENT; then
     get_libevent
+fi
+if $NEED_LIBID3TAG; then
+    get_libid3tag
+fi
+if $NEED_LIBMAD; then
+    get_libmad
 fi
 if $NEED_LIBXLSXWRITER; then
     get_libxlsxwriter
@@ -6699,6 +6930,9 @@ if $INCLUDE_MG; then
 fi
 if $INCLUDE_MICROPYTHON; then
     get_micropython
+fi
+if $INCLUDE_MPG321; then
+    get_mpg321
 fi
 if $INCLUDE_MT_ST; then
     get_mt_st

@@ -1,6 +1,6 @@
 # SHORK 486, DISC & DISKETTE
 
-SHORK 486 is an operating system for 486 and Pentium (P5) era vintage PCs. The aim is to produce a 32-bit Linux distribution that is very lean and functional but still capable on such PCs, often with my '90s IBM ThinkPads in mind. A default SHORK 486 system aims to work with at least 16MiB system memory and take up no more than ~80MiB on your disk. Despite those constraints, the default SHORK 486 experience includes [Linux kernel 7.1.2](KERNEL.md), many typical Linux commands, custom SHORK Utilities such as shorkdir (TUI file browser) and shorkfetch (*fetch clone), a terminal multiplexer, a C compiler and Python 3.4-syntax interpreter, a text web browser, an FTP, SCP and SSH client, a Git source control client, the ed, Mg (Emacs-style), nano and vi editors, a spreadsheet editor, IDE CD-ROM and DVD-ROM support, SCSI tape drive support, ISA, PCI and PCMCIA ethernet support, support for most major national keyboard layouts, and a cute ASCII shark welcome screen!
+SHORK 486 is a free and open-source operating system for 486 and Pentium (P5) era vintage personal computers. The aim is to produce a 32-bit Linux distribution that is lean and functional, but still capable on such PCs, often with my '90s IBM ThinkPads in mind. A default SHORK 486 system aims to work with at least 16MiB system memory and take up no more than ~80MiB on your disk. Despite those constraints, the default SHORK 486 experience includes [Linux kernel 7.1.2](KERNEL.md), many typical Linux commands, custom SHORK Utilities such as shorkdir (TUI file browser) and shorkfetch (*fetch clone), a terminal multiplexer, a C compiler and Python 3.4-syntax interpreter, a text web browser, an FTP, SCP and SSH client, a Git source control client, the ed, Mg (Emacs-style), nano and vi editors, a spreadsheet editor, IDE CD-ROM and DVD-ROM support, SCSI tape drive support, ISA, PCI and PCMCIA ethernet support, support for most major national keyboard layouts, and a cute ASCII shark welcome screen!
 
 A build configurator is available to alter SHORK 486 to your liking. For example, you can select the "minimal" build type that requires just 8MiB RAM and ~8MiB disk space, whilst still including most typical commands as before, some custom SHORK Utilities, and the ed and vi editors. If not a "minimal" build, multi-user support can be included. You can also select the "custom" build type, which lets you pick and choose specific software and features. Versions of SHORK 486 that can be burned to a CD (SHORK DISC) or small enough to fit on a 1.44MB floppy diskette (SHORK DISKETTE) are also available.
 
@@ -28,6 +28,10 @@ Besides being something fun to try on old PCs, SHORK 486 was founded on the beli
 
 SHORK 486 is a modern and maintained Linux distribution that can run on a processor architecture from 1989. Depending on configuration, it only requires between 8 and 24MiB system memory whilst still packing a lot of functionality for its size. Due to various factors, making such a distribution is increasingly difficult in the 2020s. System requirements are ever-increasing, with even the otherwise excellent Micro Core and Tiny Core requiring at least 26-46MB RAM, putting them out of range of many early 486 systems. As of Linux kernel 7.1 and beyond, support for 486 processors and various ISA and PCMCIA networking hardware has been dropped, and 32-bit x86 support in general is currently dropped by most mainstream distributions. Given this situation, SHORK 486 will try to fill this niche of a ready-to-go Linux distribution for such PCs by sticking with a minimal-where-possible philosophy, customisability and restoring support for older hardware with newer Linux kernels!
 
+### Licences
+
+SHORK 486 is a free and open-source operating system. Its core is made up of [GPLv3](COPYING) (SHORK, SHORK Utilities, SHORK Entertainment) and [GPLv2](https://docs.kernel.org/process/license-rules.html) (Linux kernel, BusyBox, SYSLINUX) components. The contents of the `shork-486/patches` directory are also licensed under GPLv2 as they are derived from Linux kernel and BusyBox source code. SHORK 486 can also contain bundled software licensed under various permissive, copyleft, and even public-domain-equivalent licences. You can look at the bundled software list later in this README, or at the "Licences" portal in `shorkhelp` when running SHORK 486, to see their licences.
+
 
 
 ## SHORK 486
@@ -48,32 +52,37 @@ addgroup, adduser, ar, arch, ascii, ash, awk, basename, bc, beep, blkid, cal, ca
 
 ### Bundled software
 
-* [file](https://github.com/file/file) (file identification)
-* ftp (FTP client, [tnftp](https://ftp.netbsd.org/pub/NetBSD/misc/tnftp/))
-* [git](https://git-scm.com/) (Git source control client)
-* [htop](https://github.com/htop-dev) (interactive process viewer)
-* [lynx](https://github.com/ThomasDickey/lynx-snapshots) (terminal web browser)
-* [mg](https://github.com/troglobit/mg) (Emacs-style text editor)
-* [micropython](https://github.com/micropython/micropython) (Python 3.4-syntax intepreter)
-* mt (tape drive control, [mt-st](https://github.com/iustin/mt-st))
-* [nano](https://www.nano-editor.org) (text editor)
-* scp (SCP client, [Dropbear](https://github.com/mkj/dropbear))
-* [sc-im](https://github.com/andmarti1424/sc-im) (terminal spreadsheet editor)
-* ssh (SSH client, [Dropbear](https://github.com/mkj/dropbear))
-* stinit (tape drive initialiser, [mt-st](https://github.com/iustin/mt-st))
-* [tcc](https://bellard.org/tcc/) with [musl](https://musl.libc.org/) (C compiler)
-* [tmux](https://github.com/tmux/tmux) (terminal multiplexer)
+#### Default
+
+| Name | Command(s) | Version | Purpose | Licence(s) |
+|------|------------|---------|---------|------------|
+| [Dropbear](https://github.com/mkj/dropbear) | `scp`, `ssh` | 2026.91 | SCP and SSH clients | MIT + BSD 2-Clause |
+| [file](https://github.com/file/file) | `file` | 5_48 | File identification | BSD 2-Clause |
+| [Git](https://git-scm.com/) | `git` | 2.54.0 | Source control client | GPLv2 |
+| [htop](https://github.com/htop-dev/htop) | `htop` | 3.5.1 | Interactive process viewer | GPLv2 |
+| [Lynx](https://github.com/ThomasDickey/lynx-snapshots) | `lynx` | 2-9-3a | Terminal web browser | GPLv2 |
+| [Mg](https://github.com/troglobit/mg) | `mg` | 3.7 | Emacs-style text editor | Unlicense |
+| [MicroPython](https://github.com/micropython/micropython) | `micropython` | 1.28.0 | Python 3.4-syntax intepreter | MIT |
+| [mt-st](https://github.com/iustin/mt-st) | `mt`, `stinit` | 1.8 | Tape drive tools | GPLv2 
+| [nano](https://www.nano-editor.org) | `nano` | 9.1 | Pico-style text editor | GPLv3 |
+| [sc-im](https://github.com/andmarti1424/sc-im) | `sc-im` | 0.8.5 | Terminal spreadsheet editor | BSD 4-Clause |
+| [Tiny C Compiler](https://bellard.org/tcc/)‡ | `tcc` | `e5eedc0` | C compiler | LGPLv2.1 |
+| [tmux](https://github.com/tmux/tmux) | `tmux` | 3.6b | Terminal multiplexer | ISC |
+| [tnftp](https://ftp.netbsd.org/pub/NetBSD/misc/tnftp/) | `ftp` | 20260211 | FTP client | BSD 2-Clause |
 
 #### Optional
 
-* [c3270](https://github.com/pmattes/x3270) (3270 emulator) (EXPERIMENTAL)
-* [GCC with musl](https://musl.cc/)
-    * as (assembler)
-    * g++ (C++ compiler)
-    * gcc (C compiler)
-    * gfortran (Fortran compiler)
-* [joe](https://github.com/joe-editor/joe) (WordStar-style text editor)
-* [tn5250](https://github.com/tn5250/tn5250) (TCP/IP 5250 emulator) (EXPERIMENTAL)
+| Name | Command(s) | Version | Purpose | Licence(s) |
+|------|------------|---------|---------|------------|
+| [Binutils](https://musl.cc/)† | e.g. `ar`, `as`, `gprof`, `ld`, `nm`, `objdump`,<br>`ranlib`,`readelf`, `strings`, `strip` | 2.37 | Binary tools to compliment GCC | GPLv3 |
+| [GCC](https://musl.cc/)*†‡ | `gcc`, `g++`, `gfortran` | 11.2.1 | C, C++ and Fortran compilers | GPLv3 + GCC RLE |
+| [JOE](https://github.com/joe-editor/joe) | `joe` | 4.8 | WordStar-style text editor | GPLv2 |
+| [tn5250](https://github.com/tn5250/tn5250)* | `tn5250` | 0.18.0 | TCP/IP 5250 terminal emulator | LGPLv2.1 |
+| [x3270](https://github.com/pmattes/x3270)* | `c3270` | 4.5ga5 | 3270 terminal emulator | BSD 3-Clause |
+
+* _* Support for this is experimental - expect bugs_
+* _† GCC and Binutils are separate projects but are bundled together for SHORK 486_
+* _‡ [musl 1.2.6](https://musl.libc.org/) (MIT licensed) is included with GCC and Tiny C Compiler_
 
 ### SHORK Utilities (shorkutils)
 
@@ -109,7 +118,7 @@ addgroup, adduser, ar, arch, ascii, ash, awk, basename, bc, beep, blkid, cal, ca
 * dialog
 * IRC client (exact one TBD)
 * make
-* mpc/MPD
+* mpc/MPD or mpg321
 * w3m
 
 ### SHORK 486 on modern hardware
@@ -404,12 +413,12 @@ When built as a single-user system or a multi-user system with no additional use
 
 
 
+## AI policy
+
+SHORK 486 itself, SHORK Utilities and SHORK Entertainment are developed under a **no LLM-generated code or documentation** policy. PR requests that contain contributions from an LLM bot or are obviously LLM-generated/vibecoded will be denied. I cannot vouch this for third-party bundled software, or that the tutorials I'm learning from and sources I'm reading weren't influenced by LLM content unbeknownst to me, but I will do my best to recognise such and ensure this doesn't affect the things I control. Even considering locally-trained models or limiting LLM usage to speeding up repetitive tasks (etc.), my wish is for the SHORK family to be a human-made project. :)
+
+
+
 ## Acknowledgements
 
 * This product includes software developed by Andrés Martinelli <andmarti@gmail.com> (sc-im).
-
-
-
-## Licences
-
-SHORK 486 itself, SHORK Utilities and SHORK Entertainment are all licensed under [GPL 3.0 terms](COPYING). The contents of the `shork-486/patches` directory are licensed under [GPL 2.0 terms](https://docs.kernel.org/process/license-rules.html) as they are derived from Linux kernel and BusyBox source code.
