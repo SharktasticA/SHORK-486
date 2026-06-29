@@ -74,7 +74,7 @@ addgroup, adduser, ar, arch, ascii, ash, awk, basename, bc, beep, blkid, cal, ca
 
 | Name | Command(s) | Version | Purpose | Licence(s) |
 |------|------------|---------|---------|------------|
-| [Binutils](https://musl.cc/)† | e.g. `ar`, `as`, `gprof`, `ld`, `nm`, `objdump`,<br>`ranlib`,`readelf`, `strings`, `strip` | 2.37 | Binary tools to compliment GCC | GPLv3 |
+| [Binutils](https://musl.cc/)† | e.g. `ar`, `as`, `gprof`, `ld`, `nm`,<br>`objdump`, `ranlib`,`readelf`,<br>`strings`, `strip` | 2.37 | Binary tools to compliment GCC | GPLv3 |
 | [GCC](https://musl.cc/)*†‡ | `gcc`, `g++`, `gfortran` | 11.2.1 | C, C++ and Fortran compilers | GPLv3 + GCC RLE |
 | [JOE](https://github.com/joe-editor/joe) | `joe` | 4.8 | WordStar-style text editor | GPLv2 |
 | [tn5250](https://github.com/tn5250/tn5250)* | `tn5250` | 0.18.0 | TCP/IP 5250 terminal emulator | LGPLv2.1 |
