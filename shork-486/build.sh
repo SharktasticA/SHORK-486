@@ -1385,7 +1385,14 @@ get_busybox()
         merge_busybox_frag "$CONFIGS_DIR/busybox/busybox.config.usb.frag"
         yes | make oldconfig
     fi
-    
+
+    if $INCLUDE_GCC; then
+        echo -e "${GREEN}Disabling BusyBox's ar implementation in favour of GCC's...${RESET}"
+        sed -i 's/^CONFIG_AR=y$/# CONFIG_AR is not set/' .config
+        sed -i 's/^CONFIG_FEATURE_AR_LONG_FILENAMES=y$/# CONFIG_FEATURE_AR_LONG_FILENAMES is not set/' .config
+        sed -i 's/^CONFIG_FEATURE_AR_CREATE=y$/# CONFIG_FEATURE_AR_CREATE is not set/' .config
+    fi
+
     # Compile and install
     echo -e "${GREEN}Compiling BusyBox...${RESET}"
     make ARCH=x86 -j$(nproc)
