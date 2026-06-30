@@ -5760,10 +5760,10 @@ build_disk_img()
     else
         # Calculate some overhead to take into account metadata, partition
         # alignment, bootloader structures, etc.
-        OVERHEAD_BYTES=$((12 * 1024 * 1024))
+        OVERHEAD_BYTES=$((16 * 1024 * 1024))
         if [ "$INCLUDE_GCC" = true ] || [ "$INCLUDE_GUI" = true ]; then
             # We can assume these features demand more
-            OVERHEAD_BYTES=$((16 * 1024 * 1024))
+            OVERHEAD_BYTES=$((32 * 1024 * 1024))
         fi
         OVERHEAD_MIB=$(((OVERHEAD_BYTES + 1048575) / 1048576))
 
@@ -5778,7 +5778,7 @@ build_disk_img()
         # Use target disk value if provided and large enough
         if [ -n "$TARGET_DISK" ]; then
             if [ "$TARGET_DISK" -lt "$TOTAL_MIB" ]; then
-                echo -e "${YELLOW}WARNING: the provided target disk value (${TARGET_DISK}MiB) is smaller than required size (${TOTAL_DISK_SIZE}MiB) - using calculated size instead${RESET}"
+                echo -e "${YELLOW}WARNING: the provided target disk value (${TARGET_DISK}MiB) is smaller than required size (${TOTAL_MIB}MiB) - using calculated size instead${RESET}"
                 TOTAL_DISK_SIZE=$TOTAL_MIB
             else
                 echo -e "${GREEN}Using user-specified disk size (${TARGET_DISK}MiB)${RESET}"
