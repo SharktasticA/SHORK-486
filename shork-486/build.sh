@@ -1671,19 +1671,19 @@ compile_kernel()
     # Apply our patches
     if [[ "$LINUX_VER" == "7.1.2" ]]; then
         echo -e "${GREEN}Applying 7.1.x_restore-M486-M486SX-ELAN patch...${RESET}"
-        patch -p1 < "$CURR_DIR/patches/linx/7.1.x_restore-M486-M486SX-ELAN.patch"
+        patch -p1 < "$CURR_DIR/patches/linux/7.1.x_restore-M486-M486SX-ELAN.patch"
 
         echo -e "${GREEN}Applying 7.1.x_restore-pcmcia-hosts patch...${RESET}"
-        patch -p1 < "$CURR_DIR/patches/linx/7.1.x_restore-pcmcia-hosts.patch"
+        patch -p1 < "$CURR_DIR/patches/linux/7.1.x_restore-pcmcia-hosts.patch"
 
         echo -e "${GREEN}Applying 7.1.x_restore-no-pci-devices patch...${RESET}"
-        patch -p1 < "$CURR_DIR/patches/linx/7.1.x_restore-no-pci-devices.patch"
+        patch -p1 < "$CURR_DIR/patches/linux/7.1.x_restore-no-pci-devices.patch"
 
         echo -e "${GREEN}Applying 7.1.x_restore-pc110pad patch...${RESET}"
-        patch -p1 < "$CURR_DIR/patches/linx/7.1.x_restore-pc110pad.patch"
+        patch -p1 < "$CURR_DIR/patches/linux/7.1.x_restore-pc110pad.patch"
 
         echo -e "${GREEN}Applying 7.1.x_restore-isa-pcmcia-net patch...${RESET}"
-        patch -p1 < "$CURR_DIR/patches/linx/7.1.x_restore-isa-pcmcia-net.patch"
+        patch -p1 < "$CURR_DIR/patches/linux/7.1.x_restore-isa-pcmcia-net.patch"
     fi
 
     echo -e "${GREEN}Compiling Linux kernel...${RESET}"
