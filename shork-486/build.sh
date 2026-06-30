@@ -5036,7 +5036,15 @@ trim_fat()
         sudo rm -rf "$DESTDIR/usr/share/mg"
     fi
 
-    find "$DESTDIR" -type f -exec sudo "$STRIP" {} \; 2>/dev/null
+    # find . -type f -print -exec file {} \;
+    for dir in \
+        "$DESTDIR"/bin \
+        "$DESTDIR"/sbin \
+        "$DESTDIR"/usr/bin; do
+        for bin in "$dir"/*; do
+            [ -f "$bin" ] && sudo "$STRIP" "$bin" 2>/dev/null || true
+        done
+    done
 }
 
 # Copies all licences for included software
