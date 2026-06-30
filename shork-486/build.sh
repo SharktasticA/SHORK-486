@@ -100,6 +100,10 @@ RANLIB="${PREFIX}/bin/${ARCH}-linux-musl-ranlib"
 STRIP="${PREFIX}/bin/${ARCH}-linux-musl-strip"
 SYSROOT="${PREFIX}/${ARCH}-linux-musl"
 
+# Other common locations
+CONFIGS_DIR="${CURR_DIR}/configs"
+PATCHES_DIR="${CURR_DIR}/patches"
+
 # Target software/feature versions
 LINUX_SRC="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git"
 LINUX_VER="7.1.2"
@@ -1346,11 +1350,11 @@ get_busybox()
 
     echo -e "${GREEN}Copying base ${DIST} BusyBox .config file...${RESET}"
     if [ "$ID" == "shork-486" ]; then
-        cp $CURR_DIR/configs/busybox.config.base .config
+        cp $CONFIGS_DIR/busybox/busybox.config.base .config
     elif [ "$ID" == "shork-disc" ]; then
-        cp $CURR_DIR/configs/busybox.config.base.disc .config
+        cp $CONFIGS_DIR/busybox/busybox.config.base.disc .config
     elif [ "$ID" == "shork-diskette" ]; then
-        cp $CURR_DIR/configs/busybox.config.base.diskette .config
+        cp $CONFIGS_DIR/busybox/busybox.config.base.diskette .config
     fi
 
     # Ensure BusyBox behaves with our toolchain
@@ -1361,24 +1365,24 @@ get_busybox()
 
     # Patch in swap partition identification in lsblk implementation
     echo -e "${GREEN}Applying 1.38.0_lsblk_swap patch...${RESET}"
-    patch -p1 < "$CURR_DIR/patches/busybox/1.38.0_lsblk_swap.patch"
+    patch -p1 < "${PATCHES_DIR}/busybox/1.38.0_lsblk_swap.patch"
 
     if $ENABLE_MULTIUSER_REAL; then
         echo -e "${GREEN}Enabling BusyBox's multi-user utilities...${RESET}"
-        merge_busybox_frag "$CURR_DIR/configs/busybox.config.multiuser.frag"
+        merge_busybox_frag "$CONFIGS_DIR/busybox/busybox.config.multiuser.frag"
         
         echo -e "${GREEN}Applying 1.37.0-1.38.0_musl_utmp patch...${RESET}"
-        patch -p1 < "$CURR_DIR/patches/busybox/1.37.0-1.38.0_musl_utmp.patch"
+        patch -p1 < "${PATCHES_DIR}/busybox/1.37.0-1.38.0_musl_utmp.patch"
     fi
     
     if $ENABLE_NET_ETH; then
         echo -e "${GREEN}Enabling BusyBox's networking utilities...${RESET}"
-        merge_busybox_frag "$CURR_DIR/configs/busybox.config.net.frag"
+        merge_busybox_frag "$CONFIGS_DIR/busybox/busybox.config.net.frag"
     fi
 
     if $ENABLE_USB; then
         echo -e "${GREEN}Enabling BusyBox's USB-related utilities...${RESET}"
-        merge_busybox_frag "$CURR_DIR/configs/busybox.config.usb.frag"
+        merge_busybox_frag "$CONFIGS_DIR/busybox/busybox.config.usb.frag"
         yes | make oldconfig
     fi
     
@@ -1533,9 +1537,9 @@ configure_kernel()
     echo -e "${GREEN}Copying base ${DIST} kernel configuration file...${RESET}"
 
     if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
-        cp $CURR_DIR/configs/linux.config.base .config
+        cp $CONFIGS_DIR/linux/linux.config.base .config
     elif [ "$ID" == "shork-diskette" ]; then
-        cp $CURR_DIR/configs/linux.config.base.diskette .config
+        cp $CONFIGS_DIR/linux/linux.config.base.diskette .config
     fi
 
     FRAGS=""
@@ -1543,83 +1547,83 @@ configure_kernel()
     if $ENABLE_CDROM; then
         echo -e "${GREEN}Enabling kernel-level CD-ROM & DVD-ROM support...${RESET}"
         if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
-            FRAGS+="$CURR_DIR/configs/linux.config.cdrom.frag "
+            FRAGS+="$CONFIGS_DIR/linux/linux.config.cdrom.frag "
         elif [ "$ID" == "shork-diskette" ]; then
-            FRAGS+="$CURR_DIR/configs/linux.config.cdrom.diskette.frag "
+            FRAGS+="$CONFIGS_DIR/linux/linux.config.cdrom.diskette.frag "
         fi
     fi
     
     if $ENABLE_FB; then
         echo -e "${GREEN}Enabling kernel-level framebuffer, VESA & enhanced VGA support...${RESET}"
-        FRAGS+="$CURR_DIR/configs/linux.config.fb.frag "
+        FRAGS+="$CONFIGS_DIR/linux/linux.config.fb.frag "
     fi
 
     if $INCLUDE_GUI; then
         echo -e "${GREEN}Enabling kernel-level event interface support...${RESET}"
-        FRAGS+="$CURR_DIR/configs/linux.config.x11.frag "
+        FRAGS+="$CONFIGS_DIR/linux/linux.config.x11.frag "
     fi
 
     if $ENABLE_HIGHMEM; then
         echo -e "${GREEN}Enabling kernel-level high memory support...${RESET}"
-        FRAGS+="$CURR_DIR/configs/linux.config.highmem.frag "
+        FRAGS+="$CONFIGS_DIR/linux/linux.config.highmem.frag "
     fi
 
     if $ENABLE_MULTIUSER_KRN; then
         echo -e "${GREEN}Enabling kernel-level multi-user support...${RESET}"
-        FRAGS+="$CURR_DIR/configs/linux.config.multiuser.frag "
+        FRAGS+="$CONFIGS_DIR/linux/linux.config.multiuser.frag "
     fi
 
     if $ENABLE_PCMCIA; then
         echo -e "${GREEN}Enabling kernel-level PCMCIA support...${RESET}"
-        FRAGS+="$CURR_DIR/configs/linux.config.pcmcia.frag "
+        FRAGS+="$CONFIGS_DIR/linux/linux.config.pcmcia.frag "
     fi
 
     if $ENABLE_NET_BASE; then
         echo -e "${GREEN}Enabling kernel-level networking support (base)...${RESET}"
-        FRAGS+="$CURR_DIR/configs/linux.config.net.base.frag "
+        FRAGS+="$CONFIGS_DIR/linux/linux.config.net.base.frag "
     fi
 
     if $ENABLE_NET_ETH; then
         echo -e "${GREEN}Enabling kernel-level networking support (ethernet)...${RESET}"
-        FRAGS+="$CURR_DIR/configs/linux.config.net.eth.frag "
+        FRAGS+="$CONFIGS_DIR/linux/linux.config.net.eth.frag "
     fi
 
     if $ENABLE_NET_PCMCIA; then
         echo -e "${GREEN}Enabling kernel-level networking support (PCMCIA)...${RESET}"
-        FRAGS+="$CURR_DIR/configs/linux.config.net.pcmcia.frag "
+        FRAGS+="$CONFIGS_DIR/linux/linux.config.net.pcmcia.frag "
     fi
 
     if $ENABLE_SATA; then
         echo -e "${GREEN}Enabling kernel-level SATA support...${RESET}"
-        FRAGS+="$CURR_DIR/configs/linux.config.sata.frag "
+        FRAGS+="$CONFIGS_DIR/linux/linux.config.sata.frag "
     fi
 
     if $ENABLE_SCSI_EXP; then
         echo -e "${GREEN}Enabling kernel-level SCSI media changer & tape drive support...${RESET}"
-        FRAGS+="$CURR_DIR/configs/linux.config.scsi.exp.frag "
+        FRAGS+="$CONFIGS_DIR/linux/linux.config.scsi.exp.frag "
     fi
 
     if $ENABLE_SMP; then
         echo -e "${GREEN}Enabling kernel-level symmetric multiprocessing (SMP) support...${RESET}"
-        FRAGS+="$CURR_DIR/configs/linux.config.smp.frag "
+        FRAGS+="$CONFIGS_DIR/linux/linux.config.smp.frag "
     fi
 
         echo -e "${GREEN}Enabling kernel-level sound support...${RESET}"
-        FRAGS+="$CURR_DIR/configs/linux.config.sound.frag "
+        FRAGS+="$CONFIGS_DIR/linux/linux.config.sound.frag "
 
     if $ENABLE_TASKSTATS; then
         echo -e "${GREEN}Enabling kernel-level taskstats support...${RESET}"
-        FRAGS+="$CURR_DIR/configs/linux.config.taskstats.frag "
+        FRAGS+="$CONFIGS_DIR/linux/linux.config.taskstats.frag "
     fi
 
     if $ENABLE_USB; then
         echo -e "${GREEN}Enabling kernel-level USB & HID support...${RESET}"
-        FRAGS+="$CURR_DIR/configs/linux.config.usb.frag "
+        FRAGS+="$CONFIGS_DIR/linux/linux.config.usb.frag "
     fi
 
     if $ENABLE_ZSWAP; then
         echo -e "${GREEN}Enabling kernel-level zswap support...${RESET}"
-        FRAGS+="$CURR_DIR/configs/linux.config.zswap.frag "
+        FRAGS+="$CONFIGS_DIR/linux/linux.config.zswap.frag "
     fi
 
     if [ -n "$PHYSICAL_START" ]; then
@@ -1671,19 +1675,19 @@ compile_kernel()
     # Apply our patches
     if [[ "$LINUX_VER" == "7.1.2" ]]; then
         echo -e "${GREEN}Applying 7.1.x_restore-M486-M486SX-ELAN patch...${RESET}"
-        patch -p1 < "$CURR_DIR/patches/linux/7.1.x_restore-M486-M486SX-ELAN.patch"
+        patch -p1 < "${PATCHES_DIR}/linux/7.1.x_restore-M486-M486SX-ELAN.patch"
 
         echo -e "${GREEN}Applying 7.1.x_restore-pcmcia-hosts patch...${RESET}"
-        patch -p1 < "$CURR_DIR/patches/linux/7.1.x_restore-pcmcia-hosts.patch"
+        patch -p1 < "${PATCHES_DIR}/linux/7.1.x_restore-pcmcia-hosts.patch"
 
         echo -e "${GREEN}Applying 7.1.x_restore-no-pci-devices patch...${RESET}"
-        patch -p1 < "$CURR_DIR/patches/linux/7.1.x_restore-no-pci-devices.patch"
+        patch -p1 < "${PATCHES_DIR}/linux/7.1.x_restore-no-pci-devices.patch"
 
         echo -e "${GREEN}Applying 7.1.x_restore-pc110pad patch...${RESET}"
-        patch -p1 < "$CURR_DIR/patches/linux/7.1.x_restore-pc110pad.patch"
+        patch -p1 < "${PATCHES_DIR}/linux/7.1.x_restore-pc110pad.patch"
 
         echo -e "${GREEN}Applying 7.1.x_restore-isa-pcmcia-net patch...${RESET}"
-        patch -p1 < "$CURR_DIR/patches/linux/7.1.x_restore-isa-pcmcia-net.patch"
+        patch -p1 < "${PATCHES_DIR}/linux/7.1.x_restore-isa-pcmcia-net.patch"
     fi
 
     echo -e "${GREEN}Compiling Linux kernel...${RESET}"
@@ -1754,7 +1758,7 @@ get_v86d()
 
     # Compile and install
     echo -e "${GREEN}Compiling v86d...${RESET}"
-    sudo cp $CURR_DIR/configs/v86d.config.h config.h
+    sudo cp $CONFIGS_DIR/v86d.config.h config.h
     make clean >/dev/null 2>&1
     make CC="$CC -m32 -static -no-pie" v86d
     install -Dm755 v86d "$DESTDIR/sbin/v86d"
@@ -3827,7 +3831,7 @@ get_git()
     echo -e "${GREEN}Compiling Git...${RESET}"
     make configure
     ./configure --host=${HOST} --prefix=/usr CC="${CC}" AR="${AR}" RANLIB="${RANLIB}" CFLAGS="-Os -march=${ARCH} -static -I${PREFIX}/include" LDFLAGS="-static -L${PREFIX}/lib"
-    sudo cp $CURR_DIR/configs/git.config.mak config.mak
+    sudo cp $CONFIGS_DIR/git.config.mak config.mak
     make -j$(nproc)
     sudo make DESTDIR=$DESTDIR install
 }
