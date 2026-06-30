@@ -232,6 +232,7 @@ ENABLE_PCMCIA=true
 ENABLE_SATA=false
 ENABLE_SCSI_EXP=true
 ENABLE_SMP=false
+ENABLE_SOUND=false
 ENABLE_TASKSTATS=false
 ENABLE_USB=false
 ENABLE_ZSWAP=true
@@ -375,20 +376,25 @@ if [ "$ENABLE_MULTIUSER_REAL" = true ]; then
     ENABLE_MULTIUSER_KRN=true
 fi
 
-# Override to ensure the "use GRUB" parameter is disabled when the "Fix EXTLINUX" parameter is used
-if $FIX_EXTLINUX; then
+# Ensure USE_GRUB is disabled with FIX_EXTLINUX
+if [ "$FIX_EXTLINUX" = true ]; then
     USE_GRUB=false
 fi
 
-# Override to ensure MULTIUSER_KRN and TASKSTATS are enabled with HTOP
+# Ensure MULTIUSER_KRN and TASKSTATS are enabled with HTOP
 if [ "$INCLUDE_HTOP" = true ]; then
     ENABLE_MULTIUSER_KRN=true
     ENABLE_TASKSTATS=true
 fi
 
-# Override to ensure NET_MIN is enabled with HTOP or NET
+# Ensure NET_BASE is enabled with HTOP or NET_ETH
 if [ "$INCLUDE_HTOP" = true ] || [ "$ENABLE_NET_ETH" = true ]; then
     ENABLE_NET_BASE=true
+fi
+
+# Ensure SOUND is enabled with MPG321
+if [ "$INCLUDE_MPG321" = true ]; then
+    ENABLE_SOUND=true
 fi
 
 # Ensure SCSI_EXT is enabled with MT_ST
@@ -1615,8 +1621,10 @@ configure_kernel()
         FRAGS+="$CONFIGS_DIR/linux/linux.config.smp.frag "
     fi
 
+    if $ENABLE_SOUND; then
         echo -e "${GREEN}Enabling kernel-level sound support...${RESET}"
         FRAGS+="$CONFIGS_DIR/linux/linux.config.sound.frag "
+    fi
 
     if $ENABLE_TASKSTATS; then
         echo -e "${GREEN}Enabling kernel-level taskstats support...${RESET}"
@@ -6276,6 +6284,12 @@ get_installed_programs_features()
             INCLUDED_FEATURES+="\n * kernel-level SCSI media changer & tape drive support"
         else
             EXCLUDED_FEATURES+="\n * kernel-level SCSI media changer & tape drive support"
+        fi
+
+        if $ENABLE_SOUND; then
+            INCLUDED_FEATURES+="\n * kernel-level sound support"
+        else
+            EXCLUDED_FEATURES+="\n * kernel-level sound support"
         fi
 
         if $ENABLE_TASKSTATS; then
