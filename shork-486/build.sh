@@ -6180,6 +6180,23 @@ get_included_busybox_commands()
     check_bb_config "CONFIG_VMSTAT" ""
     check_bb_config "CONFIG_ASH" ""
 
+    # Added 2026-06-30
+    check_bb_config "CONFIG_UNCOMPRESS" ""
+    check_bb_config "CONFIG_GUNZIP" ""
+    check_bb_config "CONFIG_ZCAT" ""
+    check_bb_config "CONFIG_BUNZIP2" ""
+    check_bb_config "CONFIG_BZCAT" ""
+    check_bb_config "CONFIG_UNLZMA" ""
+    check_bb_config "CONFIG_LZCAT" ""
+    check_bb_config "CONFIG_LZMA" ""
+    check_bb_config "CONFIG_UNXZ" ""
+    check_bb_config "CONFIG_XZCAT" ""
+    check_bb_config "CONFIG_BZIP2" ""
+    check_bb_config "CONFIG_CPIO" ""
+    check_bb_config "CONFIG_LZOP" ""
+    check_bb_config "CONFIG_UNLZOP" ""
+    check_bb_config "CONFIG_LZOPCAT" ""
+
     readarray -t INCLUDED_BB_CMDS < <(printf '%s\n' "${INCLUDED_BB_CMDS[@]}" | sort)
     readarray -t EXCLUDED_BB_CMDS < <(printf '%s\n' "${EXCLUDED_BB_CMDS[@]}" | sort)
 }
