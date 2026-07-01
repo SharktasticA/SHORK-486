@@ -1,0 +1,4105 @@
+diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
+index b5493a7f8..bcc3ad4d2 100644
+--- a/Documentation/admin-guide/kernel-parameters.txt
++++ b/Documentation/admin-guide/kernel-parameters.txt
+@@ -24,6 +24,7 @@
+ 	IP_PNP	IP DHCP, BOOTP, or RARP is enabled.
+ 	IPV6	IPv6 support is enabled.
+ 	ISAPNP	ISA PnP code is enabled.
++	ISDN	Appropriate ISDN support is enabled.
+ 	ISOL	CPU Isolation is enabled.
+ 	JOY	Appropriate joystick support is enabled.
+ 	KGDB	Kernel debugger support is enabled.
+@@ -35,6 +36,7 @@
+ 	M68k	M68k architecture is enabled.
+ 			These options have more detailed description inside of
+ 			Documentation/arch/m68k/kernel-options.rst.
++	MDA	MDA console support is enabled.
+ 	MIPS	MIPS architecture is enabled.
+ 	MOUSE	Appropriate mouse support is enabled.
+ 	MSI	Message Signaled Interrupts (PCI).
+@@ -1640,6 +1642,10 @@ Kernel parameters
+ 			very early in the boot process. For early debugging
+ 			via a serial port see kgdboc_earlycon instead.
+ 
++	elanfreq=	[X86-32]
++			See comment before function elanfreq_setup() in
++			arch/x86/kernel/cpu/cpufreq/elanfreq.c.
++
+ 	elfcorehdr=[size[KMG]@]offset[KMG] [PPC,SH,X86,S390,EARLY]
+ 			Specifies physical address of start of kernel core
+ 			image elf header and optionally the size. Generally
+@@ -2216,6 +2222,9 @@ Kernel parameters
+ 			syscalls, essentially overriding IA32_EMULATION_DEFAULT_DISABLED at
+ 			boot time. When false, unconditionally disables IA32 emulation.
+ 
++	icn=		[HW,ISDN]
++			Format: <io>[,<membase>[,<icn_id>[,<icn_id2>]]]
++
+ 
+ 	idle=		[X86,EARLY]
+ 			Format: idle=poll, idle=halt, idle=nomwait
+@@ -3804,6 +3813,10 @@ Kernel parameters
+ 	md=		[HW] RAID subsystems devices and level
+ 			See Documentation/admin-guide/md.rst.
+ 
++	mdacon=		[MDA]
++			Format: <first>,<last>
++			Specifies range of consoles to be captured by the MDA.
++
+ 	mds=		[X86,INTEL,EARLY]
+ 			Control mitigation for the Micro-architectural Data
+ 			Sampling (MDS) vulnerability.
+@@ -4250,8 +4263,12 @@ Kernel parameters
+ 
+ 	n2=		[NET] SDL Inc. RISCom/N2 synchronous serial card
+ 
+-	netdev=		[NET] NE2000 ISA network devices parameters
++	netdev=		[NET] Network devices parameters
+ 			Format: <irq>,<io>,<mem_start>,<mem_end>,<name>
++			Note that mem_start is often overloaded to mean
++			something different and driver-specific.
++			This usage is only documented in each driver source
++			file if at all.
+ 
+ 	netpoll.carrier_timeout=
+ 			[NET] Specifies amount of time (in seconds) that
+@@ -4410,6 +4427,10 @@ Kernel parameters
+ 			These settings can be accessed at runtime via
+ 			the nmi_watchdog and hardlockup_panic sysctls.
+ 
++	no387		[BUGS=X86-32] Tells the kernel to use the 387 maths
++			emulation library even if a 387 maths coprocessor
++			is present.
++
+ 	no4lvl		[RISCV,EARLY] Disable 4-level and 5-level paging modes.
+ 			Forces kernel to use 3-level paging instead.
+ 
+@@ -5006,6 +5027,8 @@ Kernel parameters
+ 			the specified number of seconds.  This is to be used if
+ 			your oopses keep scrolling off the screen.
+ 
++	pcbit=		[HW,ISDN]
++
+ 	pci=option[,option...]	[PCI,EARLY] various PCI subsystem options.
+ 
+ 				Some options herein operate on a specific device
+@@ -6745,6 +6768,8 @@ Kernel parameters
+ 			restrictions other than those given by hardware at the
+ 			cost of significant additional memory use for tables.
+ 
++	sa1100ir	[NET]
++			See drivers/net/irda/sa1100_ir.c.
+ 
+ 	sched_proxy_exec= [KNL]
+ 			Enables or disables "proxy execution" style
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index bdad90f21..0d53a3462 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -131,8 +131,10 @@ config X86
+ 	select ARCH_SUPPORTS_LTO_CLANG
+ 	select ARCH_SUPPORTS_LTO_CLANG_THIN
+ 	select ARCH_SUPPORTS_RT
++	select ARCH_SUPPORTS_AUTOFDO_CLANG
++	select ARCH_SUPPORTS_PROPELLER_CLANG    if X86_64
+ 	select ARCH_USE_BUILTIN_BSWAP
+-	select ARCH_USE_CMPXCHG_LOCKREF
++	select ARCH_USE_CMPXCHG_LOCKREF		if X86_CX8
+ 	select ARCH_USE_MEMTEST
+ 	select ARCH_USE_QUEUED_RWLOCKS
+ 	select ARCH_USE_QUEUED_SPINLOCKS
+@@ -179,6 +181,7 @@ config X86
+ 	select GENERIC_IRQ_SHOW
+ 	select GENERIC_PENDING_IRQ		if SMP
+ 	select GENERIC_SMP_IDLE_THREAD
++	select GENERIC_TIME_VSYSCALL
+ 	select GENERIC_GETTIMEOFDAY
+ 	select GENERIC_VDSO_OVERFLOW_PROTECT
+ 	select GUP_GET_PXX_LOW_HIGH		if X86_PAE
+@@ -682,6 +685,7 @@ config X86_INTEL_QUARK
+ 	depends on X86_32
+ 	depends on X86_EXTENDED_PLATFORM
+ 	depends on X86_PLATFORM_DEVICES
++	depends on X86_TSC
+ 	depends on PCI
+ 	depends on PCI_GOANY
+ 	depends on X86_IO_APIC
+@@ -693,6 +697,17 @@ config X86_INTEL_QUARK
+ 	  Say Y here if you have a Quark based system such as the Arduino
+ 	  compatible Intel Galileo.
+ 
++config X86_RDC321X
++	bool "RDC R-321x SoC"
++	depends on X86_32
++	depends on X86_EXTENDED_PLATFORM
++	select M486
++	select X86_REBOOTFIXUPS
++	help
++	  This option is needed for RDC R-321x system-on-chip, also known
++	  as R-8610-(G).
++	  If you don't have one of these chips, you should say N here.
++
+ config X86_INTEL_LPSS
+ 	bool "Intel Low Power Subsystem Support"
+ 	depends on X86 && ACPI && PCI
+@@ -1631,6 +1646,33 @@ config X86_BOOTPARAM_MEMORY_CORRUPTION_CHECK
+ 	  Set whether the default state of memory_corruption_check is
+ 	  on or off.
+ 
++config MATH_EMULATION
++	bool
++	depends on MODIFY_LDT_SYSCALL
++	prompt "Math emulation" if X86_32 && (M486SX || MELAN)
++	help
++	  Linux can emulate a math coprocessor (used for floating point
++	  operations) if you don't have one. 486DX and Pentium processors have
++	  a math coprocessor built in, 486SX and 386 do not, unless you added
++	  a 487DX or 387, respectively. (The messages during boot time can
++	  give you some hints here ["man dmesg"].) Everyone needs either a
++	  coprocessor or this emulation.
++
++	  If you don't have a math coprocessor, you need to say Y here; if you
++	  say Y here even though you have a coprocessor, the coprocessor will
++	  be used nevertheless. (This behavior can be changed with the kernel
++	  command line option "no387", which comes handy if your coprocessor
++	  is broken. Try "man bootparam" or see the documentation of your boot
++	  loader (lilo or loadlin) about how to pass options to the kernel at
++	  boot time.) This means that it is a good idea to say Y here if you
++	  intend to use this kernel on different machines.
++
++	  More information about the internals of the Linux math coprocessor
++	  emulation can be found in <file:arch/x86/math-emu/README>.
++
++	  If you are not sure, say Y; apart from resulting in a 66 KB bigger
++	  kernel, it won't hurt.
++
+ config MTRR
+ 	def_bool y
+ 	prompt "MTRR (Memory Type Range Register) support" if EXPERT
+@@ -2397,6 +2439,10 @@ config CALL_THUNKS
+ 	def_bool n
+ 	select CALL_PADDING
+ 
++config PREFIX_SYMBOLS
++	def_bool y
++	depends on CALL_PADDING && !CFI
++
+ menuconfig CPU_MITIGATIONS
+ 	bool "Mitigations for CPU vulnerabilities"
+ 	default y
+@@ -2736,16 +2782,18 @@ menuconfig APM
+ 	  1) make sure that you have enough swap space and that it is
+ 	  enabled.
+ 	  2) pass the "idle=poll" option to the kernel
+-	  3) pass the "floppy=nodma" option to the kernel
+-	  4) pass the "mem=4M" option to the kernel (thereby disabling
++	  3) switch on floating point emulation in the kernel and pass
++	  the "no387" option to the kernel
++	  4) pass the "floppy=nodma" option to the kernel
++	  5) pass the "mem=4M" option to the kernel (thereby disabling
+ 	  all but the first 4 MB of RAM)
+-	  5) make sure that the CPU is not over clocked.
+-	  6) read the sig11 FAQ at <http://www.bitwizard.nl/sig11/>
+-	  7) disable the cache from your BIOS settings
+-	  8) install a fan for the video card or exchange video RAM
+-	  9) install a better fan for the CPU
+-	  10) exchange RAM chips
+-	  11) exchange the motherboard.
++	  6) make sure that the CPU is not over clocked.
++	  7) read the sig11 FAQ at <http://www.bitwizard.nl/sig11/>
++	  8) disable the cache from your BIOS settings
++	  9) install a fan for the video card or exchange video RAM
++	  10) install a better fan for the CPU
++	  11) exchange RAM chips
++	  12) exchange the motherboard.
+ 
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called apm.
+diff --git a/arch/x86/Kconfig.cpu b/arch/x86/Kconfig.cpu
+index e4654388d..4355c1cf3 100644
+--- a/arch/x86/Kconfig.cpu
++++ b/arch/x86/Kconfig.cpu
+@@ -32,6 +32,8 @@ choice
+ 	  - "Athlon" for the AMD K7 family (Athlon/Duron/Thunderbird).
+ 	  - "Crusoe" for the Transmeta Crusoe series.
+ 	  - "Efficeon" for the Transmeta Efficeon series.
++	  - "Winchip-C6" for original IDT Winchip.
++	  - "Winchip-2" for IDT Winchips with 3dNow! capabilities.
+ 	  - "AMD Elan" for the 32-bit AMD Elan embedded CPU.
+ 	  - "GeodeGX1" for Geode GX1 (Cyrix MediaGX).
+ 	  - "Geode GX/LX" For AMD Geode GX and LX processors.
+@@ -43,6 +45,14 @@ choice
+ 	  See each option's help text for additional details. If you don't know
+ 	  what to do, choose "Pentium-Pro".
+ 
++config M586
++	bool "586/K5/5x86/6x86/6x86MX"
++	depends on X86_32
++	help
++	  Select this for an 586 or 686 series processor such as the AMD K5,
++	  the Cyrix 5x86, 6x86 and 6x86MX.  This choice does not
++	  assume the RDTSC (Read Time Stamp Counter) instruction.
++
+ config M586TSC
+ 	bool "Pentium-Classic"
+ 	depends on X86_32
+@@ -145,6 +155,24 @@ config MEFFICEON
+ 	help
+ 	  Select this for a Transmeta Efficeon processor.
+ 
++config MWINCHIPC6
++	bool "Winchip-C6"
++	depends on X86_32
++	help
++	  Select this for an IDT Winchip C6 chip.  Linux and GCC
++	  treat this chip as a 586TSC with some extended instructions
++	  and alignment requirements.
++
++config MWINCHIP3D
++	bool "Winchip-2/Winchip-2A/Winchip-3"
++	depends on X86_32
++	help
++	  Select this for an IDT Winchip-2, 2A or 3.  Linux and GCC
++	  treat this chip as a 586TSC with some extended instructions
++	  and alignment requirements.  Also enable out of order memory
++	  stores for this CPU, which can increase performance of some
++	  operations.
++
+ config MGEODEGX1
+ 	bool "GeodeGX1"
+ 	depends on X86_32
+@@ -242,15 +270,19 @@ config X86_L1_CACHE_SHIFT
+ 	default "7" if MPENTIUM4
+ 	default "6" if MK7 || MPENTIUMM || MATOM || MVIAC7 || X86_GENERIC || X86_64
+ 	default "4" if MGEODEGX1
+-	default "5" if MCRUSOE || MEFFICEON || MCYRIXIII || MK6 || MPENTIUMIII || MPENTIUMII || M686 || M586MMX || M586TSC || MVIAC3_2 || MGEODE_LX
++	default "5" if MWINCHIP3D || MWINCHIPC6 || MCRUSOE || MEFFICEON || MCYRIXIII || MK6 || MPENTIUMIII || MPENTIUMII || M686 || M586MMX || M586TSC || M586 || MVIAC3_2 || MGEODE_LX
+ 
+ config X86_F00F_BUG
+ 	def_bool y
+ 	depends on M586MMX || M586TSC || M586
+ 
++config X86_INVD_BUG
++	def_bool y
++	depends on M486SX || M486
++
+ config X86_ALIGNMENT_16
+ 	def_bool y
+-	depends on MCYRIXIII || MK6 || M586MMX || M586TSC || M586 || MVIAC3_2 || MGEODEGX1
++	depends on MWINCHIP3D || MWINCHIPC6 || MCYRIXIII || MK6 || M586MMX || M586TSC || M586 || MVIAC3_2 || MGEODEGX1
+ 
+ config X86_INTEL_USERCOPY
+ 	def_bool y
+@@ -258,10 +290,11 @@ config X86_INTEL_USERCOPY
+ 
+ config X86_USE_PPRO_CHECKSUM
+ 	def_bool y
+-	depends on MCYRIXIII || MK7 || MK6 || MPENTIUM4 || MPENTIUMM || MPENTIUMIII || MPENTIUMII || M686 || MVIAC3_2 || MVIAC7 || MEFFICEON || MGEODE_LX || MATOM
++	depends on MWINCHIP3D || MWINCHIPC6 || MCYRIXIII || MK7 || MK6 || MPENTIUM4 || MPENTIUMM || MPENTIUMIII || MPENTIUMII || M686 || MVIAC3_2 || MVIAC7 || MEFFICEON || MGEODE_LX || MATOM
+ 
+ config X86_TSC
+ 	def_bool y
++	depends on (MWINCHIP3D || MCRUSOE || MEFFICEON || MCYRIXIII || MK7 || MK6 || MPENTIUM4 || MPENTIUMM || MPENTIUMIII || MPENTIUMII || M686 || M586MMX || M586TSC || MVIAC3_2 || MVIAC7 || MGEODEGX1 || MGEODE_LX || MATOM) || X86_64
+ 
+ config X86_HAVE_PAE
+ 	def_bool y
+@@ -269,6 +302,7 @@ config X86_HAVE_PAE
+ 
+ config X86_CX8
+ 	def_bool y
++	depends on X86_HAVE_PAE || M586TSC || M586MMX || MK6 || MK7 || MGEODEGX1 || MGEODE_LX
+ 
+ # this should be set for all -march=.. options where the compiler
+ # generates cmov.
+@@ -284,7 +318,7 @@ config X86_MINIMUM_CPU_FAMILY
+ 
+ config X86_DEBUGCTLMSR
+ 	def_bool y
+-	depends on !(MK6 || MCYRIXIII || M586MMX || M586TSC || M586) && !UML
++	depends on !(MK6 || MWINCHIPC6 || MWINCHIP3D || MCYRIXIII || M586MMX || M586TSC || M586) && !UML
+ 
+ config IA32_FEAT_CTL
+ 	def_bool y
+@@ -300,6 +334,10 @@ menuconfig PROCESSOR_SELECT
+ 	  This lets you choose what x86 vendor support code your kernel
+ 	  will include.
+ 
++config BROADCAST_TLB_FLUSH
++	def_bool y
++	depends on CPU_SUP_AMD && 64BIT
++
+ config CPU_SUP_INTEL
+ 	default y
+ 	bool "Support Intel processors" if PROCESSOR_SELECT
+@@ -381,6 +419,20 @@ config CPU_SUP_TRANSMETA_32
+ 
+ 	  If unsure, say N.
+ 
++config CPU_SUP_UMC_32
++	default y
++	bool "Support UMC processors" if PROCESSOR_SELECT
++	depends on M486SX || M486 || (EXPERT && !64BIT)
++	help
++	  This enables detection, tunings and quirks for UMC processors
++
++	  You need this enabled if you want your kernel to run on a
++	  UMC CPU. Disabling this option on other types of CPUs
++	  makes the kernel a tiny bit smaller. Disabling it on a UMC
++	  CPU might render the kernel unbootable.
++
++	  If unsure, say N.
++
+ config CPU_SUP_ZHAOXIN
+ 	default y
+ 	bool "Support Zhaoxin processors" if PROCESSOR_SELECT
+diff --git a/arch/x86/Makefile_32.cpu b/arch/x86/Makefile_32.cpu
+index c5aa169b5..7c9898c15 100644
+--- a/arch/x86/Makefile_32.cpu
++++ b/arch/x86/Makefile_32.cpu
+@@ -10,6 +10,7 @@ else
+ align		:= -falign-functions=0 -falign-jumps=0 -falign-loops=0
+ endif
+ 
++cflags-$(CONFIG_M586)		+= -march=i586
+ cflags-$(CONFIG_M586TSC)	+= -march=i586
+ cflags-$(CONFIG_M586MMX)	+= -march=pentium-mmx
+ cflags-$(CONFIG_M686)		+= -march=i686
+@@ -23,11 +24,16 @@ cflags-$(CONFIG_MK6)		+= -march=k6
+ cflags-$(CONFIG_MK7)		+= -march=athlon
+ cflags-$(CONFIG_MCRUSOE)	+= -march=i686 $(align)
+ cflags-$(CONFIG_MEFFICEON)	+= -march=i686 $(call tune,pentium3) $(align)
++cflags-$(CONFIG_MWINCHIPC6)	+= $(call cc-option,-march=winchip-c6,-march=i586)
++cflags-$(CONFIG_MWINCHIP3D)	+= $(call cc-option,-march=winchip2,-march=i586)
+ cflags-$(CONFIG_MCYRIXIII)	+= $(call cc-option,-march=c3,-march=i486) $(align)
+ cflags-$(CONFIG_MVIAC3_2)	+= $(call cc-option,-march=c3-2,-march=i686)
+ cflags-$(CONFIG_MVIAC7)		+= -march=i686
+ cflags-$(CONFIG_MATOM)		+= -march=atom
+ 
++# AMD Elan support
++cflags-$(CONFIG_MELAN)		+= -march=i486
++
+ # Geode GX1 support
+ cflags-$(CONFIG_MGEODEGX1)	+= -march=pentium-mmx
+ cflags-$(CONFIG_MGEODE_LX)	+= $(call cc-option,-march=geode,-march=pentium-mmx)
+diff --git a/arch/x86/include/asm/vermagic.h b/arch/x86/include/asm/vermagic.h
+index e26061df0..eda233a90 100644
+--- a/arch/x86/include/asm/vermagic.h
++++ b/arch/x86/include/asm/vermagic.h
+@@ -5,6 +5,8 @@
+ 
+ #ifdef CONFIG_X86_64
+ /* X86_64 does not define MODULE_PROC_FAMILY */
++#elif defined CONFIG_M586
++#define MODULE_PROC_FAMILY "586 "
+ #elif defined CONFIG_M586TSC
+ #define MODULE_PROC_FAMILY "586TSC "
+ #elif defined CONFIG_M586MMX
+@@ -29,6 +31,10 @@
+ #define MODULE_PROC_FAMILY "CRUSOE "
+ #elif defined CONFIG_MEFFICEON
+ #define MODULE_PROC_FAMILY "EFFICEON "
++#elif defined CONFIG_MWINCHIPC6
++#define MODULE_PROC_FAMILY "WINCHIPC6 "
++#elif defined CONFIG_MWINCHIP3D
++#define MODULE_PROC_FAMILY "WINCHIP3D "
+ #elif defined CONFIG_MCYRIXIII
+ #define MODULE_PROC_FAMILY "CYRIXIII "
+ #elif defined CONFIG_MVIAC3_2
+diff --git a/arch/x86/kernel/cpu/common.c b/arch/x86/kernel/cpu/common.c
+index a3df21d26..5cae6c48d 100644
+--- a/arch/x86/kernel/cpu/common.c
++++ b/arch/x86/kernel/cpu/common.c
+@@ -1737,6 +1737,13 @@ static void __init cpu_parse_early_param(void)
+ 	int arglen;
+ 
+ #ifdef CONFIG_X86_32
++	if (cmdline_find_option_bool(boot_command_line, "no387"))
++#ifdef CONFIG_MATH_EMULATION
++		setup_clear_cpu_cap(X86_FEATURE_FPU);
++#else
++		pr_err("Option 'no387' required CONFIG_MATH_EMULATION enabled.\n");
++#endif
++
+ 	if (cmdline_find_option_bool(boot_command_line, "nofxsr"))
+ 		setup_clear_cpu_cap(X86_FEATURE_FXSR);
+ #endif
+diff --git a/arch/x86/kernel/cpu/umc.c b/arch/x86/kernel/cpu/umc.c
+new file mode 100644
+index 000000000..1cf0a5ebd
+--- /dev/null
++++ b/arch/x86/kernel/cpu/umc.c
+@@ -0,0 +1,25 @@
++// SPDX-License-Identifier: GPL-2.0
++#include <linux/kernel.h>
++#include <asm/processor.h>
++#include "cpu.h"
++
++/*
++ * UMC chips appear to be only either 386 or 486,
++ * so no special init takes place.
++ */
++
++static const struct cpu_dev umc_cpu_dev = {
++	.c_vendor	= "UMC",
++	.c_ident	= { "UMC UMC UMC" },
++	.legacy_models	= {
++		{ .family = 4, .model_names =
++		  {
++			  [1] = "U5D",
++			  [2] = "U5S",
++		  }
++		},
++	},
++	.c_x86_vendor	= X86_VENDOR_UMC,
++};
++
++cpu_dev_register(umc_cpu_dev);
+diff --git a/arch/x86/kernel/traps.c b/arch/x86/kernel/traps.c
+index 30aa83699..0ca3912ec 100644
+--- a/arch/x86/kernel/traps.c
++++ b/arch/x86/kernel/traps.c
+@@ -1475,6 +1475,13 @@ DEFINE_IDTENTRY(exc_coprocessor_error)
+ 
+ DEFINE_IDTENTRY(exc_simd_coprocessor_error)
+ {
++	if (IS_ENABLED(CONFIG_X86_INVD_BUG)) {
++		/* AMD 486 bug: INVD in CPL 0 raises #XF instead of #GP */
++		if (!static_cpu_has(X86_FEATURE_XMM)) {
++			__exc_general_protection(regs, 0);
++			return;
++		}
++	}
+ 	math_error(regs, X86_TRAP_XF);
+ }
+ 
+@@ -1543,6 +1550,20 @@ DEFINE_IDTENTRY(exc_device_not_available)
+ 	if (handle_xfd_event(regs))
+ 		return;
+ 
++#ifdef CONFIG_MATH_EMULATION
++	if (!boot_cpu_has(X86_FEATURE_FPU) && (cr0 & X86_CR0_EM)) {
++		struct math_emu_info info = { };
++
++		cond_local_irq_enable(regs);
++
++		info.regs = regs;
++		math_emulate(&info);
++
++		cond_local_irq_disable(regs);
++		return;
++	}
++#endif
++
+ 	/* This should not happen. */
+ 	if (WARN(cr0 & X86_CR0_TS, "CR0.TS was set")) {
+ 		/* Try to fix it up and carry on. */
+diff --git a/arch/x86/math-emu/README b/arch/x86/math-emu/README
+new file mode 100644
+index 000000000..5c6d3c2b3
+--- /dev/null
++++ b/arch/x86/math-emu/README
+@@ -0,0 +1,426 @@
++ +---------------------------------------------------------------------------+
++ |  wm-FPU-emu   an FPU emulator for 80386 and 80486SX microprocessors.      |
++ |                                                                           |
++ | Copyright (C) 1992,1993,1994,1995,1996,1997,1999                          |
++ |                       W. Metzenthen, 22 Parker St, Ormond, Vic 3163,      |
++ |                       Australia.  E-mail billm@melbpc.org.au              |
++ |                                                                           |
++ |    This program is free software; you can redistribute it and/or modify   |
++ |    it under the terms of the GNU General Public License version 2 as      |
++ |    published by the Free Software Foundation.                             |
++ |                                                                           |
++ |    This program is distributed in the hope that it will be useful,        |
++ |    but WITHOUT ANY WARRANTY; without even the implied warranty of         |
++ |    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the          |
++ |    GNU General Public License for more details.                           |
++ |                                                                           |
++ |    You should have received a copy of the GNU General Public License      |
++ |    along with this program; if not, write to the Free Software            |
++ |    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.              |
++ |                                                                           |
++ +---------------------------------------------------------------------------+
++
++
++
++wm-FPU-emu is an FPU emulator for Linux. It is derived from wm-emu387
++which was my 80387 emulator for early versions of djgpp (gcc under
++msdos); wm-emu387 was in turn based upon emu387 which was written by
++DJ Delorie for djgpp.  The interface to the Linux kernel is based upon
++the original Linux math emulator by Linus Torvalds.
++
++My target FPU for wm-FPU-emu is that described in the Intel486
++Programmer's Reference Manual (1992 edition). Unfortunately, numerous
++facets of the functioning of the FPU are not well covered in the
++Reference Manual. The information in the manual has been supplemented
++with measurements on real 80486's. Unfortunately, it is simply not
++possible to be sure that all of the peculiarities of the 80486 have
++been discovered, so there is always likely to be obscure differences
++in the detailed behaviour of the emulator and a real 80486.
++
++wm-FPU-emu does not implement all of the behaviour of the 80486 FPU,
++but is very close.  See "Limitations" later in this file for a list of
++some differences.
++
++Please report bugs, etc to me at:
++       billm@melbpc.org.au
++or     b.metzenthen@medoto.unimelb.edu.au
++
++For more information on the emulator and on floating point topics, see
++my web pages, currently at  http://www.suburbia.net/~billm/
++
++
++--Bill Metzenthen
++  December 1999
++
++
++----------------------- Internals of wm-FPU-emu -----------------------
++
++Numeric algorithms:
++(1) Add, subtract, and multiply. Nothing remarkable in these.
++(2) Divide has been tuned to get reasonable performance. The algorithm
++    is not the obvious one which most people seem to use, but is designed
++    to take advantage of the characteristics of the 80386. I expect that
++    it has been invented many times before I discovered it, but I have not
++    seen it. It is based upon one of those ideas which one carries around
++    for years without ever bothering to check it out.
++(3) The sqrt function has been tuned to get good performance. It is based
++    upon Newton's classic method. Performance was improved by capitalizing
++    upon the properties of Newton's method, and the code is once again
++    structured taking account of the 80386 characteristics.
++(4) The trig, log, and exp functions are based in each case upon quasi-
++    "optimal" polynomial approximations. My definition of "optimal" was
++    based upon getting good accuracy with reasonable speed.
++(5) The argument reducing code for the trig function effectively uses
++    a value of pi which is accurate to more than 128 bits. As a consequence,
++    the reduced argument is accurate to more than 64 bits for arguments up
++    to a few pi, and accurate to more than 64 bits for most arguments,
++    even for arguments approaching 2^63. This is far superior to an
++    80486, which uses a value of pi which is accurate to 66 bits.
++
++The code of the emulator is complicated slightly by the need to
++account for a limited form of re-entrancy. Normally, the emulator will
++emulate each FPU instruction to completion without interruption.
++However, it may happen that when the emulator is accessing the user
++memory space, swapping may be needed. In this case the emulator may be
++temporarily suspended while disk i/o takes place. During this time
++another process may use the emulator, thereby perhaps changing static
++variables. The code which accesses user memory is confined to five
++files:
++    fpu_entry.c
++    reg_ld_str.c
++    load_store.c
++    get_address.c
++    errors.c
++As from version 1.12 of the emulator, no static variables are used
++(apart from those in the kernel's per-process tables). The emulator is
++therefore now fully re-entrant, rather than having just the restricted
++form of re-entrancy which is required by the Linux kernel.
++
++----------------------- Limitations of wm-FPU-emu -----------------------
++
++There are a number of differences between the current wm-FPU-emu
++(version 2.01) and the 80486 FPU (apart from bugs).  The differences
++are fewer than those which applied to the 1.xx series of the emulator.
++Some of the more important differences are listed below:
++
++The Roundup flag does not have much meaning for the transcendental
++functions and its 80486 value with these functions is likely to differ
++from its emulator value.
++
++In a few rare cases the Underflow flag obtained with the emulator will
++be different from that obtained with an 80486. This occurs when the
++following conditions apply simultaneously:
++(a) the operands have a higher precision than the current setting of the
++    precision control (PC) flags.
++(b) the underflow exception is masked.
++(c) the magnitude of the exact result (before rounding) is less than 2^-16382.
++(d) the magnitude of the final result (after rounding) is exactly 2^-16382.
++(e) the magnitude of the exact result would be exactly 2^-16382 if the
++    operands were rounded to the current precision before the arithmetic
++    operation was performed.
++If all of these apply, the emulator will set the Underflow flag but a real
++80486 will not.
++
++NOTE: Certain formats of Extended Real are UNSUPPORTED. They are
++unsupported by the 80486. They are the Pseudo-NaNs, Pseudoinfinities,
++and Unnormals. None of these will be generated by an 80486 or by the
++emulator. Do not use them. The emulator treats them differently in
++detail from the way an 80486 does.
++
++Self modifying code can cause the emulator to fail. An example of such
++code is:
++          movl %esp,[%ebx]
++	  fld1
++The FPU instruction may be (usually will be) loaded into the pre-fetch
++queue of the CPU before the mov instruction is executed. If the
++destination of the 'movl' overlaps the FPU instruction then the bytes
++in the prefetch queue and memory will be inconsistent when the FPU
++instruction is executed. The emulator will be invoked but will not be
++able to find the instruction which caused the device-not-present
++exception. For this case, the emulator cannot emulate the behaviour of
++an 80486DX.
++
++Handling of the address size override prefix byte (0x67) has not been
++extensively tested yet. A major problem exists because using it in
++vm86 mode can cause a general protection fault. Address offsets
++greater than 0xffff appear to be illegal in vm86 mode but are quite
++acceptable (and work) in real mode. A small test program developed to
++check the addressing, and which runs successfully in real mode,
++crashes dosemu under Linux and also brings Windows down with a general
++protection fault message when run under the MS-DOS prompt of Windows
++3.1. (The program simply reads data from a valid address).
++
++The emulator supports 16-bit protected mode, with one difference from
++an 80486DX.  A 80486DX will allow some floating point instructions to
++write a few bytes below the lowest address of the stack.  The emulator
++will not allow this in 16-bit protected mode: no instructions are
++allowed to write outside the bounds set by the protection.
++
++----------------------- Performance of wm-FPU-emu -----------------------
++
++Speed.
++-----
++
++The speed of floating point computation with the emulator will depend
++upon instruction mix. Relative performance is best for the instructions
++which require most computation. The simple instructions are adversely
++affected by the FPU instruction trap overhead.
++
++
++Timing: Some simple timing tests have been made on the emulator functions.
++The times include load/store instructions. All times are in microseconds
++measured on a 33MHz 386 with 64k cache. The Turbo C tests were under
++ms-dos, the next two columns are for emulators running with the djgpp
++ms-dos extender. The final column is for wm-FPU-emu in Linux 0.97,
++using libm4.0 (hard).
++
++function      Turbo C        djgpp 1.06        WM-emu387     wm-FPU-emu
++
++   +          60.5           154.8              76.5          139.4
++   -          61.1-65.5      157.3-160.8        76.2-79.5     142.9-144.7
++   *          71.0           190.8              79.6          146.6
++   /          61.2-75.0      261.4-266.9        75.3-91.6     142.2-158.1
++
++ sin()        310.8          4692.0            319.0          398.5
++ cos()        284.4          4855.2            308.0          388.7
++ tan()        495.0          8807.1            394.9          504.7
++ atan()       328.9          4866.4            601.1          419.5-491.9
++
++ sqrt()       128.7          crashed           145.2          227.0
++ log()        413.1-419.1    5103.4-5354.21    254.7-282.2    409.4-437.1
++ exp()        479.1          6619.2            469.1          850.8
++
++
++The performance under Linux is improved by the use of look-ahead code.
++The following results show the improvement which is obtained under
++Linux due to the look-ahead code. Also given are the times for the
++original Linux emulator with the 4.1 'soft' lib.
++
++ [ Linus' note: I changed look-ahead to be the default under linux, as
++   there was no reason not to use it after I had edited it to be
++   disabled during tracing ]
++
++            wm-FPU-emu w     original w
++            look-ahead       'soft' lib
++   +         106.4             190.2
++   -         108.6-111.6      192.4-216.2
++   *         113.4             193.1
++   /         108.8-124.4      700.1-706.2
++
++ sin()       390.5            2642.0
++ cos()       381.5            2767.4
++ tan()       496.5            3153.3
++ atan()      367.2-435.5     2439.4-3396.8
++
++ sqrt()      195.1            4732.5
++ log()       358.0-387.5     3359.2-3390.3
++ exp()       619.3            4046.4
++
++
++These figures are now somewhat out-of-date. The emulator has become
++progressively slower for most functions as more of the 80486 features
++have been implemented.
++
++
++----------------------- Accuracy of wm-FPU-emu -----------------------
++
++
++The accuracy of the emulator is in almost all cases equal to or better
++than that of an Intel 80486 FPU.
++
++The results of the basic arithmetic functions (+,-,*,/), and fsqrt
++match those of an 80486 FPU. They are the best possible; the error for
++these never exceeds 1/2 an lsb. The fprem and fprem1 instructions
++return exact results; they have no error.
++
++
++The following table compares the emulator accuracy for the sqrt(),
++trig and log functions against the Turbo C "emulator". For this table,
++each function was tested at about 400 points. Ideal worst-case results
++would be 64 bits. The reduced Turbo C accuracy of cos() and tan() for
++arguments greater than pi/4 can be thought of as being related to the
++precision of the argument x; e.g. an argument of pi/2-(1e-10) which is
++accurate to 64 bits can result in a relative accuracy in cos() of
++about 64 + log2(cos(x)) = 31 bits.
++
++
++Function      Tested x range            Worst result                Turbo C
++                                        (relative bits)
++
++sqrt(x)       1 .. 2                    64.1                         63.2
++atan(x)       1e-10 .. 200              64.2                         62.8
++cos(x)        0 .. pi/2-(1e-10)         64.4 (x <= pi/4)             62.4
++                                        64.1 (x = pi/2-(1e-10))      31.9
++sin(x)        1e-10 .. pi/2             64.0                         62.8
++tan(x)        1e-10 .. pi/2-(1e-10)     64.0 (x <= pi/4)             62.1
++                                        64.1 (x = pi/2-(1e-10))      31.9
++exp(x)        0 .. 1                    63.1 **                      62.9
++log(x)        1+1e-6 .. 2               63.8 **                      62.1
++
++** The accuracy for exp() and log() is low because the FPU (emulator)
++does not compute them directly; two operations are required.
++
++
++The emulator passes the "paranoia" tests (compiled with gcc 2.3.3 or
++later) for 'float' variables (24 bit precision numbers) when precision
++control is set to 24, 53 or 64 bits, and for 'double' variables (53
++bit precision numbers) when precision control is set to 53 bits (a
++properly performing FPU cannot pass the 'paranoia' tests for 'double'
++variables when precision control is set to 64 bits).
++
++The code for reducing the argument for the trig functions (fsin, fcos,
++fptan and fsincos) has been improved and now effectively uses a value
++for pi which is accurate to more than 128 bits precision. As a
++consequence, the accuracy of these functions for large arguments has
++been dramatically improved (and is now very much better than an 80486
++FPU). There is also now no degradation of accuracy for fcos and fptan
++for operands close to pi/2. Measured results are (note that the
++definition of accuracy has changed slightly from that used for the
++above table):
++
++Function      Tested x range          Worst result
++                                     (absolute bits)
++
++cos(x)        0 .. 9.22e+18              62.0
++sin(x)        1e-16 .. 9.22e+18          62.1
++tan(x)        1e-16 .. 9.22e+18          61.8
++
++It is possible with some effort to find very large arguments which
++give much degraded precision. For example, the integer number
++           8227740058411162616.0
++is within about 10e-7 of a multiple of pi. To find the tan (for
++example) of this number to 64 bits precision it would be necessary to
++have a value of pi which had about 150 bits precision. The FPU
++emulator computes the result to about 42.6 bits precision (the correct
++result is about -9.739715e-8). On the other hand, an 80486 FPU returns
++0.01059, which in relative terms is hopelessly inaccurate.
++
++For arguments close to critical angles (which occur at multiples of
++pi/2) the emulator is more accurate than an 80486 FPU. For very large
++arguments, the emulator is far more accurate.
++
++
++Prior to version 1.20 of the emulator, the accuracy of the results for
++the transcendental functions (in their principal range) was not as
++good as the results from an 80486 FPU. From version 1.20, the accuracy
++has been considerably improved and these functions now give measured
++worst-case results which are better than the worst-case results given
++by an 80486 FPU.
++
++The following table gives the measured results for the emulator. The
++number of randomly selected arguments in each case is about half a
++million.  The group of three columns gives the frequency of the given
++accuracy in number of times per million, thus the second of these
++columns shows that an accuracy of between 63.80 and 63.89 bits was
++found at a rate of 133 times per one million measurements for fsin.
++The results show that the fsin, fcos and fptan instructions return
++results which are in error (i.e. less accurate than the best possible
++result (which is 64 bits)) for about one per cent of all arguments
++between -pi/2 and +pi/2.  The other instructions have a lower
++frequency of results which are in error.  The last two columns give
++the worst accuracy which was found (in bits) and the approximate value
++of the argument which produced it.
++
++                                frequency (per M)
++                               -------------------   ---------------
++instr   arg range    # tests   63.7   63.8    63.9   worst   at arg
++                               bits   bits    bits    bits
++-----  ------------  -------   ----   ----   -----   -----  --------
++fsin     (0,pi/2)     547756      0    133   10673   63.89  0.451317
++fcos     (0,pi/2)     547563      0    126   10532   63.85  0.700801
++fptan    (0,pi/2)     536274     11    267   10059   63.74  0.784876
++fpatan  4 quadrants   517087      0      8    1855   63.88  0.435121 (4q)
++fyl2x     (0,20)      541861      0      0    1323   63.94  1.40923  (x)
++fyl2xp1 (-.293,.414)  520256      0      0    5678   63.93  0.408542 (x)
++f2xm1     (-1,1)      538847      4    481    6488   63.79  0.167709
++
++
++Tests performed on an 80486 FPU showed results of lower accuracy. The
++following table gives the results which were obtained with an AMD
++486DX2/66 (other tests indicate that an Intel 486DX produces
++identical results).  The tests were basically the same as those used
++to measure the emulator (the values, being random, were in general not
++the same).  The total number of tests for each instruction are given
++at the end of the table, in case each about 100k tests were performed.
++Another line of figures at the end of the table shows that most of the
++instructions return results which are in error for more than 10
++percent of the arguments tested.
++
++The numbers in the body of the table give the approx number of times a
++result of the given accuracy in bits (given in the left-most column)
++was obtained per one million arguments. For three of the instructions,
++two columns of results are given: * The second column for f2xm1 gives
++the number cases where the results of the first column were for a
++positive argument, this shows that this instruction gives better
++results for positive arguments than it does for negative.  * In the
++cases of fcos and fptan, the first column gives the results when all
++cases where arguments greater than 1.5 were removed from the results
++given in the second column. Unlike the emulator, an 80486 FPU returns
++results of relatively poor accuracy for these instructions when the
++argument approaches pi/2. The table does not show those cases when the
++accuracy of the results were less than 62 bits, which occurs quite
++often for fsin and fptan when the argument approaches pi/2. This poor
++accuracy is discussed above in relation to the Turbo C "emulator", and
++the accuracy of the value of pi.
++
++
++bits   f2xm1  f2xm1 fpatan   fcos   fcos  fyl2x fyl2xp1  fsin  fptan  fptan
++62.0       0      0      0      0    437      0      0      0      0    925
++62.1       0      0     10      0    894      0      0      0      0   1023
++62.2      14      0      0      0   1033      0      0      0      0    945
++62.3      57      0      0      0   1202      0      0      0      0   1023
++62.4     385      0      0     10   1292      0     23      0      0   1178
++62.5    1140      0      0    119   1649      0     39      0      0   1149
++62.6    2037      0      0    189   1620      0     16      0      0   1169
++62.7    5086     14      0    646   2315     10    101     35     39   1402
++62.8    8818     86      0    984   3050     59    287    131    224   2036
++62.9   11340   1355      0   2126   4153     79    605    357    321   1948
++63.0   15557   4750      0   3319   5376    246   1281    862    808   2688
++63.1   20016   8288      0   4620   6628    511   2569   1723   1510   3302
++63.2   24945  11127     10   6588   8098   1120   4470   2968   2990   4724
++63.3   25686  12382     69   8774  10682   1906   6775   4482   5474   7236
++63.4   29219  14722     79  11109  12311   3094   9414   7259   8912  10587
++63.5   30458  14936    393  13802  15014   5874  12666   9609  13762  15262
++63.6   32439  16448   1277  17945  19028  10226  15537  14657  19158  20346
++63.7   35031  16805   4067  23003  23947  18910  20116  21333  25001  26209
++63.8   33251  15820   7673  24781  25675  24617  25354  24440  29433  30329
++63.9   33293  16833  18529  28318  29233  31267  31470  27748  29676  30601
++
++Per cent with error:
++        30.9           3.2          18.5    9.8   13.1   11.6          17.4
++Total arguments tested:
++       70194  70099 101784 100641 100641 101799 128853 114893 102675 102675
++
++
++------------------------- Contributors -------------------------------
++
++A number of people have contributed to the development of the
++emulator, often by just reporting bugs, sometimes with suggested
++fixes, and a few kind people have provided me with access in one way
++or another to an 80486 machine. Contributors include (to those people
++who I may have forgotten, please forgive me):
++
++Linus Torvalds
++Tommy.Thorn@daimi.aau.dk
++Andrew.Tridgell@anu.edu.au
++Nick Holloway, alfie@dcs.warwick.ac.uk
++Hermano Moura, moura@dcs.gla.ac.uk
++Jon Jagger, J.Jagger@scp.ac.uk
++Lennart Benschop
++Brian Gallew, geek+@CMU.EDU
++Thomas Staniszewski, ts3v+@andrew.cmu.edu
++Martin Howell, mph@plasma.apana.org.au
++M Saggaf, alsaggaf@athena.mit.edu
++Peter Barker, PETER@socpsy.sci.fau.edu
++tom@vlsivie.tuwien.ac.at
++Dan Russel, russed@rpi.edu
++Daniel Carosone, danielce@ee.mu.oz.au
++cae@jpmorgan.com
++Hamish Coleman, t933093@minyos.xx.rmit.oz.au
++Bruce Evans, bde@kralizec.zeta.org.au
++Timo Korvola, Timo.Korvola@hut.fi
++Rick Lyons, rick@razorback.brisnet.org.au
++Rick, jrs@world.std.com
++
++...and numerous others who responded to my request for help with
++a real 80486.
+diff --git a/arch/x86/math-emu/fpu_trig.c b/arch/x86/math-emu/fpu_trig.c
+new file mode 100644
+index 000000000..85daf98c8
+--- /dev/null
++++ b/arch/x86/math-emu/fpu_trig.c
+@@ -0,0 +1,1649 @@
++// SPDX-License-Identifier: GPL-2.0
++/*---------------------------------------------------------------------------+
++ |  fpu_trig.c                                                               |
++ |                                                                           |
++ | Implementation of the FPU "transcendental" functions.                     |
++ |                                                                           |
++ | Copyright (C) 1992,1993,1994,1997,1999                                    |
++ |                       W. Metzenthen, 22 Parker St, Ormond, Vic 3163,      |
++ |                       Australia.  E-mail   billm@melbpc.org.au            |
++ |                                                                           |
++ |                                                                           |
++ +---------------------------------------------------------------------------*/
++
++#include "fpu_system.h"
++#include "exception.h"
++#include "fpu_emu.h"
++#include "status_w.h"
++#include "control_w.h"
++#include "reg_constant.h"
++
++static void rem_kernel(unsigned long long st0, unsigned long long *y,
++		       unsigned long long st1, unsigned long long q, int n);
++
++#define BETTER_THAN_486
++
++#define FCOS  4
++
++/* Used only by fptan, fsin, fcos, and fsincos. */
++/* This routine produces very accurate results, similar to
++   using a value of pi with more than 128 bits precision. */
++/* Limited measurements show no results worse than 64 bit precision
++   except for the results for arguments close to 2^63, where the
++   precision of the result sometimes degrades to about 63.9 bits */
++static int trig_arg(FPU_REG *st0_ptr, int even)
++{
++	FPU_REG tmp;
++	u_char tmptag;
++	unsigned long long q;
++	int old_cw = control_word, saved_status = partial_status;
++	int tag, st0_tag = TAG_Valid;
++
++	if (exponent(st0_ptr) >= 63) {
++		partial_status |= SW_C2;	/* Reduction incomplete. */
++		return -1;
++	}
++
++	control_word &= ~CW_RC;
++	control_word |= RC_CHOP;
++
++	setpositive(st0_ptr);
++	tag = FPU_u_div(st0_ptr, &CONST_PI2, &tmp, PR_64_BITS | RC_CHOP | 0x3f,
++			SIGN_POS);
++
++	FPU_round_to_int(&tmp, tag);	/* Fortunately, this can't overflow
++					   to 2^64 */
++	q = significand(&tmp);
++	if (q) {
++		rem_kernel(significand(st0_ptr),
++			   &significand(&tmp),
++			   significand(&CONST_PI2),
++			   q, exponent(st0_ptr) - exponent(&CONST_PI2));
++		setexponent16(&tmp, exponent(&CONST_PI2));
++		st0_tag = FPU_normalize(&tmp);
++		FPU_copy_to_reg0(&tmp, st0_tag);
++	}
++
++	if ((even && !(q & 1)) || (!even && (q & 1))) {
++		st0_tag =
++		    FPU_sub(REV | LOADED | TAG_Valid, (int)&CONST_PI2,
++			    FULL_PRECISION);
++
++#ifdef BETTER_THAN_486
++		/* So far, the results are exact but based upon a 64 bit
++		   precision approximation to pi/2. The technique used
++		   now is equivalent to using an approximation to pi/2 which
++		   is accurate to about 128 bits. */
++		if ((exponent(st0_ptr) <= exponent(&CONST_PI2extra) + 64)
++		    || (q > 1)) {
++			/* This code gives the effect of having pi/2 to better than
++			   128 bits precision. */
++
++			significand(&tmp) = q + 1;
++			setexponent16(&tmp, 63);
++			FPU_normalize(&tmp);
++			tmptag =
++			    FPU_u_mul(&CONST_PI2extra, &tmp, &tmp,
++				      FULL_PRECISION, SIGN_POS,
++				      exponent(&CONST_PI2extra) +
++				      exponent(&tmp));
++			setsign(&tmp, getsign(&CONST_PI2extra));
++			st0_tag = FPU_add(&tmp, tmptag, 0, FULL_PRECISION);
++			if (signnegative(st0_ptr)) {
++				/* CONST_PI2extra is negative, so the result of the addition
++				   can be negative. This means that the argument is actually
++				   in a different quadrant. The correction is always < pi/2,
++				   so it can't overflow into yet another quadrant. */
++				setpositive(st0_ptr);
++				q++;
++			}
++		}
++#endif /* BETTER_THAN_486 */
++	}
++#ifdef BETTER_THAN_486
++	else {
++		/* So far, the results are exact but based upon a 64 bit
++		   precision approximation to pi/2. The technique used
++		   now is equivalent to using an approximation to pi/2 which
++		   is accurate to about 128 bits. */
++		if (((q > 0)
++		     && (exponent(st0_ptr) <= exponent(&CONST_PI2extra) + 64))
++		    || (q > 1)) {
++			/* This code gives the effect of having p/2 to better than
++			   128 bits precision. */
++
++			significand(&tmp) = q;
++			setexponent16(&tmp, 63);
++			FPU_normalize(&tmp);	/* This must return TAG_Valid */
++			tmptag =
++			    FPU_u_mul(&CONST_PI2extra, &tmp, &tmp,
++				      FULL_PRECISION, SIGN_POS,
++				      exponent(&CONST_PI2extra) +
++				      exponent(&tmp));
++			setsign(&tmp, getsign(&CONST_PI2extra));
++			st0_tag = FPU_sub(LOADED | (tmptag & 0x0f), (int)&tmp,
++					  FULL_PRECISION);
++			if ((exponent(st0_ptr) == exponent(&CONST_PI2)) &&
++			    ((st0_ptr->sigh > CONST_PI2.sigh)
++			     || ((st0_ptr->sigh == CONST_PI2.sigh)
++				 && (st0_ptr->sigl > CONST_PI2.sigl)))) {
++				/* CONST_PI2extra is negative, so the result of the
++				   subtraction can be larger than pi/2. This means
++				   that the argument is actually in a different quadrant.
++				   The correction is always < pi/2, so it can't overflow
++				   into yet another quadrant. */
++				st0_tag =
++				    FPU_sub(REV | LOADED | TAG_Valid,
++					    (int)&CONST_PI2, FULL_PRECISION);
++				q++;
++			}
++		}
++	}
++#endif /* BETTER_THAN_486 */
++
++	FPU_settag0(st0_tag);
++	control_word = old_cw;
++	partial_status = saved_status & ~SW_C2;	/* Reduction complete. */
++
++	return (q & 3) | even;
++}
++
++/* Convert a long to register */
++static void convert_l2reg(long const *arg, int deststnr)
++{
++	int tag;
++	long num = *arg;
++	u_char sign;
++	FPU_REG *dest = &st(deststnr);
++
++	if (num == 0) {
++		FPU_copy_to_regi(&CONST_Z, TAG_Zero, deststnr);
++		return;
++	}
++
++	if (num > 0) {
++		sign = SIGN_POS;
++	} else {
++		num = -num;
++		sign = SIGN_NEG;
++	}
++
++	dest->sigh = num;
++	dest->sigl = 0;
++	setexponent16(dest, 31);
++	tag = FPU_normalize(dest);
++	FPU_settagi(deststnr, tag);
++	setsign(dest, sign);
++	return;
++}
++
++static void single_arg_error(FPU_REG *st0_ptr, u_char st0_tag)
++{
++	if (st0_tag == TAG_Empty)
++		FPU_stack_underflow();	/* Puts a QNaN in st(0) */
++	else if (st0_tag == TW_NaN)
++		real_1op_NaN(st0_ptr);	/* return with a NaN in st(0) */
++#ifdef PARANOID
++	else
++		EXCEPTION(EX_INTERNAL | 0x0112);
++#endif /* PARANOID */
++}
++
++static void single_arg_2_error(FPU_REG *st0_ptr, u_char st0_tag)
++{
++	int isNaN;
++
++	switch (st0_tag) {
++	case TW_NaN:
++		isNaN = (exponent(st0_ptr) == EXP_OVER)
++		    && (st0_ptr->sigh & 0x80000000);
++		if (isNaN && !(st0_ptr->sigh & 0x40000000)) {	/* Signaling ? */
++			EXCEPTION(EX_Invalid);
++			if (control_word & CW_Invalid) {
++				/* The masked response */
++				/* Convert to a QNaN */
++				st0_ptr->sigh |= 0x40000000;
++				push();
++				FPU_copy_to_reg0(st0_ptr, TAG_Special);
++			}
++		} else if (isNaN) {
++			/* A QNaN */
++			push();
++			FPU_copy_to_reg0(st0_ptr, TAG_Special);
++		} else {
++			/* pseudoNaN or other unsupported */
++			EXCEPTION(EX_Invalid);
++			if (control_word & CW_Invalid) {
++				/* The masked response */
++				FPU_copy_to_reg0(&CONST_QNaN, TAG_Special);
++				push();
++				FPU_copy_to_reg0(&CONST_QNaN, TAG_Special);
++			}
++		}
++		break;		/* return with a NaN in st(0) */
++#ifdef PARANOID
++	default:
++		EXCEPTION(EX_INTERNAL | 0x0112);
++#endif /* PARANOID */
++	}
++}
++
++/*---------------------------------------------------------------------------*/
++
++static void f2xm1(FPU_REG *st0_ptr, u_char tag)
++{
++	FPU_REG a;
++
++	clear_C1();
++
++	if (tag == TAG_Valid) {
++		/* For an 80486 FPU, the result is undefined if the arg is >= 1.0 */
++		if (exponent(st0_ptr) < 0) {
++		      denormal_arg:
++
++			FPU_to_exp16(st0_ptr, &a);
++
++			/* poly_2xm1(x) requires 0 < st(0) < 1. */
++			poly_2xm1(getsign(st0_ptr), &a, st0_ptr);
++		}
++		set_precision_flag_up();	/* 80486 appears to always do this */
++		return;
++	}
++
++	if (tag == TAG_Zero)
++		return;
++
++	if (tag == TAG_Special)
++		tag = FPU_Special(st0_ptr);
++
++	switch (tag) {
++	case TW_Denormal:
++		if (denormal_operand() < 0)
++			return;
++		goto denormal_arg;
++	case TW_Infinity:
++		if (signnegative(st0_ptr)) {
++			/* -infinity gives -1 (p16-10) */
++			FPU_copy_to_reg0(&CONST_1, TAG_Valid);
++			setnegative(st0_ptr);
++		}
++		return;
++	default:
++		single_arg_error(st0_ptr, tag);
++	}
++}
++
++static void fptan(FPU_REG *st0_ptr, u_char st0_tag)
++{
++	FPU_REG *st_new_ptr;
++	int q;
++	u_char arg_sign = getsign(st0_ptr);
++
++	/* Stack underflow has higher priority */
++	if (st0_tag == TAG_Empty) {
++		FPU_stack_underflow();	/* Puts a QNaN in st(0) */
++		if (control_word & CW_Invalid) {
++			st_new_ptr = &st(-1);
++			push();
++			FPU_stack_underflow();	/* Puts a QNaN in the new st(0) */
++		}
++		return;
++	}
++
++	if (STACK_OVERFLOW) {
++		FPU_stack_overflow();
++		return;
++	}
++
++	if (st0_tag == TAG_Valid) {
++		if (exponent(st0_ptr) > -40) {
++			if ((q = trig_arg(st0_ptr, 0)) == -1) {
++				/* Operand is out of range */
++				return;
++			}
++
++			poly_tan(st0_ptr);
++			setsign(st0_ptr, (q & 1) ^ (arg_sign != 0));
++			set_precision_flag_up();	/* We do not really know if up or down */
++		} else {
++			/* For a small arg, the result == the argument */
++			/* Underflow may happen */
++
++		      denormal_arg:
++
++			FPU_to_exp16(st0_ptr, st0_ptr);
++
++			st0_tag =
++			    FPU_round(st0_ptr, 1, 0, FULL_PRECISION, arg_sign);
++			FPU_settag0(st0_tag);
++		}
++		push();
++		FPU_copy_to_reg0(&CONST_1, TAG_Valid);
++		return;
++	}
++
++	if (st0_tag == TAG_Zero) {
++		push();
++		FPU_copy_to_reg0(&CONST_1, TAG_Valid);
++		setcc(0);
++		return;
++	}
++
++	if (st0_tag == TAG_Special)
++		st0_tag = FPU_Special(st0_ptr);
++
++	if (st0_tag == TW_Denormal) {
++		if (denormal_operand() < 0)
++			return;
++
++		goto denormal_arg;
++	}
++
++	if (st0_tag == TW_Infinity) {
++		/* The 80486 treats infinity as an invalid operand */
++		if (arith_invalid(0) >= 0) {
++			st_new_ptr = &st(-1);
++			push();
++			arith_invalid(0);
++		}
++		return;
++	}
++
++	single_arg_2_error(st0_ptr, st0_tag);
++}
++
++static void fxtract(FPU_REG *st0_ptr, u_char st0_tag)
++{
++	FPU_REG *st_new_ptr;
++	u_char sign;
++	register FPU_REG *st1_ptr = st0_ptr;	/* anticipate */
++
++	if (STACK_OVERFLOW) {
++		FPU_stack_overflow();
++		return;
++	}
++
++	clear_C1();
++
++	if (st0_tag == TAG_Valid) {
++		long e;
++
++		push();
++		sign = getsign(st1_ptr);
++		reg_copy(st1_ptr, st_new_ptr);
++		setexponent16(st_new_ptr, exponent(st_new_ptr));
++
++	      denormal_arg:
++
++		e = exponent16(st_new_ptr);
++		convert_l2reg(&e, 1);
++		setexponentpos(st_new_ptr, 0);
++		setsign(st_new_ptr, sign);
++		FPU_settag0(TAG_Valid);	/* Needed if arg was a denormal */
++		return;
++	} else if (st0_tag == TAG_Zero) {
++		sign = getsign(st0_ptr);
++
++		if (FPU_divide_by_zero(0, SIGN_NEG) < 0)
++			return;
++
++		push();
++		FPU_copy_to_reg0(&CONST_Z, TAG_Zero);
++		setsign(st_new_ptr, sign);
++		return;
++	}
++
++	if (st0_tag == TAG_Special)
++		st0_tag = FPU_Special(st0_ptr);
++
++	if (st0_tag == TW_Denormal) {
++		if (denormal_operand() < 0)
++			return;
++
++		push();
++		sign = getsign(st1_ptr);
++		FPU_to_exp16(st1_ptr, st_new_ptr);
++		goto denormal_arg;
++	} else if (st0_tag == TW_Infinity) {
++		sign = getsign(st0_ptr);
++		setpositive(st0_ptr);
++		push();
++		FPU_copy_to_reg0(&CONST_INF, TAG_Special);
++		setsign(st_new_ptr, sign);
++		return;
++	} else if (st0_tag == TW_NaN) {
++		if (real_1op_NaN(st0_ptr) < 0)
++			return;
++
++		push();
++		FPU_copy_to_reg0(st0_ptr, TAG_Special);
++		return;
++	} else if (st0_tag == TAG_Empty) {
++		/* Is this the correct behaviour? */
++		if (control_word & EX_Invalid) {
++			FPU_stack_underflow();
++			push();
++			FPU_stack_underflow();
++		} else
++			EXCEPTION(EX_StackUnder);
++	}
++#ifdef PARANOID
++	else
++		EXCEPTION(EX_INTERNAL | 0x119);
++#endif /* PARANOID */
++}
++
++static void fdecstp(FPU_REG *st0_ptr, u_char st0_tag)
++{
++	clear_C1();
++	top--;
++}
++
++static void fincstp(FPU_REG *st0_ptr, u_char st0_tag)
++{
++	clear_C1();
++	top++;
++}
++
++static void fsqrt_(FPU_REG *st0_ptr, u_char st0_tag)
++{
++	int expon;
++
++	clear_C1();
++
++	if (st0_tag == TAG_Valid) {
++		u_char tag;
++
++		if (signnegative(st0_ptr)) {
++			arith_invalid(0);	/* sqrt(negative) is invalid */
++			return;
++		}
++
++		/* make st(0) in  [1.0 .. 4.0) */
++		expon = exponent(st0_ptr);
++
++	      denormal_arg:
++
++		setexponent16(st0_ptr, (expon & 1));
++
++		/* Do the computation, the sign of the result will be positive. */
++		tag = wm_sqrt(st0_ptr, 0, 0, control_word, SIGN_POS);
++		addexponent(st0_ptr, expon >> 1);
++		FPU_settag0(tag);
++		return;
++	}
++
++	if (st0_tag == TAG_Zero)
++		return;
++
++	if (st0_tag == TAG_Special)
++		st0_tag = FPU_Special(st0_ptr);
++
++	if (st0_tag == TW_Infinity) {
++		if (signnegative(st0_ptr))
++			arith_invalid(0);	/* sqrt(-Infinity) is invalid */
++		return;
++	} else if (st0_tag == TW_Denormal) {
++		if (signnegative(st0_ptr)) {
++			arith_invalid(0);	/* sqrt(negative) is invalid */
++			return;
++		}
++
++		if (denormal_operand() < 0)
++			return;
++
++		FPU_to_exp16(st0_ptr, st0_ptr);
++
++		expon = exponent16(st0_ptr);
++
++		goto denormal_arg;
++	}
++
++	single_arg_error(st0_ptr, st0_tag);
++
++}
++
++static void frndint_(FPU_REG *st0_ptr, u_char st0_tag)
++{
++	int flags, tag;
++
++	if (st0_tag == TAG_Valid) {
++		u_char sign;
++
++	      denormal_arg:
++
++		sign = getsign(st0_ptr);
++
++		if (exponent(st0_ptr) > 63)
++			return;
++
++		if (st0_tag == TW_Denormal) {
++			if (denormal_operand() < 0)
++				return;
++		}
++
++		/* Fortunately, this can't overflow to 2^64 */
++		if ((flags = FPU_round_to_int(st0_ptr, st0_tag)))
++			set_precision_flag(flags);
++
++		setexponent16(st0_ptr, 63);
++		tag = FPU_normalize(st0_ptr);
++		setsign(st0_ptr, sign);
++		FPU_settag0(tag);
++		return;
++	}
++
++	if (st0_tag == TAG_Zero)
++		return;
++
++	if (st0_tag == TAG_Special)
++		st0_tag = FPU_Special(st0_ptr);
++
++	if (st0_tag == TW_Denormal)
++		goto denormal_arg;
++	else if (st0_tag == TW_Infinity)
++		return;
++	else
++		single_arg_error(st0_ptr, st0_tag);
++}
++
++static int f_sin(FPU_REG *st0_ptr, u_char tag)
++{
++	u_char arg_sign = getsign(st0_ptr);
++
++	if (tag == TAG_Valid) {
++		int q;
++
++		if (exponent(st0_ptr) > -40) {
++			if ((q = trig_arg(st0_ptr, 0)) == -1) {
++				/* Operand is out of range */
++				return 1;
++			}
++
++			poly_sine(st0_ptr);
++
++			if (q & 2)
++				changesign(st0_ptr);
++
++			setsign(st0_ptr, getsign(st0_ptr) ^ arg_sign);
++
++			/* We do not really know if up or down */
++			set_precision_flag_up();
++			return 0;
++		} else {
++			/* For a small arg, the result == the argument */
++			set_precision_flag_up();	/* Must be up. */
++			return 0;
++		}
++	}
++
++	if (tag == TAG_Zero) {
++		setcc(0);
++		return 0;
++	}
++
++	if (tag == TAG_Special)
++		tag = FPU_Special(st0_ptr);
++
++	if (tag == TW_Denormal) {
++		if (denormal_operand() < 0)
++			return 1;
++
++		/* For a small arg, the result == the argument */
++		/* Underflow may happen */
++		FPU_to_exp16(st0_ptr, st0_ptr);
++
++		tag = FPU_round(st0_ptr, 1, 0, FULL_PRECISION, arg_sign);
++
++		FPU_settag0(tag);
++
++		return 0;
++	} else if (tag == TW_Infinity) {
++		/* The 80486 treats infinity as an invalid operand */
++		arith_invalid(0);
++		return 1;
++	} else {
++		single_arg_error(st0_ptr, tag);
++		return 1;
++	}
++}
++
++static void fsin(FPU_REG *st0_ptr, u_char tag)
++{
++	f_sin(st0_ptr, tag);
++}
++
++static int f_cos(FPU_REG *st0_ptr, u_char tag)
++{
++	u_char st0_sign;
++
++	st0_sign = getsign(st0_ptr);
++
++	if (tag == TAG_Valid) {
++		int q;
++
++		if (exponent(st0_ptr) > -40) {
++			if ((exponent(st0_ptr) < 0)
++			    || ((exponent(st0_ptr) == 0)
++				&& (significand(st0_ptr) <=
++				    0xc90fdaa22168c234LL))) {
++				poly_cos(st0_ptr);
++
++				/* We do not really know if up or down */
++				set_precision_flag_down();
++
++				return 0;
++			} else if ((q = trig_arg(st0_ptr, FCOS)) != -1) {
++				poly_sine(st0_ptr);
++
++				if ((q + 1) & 2)
++					changesign(st0_ptr);
++
++				/* We do not really know if up or down */
++				set_precision_flag_down();
++
++				return 0;
++			} else {
++				/* Operand is out of range */
++				return 1;
++			}
++		} else {
++		      denormal_arg:
++
++			setcc(0);
++			FPU_copy_to_reg0(&CONST_1, TAG_Valid);
++#ifdef PECULIAR_486
++			set_precision_flag_down();	/* 80486 appears to do this. */
++#else
++			set_precision_flag_up();	/* Must be up. */
++#endif /* PECULIAR_486 */
++			return 0;
++		}
++	} else if (tag == TAG_Zero) {
++		FPU_copy_to_reg0(&CONST_1, TAG_Valid);
++		setcc(0);
++		return 0;
++	}
++
++	if (tag == TAG_Special)
++		tag = FPU_Special(st0_ptr);
++
++	if (tag == TW_Denormal) {
++		if (denormal_operand() < 0)
++			return 1;
++
++		goto denormal_arg;
++	} else if (tag == TW_Infinity) {
++		/* The 80486 treats infinity as an invalid operand */
++		arith_invalid(0);
++		return 1;
++	} else {
++		single_arg_error(st0_ptr, tag);	/* requires st0_ptr == &st(0) */
++		return 1;
++	}
++}
++
++static void fcos(FPU_REG *st0_ptr, u_char st0_tag)
++{
++	f_cos(st0_ptr, st0_tag);
++}
++
++static void fsincos(FPU_REG *st0_ptr, u_char st0_tag)
++{
++	FPU_REG *st_new_ptr;
++	FPU_REG arg;
++	u_char tag;
++
++	/* Stack underflow has higher priority */
++	if (st0_tag == TAG_Empty) {
++		FPU_stack_underflow();	/* Puts a QNaN in st(0) */
++		if (control_word & CW_Invalid) {
++			st_new_ptr = &st(-1);
++			push();
++			FPU_stack_underflow();	/* Puts a QNaN in the new st(0) */
++		}
++		return;
++	}
++
++	if (STACK_OVERFLOW) {
++		FPU_stack_overflow();
++		return;
++	}
++
++	if (st0_tag == TAG_Special)
++		tag = FPU_Special(st0_ptr);
++	else
++		tag = st0_tag;
++
++	if (tag == TW_NaN) {
++		single_arg_2_error(st0_ptr, TW_NaN);
++		return;
++	} else if (tag == TW_Infinity) {
++		/* The 80486 treats infinity as an invalid operand */
++		if (arith_invalid(0) >= 0) {
++			/* Masked response */
++			push();
++			arith_invalid(0);
++		}
++		return;
++	}
++
++	reg_copy(st0_ptr, &arg);
++	if (!f_sin(st0_ptr, st0_tag)) {
++		push();
++		FPU_copy_to_reg0(&arg, st0_tag);
++		f_cos(&st(0), st0_tag);
++	} else {
++		/* An error, so restore st(0) */
++		FPU_copy_to_reg0(&arg, st0_tag);
++	}
++}
++
++/*---------------------------------------------------------------------------*/
++/* The following all require two arguments: st(0) and st(1) */
++
++/* A lean, mean kernel for the fprem instructions. This relies upon
++   the division and rounding to an integer in do_fprem giving an
++   exact result. Because of this, rem_kernel() needs to deal only with
++   the least significant 64 bits, the more significant bits of the
++   result must be zero.
++ */
++static void rem_kernel(unsigned long long st0, unsigned long long *y,
++		       unsigned long long st1, unsigned long long q, int n)
++{
++	int dummy;
++	unsigned long long x;
++
++	x = st0 << n;
++
++	/* Do the required multiplication and subtraction in the one operation */
++
++	/* lsw x -= lsw st1 * lsw q */
++	asm volatile ("mull %4; subl %%eax,%0; sbbl %%edx,%1":"=m"
++		      (((unsigned *)&x)[0]), "=m"(((unsigned *)&x)[1]),
++		      "=a"(dummy)
++		      :"2"(((unsigned *)&st1)[0]), "m"(((unsigned *)&q)[0])
++		      :"%dx");
++	/* msw x -= msw st1 * lsw q */
++	asm volatile ("mull %3; subl %%eax,%0":"=m" (((unsigned *)&x)[1]),
++		      "=a"(dummy)
++		      :"1"(((unsigned *)&st1)[1]), "m"(((unsigned *)&q)[0])
++		      :"%dx");
++	/* msw x -= lsw st1 * msw q */
++	asm volatile ("mull %3; subl %%eax,%0":"=m" (((unsigned *)&x)[1]),
++		      "=a"(dummy)
++		      :"1"(((unsigned *)&st1)[0]), "m"(((unsigned *)&q)[1])
++		      :"%dx");
++
++	*y = x;
++}
++
++/* Remainder of st(0) / st(1) */
++/* This routine produces exact results, i.e. there is never any
++   rounding or truncation, etc of the result. */
++static void do_fprem(FPU_REG *st0_ptr, u_char st0_tag, int round)
++{
++	FPU_REG *st1_ptr = &st(1);
++	u_char st1_tag = FPU_gettagi(1);
++
++	if (!((st0_tag ^ TAG_Valid) | (st1_tag ^ TAG_Valid))) {
++		FPU_REG tmp, st0, st1;
++		u_char st0_sign, st1_sign;
++		u_char tmptag;
++		int tag;
++		int old_cw;
++		int expdif;
++		long long q;
++		unsigned short saved_status;
++		int cc;
++
++	      fprem_valid:
++		/* Convert registers for internal use. */
++		st0_sign = FPU_to_exp16(st0_ptr, &st0);
++		st1_sign = FPU_to_exp16(st1_ptr, &st1);
++		expdif = exponent16(&st0) - exponent16(&st1);
++
++		old_cw = control_word;
++		cc = 0;
++
++		/* We want the status following the denorm tests, but don't want
++		   the status changed by the arithmetic operations. */
++		saved_status = partial_status;
++		control_word &= ~CW_RC;
++		control_word |= RC_CHOP;
++
++		if (expdif < 64) {
++			/* This should be the most common case */
++
++			if (expdif > -2) {
++				u_char sign = st0_sign ^ st1_sign;
++				tag = FPU_u_div(&st0, &st1, &tmp,
++						PR_64_BITS | RC_CHOP | 0x3f,
++						sign);
++				setsign(&tmp, sign);
++
++				if (exponent(&tmp) >= 0) {
++					FPU_round_to_int(&tmp, tag);	/* Fortunately, this can't
++									   overflow to 2^64 */
++					q = significand(&tmp);
++
++					rem_kernel(significand(&st0),
++						   &significand(&tmp),
++						   significand(&st1),
++						   q, expdif);
++
++					setexponent16(&tmp, exponent16(&st1));
++				} else {
++					reg_copy(&st0, &tmp);
++					q = 0;
++				}
++
++				if ((round == RC_RND)
++				    && (tmp.sigh & 0xc0000000)) {
++					/* We may need to subtract st(1) once more,
++					   to get a result <= 1/2 of st(1). */
++					unsigned long long x;
++					expdif =
++					    exponent16(&st1) - exponent16(&tmp);
++					if (expdif <= 1) {
++						if (expdif == 0)
++							x = significand(&st1) -
++							    significand(&tmp);
++						else	/* expdif is 1 */
++							x = (significand(&st1)
++							     << 1) -
++							    significand(&tmp);
++						if ((x < significand(&tmp)) ||
++						    /* or equi-distant (from 0 & st(1)) and q is odd */
++						    ((x == significand(&tmp))
++						     && (q & 1))) {
++							st0_sign = !st0_sign;
++							significand(&tmp) = x;
++							q++;
++						}
++					}
++				}
++
++				if (q & 4)
++					cc |= SW_C0;
++				if (q & 2)
++					cc |= SW_C3;
++				if (q & 1)
++					cc |= SW_C1;
++			} else {
++				control_word = old_cw;
++				setcc(0);
++				return;
++			}
++		} else {
++			/* There is a large exponent difference ( >= 64 ) */
++			/* To make much sense, the code in this section should
++			   be done at high precision. */
++			int exp_1, N;
++			u_char sign;
++
++			/* prevent overflow here */
++			/* N is 'a number between 32 and 63' (p26-113) */
++			reg_copy(&st0, &tmp);
++			tmptag = st0_tag;
++			N = (expdif & 0x0000001f) + 32;	/* This choice gives results
++							   identical to an AMD 486 */
++			setexponent16(&tmp, N);
++			exp_1 = exponent16(&st1);
++			setexponent16(&st1, 0);
++			expdif -= N;
++
++			sign = getsign(&tmp) ^ st1_sign;
++			tag =
++			    FPU_u_div(&tmp, &st1, &tmp,
++				      PR_64_BITS | RC_CHOP | 0x3f, sign);
++			setsign(&tmp, sign);
++
++			FPU_round_to_int(&tmp, tag);	/* Fortunately, this can't
++							   overflow to 2^64 */
++
++			rem_kernel(significand(&st0),
++				   &significand(&tmp),
++				   significand(&st1),
++				   significand(&tmp), exponent(&tmp)
++			    );
++			setexponent16(&tmp, exp_1 + expdif);
++
++			/* It is possible for the operation to be complete here.
++			   What does the IEEE standard say? The Intel 80486 manual
++			   implies that the operation will never be completed at this
++			   point, and the behaviour of a real 80486 confirms this.
++			 */
++			if (!(tmp.sigh | tmp.sigl)) {
++				/* The result is zero */
++				control_word = old_cw;
++				partial_status = saved_status;
++				FPU_copy_to_reg0(&CONST_Z, TAG_Zero);
++				setsign(&st0, st0_sign);
++#ifdef PECULIAR_486
++				setcc(SW_C2);
++#else
++				setcc(0);
++#endif /* PECULIAR_486 */
++				return;
++			}
++			cc = SW_C2;
++		}
++
++		control_word = old_cw;
++		partial_status = saved_status;
++		tag = FPU_normalize_nuo(&tmp);
++		reg_copy(&tmp, st0_ptr);
++
++		/* The only condition to be looked for is underflow,
++		   and it can occur here only if underflow is unmasked. */
++		if ((exponent16(&tmp) <= EXP_UNDER) && (tag != TAG_Zero)
++		    && !(control_word & CW_Underflow)) {
++			setcc(cc);
++			tag = arith_underflow(st0_ptr);
++			setsign(st0_ptr, st0_sign);
++			FPU_settag0(tag);
++			return;
++		} else if ((exponent16(&tmp) > EXP_UNDER) || (tag == TAG_Zero)) {
++			stdexp(st0_ptr);
++			setsign(st0_ptr, st0_sign);
++		} else {
++			tag =
++			    FPU_round(st0_ptr, 0, 0, FULL_PRECISION, st0_sign);
++		}
++		FPU_settag0(tag);
++		setcc(cc);
++
++		return;
++	}
++
++	if (st0_tag == TAG_Special)
++		st0_tag = FPU_Special(st0_ptr);
++	if (st1_tag == TAG_Special)
++		st1_tag = FPU_Special(st1_ptr);
++
++	if (((st0_tag == TAG_Valid) && (st1_tag == TW_Denormal))
++	    || ((st0_tag == TW_Denormal) && (st1_tag == TAG_Valid))
++	    || ((st0_tag == TW_Denormal) && (st1_tag == TW_Denormal))) {
++		if (denormal_operand() < 0)
++			return;
++		goto fprem_valid;
++	} else if ((st0_tag == TAG_Empty) || (st1_tag == TAG_Empty)) {
++		FPU_stack_underflow();
++		return;
++	} else if (st0_tag == TAG_Zero) {
++		if (st1_tag == TAG_Valid) {
++			setcc(0);
++			return;
++		} else if (st1_tag == TW_Denormal) {
++			if (denormal_operand() < 0)
++				return;
++			setcc(0);
++			return;
++		} else if (st1_tag == TAG_Zero) {
++			arith_invalid(0);
++			return;
++		} /* fprem(?,0) always invalid */
++		else if (st1_tag == TW_Infinity) {
++			setcc(0);
++			return;
++		}
++	} else if ((st0_tag == TAG_Valid) || (st0_tag == TW_Denormal)) {
++		if (st1_tag == TAG_Zero) {
++			arith_invalid(0);	/* fprem(Valid,Zero) is invalid */
++			return;
++		} else if (st1_tag != TW_NaN) {
++			if (((st0_tag == TW_Denormal)
++			     || (st1_tag == TW_Denormal))
++			    && (denormal_operand() < 0))
++				return;
++
++			if (st1_tag == TW_Infinity) {
++				/* fprem(Valid,Infinity) is o.k. */
++				setcc(0);
++				return;
++			}
++		}
++	} else if (st0_tag == TW_Infinity) {
++		if (st1_tag != TW_NaN) {
++			arith_invalid(0);	/* fprem(Infinity,?) is invalid */
++			return;
++		}
++	}
++
++	/* One of the registers must contain a NaN if we got here. */
++
++#ifdef PARANOID
++	if ((st0_tag != TW_NaN) && (st1_tag != TW_NaN))
++		EXCEPTION(EX_INTERNAL | 0x118);
++#endif /* PARANOID */
++
++	real_2op_NaN(st1_ptr, st1_tag, 0, st1_ptr);
++
++}
++
++/* ST(1) <- ST(1) * log ST;  pop ST */
++static void fyl2x(FPU_REG *st0_ptr, u_char st0_tag)
++{
++	FPU_REG *st1_ptr = &st(1), exponent;
++	u_char st1_tag = FPU_gettagi(1);
++	u_char sign;
++	int e, tag;
++
++	clear_C1();
++
++	if ((st0_tag == TAG_Valid) && (st1_tag == TAG_Valid)) {
++	      both_valid:
++		/* Both regs are Valid or Denormal */
++		if (signpositive(st0_ptr)) {
++			if (st0_tag == TW_Denormal)
++				FPU_to_exp16(st0_ptr, st0_ptr);
++			else
++				/* Convert st(0) for internal use. */
++				setexponent16(st0_ptr, exponent(st0_ptr));
++
++			if ((st0_ptr->sigh == 0x80000000)
++			    && (st0_ptr->sigl == 0)) {
++				/* Special case. The result can be precise. */
++				u_char esign;
++				e = exponent16(st0_ptr);
++				if (e >= 0) {
++					exponent.sigh = e;
++					esign = SIGN_POS;
++				} else {
++					exponent.sigh = -e;
++					esign = SIGN_NEG;
++				}
++				exponent.sigl = 0;
++				setexponent16(&exponent, 31);
++				tag = FPU_normalize_nuo(&exponent);
++				stdexp(&exponent);
++				setsign(&exponent, esign);
++				tag =
++				    FPU_mul(&exponent, tag, 1, FULL_PRECISION);
++				if (tag >= 0)
++					FPU_settagi(1, tag);
++			} else {
++				/* The usual case */
++				sign = getsign(st1_ptr);
++				if (st1_tag == TW_Denormal)
++					FPU_to_exp16(st1_ptr, st1_ptr);
++				else
++					/* Convert st(1) for internal use. */
++					setexponent16(st1_ptr,
++						      exponent(st1_ptr));
++				poly_l2(st0_ptr, st1_ptr, sign);
++			}
++		} else {
++			/* negative */
++			if (arith_invalid(1) < 0)
++				return;
++		}
++
++		FPU_pop();
++
++		return;
++	}
++
++	if (st0_tag == TAG_Special)
++		st0_tag = FPU_Special(st0_ptr);
++	if (st1_tag == TAG_Special)
++		st1_tag = FPU_Special(st1_ptr);
++
++	if ((st0_tag == TAG_Empty) || (st1_tag == TAG_Empty)) {
++		FPU_stack_underflow_pop(1);
++		return;
++	} else if ((st0_tag <= TW_Denormal) && (st1_tag <= TW_Denormal)) {
++		if (st0_tag == TAG_Zero) {
++			if (st1_tag == TAG_Zero) {
++				/* Both args zero is invalid */
++				if (arith_invalid(1) < 0)
++					return;
++			} else {
++				u_char sign;
++				sign = getsign(st1_ptr) ^ SIGN_NEG;
++				if (FPU_divide_by_zero(1, sign) < 0)
++					return;
++
++				setsign(st1_ptr, sign);
++			}
++		} else if (st1_tag == TAG_Zero) {
++			/* st(1) contains zero, st(0) valid <> 0 */
++			/* Zero is the valid answer */
++			sign = getsign(st1_ptr);
++
++			if (signnegative(st0_ptr)) {
++				/* log(negative) */
++				if (arith_invalid(1) < 0)
++					return;
++			} else if ((st0_tag == TW_Denormal)
++				   && (denormal_operand() < 0))
++				return;
++			else {
++				if (exponent(st0_ptr) < 0)
++					sign ^= SIGN_NEG;
++
++				FPU_copy_to_reg1(&CONST_Z, TAG_Zero);
++				setsign(st1_ptr, sign);
++			}
++		} else {
++			/* One or both operands are denormals. */
++			if (denormal_operand() < 0)
++				return;
++			goto both_valid;
++		}
++	} else if ((st0_tag == TW_NaN) || (st1_tag == TW_NaN)) {
++		if (real_2op_NaN(st0_ptr, st0_tag, 1, st0_ptr) < 0)
++			return;
++	}
++	/* One or both arg must be an infinity */
++	else if (st0_tag == TW_Infinity) {
++		if ((signnegative(st0_ptr)) || (st1_tag == TAG_Zero)) {
++			/* log(-infinity) or 0*log(infinity) */
++			if (arith_invalid(1) < 0)
++				return;
++		} else {
++			u_char sign = getsign(st1_ptr);
++
++			if ((st1_tag == TW_Denormal)
++			    && (denormal_operand() < 0))
++				return;
++
++			FPU_copy_to_reg1(&CONST_INF, TAG_Special);
++			setsign(st1_ptr, sign);
++		}
++	}
++	/* st(1) must be infinity here */
++	else if (((st0_tag == TAG_Valid) || (st0_tag == TW_Denormal))
++		 && (signpositive(st0_ptr))) {
++		if (exponent(st0_ptr) >= 0) {
++			if ((exponent(st0_ptr) == 0) &&
++			    (st0_ptr->sigh == 0x80000000) &&
++			    (st0_ptr->sigl == 0)) {
++				/* st(0) holds 1.0 */
++				/* infinity*log(1) */
++				if (arith_invalid(1) < 0)
++					return;
++			}
++			/* else st(0) is positive and > 1.0 */
++		} else {
++			/* st(0) is positive and < 1.0 */
++
++			if ((st0_tag == TW_Denormal)
++			    && (denormal_operand() < 0))
++				return;
++
++			changesign(st1_ptr);
++		}
++	} else {
++		/* st(0) must be zero or negative */
++		if (st0_tag == TAG_Zero) {
++			/* This should be invalid, but a real 80486 is happy with it. */
++
++#ifndef PECULIAR_486
++			sign = getsign(st1_ptr);
++			if (FPU_divide_by_zero(1, sign) < 0)
++				return;
++#endif /* PECULIAR_486 */
++
++			changesign(st1_ptr);
++		} else if (arith_invalid(1) < 0)	/* log(negative) */
++			return;
++	}
++
++	FPU_pop();
++}
++
++static void fpatan(FPU_REG *st0_ptr, u_char st0_tag)
++{
++	FPU_REG *st1_ptr = &st(1);
++	u_char st1_tag = FPU_gettagi(1);
++	int tag;
++
++	clear_C1();
++	if (!((st0_tag ^ TAG_Valid) | (st1_tag ^ TAG_Valid))) {
++	      valid_atan:
++
++		poly_atan(st0_ptr, st0_tag, st1_ptr, st1_tag);
++
++		FPU_pop();
++
++		return;
++	}
++
++	if (st0_tag == TAG_Special)
++		st0_tag = FPU_Special(st0_ptr);
++	if (st1_tag == TAG_Special)
++		st1_tag = FPU_Special(st1_ptr);
++
++	if (((st0_tag == TAG_Valid) && (st1_tag == TW_Denormal))
++	    || ((st0_tag == TW_Denormal) && (st1_tag == TAG_Valid))
++	    || ((st0_tag == TW_Denormal) && (st1_tag == TW_Denormal))) {
++		if (denormal_operand() < 0)
++			return;
++
++		goto valid_atan;
++	} else if ((st0_tag == TAG_Empty) || (st1_tag == TAG_Empty)) {
++		FPU_stack_underflow_pop(1);
++		return;
++	} else if ((st0_tag == TW_NaN) || (st1_tag == TW_NaN)) {
++		if (real_2op_NaN(st0_ptr, st0_tag, 1, st0_ptr) >= 0)
++			FPU_pop();
++		return;
++	} else if ((st0_tag == TW_Infinity) || (st1_tag == TW_Infinity)) {
++		u_char sign = getsign(st1_ptr);
++		if (st0_tag == TW_Infinity) {
++			if (st1_tag == TW_Infinity) {
++				if (signpositive(st0_ptr)) {
++					FPU_copy_to_reg1(&CONST_PI4, TAG_Valid);
++				} else {
++					setpositive(st1_ptr);
++					tag =
++					    FPU_u_add(&CONST_PI4, &CONST_PI2,
++						      st1_ptr, FULL_PRECISION,
++						      SIGN_POS,
++						      exponent(&CONST_PI4),
++						      exponent(&CONST_PI2));
++					if (tag >= 0)
++						FPU_settagi(1, tag);
++				}
++			} else {
++				if ((st1_tag == TW_Denormal)
++				    && (denormal_operand() < 0))
++					return;
++
++				if (signpositive(st0_ptr)) {
++					FPU_copy_to_reg1(&CONST_Z, TAG_Zero);
++					setsign(st1_ptr, sign);	/* An 80486 preserves the sign */
++					FPU_pop();
++					return;
++				} else {
++					FPU_copy_to_reg1(&CONST_PI, TAG_Valid);
++				}
++			}
++		} else {
++			/* st(1) is infinity, st(0) not infinity */
++			if ((st0_tag == TW_Denormal)
++			    && (denormal_operand() < 0))
++				return;
++
++			FPU_copy_to_reg1(&CONST_PI2, TAG_Valid);
++		}
++		setsign(st1_ptr, sign);
++	} else if (st1_tag == TAG_Zero) {
++		/* st(0) must be valid or zero */
++		u_char sign = getsign(st1_ptr);
++
++		if ((st0_tag == TW_Denormal) && (denormal_operand() < 0))
++			return;
++
++		if (signpositive(st0_ptr)) {
++			/* An 80486 preserves the sign */
++			FPU_pop();
++			return;
++		}
++
++		FPU_copy_to_reg1(&CONST_PI, TAG_Valid);
++		setsign(st1_ptr, sign);
++	} else if (st0_tag == TAG_Zero) {
++		/* st(1) must be TAG_Valid here */
++		u_char sign = getsign(st1_ptr);
++
++		if ((st1_tag == TW_Denormal) && (denormal_operand() < 0))
++			return;
++
++		FPU_copy_to_reg1(&CONST_PI2, TAG_Valid);
++		setsign(st1_ptr, sign);
++	}
++#ifdef PARANOID
++	else
++		EXCEPTION(EX_INTERNAL | 0x125);
++#endif /* PARANOID */
++
++	FPU_pop();
++	set_precision_flag_up();	/* We do not really know if up or down */
++}
++
++static void fprem(FPU_REG *st0_ptr, u_char st0_tag)
++{
++	do_fprem(st0_ptr, st0_tag, RC_CHOP);
++}
++
++static void fprem1(FPU_REG *st0_ptr, u_char st0_tag)
++{
++	do_fprem(st0_ptr, st0_tag, RC_RND);
++}
++
++static void fyl2xp1(FPU_REG *st0_ptr, u_char st0_tag)
++{
++	u_char sign, sign1;
++	FPU_REG *st1_ptr = &st(1), a, b;
++	u_char st1_tag = FPU_gettagi(1);
++
++	clear_C1();
++	if (!((st0_tag ^ TAG_Valid) | (st1_tag ^ TAG_Valid))) {
++	      valid_yl2xp1:
++
++		sign = getsign(st0_ptr);
++		sign1 = getsign(st1_ptr);
++
++		FPU_to_exp16(st0_ptr, &a);
++		FPU_to_exp16(st1_ptr, &b);
++
++		if (poly_l2p1(sign, sign1, &a, &b, st1_ptr))
++			return;
++
++		FPU_pop();
++		return;
++	}
++
++	if (st0_tag == TAG_Special)
++		st0_tag = FPU_Special(st0_ptr);
++	if (st1_tag == TAG_Special)
++		st1_tag = FPU_Special(st1_ptr);
++
++	if (((st0_tag == TAG_Valid) && (st1_tag == TW_Denormal))
++	    || ((st0_tag == TW_Denormal) && (st1_tag == TAG_Valid))
++	    || ((st0_tag == TW_Denormal) && (st1_tag == TW_Denormal))) {
++		if (denormal_operand() < 0)
++			return;
++
++		goto valid_yl2xp1;
++	} else if ((st0_tag == TAG_Empty) | (st1_tag == TAG_Empty)) {
++		FPU_stack_underflow_pop(1);
++		return;
++	} else if (st0_tag == TAG_Zero) {
++		switch (st1_tag) {
++		case TW_Denormal:
++			if (denormal_operand() < 0)
++				return;
++			fallthrough;
++		case TAG_Zero:
++		case TAG_Valid:
++			setsign(st0_ptr, getsign(st0_ptr) ^ getsign(st1_ptr));
++			FPU_copy_to_reg1(st0_ptr, st0_tag);
++			break;
++
++		case TW_Infinity:
++			/* Infinity*log(1) */
++			if (arith_invalid(1) < 0)
++				return;
++			break;
++
++		case TW_NaN:
++			if (real_2op_NaN(st0_ptr, st0_tag, 1, st0_ptr) < 0)
++				return;
++			break;
++
++		default:
++#ifdef PARANOID
++			EXCEPTION(EX_INTERNAL | 0x116);
++			return;
++#endif /* PARANOID */
++			break;
++		}
++	} else if ((st0_tag == TAG_Valid) || (st0_tag == TW_Denormal)) {
++		switch (st1_tag) {
++		case TAG_Zero:
++			if (signnegative(st0_ptr)) {
++				if (exponent(st0_ptr) >= 0) {
++					/* st(0) holds <= -1.0 */
++#ifdef PECULIAR_486		/* Stupid 80486 doesn't worry about log(negative). */
++					changesign(st1_ptr);
++#else
++					if (arith_invalid(1) < 0)
++						return;
++#endif /* PECULIAR_486 */
++				} else if ((st0_tag == TW_Denormal)
++					   && (denormal_operand() < 0))
++					return;
++				else
++					changesign(st1_ptr);
++			} else if ((st0_tag == TW_Denormal)
++				   && (denormal_operand() < 0))
++				return;
++			break;
++
++		case TW_Infinity:
++			if (signnegative(st0_ptr)) {
++				if ((exponent(st0_ptr) >= 0) &&
++				    !((st0_ptr->sigh == 0x80000000) &&
++				      (st0_ptr->sigl == 0))) {
++					/* st(0) holds < -1.0 */
++#ifdef PECULIAR_486		/* Stupid 80486 doesn't worry about log(negative). */
++					changesign(st1_ptr);
++#else
++					if (arith_invalid(1) < 0)
++						return;
++#endif /* PECULIAR_486 */
++				} else if ((st0_tag == TW_Denormal)
++					   && (denormal_operand() < 0))
++					return;
++				else
++					changesign(st1_ptr);
++			} else if ((st0_tag == TW_Denormal)
++				   && (denormal_operand() < 0))
++				return;
++			break;
++
++		case TW_NaN:
++			if (real_2op_NaN(st0_ptr, st0_tag, 1, st0_ptr) < 0)
++				return;
++		}
++
++	} else if (st0_tag == TW_NaN) {
++		if (real_2op_NaN(st0_ptr, st0_tag, 1, st0_ptr) < 0)
++			return;
++	} else if (st0_tag == TW_Infinity) {
++		if (st1_tag == TW_NaN) {
++			if (real_2op_NaN(st0_ptr, st0_tag, 1, st0_ptr) < 0)
++				return;
++		} else if (signnegative(st0_ptr)) {
++#ifndef PECULIAR_486
++			/* This should have higher priority than denormals, but... */
++			if (arith_invalid(1) < 0)	/* log(-infinity) */
++				return;
++#endif /* PECULIAR_486 */
++			if ((st1_tag == TW_Denormal)
++			    && (denormal_operand() < 0))
++				return;
++#ifdef PECULIAR_486
++			/* Denormal operands actually get higher priority */
++			if (arith_invalid(1) < 0)	/* log(-infinity) */
++				return;
++#endif /* PECULIAR_486 */
++		} else if (st1_tag == TAG_Zero) {
++			/* log(infinity) */
++			if (arith_invalid(1) < 0)
++				return;
++		}
++
++		/* st(1) must be valid here. */
++
++		else if ((st1_tag == TW_Denormal) && (denormal_operand() < 0))
++			return;
++
++		/* The Manual says that log(Infinity) is invalid, but a real
++		   80486 sensibly says that it is o.k. */
++		else {
++			u_char sign = getsign(st1_ptr);
++			FPU_copy_to_reg1(&CONST_INF, TAG_Special);
++			setsign(st1_ptr, sign);
++		}
++	}
++#ifdef PARANOID
++	else {
++		EXCEPTION(EX_INTERNAL | 0x117);
++		return;
++	}
++#endif /* PARANOID */
++
++	FPU_pop();
++	return;
++
++}
++
++static void fscale(FPU_REG *st0_ptr, u_char st0_tag)
++{
++	FPU_REG *st1_ptr = &st(1);
++	u_char st1_tag = FPU_gettagi(1);
++	int old_cw = control_word;
++	u_char sign = getsign(st0_ptr);
++
++	clear_C1();
++	if (!((st0_tag ^ TAG_Valid) | (st1_tag ^ TAG_Valid))) {
++		long scale;
++		FPU_REG tmp;
++
++		/* Convert register for internal use. */
++		setexponent16(st0_ptr, exponent(st0_ptr));
++
++	      valid_scale:
++
++		if (exponent(st1_ptr) > 30) {
++			/* 2^31 is far too large, would require 2^(2^30) or 2^(-2^30) */
++
++			if (signpositive(st1_ptr)) {
++				EXCEPTION(EX_Overflow);
++				FPU_copy_to_reg0(&CONST_INF, TAG_Special);
++			} else {
++				EXCEPTION(EX_Underflow);
++				FPU_copy_to_reg0(&CONST_Z, TAG_Zero);
++			}
++			setsign(st0_ptr, sign);
++			return;
++		}
++
++		control_word &= ~CW_RC;
++		control_word |= RC_CHOP;
++		reg_copy(st1_ptr, &tmp);
++		FPU_round_to_int(&tmp, st1_tag);	/* This can never overflow here */
++		control_word = old_cw;
++		scale = signnegative(st1_ptr) ? -tmp.sigl : tmp.sigl;
++		scale += exponent16(st0_ptr);
++
++		setexponent16(st0_ptr, scale);
++
++		/* Use FPU_round() to properly detect under/overflow etc */
++		FPU_round(st0_ptr, 0, 0, control_word, sign);
++
++		return;
++	}
++
++	if (st0_tag == TAG_Special)
++		st0_tag = FPU_Special(st0_ptr);
++	if (st1_tag == TAG_Special)
++		st1_tag = FPU_Special(st1_ptr);
++
++	if ((st0_tag == TAG_Valid) || (st0_tag == TW_Denormal)) {
++		switch (st1_tag) {
++		case TAG_Valid:
++			/* st(0) must be a denormal */
++			if ((st0_tag == TW_Denormal)
++			    && (denormal_operand() < 0))
++				return;
++
++			FPU_to_exp16(st0_ptr, st0_ptr);	/* Will not be left on stack */
++			goto valid_scale;
++
++		case TAG_Zero:
++			if (st0_tag == TW_Denormal)
++				denormal_operand();
++			return;
++
++		case TW_Denormal:
++			denormal_operand();
++			return;
++
++		case TW_Infinity:
++			if ((st0_tag == TW_Denormal)
++			    && (denormal_operand() < 0))
++				return;
++
++			if (signpositive(st1_ptr))
++				FPU_copy_to_reg0(&CONST_INF, TAG_Special);
++			else
++				FPU_copy_to_reg0(&CONST_Z, TAG_Zero);
++			setsign(st0_ptr, sign);
++			return;
++
++		case TW_NaN:
++			real_2op_NaN(st1_ptr, st1_tag, 0, st0_ptr);
++			return;
++		}
++	} else if (st0_tag == TAG_Zero) {
++		switch (st1_tag) {
++		case TAG_Valid:
++		case TAG_Zero:
++			return;
++
++		case TW_Denormal:
++			denormal_operand();
++			return;
++
++		case TW_Infinity:
++			if (signpositive(st1_ptr))
++				arith_invalid(0);	/* Zero scaled by +Infinity */
++			return;
++
++		case TW_NaN:
++			real_2op_NaN(st1_ptr, st1_tag, 0, st0_ptr);
++			return;
++		}
++	} else if (st0_tag == TW_Infinity) {
++		switch (st1_tag) {
++		case TAG_Valid:
++		case TAG_Zero:
++			return;
++
++		case TW_Denormal:
++			denormal_operand();
++			return;
++
++		case TW_Infinity:
++			if (signnegative(st1_ptr))
++				arith_invalid(0);	/* Infinity scaled by -Infinity */
++			return;
++
++		case TW_NaN:
++			real_2op_NaN(st1_ptr, st1_tag, 0, st0_ptr);
++			return;
++		}
++	} else if (st0_tag == TW_NaN) {
++		if (st1_tag != TAG_Empty) {
++			real_2op_NaN(st1_ptr, st1_tag, 0, st0_ptr);
++			return;
++		}
++	}
++#ifdef PARANOID
++	if (!((st0_tag == TAG_Empty) || (st1_tag == TAG_Empty))) {
++		EXCEPTION(EX_INTERNAL | 0x115);
++		return;
++	}
++#endif
++
++	/* At least one of st(0), st(1) must be empty */
++	FPU_stack_underflow();
++
++}
++
++/*---------------------------------------------------------------------------*/
++
++static FUNC_ST0 const trig_table_a[] = {
++	f2xm1, fyl2x, fptan, fpatan,
++	fxtract, fprem1, fdecstp, fincstp,
++};
++
++void FPU_triga(void)
++{
++	(trig_table_a[FPU_rm]) (&st(0), FPU_gettag0());
++}
++
++static FUNC_ST0 const trig_table_b[] = {
++	fprem, fyl2xp1, fsqrt_, fsincos, frndint_, fscale, fsin, fcos
++};
++
++void FPU_trigb(void)
++{
++	(trig_table_b[FPU_rm]) (&st(0), FPU_gettag0());
++}
+diff --git a/arch/x86/math-emu/poly.h b/arch/x86/math-emu/poly.h
+new file mode 100644
+index 000000000..654bfe4e2
+--- /dev/null
++++ b/arch/x86/math-emu/poly.h
+@@ -0,0 +1,115 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*---------------------------------------------------------------------------+
++ |  poly.h                                                                   |
++ |                                                                           |
++ |  Header file for the FPU-emu poly*.c source files.                        |
++ |                                                                           |
++ | Copyright (C) 1994,1999                                                   |
++ |                       W. Metzenthen, 22 Parker St, Ormond, Vic 3163,      |
++ |                       Australia.  E-mail   billm@melbpc.org.au            |
++ |                                                                           |
++ | Declarations and definitions for functions operating on Xsig (12-byte     |
++ | extended-significand) quantities.                                         |
++ |                                                                           |
++ +---------------------------------------------------------------------------*/
++
++#ifndef _POLY_H
++#define _POLY_H
++
++/* This 12-byte structure is used to improve the accuracy of computation
++   of transcendental functions.
++   Intended to be used to get results better than 8-byte computation
++   allows. 9-byte would probably be sufficient.
++   */
++typedef struct {
++	unsigned long lsw;
++	unsigned long midw;
++	unsigned long msw;
++} Xsig;
++
++asmlinkage void mul64(unsigned long long const *a, unsigned long long const *b,
++		      unsigned long long *result);
++asmlinkage void polynomial_Xsig(Xsig *, const unsigned long long *x,
++				const unsigned long long terms[], const int n);
++
++asmlinkage void mul32_Xsig(Xsig *, const unsigned long mult);
++asmlinkage void mul64_Xsig(Xsig *, const unsigned long long *mult);
++asmlinkage void mul_Xsig_Xsig(Xsig *dest, const Xsig *mult);
++
++asmlinkage void shr_Xsig(Xsig *, const int n);
++asmlinkage int round_Xsig(Xsig *);
++asmlinkage int norm_Xsig(Xsig *);
++asmlinkage void div_Xsig(Xsig *x1, const Xsig *x2, Xsig *dest);
++
++/* Macro to extract the most significant 32 bits from a long long */
++#define LL_MSW(x)     (((unsigned long *)&x)[1])
++
++/* Macro to initialize an Xsig struct */
++#define MK_XSIG(a,b,c)     { c, b, a }
++
++/* Macro to access the 8 ms bytes of an Xsig as a long long */
++#define XSIG_LL(x)         (*(unsigned long long *)&x.midw)
++
++/*
++   Need to run gcc with optimizations on to get these to
++   actually be in-line.
++   */
++
++/* Multiply two fixed-point 32 bit numbers, producing a 32 bit result.
++   The answer is the ms word of the product. */
++/* Some versions of gcc make it difficult to stop eax from being clobbered.
++   Merely specifying that it is used doesn't work...
++ */
++static inline unsigned long mul_32_32(const unsigned long arg1,
++				      const unsigned long arg2)
++{
++	int retval;
++	asm volatile ("mull %2; movl %%edx,%%eax":"=a" (retval)
++		      :"0"(arg1), "g"(arg2)
++		      :"dx");
++	return retval;
++}
++
++/* Add the 12 byte Xsig x2 to Xsig dest, with no checks for overflow. */
++static inline void add_Xsig_Xsig(Xsig *dest, const Xsig *x2)
++{
++	asm volatile ("movl %1,%%edi; movl %2,%%esi;\n"
++		      "movl (%%esi),%%eax; addl %%eax,(%%edi);\n"
++		      "movl 4(%%esi),%%eax; adcl %%eax,4(%%edi);\n"
++		      "movl 8(%%esi),%%eax; adcl %%eax,8(%%edi);\n":"=g"
++		      (*dest):"g"(dest), "g"(x2)
++		      :"ax", "si", "di");
++}
++
++/* Add the 12 byte Xsig x2 to Xsig dest, adjust exp if overflow occurs. */
++/* Note: the constraints in the asm statement didn't always work properly
++   with gcc 2.5.8.  Changing from using edi to using ecx got around the
++   problem, but keep fingers crossed! */
++static inline void add_two_Xsig(Xsig *dest, const Xsig *x2, long int *exp)
++{
++	asm volatile ("movl %2,%%ecx; movl %3,%%esi;\n"
++		      "movl (%%esi),%%eax; addl %%eax,(%%ecx);\n"
++		      "movl 4(%%esi),%%eax; adcl %%eax,4(%%ecx);\n"
++		      "movl 8(%%esi),%%eax; adcl %%eax,8(%%ecx);\n"
++		      "jnc 0f;\n"
++		      "rcrl 8(%%ecx); rcrl 4(%%ecx); rcrl (%%ecx)\n"
++		      "movl %4,%%ecx; incl (%%ecx)\n"
++		      "movl $1,%%eax; jmp 1f;\n"
++		      "0: xorl %%eax,%%eax;\n" "1:\n":"=g" (*exp), "=g"(*dest)
++		      :"g"(dest), "g"(x2), "g"(exp)
++		      :"cx", "si", "ax");
++}
++
++/* Negate (subtract from 1.0) the 12 byte Xsig */
++/* This is faster in a loop on my 386 than using the "neg" instruction. */
++static inline void negate_Xsig(Xsig *x)
++{
++	asm volatile ("movl %1,%%esi;\n"
++		      "xorl %%ecx,%%ecx;\n"
++		      "movl %%ecx,%%eax; subl (%%esi),%%eax; movl %%eax,(%%esi);\n"
++		      "movl %%ecx,%%eax; sbbl 4(%%esi),%%eax; movl %%eax,4(%%esi);\n"
++		      "movl %%ecx,%%eax; sbbl 8(%%esi),%%eax; movl %%eax,8(%%esi);\n":"=g"
++		      (*x):"g"(x):"si", "ax", "cx");
++}
++
++#endif /* _POLY_H */
+diff --git a/drivers/cpufreq/Kconfig.x86 b/drivers/cpufreq/Kconfig.x86
+index d6190b8dd..865099926 100644
+--- a/drivers/cpufreq/Kconfig.x86
++++ b/drivers/cpufreq/Kconfig.x86
+@@ -113,6 +113,32 @@ config X86_ACPI_CPUFREQ_CPB
+ 	  By enabling this option the acpi_cpufreq driver provides the old
+ 	  entry in addition to the new boost ones, for compatibility reasons.
+ 
++config ELAN_CPUFREQ
++	tristate "AMD Elan SC400 and SC410"
++	depends on MELAN
++	help
++	  This adds the CPUFreq driver for AMD Elan SC400 and SC410
++	  processors.
++
++	  You need to specify the processor maximum speed as boot
++	  parameter: elanfreq=maxspeed (in kHz) or as module
++	  parameter "max_freq".
++
++	  For details, take a look at <file:Documentation/cpu-freq/>.
++
++	  If in doubt, say N.
++
++config SC520_CPUFREQ
++	tristate "AMD Elan SC520"
++	depends on MELAN
++	help
++	  This adds the CPUFreq driver for AMD Elan SC520 processor.
++
++	  For details, take a look at <file:Documentation/cpu-freq/>.
++
++	  If in doubt, say N.
++
++
+ config X86_POWERNOW_K6
+ 	tristate "AMD Mobile K6-2/K6-3 PowerNow!"
+ 	depends on X86_32
+diff --git a/drivers/cpufreq/Makefile b/drivers/cpufreq/Makefile
+index 6c7a39b7f..385c9fcc6 100644
+--- a/drivers/cpufreq/Makefile
++++ b/drivers/cpufreq/Makefile
+@@ -40,6 +40,8 @@ obj-$(CONFIG_X86_POWERNOW_K6)		+= powernow-k6.o
+ obj-$(CONFIG_X86_POWERNOW_K7)		+= powernow-k7.o
+ obj-$(CONFIG_X86_LONGHAUL)		+= longhaul.o
+ obj-$(CONFIG_X86_E_POWERSAVER)		+= e_powersaver.o
++obj-$(CONFIG_ELAN_CPUFREQ)		+= elanfreq.o
++obj-$(CONFIG_SC520_CPUFREQ)		+= sc520_freq.o
+ obj-$(CONFIG_X86_LONGRUN)		+= longrun.o
+ obj-$(CONFIG_X86_GX_SUSPMOD)		+= gx-suspmod.o
+ obj-$(CONFIG_X86_SPEEDSTEP_ICH)		+= speedstep-ich.o
+diff --git a/drivers/cpufreq/elanfreq.c b/drivers/cpufreq/elanfreq.c
+new file mode 100644
+index 000000000..fc5a58088
+--- /dev/null
++++ b/drivers/cpufreq/elanfreq.c
+@@ -0,0 +1,226 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++/*
++ *	elanfreq:	cpufreq driver for the AMD ELAN family
++ *
++ *	(c) Copyright 2002 Robert Schwebel <r.schwebel@pengutronix.de>
++ *
++ *	Parts of this code are (c) Sven Geggus <sven@geggus.net>
++ *
++ *      All Rights Reserved.
++ *
++ *	2002-02-13: - initial revision for 2.4.18-pre9 by Robert Schwebel
++ */
++
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++
++#include <linux/delay.h>
++#include <linux/cpufreq.h>
++
++#include <asm/cpu_device_id.h>
++#include <linux/timex.h>
++#include <linux/io.h>
++
++#define REG_CSCIR 0x22		/* Chip Setup and Control Index Register    */
++#define REG_CSCDR 0x23		/* Chip Setup and Control Data  Register    */
++
++/* Module parameter */
++static int max_freq;
++
++struct s_elan_multiplier {
++	int clock;		/* frequency in kHz                         */
++	int val40h;		/* PMU Force Mode register                  */
++	int val80h;		/* CPU Clock Speed Register                 */
++};
++
++/*
++ * It is important that the frequencies
++ * are listed in ascending order here!
++ */
++static struct s_elan_multiplier elan_multiplier[] = {
++	{1000,	0x02,	0x18},
++	{2000,	0x02,	0x10},
++	{4000,	0x02,	0x08},
++	{8000,	0x00,	0x00},
++	{16000,	0x00,	0x02},
++	{33000,	0x00,	0x04},
++	{66000,	0x01,	0x04},
++	{99000,	0x01,	0x05}
++};
++
++static struct cpufreq_frequency_table elanfreq_table[] = {
++	{0, 0,	1000},
++	{0, 1,	2000},
++	{0, 2,	4000},
++	{0, 3,	8000},
++	{0, 4,	16000},
++	{0, 5,	33000},
++	{0, 6,	66000},
++	{0, 7,	99000},
++	{0, 0,	CPUFREQ_TABLE_END},
++};
++
++
++/**
++ *	elanfreq_get_cpu_frequency: determine current cpu speed
++ *
++ *	Finds out at which frequency the CPU of the Elan SOC runs
++ *	at the moment. Frequencies from 1 to 33 MHz are generated
++ *	the normal way, 66 and 99 MHz are called "Hyperspeed Mode"
++ *	and have the rest of the chip running with 33 MHz.
++ */
++
++static unsigned int elanfreq_get_cpu_frequency(unsigned int cpu)
++{
++	u8 clockspeed_reg;    /* Clock Speed Register */
++
++	local_irq_disable();
++	outb_p(0x80, REG_CSCIR);
++	clockspeed_reg = inb_p(REG_CSCDR);
++	local_irq_enable();
++
++	if ((clockspeed_reg & 0xE0) == 0xE0)
++		return 0;
++
++	/* Are we in CPU clock multiplied mode (66/99 MHz)? */
++	if ((clockspeed_reg & 0xE0) == 0xC0) {
++		if ((clockspeed_reg & 0x01) == 0)
++			return 66000;
++		else
++			return 99000;
++	}
++
++	/* 33 MHz is not 32 MHz... */
++	if ((clockspeed_reg & 0xE0) == 0xA0)
++		return 33000;
++
++	return (1<<((clockspeed_reg & 0xE0) >> 5)) * 1000;
++}
++
++
++static int elanfreq_target(struct cpufreq_policy *policy,
++			    unsigned int state)
++{
++	/*
++	 * Access to the Elan's internal registers is indexed via
++	 * 0x22: Chip Setup & Control Register Index Register (CSCI)
++	 * 0x23: Chip Setup & Control Register Data  Register (CSCD)
++	 *
++	 */
++
++	/*
++	 * 0x40 is the Power Management Unit's Force Mode Register.
++	 * Bit 6 enables Hyperspeed Mode (66/100 MHz core frequency)
++	 */
++
++	local_irq_disable();
++	outb_p(0x40, REG_CSCIR);		/* Disable hyperspeed mode */
++	outb_p(0x00, REG_CSCDR);
++	local_irq_enable();		/* wait till internal pipelines and */
++	udelay(1000);			/* buffers have cleaned up          */
++
++	local_irq_disable();
++
++	/* now, set the CPU clock speed register (0x80) */
++	outb_p(0x80, REG_CSCIR);
++	outb_p(elan_multiplier[state].val80h, REG_CSCDR);
++
++	/* now, the hyperspeed bit in PMU Force Mode Register (0x40) */
++	outb_p(0x40, REG_CSCIR);
++	outb_p(elan_multiplier[state].val40h, REG_CSCDR);
++	udelay(10000);
++	local_irq_enable();
++
++	return 0;
++}
++/*
++ *	Module init and exit code
++ */
++
++static int elanfreq_cpu_init(struct cpufreq_policy *policy)
++{
++	struct cpuinfo_x86 *c = &cpu_data(0);
++	struct cpufreq_frequency_table *pos;
++
++	/* capability check */
++	if ((c->x86_vendor != X86_VENDOR_AMD) ||
++	    (c->x86 != 4) || (c->x86_model != 10))
++		return -ENODEV;
++
++	/* max freq */
++	if (!max_freq)
++		max_freq = elanfreq_get_cpu_frequency(0);
++
++	/* table init */
++	cpufreq_for_each_entry(pos, elanfreq_table)
++		if (pos->frequency > max_freq)
++			pos->frequency = CPUFREQ_ENTRY_INVALID;
++
++	policy->freq_table = elanfreq_table;
++	return 0;
++}
++
++
++#ifndef MODULE
++/**
++ * elanfreq_setup - elanfreq command line parameter parsing
++ *
++ * elanfreq command line parameter.  Use:
++ *  elanfreq=66000
++ * to set the maximum CPU frequency to 66 MHz. Note that in
++ * case you do not give this boot parameter, the maximum
++ * frequency will fall back to _current_ CPU frequency which
++ * might be lower. If you build this as a module, use the
++ * max_freq module parameter instead.
++ */
++static int __init elanfreq_setup(char *str)
++{
++	max_freq = simple_strtoul(str, &str, 0);
++	pr_warn("You're using the deprecated elanfreq command line option. Use elanfreq.max_freq instead, please!\n");
++	return 1;
++}
++__setup("elanfreq=", elanfreq_setup);
++#endif
++
++
++static struct cpufreq_driver elanfreq_driver = {
++	.get		= elanfreq_get_cpu_frequency,
++	.flags		= CPUFREQ_NO_AUTO_DYNAMIC_SWITCHING,
++	.verify		= cpufreq_generic_frequency_table_verify,
++	.target_index	= elanfreq_target,
++	.init		= elanfreq_cpu_init,
++	.name		= "elanfreq",
++};
++
++static const struct x86_cpu_id elan_id[] = {
++	X86_MATCH_VENDOR_FAM_MODEL(AMD, 4, 10, NULL),
++	{}
++};
++MODULE_DEVICE_TABLE(x86cpu, elan_id);
++
++static int __init elanfreq_init(void)
++{
++	if (!x86_match_cpu(elan_id))
++		return -ENODEV;
++	return cpufreq_register_driver(&elanfreq_driver);
++}
++
++
++static void __exit elanfreq_exit(void)
++{
++	cpufreq_unregister_driver(&elanfreq_driver);
++}
++
++
++module_param(max_freq, int, 0444);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Robert Schwebel <r.schwebel@pengutronix.de>, "
++		"Sven Geggus <sven@geggus.net>");
++MODULE_DESCRIPTION("cpufreq driver for AMD's Elan CPUs");
++
++module_init(elanfreq_init);
++module_exit(elanfreq_exit);
+diff --git a/drivers/cpufreq/sc520_freq.c b/drivers/cpufreq/sc520_freq.c
+new file mode 100644
+index 000000000..77ea6a1ea
+--- /dev/null
++++ b/drivers/cpufreq/sc520_freq.c
+@@ -0,0 +1,135 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++/*
++ *	sc520_freq.c: cpufreq driver for the AMD Elan sc520
++ *
++ *	Copyright (C) 2005 Sean Young <sean@mess.org>
++ *
++ *	Based on elanfreq.c
++ *
++ *	2005-03-30: - initial revision
++ */
++
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++
++#include <linux/delay.h>
++#include <linux/cpufreq.h>
++#include <linux/timex.h>
++#include <linux/io.h>
++
++#include <asm/cpu_device_id.h>
++
++#define MMCR_BASE	0xfffef000	/* The default base address */
++#define OFFS_CPUCTL	0x2   /* CPU Control Register */
++
++static __u8 __iomem *cpuctl;
++
++static struct cpufreq_frequency_table sc520_freq_table[] = {
++	{0, 0x01,	100000},
++	{0, 0x02,	133000},
++	{0, 0,	CPUFREQ_TABLE_END},
++};
++
++static unsigned int sc520_freq_get_cpu_frequency(unsigned int cpu)
++{
++	u8 clockspeed_reg = *cpuctl;
++
++	switch (clockspeed_reg & 0x03) {
++	default:
++		pr_err("error: cpuctl register has unexpected value %02x\n",
++		       clockspeed_reg);
++		fallthrough;
++	case 0x01:
++		return 100000;
++	case 0x02:
++		return 133000;
++	}
++}
++
++static int sc520_freq_target(struct cpufreq_policy *policy, unsigned int state)
++{
++
++	u8 clockspeed_reg;
++
++	local_irq_disable();
++
++	clockspeed_reg = *cpuctl & ~0x03;
++	*cpuctl = clockspeed_reg | sc520_freq_table[state].driver_data;
++
++	local_irq_enable();
++
++	return 0;
++}
++
++/*
++ *	Module init and exit code
++ */
++
++static int sc520_freq_cpu_init(struct cpufreq_policy *policy)
++{
++	struct cpuinfo_x86 *c = &cpu_data(0);
++
++	/* capability check */
++	if (c->x86_vendor != X86_VENDOR_AMD ||
++	    c->x86 != 4 || c->x86_model != 9)
++		return -ENODEV;
++
++	/* cpuinfo and default policy values */
++	policy->cpuinfo.transition_latency = 1000000; /* 1ms */
++	policy->freq_table = sc520_freq_table;
++
++	return 0;
++}
++
++
++static struct cpufreq_driver sc520_freq_driver = {
++	.get	= sc520_freq_get_cpu_frequency,
++	.verify	= cpufreq_generic_frequency_table_verify,
++	.target_index = sc520_freq_target,
++	.init	= sc520_freq_cpu_init,
++	.name	= "sc520_freq",
++};
++
++static const struct x86_cpu_id sc520_ids[] = {
++	X86_MATCH_VENDOR_FAM_MODEL(AMD, 4, 9, NULL),
++	{}
++};
++MODULE_DEVICE_TABLE(x86cpu, sc520_ids);
++
++static int __init sc520_freq_init(void)
++{
++	int err;
++
++	if (!x86_match_cpu(sc520_ids))
++		return -ENODEV;
++
++	cpuctl = ioremap((unsigned long)(MMCR_BASE + OFFS_CPUCTL), 1);
++	if (!cpuctl) {
++		pr_err("sc520_freq: error: failed to remap memory\n");
++		return -ENOMEM;
++	}
++
++	err = cpufreq_register_driver(&sc520_freq_driver);
++	if (err)
++		iounmap(cpuctl);
++
++	return err;
++}
++
++
++static void __exit sc520_freq_exit(void)
++{
++	cpufreq_unregister_driver(&sc520_freq_driver);
++	iounmap(cpuctl);
++}
++
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Sean Young <sean@mess.org>");
++MODULE_DESCRIPTION("cpufreq driver for AMD's Elan sc520 CPU");
++
++module_init(sc520_freq_init);
++module_exit(sc520_freq_exit);
+diff --git a/drivers/mtd/maps/Kconfig b/drivers/mtd/maps/Kconfig
+index dce5e67ce..44593f5ac 100644
+--- a/drivers/mtd/maps/Kconfig
++++ b/drivers/mtd/maps/Kconfig
+@@ -125,6 +125,40 @@ config MTD_SUN_UFLASH
+ 	  Sun Microsystems boardsets.  This driver will require CFI support
+ 	  in the kernel, so if you did not enable CFI previously, do that now.
+ 
++config MTD_SC520CDP
++	tristate "CFI Flash device mapped on AMD SC520 CDP"
++	depends on (MELAN || COMPILE_TEST) && MTD_CFI
++	help
++	  The SC520 CDP board has two banks of CFI-compliant chips and one
++	  Dual-in-line JEDEC chip. This 'mapping' driver supports that
++	  arrangement, implementing three MTD devices.
++
++config MTD_NETSC520
++	tristate "CFI Flash device mapped on AMD NetSc520"
++	depends on (MELAN || COMPILE_TEST) && MTD_CFI
++	help
++	  This enables access routines for the flash chips on the AMD NetSc520
++	  demonstration board. If you have one of these boards and would like
++	  to use the flash chips on it, say 'Y'.
++
++config MTD_TS5500
++	tristate "JEDEC Flash device mapped on Technologic Systems TS-5500"
++	depends on TS5500 || COMPILE_TEST
++	select MTD_JEDECPROBE
++	select MTD_CFI_AMDSTD
++	help
++	  This provides a driver for the on-board flash of the Technologic
++	  System's TS-5500 board. The 2MB flash is split into 3 partitions
++	  which are accessed as separate MTD devices.
++
++	  mtd0 and mtd2 are the two BIOS drives, which use the resident
++	  flash disk (RFD) flash translation layer.
++
++	  mtd1 allows you to reprogram your BIOS. BE VERY CAREFUL.
++
++	  Note that jumper 3 ("Write Enable Drive A") must be set
++	  otherwise detection won't succeed.
++
+ config MTD_SBC_GXX
+ 	tristate "CFI Flash device mapped on Arcom SBC-GXx boards"
+ 	depends on X86 && MTD_CFI_INTELEXT && MTD_COMPLEX_MAPPINGS
+diff --git a/drivers/mtd/maps/netsc520.c b/drivers/mtd/maps/netsc520.c
+new file mode 100644
+index 000000000..0bb651624
+--- /dev/null
++++ b/drivers/mtd/maps/netsc520.c
+@@ -0,0 +1,127 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++/* netsc520.c -- MTD map driver for AMD NetSc520 Demonstration Board
++ *
++ * Copyright (C) 2001 Mark Langsdorf (mark.langsdorf@amd.com)
++ *	based on sc520cdp.c by Sysgo Real-Time Solutions GmbH
++ *
++ * The NetSc520 is a demonstration board for the Elan Sc520 processor available
++ * from AMD.  It has a single back of 16 megs of 32-bit Flash ROM and another
++ * 16 megs of SDRAM.
++ */
++
++#include <linux/module.h>
++#include <linux/types.h>
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <asm/io.h>
++#include <linux/mtd/mtd.h>
++#include <linux/mtd/map.h>
++#include <linux/mtd/partitions.h>
++
++
++/*
++** The single, 16 megabyte flash bank is divided into four virtual
++** partitions.  The first partition is 768 KiB and is intended to
++** store the kernel image loaded by the bootstrap loader.  The second
++** partition is 256 KiB and holds the BIOS image.  The third
++** partition is 14.5 MiB and is intended for the flash file system
++** image.  The last partition is 512 KiB and contains another copy
++** of the BIOS image and the reset vector.
++**
++** Only the third partition should be mounted.  The first partition
++** should not be mounted, but it can erased and written to using the
++** MTD character routines.  The second and fourth partitions should
++** not be touched - it is possible to corrupt the BIOS image by
++** mounting these partitions, and potentially the board will not be
++** recoverable afterwards.
++*/
++
++/* partition_info gives details on the logical partitions that the split the
++ * single flash device into. If the size if zero we use up to the end of the
++ * device. */
++static const struct mtd_partition partition_info[] = {
++    {
++	    .name = "NetSc520 boot kernel",
++	    .offset = 0,
++	    .size = 0xc0000
++    },
++    {
++	    .name = "NetSc520 Low BIOS",
++	    .offset = 0xc0000,
++	    .size = 0x40000
++    },
++    {
++	    .name = "NetSc520 file system",
++	    .offset = 0x100000,
++	    .size = 0xe80000
++    },
++    {
++	    .name = "NetSc520 High BIOS",
++	    .offset = 0xf80000,
++	    .size = 0x80000
++    },
++};
++#define NUM_PARTITIONS ARRAY_SIZE(partition_info)
++
++#define WINDOW_SIZE	0x00100000
++#define WINDOW_ADDR	0x00200000
++
++static struct map_info netsc520_map = {
++	.name = "netsc520 Flash Bank",
++	.size = WINDOW_SIZE,
++	.bankwidth = 4,
++	.phys = WINDOW_ADDR,
++};
++
++#define NUM_FLASH_BANKS	ARRAY_SIZE(netsc520_map)
++
++static struct mtd_info *mymtd;
++
++static int __init init_netsc520(void)
++{
++	printk(KERN_NOTICE "NetSc520 flash device: 0x%Lx at 0x%Lx\n",
++			(unsigned long long)netsc520_map.size,
++			(unsigned long long)netsc520_map.phys);
++	netsc520_map.virt = ioremap(netsc520_map.phys, netsc520_map.size);
++
++	if (!netsc520_map.virt) {
++		printk("Failed to ioremap\n");
++		return -EIO;
++	}
++
++	simple_map_init(&netsc520_map);
++
++	mymtd = do_map_probe("cfi_probe", &netsc520_map);
++	if(!mymtd)
++		mymtd = do_map_probe("map_ram", &netsc520_map);
++	if(!mymtd)
++		mymtd = do_map_probe("map_rom", &netsc520_map);
++
++	if (!mymtd) {
++		iounmap(netsc520_map.virt);
++		return -ENXIO;
++	}
++
++	mymtd->owner = THIS_MODULE;
++	mtd_device_register(mymtd, partition_info, NUM_PARTITIONS);
++	return 0;
++}
++
++static void __exit cleanup_netsc520(void)
++{
++	if (mymtd) {
++		mtd_device_unregister(mymtd);
++		map_destroy(mymtd);
++	}
++	if (netsc520_map.virt) {
++		iounmap(netsc520_map.virt);
++		netsc520_map.virt = NULL;
++	}
++}
++
++module_init(init_netsc520);
++module_exit(cleanup_netsc520);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Mark Langsdorf <mark.langsdorf@amd.com>");
++MODULE_DESCRIPTION("MTD map driver for AMD NetSc520 Demonstration Board");
+diff --git a/drivers/mtd/maps/sc520cdp.c b/drivers/mtd/maps/sc520cdp.c
+new file mode 100644
+index 000000000..8ef7aec63
+--- /dev/null
++++ b/drivers/mtd/maps/sc520cdp.c
+@@ -0,0 +1,294 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++/* sc520cdp.c -- MTD map driver for AMD SC520 Customer Development Platform
++ *
++ * Copyright (C) 2001 Sysgo Real-Time Solutions GmbH
++ *
++ * The SC520CDP is an evaluation board for the Elan SC520 processor available
++ * from AMD. It has two banks of 32-bit Flash ROM, each 8 Megabytes in size,
++ * and up to 512 KiB of 8-bit DIL Flash ROM.
++ * For details see https://www.amd.com/products/epd/desiging/evalboards/18.elansc520/520_cdp_brief/index.html
++ */
++
++#include <linux/module.h>
++#include <linux/types.h>
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <asm/io.h>
++#include <linux/mtd/mtd.h>
++#include <linux/mtd/map.h>
++#include <linux/mtd/concat.h>
++
++/*
++** The Embedded Systems BIOS decodes the first FLASH starting at
++** 0x8400000. This is a *terrible* place for it because accessing
++** the flash at this location causes the A22 address line to be high
++** (that's what 0x8400000 binary's ought to be). But this is the highest
++** order address line on the raw flash devices themselves!!
++** This causes the top HALF of the flash to be accessed first. Beyond
++** the physical limits of the flash, the flash chip aliases over (to
++** 0x880000 which causes the bottom half to be accessed. This splits the
++** flash into two and inverts it! If you then try to access this from another
++** program that does NOT do this insanity, then you *will* access the
++** first half of the flash, but not find what you expect there. That
++** stuff is in the *second* half! Similarly, the address used by the
++** BIOS for the second FLASH bank is also quite a bad choice.
++** If REPROGRAM_PAR is defined below (the default), then this driver will
++** choose more useful addresses for the FLASH banks by reprogramming the
++** responsible PARxx registers in the SC520's MMCR region. This will
++** cause the settings to be incompatible with the BIOS's settings, which
++** shouldn't be a problem since you are running Linux, (i.e. the BIOS is
++** not much use anyway). However, if you need to be compatible with
++** the BIOS for some reason, just undefine REPROGRAM_PAR.
++*/
++#define REPROGRAM_PAR
++
++
++
++#ifdef REPROGRAM_PAR
++
++/* These are the addresses we want.. */
++#define WINDOW_ADDR_0	0x08800000
++#define WINDOW_ADDR_1	0x09000000
++#define WINDOW_ADDR_2	0x09800000
++
++/* .. and these are the addresses the BIOS gives us */
++#define WINDOW_ADDR_0_BIOS	0x08400000
++#define WINDOW_ADDR_1_BIOS	0x08c00000
++#define WINDOW_ADDR_2_BIOS	0x09400000
++
++#else
++
++#define WINDOW_ADDR_0	0x08400000
++#define WINDOW_ADDR_1	0x08C00000
++#define WINDOW_ADDR_2	0x09400000
++
++#endif
++
++#define WINDOW_SIZE_0	0x00800000
++#define WINDOW_SIZE_1	0x00800000
++#define WINDOW_SIZE_2	0x00080000
++
++
++static struct map_info sc520cdp_map[] = {
++	{
++		.name = "SC520CDP Flash Bank #0",
++		.size = WINDOW_SIZE_0,
++		.bankwidth = 4,
++		.phys = WINDOW_ADDR_0
++	},
++	{
++		.name = "SC520CDP Flash Bank #1",
++		.size = WINDOW_SIZE_1,
++		.bankwidth = 4,
++		.phys = WINDOW_ADDR_1
++	},
++	{
++		.name = "SC520CDP DIL Flash",
++		.size = WINDOW_SIZE_2,
++		.bankwidth = 1,
++		.phys = WINDOW_ADDR_2
++	},
++};
++
++#define NUM_FLASH_BANKS	ARRAY_SIZE(sc520cdp_map)
++
++static struct mtd_info *mymtd[NUM_FLASH_BANKS];
++static struct mtd_info *merged_mtd;
++
++#ifdef REPROGRAM_PAR
++
++/*
++** The SC520 MMCR (memory mapped control register) region resides
++** at 0xFFFEF000. The 16 Programmable Address Region (PAR) registers
++** are at offset 0x88 in the MMCR:
++*/
++#define SC520_MMCR_BASE		0xFFFEF000
++#define SC520_MMCR_EXTENT	0x1000
++#define SC520_PAR(x)		((0x88/sizeof(unsigned long)) + (x))
++#define NUM_SC520_PAR		16	/* total number of PAR registers */
++
++/*
++** The highest three bits in a PAR register determine what target
++** device is controlled by this PAR. Here, only ROMCS? and BOOTCS
++** devices are of interest.
++*/
++#define SC520_PAR_BOOTCS	(0x4<<29)
++#define SC520_PAR_ROMCS0	(0x5<<29)
++#define SC520_PAR_ROMCS1	(0x6<<29)
++#define SC520_PAR_TRGDEV	(0x7<<29)
++
++/*
++** Bits 28 thru 26 determine some attributes for the
++** region controlled by the PAR. (We only use non-cacheable)
++*/
++#define SC520_PAR_WRPROT	(1<<26)	/* write protected       */
++#define SC520_PAR_NOCACHE	(1<<27)	/* non-cacheable         */
++#define SC520_PAR_NOEXEC	(1<<28)	/* code execution denied */
++
++
++/*
++** Bit 25 determines the granularity: 4K or 64K
++*/
++#define SC520_PAR_PG_SIZ4	(0<<25)
++#define SC520_PAR_PG_SIZ64	(1<<25)
++
++/*
++** Build a value to be written into a PAR register.
++** We only need ROM entries, 64K page size:
++*/
++#define SC520_PAR_ENTRY(trgdev, address, size) \
++	((trgdev) | SC520_PAR_NOCACHE | SC520_PAR_PG_SIZ64 | \
++	(address) >> 16 | (((size) >> 16) - 1) << 14)
++
++struct sc520_par_table
++{
++	unsigned long trgdev;
++	unsigned long new_par;
++	unsigned long default_address;
++};
++
++static const struct sc520_par_table par_table[NUM_FLASH_BANKS] =
++{
++	{	/* Flash Bank #0: selected by ROMCS0 */
++		SC520_PAR_ROMCS0,
++		SC520_PAR_ENTRY(SC520_PAR_ROMCS0, WINDOW_ADDR_0, WINDOW_SIZE_0),
++		WINDOW_ADDR_0_BIOS
++	},
++	{	/* Flash Bank #1: selected by ROMCS1 */
++		SC520_PAR_ROMCS1,
++		SC520_PAR_ENTRY(SC520_PAR_ROMCS1, WINDOW_ADDR_1, WINDOW_SIZE_1),
++		WINDOW_ADDR_1_BIOS
++	},
++	{	/* DIL (BIOS) Flash: selected by BOOTCS */
++		SC520_PAR_BOOTCS,
++		SC520_PAR_ENTRY(SC520_PAR_BOOTCS, WINDOW_ADDR_2, WINDOW_SIZE_2),
++		WINDOW_ADDR_2_BIOS
++	}
++};
++
++
++static void sc520cdp_setup_par(void)
++{
++	unsigned long __iomem *mmcr;
++	unsigned long mmcr_val;
++	int i, j;
++
++	/* map in SC520's MMCR area */
++	mmcr = ioremap(SC520_MMCR_BASE, SC520_MMCR_EXTENT);
++	if(!mmcr) { /* ioremap failed: skip the PAR reprogramming */
++		/* force physical address fields to BIOS defaults: */
++		for(i = 0; i < NUM_FLASH_BANKS; i++)
++			sc520cdp_map[i].phys = par_table[i].default_address;
++		return;
++	}
++
++	/*
++	** Find the PARxx registers that are responsible for activating
++	** ROMCS0, ROMCS1 and BOOTCS. Reprogram each of these with a
++	** new value from the table.
++	*/
++	for(i = 0; i < NUM_FLASH_BANKS; i++) {		/* for each par_table entry  */
++		for(j = 0; j < NUM_SC520_PAR; j++) {	/* for each PAR register     */
++			mmcr_val = readl(&mmcr[SC520_PAR(j)]);
++			/* if target device field matches, reprogram the PAR */
++			if((mmcr_val & SC520_PAR_TRGDEV) == par_table[i].trgdev)
++			{
++				writel(par_table[i].new_par, &mmcr[SC520_PAR(j)]);
++				break;
++			}
++		}
++		if(j == NUM_SC520_PAR)
++		{	/* no matching PAR found: try default BIOS address */
++			printk(KERN_NOTICE "Could not find PAR responsible for %s\n",
++				sc520cdp_map[i].name);
++			printk(KERN_NOTICE "Trying default address 0x%lx\n",
++				par_table[i].default_address);
++			sc520cdp_map[i].phys = par_table[i].default_address;
++		}
++	}
++	iounmap(mmcr);
++}
++#endif
++
++
++static int __init init_sc520cdp(void)
++{
++	int i, j, devices_found = 0;
++
++#ifdef REPROGRAM_PAR
++	/* reprogram PAR registers so flash appears at the desired addresses */
++	sc520cdp_setup_par();
++#endif
++
++	for (i = 0; i < NUM_FLASH_BANKS; i++) {
++		printk(KERN_NOTICE "SC520 CDP flash device: 0x%Lx at 0x%Lx\n",
++			(unsigned long long)sc520cdp_map[i].size,
++			(unsigned long long)sc520cdp_map[i].phys);
++
++		sc520cdp_map[i].virt = ioremap(sc520cdp_map[i].phys, sc520cdp_map[i].size);
++
++		if (!sc520cdp_map[i].virt) {
++			printk("Failed to ioremap\n");
++			for (j = 0; j < i; j++) {
++				if (mymtd[j]) {
++					map_destroy(mymtd[j]);
++					iounmap(sc520cdp_map[j].virt);
++				}
++			}
++			return -EIO;
++		}
++
++		simple_map_init(&sc520cdp_map[i]);
++
++		mymtd[i] = do_map_probe("cfi_probe", &sc520cdp_map[i]);
++		if(!mymtd[i])
++			mymtd[i] = do_map_probe("jedec_probe", &sc520cdp_map[i]);
++		if(!mymtd[i])
++			mymtd[i] = do_map_probe("map_rom", &sc520cdp_map[i]);
++
++		if (mymtd[i]) {
++			mymtd[i]->owner = THIS_MODULE;
++			++devices_found;
++		}
++		else {
++			iounmap(sc520cdp_map[i].virt);
++		}
++	}
++	if(devices_found >= 2) {
++		/* Combine the two flash banks into a single MTD device & register it: */
++		merged_mtd = mtd_concat_create(mymtd, 2, "SC520CDP Flash Banks #0 and #1");
++		if(merged_mtd)
++			mtd_device_register(merged_mtd, NULL, 0);
++	}
++	if(devices_found == 3) /* register the third (DIL-Flash) device */
++		mtd_device_register(mymtd[2], NULL, 0);
++	return(devices_found ? 0 : -ENXIO);
++}
++
++static void __exit cleanup_sc520cdp(void)
++{
++	int i;
++
++	if (merged_mtd) {
++		mtd_device_unregister(merged_mtd);
++		mtd_concat_destroy(merged_mtd);
++	}
++	if (mymtd[2])
++		mtd_device_unregister(mymtd[2]);
++
++	for (i = 0; i < NUM_FLASH_BANKS; i++) {
++		if (mymtd[i])
++			map_destroy(mymtd[i]);
++		if (sc520cdp_map[i].virt) {
++			iounmap(sc520cdp_map[i].virt);
++			sc520cdp_map[i].virt = NULL;
++		}
++	}
++}
++
++module_init(init_sc520cdp);
++module_exit(cleanup_sc520cdp);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Sysgo Real-Time Solutions GmbH");
++MODULE_DESCRIPTION("MTD map driver for AMD SC520 Customer Development Platform");
+diff --git a/drivers/watchdog/Kconfig b/drivers/watchdog/Kconfig
+index 08cb8612d..eaca8cbb4 100644
+--- a/drivers/watchdog/Kconfig
++++ b/drivers/watchdog/Kconfig
+@@ -1270,6 +1270,19 @@ config GEODE_WDT
+ 	  You can compile this driver directly into the kernel, or use
+ 	  it as a module.  The module will be called geodewdt.
+ 
++config SC520_WDT
++	tristate "AMD Elan SC520 processor Watchdog"
++	depends on MELAN || COMPILE_TEST
++	help
++	  This is the driver for the hardware watchdog built in to the
++	  AMD "Elan" SC520 microcomputer commonly used in embedded systems.
++	  This watchdog simply watches your kernel to make sure it doesn't
++	  freeze, and if it does, it reboots your computer after a certain
++	  amount of time.
++
++	  You can compile this driver directly into the kernel, or use
++	  it as a module.  The module will be called sc520_wdt.
++
+ config SBC_FITPC2_WATCHDOG
+ 	tristate "Compulab SBC-FITPC2 watchdog"
+ 	depends on (X86 || COMPILE_TEST) && HAS_IOPORT
+@@ -1699,6 +1712,19 @@ config W83977F_WDT
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called w83977f_wdt.
+ 
++config MACHZ_WDT
++	tristate "ZF MachZ Watchdog"
++	depends on (X86 || COMPILE_TEST) && HAS_IOPORT
++	help
++	  If you are using a ZF Micro MachZ processor, say Y here, otherwise
++	  N.  This is the driver for the watchdog timer built-in on that
++	  processor using ZF-Logic interface.  This watchdog simply watches
++	  your kernel to make sure it doesn't freeze, and if it does, it
++	  reboots your computer after a certain amount of time.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called machzwd.
++
+ config SBC_EPX_C3_WATCHDOG
+ 	tristate "Winsystems SBC EPX-C3 watchdog"
+ 	depends on (X86 || COMPILE_TEST) && HAS_IOPORT
+diff --git a/drivers/watchdog/Makefile b/drivers/watchdog/Makefile
+index bc1d52220..c9cf14a38 100644
+--- a/drivers/watchdog/Makefile
++++ b/drivers/watchdog/Makefile
+@@ -117,6 +117,7 @@ obj-$(CONFIG_EXAR_WDT) += exar_wdt.o
+ obj-$(CONFIG_F71808E_WDT) += f71808e_wdt.o
+ obj-$(CONFIG_SP5100_TCO) += sp5100_tco.o
+ obj-$(CONFIG_GEODE_WDT) += geodewdt.o
++obj-$(CONFIG_SC520_WDT) += sc520_wdt.o
+ obj-$(CONFIG_SBC_FITPC2_WATCHDOG) += sbc_fitpc2_wdt.o
+ obj-$(CONFIG_EUROTECH_WDT) += eurotechwdt.o
+ obj-$(CONFIG_IB700_WDT) += ib700wdt.o
+@@ -146,6 +147,7 @@ obj-$(CONFIG_VIA_WDT) += via_wdt.o
+ obj-$(CONFIG_W83627HF_WDT) += w83627hf_wdt.o
+ obj-$(CONFIG_W83877F_WDT) += w83877f_wdt.o
+ obj-$(CONFIG_W83977F_WDT) += w83977f_wdt.o
++obj-$(CONFIG_MACHZ_WDT) += machzwd.o
+ obj-$(CONFIG_SBC_EPX_C3_WATCHDOG) += sbc_epx_c3.o
+ obj-$(CONFIG_INTEL_MID_WATCHDOG) += intel-mid_wdt.o
+ obj-$(CONFIG_INTEL_OC_WATCHDOG) += intel_oc_wdt.o
+diff --git a/drivers/watchdog/sc520_wdt.c b/drivers/watchdog/sc520_wdt.c
+new file mode 100644
+index 000000000..005f62e4a
+--- /dev/null
++++ b/drivers/watchdog/sc520_wdt.c
+@@ -0,0 +1,430 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++/*
++ *	AMD Elan SC520 processor Watchdog Timer driver
++ *
++ *	Based on acquirewdt.c by Alan Cox,
++ *	     and sbc60xxwdt.c by Jakob Oestergaard <jakob@unthought.net>
++ *
++ *	The authors do NOT admit liability nor provide warranty for
++ *	any of this software. This material is provided "AS-IS" in
++ *	the hope that it may be useful for others.
++ *
++ *	(c) Copyright 2001    Scott Jennings <linuxdrivers@oro.net>
++ *           9/27 - 2001      [Initial release]
++ *
++ *	Additional fixes Alan Cox
++ *	-	Fixed formatting
++ *	-	Removed debug printks
++ *	-	Fixed SMP built kernel deadlock
++ *	-	Switched to private locks not lock_kernel
++ *	-	Used ioremap/writew/readw
++ *	-	Added NOWAYOUT support
++ *	4/12 - 2002 Changes by Rob Radez <rob@osinvestor.com>
++ *	-	Change comments
++ *	-	Eliminate fop_llseek
++ *	-	Change CONFIG_WATCHDOG_NOWAYOUT semantics
++ *	-	Add KERN_* tags to printks
++ *	-	fix possible wdt_is_open race
++ *	-	Report proper capabilities in watchdog_info
++ *	-	Add WDIOC_{GETSTATUS, GETBOOTSTATUS, SETTIMEOUT,
++ *		GETTIMEOUT, SETOPTIONS} ioctls
++ *	09/8 - 2003 Changes by Wim Van Sebroeck <wim@iguana.be>
++ *	-	cleanup of trailing spaces
++ *	-	added extra printk's for startup problems
++ *	-	use module_param
++ *	-	made timeout (the emulated heartbeat) a module_param
++ *	-	made the keepalive ping an internal subroutine
++ *	3/27 - 2004 Changes by Sean Young <sean@mess.org>
++ *	-	set MMCR_BASE to 0xfffef000
++ *	-	CBAR does not need to be read
++ *	-	removed debugging printks
++ *
++ *  This WDT driver is different from most other Linux WDT
++ *  drivers in that the driver will ping the watchdog by itself,
++ *  because this particular WDT has a very short timeout (1.6
++ *  seconds) and it would be insane to count on any userspace
++ *  daemon always getting scheduled within that time frame.
++ *
++ *  This driver uses memory mapped IO, and spinlock.
++ */
++
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
++#include <linux/module.h>
++#include <linux/moduleparam.h>
++#include <linux/types.h>
++#include <linux/timer.h>
++#include <linux/miscdevice.h>
++#include <linux/watchdog.h>
++#include <linux/fs.h>
++#include <linux/ioport.h>
++#include <linux/notifier.h>
++#include <linux/reboot.h>
++#include <linux/init.h>
++#include <linux/jiffies.h>
++#include <linux/io.h>
++#include <linux/uaccess.h>
++
++
++/*
++ * The AMD Elan SC520 timeout value is 492us times a power of 2 (0-7)
++ *
++ *   0: 492us    2: 1.01s    4: 4.03s   6: 16.22s
++ *   1: 503ms    3: 2.01s    5: 8.05s   7: 32.21s
++ *
++ * We will program the SC520 watchdog for a timeout of 2.01s.
++ * If we reset the watchdog every ~250ms we should be safe.
++ */
++
++#define WDT_INTERVAL (HZ/4+1)
++
++/*
++ * We must not require too good response from the userspace daemon.
++ * Here we require the userspace daemon to send us a heartbeat
++ * char to /dev/watchdog every 30 seconds.
++ */
++
++#define WATCHDOG_TIMEOUT 30		/* 30 sec default timeout */
++/* in seconds, will be multiplied by HZ to get seconds to wait for a ping */
++static int timeout = WATCHDOG_TIMEOUT;
++module_param(timeout, int, 0);
++MODULE_PARM_DESC(timeout,
++	"Watchdog timeout in seconds. (1 <= timeout <= 3600, default="
++				__MODULE_STRING(WATCHDOG_TIMEOUT) ")");
++
++static bool nowayout = WATCHDOG_NOWAYOUT;
++module_param(nowayout, bool, 0);
++MODULE_PARM_DESC(nowayout,
++		"Watchdog cannot be stopped once started (default="
++				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
++
++/*
++ * AMD Elan SC520 - Watchdog Timer Registers
++ */
++#define MMCR_BASE	0xfffef000	/* The default base address */
++#define OFFS_WDTMRCTL	0xCB0	/* Watchdog Timer Control Register */
++
++/* WDT Control Register bit definitions */
++#define WDT_EXP_SEL_01	0x0001	/* [01] Time-out = 496 us (with 33 Mhz clk). */
++#define WDT_EXP_SEL_02	0x0002	/* [02] Time-out = 508 ms (with 33 Mhz clk). */
++#define WDT_EXP_SEL_03	0x0004	/* [03] Time-out = 1.02 s (with 33 Mhz clk). */
++#define WDT_EXP_SEL_04	0x0008	/* [04] Time-out = 2.03 s (with 33 Mhz clk). */
++#define WDT_EXP_SEL_05	0x0010	/* [05] Time-out = 4.07 s (with 33 Mhz clk). */
++#define WDT_EXP_SEL_06	0x0020	/* [06] Time-out = 8.13 s (with 33 Mhz clk). */
++#define WDT_EXP_SEL_07	0x0040	/* [07] Time-out = 16.27s (with 33 Mhz clk). */
++#define WDT_EXP_SEL_08	0x0080	/* [08] Time-out = 32.54s (with 33 Mhz clk). */
++#define WDT_IRQ_FLG	0x1000	/* [12] Interrupt Request Flag */
++#define WDT_WRST_ENB	0x4000	/* [14] Watchdog Timer Reset Enable */
++#define WDT_ENB		0x8000	/* [15] Watchdog Timer Enable */
++
++static __u16 __iomem *wdtmrctl;
++
++static void wdt_timer_ping(struct timer_list *);
++static DEFINE_TIMER(timer, wdt_timer_ping);
++static unsigned long next_heartbeat;
++static unsigned long wdt_is_open;
++static char wdt_expect_close;
++static DEFINE_SPINLOCK(wdt_spinlock);
++
++/*
++ *	Whack the dog
++ */
++
++static void wdt_timer_ping(struct timer_list *unused)
++{
++	/* If we got a heartbeat pulse within the WDT_US_INTERVAL
++	 * we agree to ping the WDT
++	 */
++	if (time_before(jiffies, next_heartbeat)) {
++		/* Ping the WDT */
++		spin_lock(&wdt_spinlock);
++		writew(0xAAAA, wdtmrctl);
++		writew(0x5555, wdtmrctl);
++		spin_unlock(&wdt_spinlock);
++
++		/* Re-set the timer interval */
++		mod_timer(&timer, jiffies + WDT_INTERVAL);
++	} else
++		pr_warn("Heartbeat lost! Will not ping the watchdog\n");
++}
++
++/*
++ *	Utility routines
++ */
++
++static void wdt_config(int writeval)
++{
++	unsigned long flags;
++
++	/* buy some time (ping) */
++	spin_lock_irqsave(&wdt_spinlock, flags);
++	readw(wdtmrctl);	/* ensure write synchronization */
++	writew(0xAAAA, wdtmrctl);
++	writew(0x5555, wdtmrctl);
++	/* unlock WDT = make WDT configuration register writable one time */
++	writew(0x3333, wdtmrctl);
++	writew(0xCCCC, wdtmrctl);
++	/* write WDT configuration register */
++	writew(writeval, wdtmrctl);
++	spin_unlock_irqrestore(&wdt_spinlock, flags);
++}
++
++static int wdt_startup(void)
++{
++	next_heartbeat = jiffies + (timeout * HZ);
++
++	/* Start the timer */
++	mod_timer(&timer, jiffies + WDT_INTERVAL);
++
++	/* Start the watchdog */
++	wdt_config(WDT_ENB | WDT_WRST_ENB | WDT_EXP_SEL_04);
++
++	pr_info("Watchdog timer is now enabled\n");
++	return 0;
++}
++
++static int wdt_turnoff(void)
++{
++	/* Stop the timer */
++	timer_delete_sync(&timer);
++
++	/* Stop the watchdog */
++	wdt_config(0);
++
++	pr_info("Watchdog timer is now disabled...\n");
++	return 0;
++}
++
++static int wdt_keepalive(void)
++{
++	/* user land ping */
++	next_heartbeat = jiffies + (timeout * HZ);
++	return 0;
++}
++
++static int wdt_set_heartbeat(int t)
++{
++	if ((t < 1) || (t > 3600))	/* arbitrary upper limit */
++		return -EINVAL;
++
++	timeout = t;
++	return 0;
++}
++
++/*
++ *	/dev/watchdog handling
++ */
++
++static ssize_t fop_write(struct file *file, const char __user *buf,
++						size_t count, loff_t *ppos)
++{
++	/* See if we got the magic character 'V' and reload the timer */
++	if (count) {
++		if (!nowayout) {
++			size_t ofs;
++
++			/* note: just in case someone wrote the magic character
++			 * five months ago... */
++			wdt_expect_close = 0;
++
++			/* now scan */
++			for (ofs = 0; ofs != count; ofs++) {
++				char c;
++				if (get_user(c, buf + ofs))
++					return -EFAULT;
++				if (c == 'V')
++					wdt_expect_close = 42;
++			}
++		}
++
++		/* Well, anyhow someone wrote to us, we should
++		   return that favour */
++		wdt_keepalive();
++	}
++	return count;
++}
++
++static int fop_open(struct inode *inode, struct file *file)
++{
++	/* Just in case we're already talking to someone... */
++	if (test_and_set_bit(0, &wdt_is_open))
++		return -EBUSY;
++	if (nowayout)
++		__module_get(THIS_MODULE);
++
++	/* Good, fire up the show */
++	wdt_startup();
++	return stream_open(inode, file);
++}
++
++static int fop_close(struct inode *inode, struct file *file)
++{
++	if (wdt_expect_close == 42)
++		wdt_turnoff();
++	else {
++		pr_crit("Unexpected close, not stopping watchdog!\n");
++		wdt_keepalive();
++	}
++	clear_bit(0, &wdt_is_open);
++	wdt_expect_close = 0;
++	return 0;
++}
++
++static long fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
++{
++	void __user *argp = (void __user *)arg;
++	int __user *p = argp;
++	static const struct watchdog_info ident = {
++		.options = WDIOF_KEEPALIVEPING | WDIOF_SETTIMEOUT
++							| WDIOF_MAGICCLOSE,
++		.firmware_version = 1,
++		.identity = "SC520",
++	};
++
++	switch (cmd) {
++	case WDIOC_GETSUPPORT:
++		return copy_to_user(argp, &ident, sizeof(ident)) ? -EFAULT : 0;
++	case WDIOC_GETSTATUS:
++	case WDIOC_GETBOOTSTATUS:
++		return put_user(0, p);
++	case WDIOC_SETOPTIONS:
++	{
++		int new_options, retval = -EINVAL;
++
++		if (get_user(new_options, p))
++			return -EFAULT;
++
++		if (new_options & WDIOS_DISABLECARD) {
++			wdt_turnoff();
++			retval = 0;
++		}
++
++		if (new_options & WDIOS_ENABLECARD) {
++			wdt_startup();
++			retval = 0;
++		}
++
++		return retval;
++	}
++	case WDIOC_KEEPALIVE:
++		wdt_keepalive();
++		return 0;
++	case WDIOC_SETTIMEOUT:
++	{
++		int new_timeout;
++
++		if (get_user(new_timeout, p))
++			return -EFAULT;
++
++		if (wdt_set_heartbeat(new_timeout))
++			return -EINVAL;
++
++		wdt_keepalive();
++	}
++		fallthrough;
++	case WDIOC_GETTIMEOUT:
++		return put_user(timeout, p);
++	default:
++		return -ENOTTY;
++	}
++}
++
++static const struct file_operations wdt_fops = {
++	.owner		= THIS_MODULE,
++	.write		= fop_write,
++	.open		= fop_open,
++	.release	= fop_close,
++	.unlocked_ioctl	= fop_ioctl,
++	.compat_ioctl	= compat_ptr_ioctl,
++};
++
++static struct miscdevice wdt_miscdev = {
++	.minor	= WATCHDOG_MINOR,
++	.name	= "watchdog",
++	.fops	= &wdt_fops,
++};
++
++/*
++ *	Notifier for system down
++ */
++
++static int wdt_notify_sys(struct notifier_block *this, unsigned long code,
++	void *unused)
++{
++	if (code == SYS_DOWN || code == SYS_HALT)
++		wdt_turnoff();
++	return NOTIFY_DONE;
++}
++
++/*
++ *	The WDT needs to learn about soft shutdowns in order to
++ *	turn the timebomb registers off.
++ */
++
++static struct notifier_block wdt_notifier = {
++	.notifier_call = wdt_notify_sys,
++};
++
++static void __exit sc520_wdt_unload(void)
++{
++	if (!nowayout)
++		wdt_turnoff();
++
++	/* Deregister */
++	misc_deregister(&wdt_miscdev);
++	unregister_reboot_notifier(&wdt_notifier);
++	iounmap(wdtmrctl);
++}
++
++static int __init sc520_wdt_init(void)
++{
++	int rc = -EBUSY;
++
++	/* Check that the timeout value is within it's range ;
++	   if not reset to the default */
++	if (wdt_set_heartbeat(timeout)) {
++		wdt_set_heartbeat(WATCHDOG_TIMEOUT);
++		pr_info("timeout value must be 1 <= timeout <= 3600, using %d\n",
++			WATCHDOG_TIMEOUT);
++	}
++
++	wdtmrctl = ioremap(MMCR_BASE + OFFS_WDTMRCTL, 2);
++	if (!wdtmrctl) {
++		pr_err("Unable to remap memory\n");
++		rc = -ENOMEM;
++		goto err_out_region2;
++	}
++
++	rc = register_reboot_notifier(&wdt_notifier);
++	if (rc) {
++		pr_err("cannot register reboot notifier (err=%d)\n", rc);
++		goto err_out_ioremap;
++	}
++
++	rc = misc_register(&wdt_miscdev);
++	if (rc) {
++		pr_err("cannot register miscdev on minor=%d (err=%d)\n",
++		       WATCHDOG_MINOR, rc);
++		goto err_out_notifier;
++	}
++
++	pr_info("WDT driver for SC520 initialised. timeout=%d sec (nowayout=%d)\n",
++		timeout, nowayout);
++
++	return 0;
++
++err_out_notifier:
++	unregister_reboot_notifier(&wdt_notifier);
++err_out_ioremap:
++	iounmap(wdtmrctl);
++err_out_region2:
++	return rc;
++}
++
++module_init(sc520_wdt_init);
++module_exit(sc520_wdt_unload);
++
++MODULE_AUTHOR("Scott and Bill Jennings");
++MODULE_DESCRIPTION(
++	"Driver for watchdog timer in AMD \"Elan\" SC520 uProcessor");
++MODULE_LICENSE("GPL");

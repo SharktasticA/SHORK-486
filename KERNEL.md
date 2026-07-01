@@ -10,15 +10,25 @@ Whilst SHORK 486 itself is licensed under GPL 3.0 terms, the contents of the `sh
 
 ### 7.2.x
 
-* Restore 586 support: https://www.phoronix.com/news/AMD-K5-CPUs
 * Restore ARCnet ISA/PCMCIA drivers: https://www.phoronix.com/news/Linux-To-Drop-ARCnet-ISA-PCMCIA
-* Restore AMD Élan drivers: https://www.phoronix.com/news/AMD-Elan-Linux-Driver-Removal
 * Restore Double Talk driver: https://www.phoronix.com/news/Linux-Dropping-Double-Talk
 
 ### 7.1.x
 
-* Review implications of 64-bit `i_ino`: https://www.phoronix.com/news/Linux-7.1-VFS-Kino-32-bit
 * Review removal of `CONFIG_NET_VENDOR_ALTEON` and `CONFIG_NET_VENDOR_PACKET_ENGINES`
+
+
+
+## 7.2.x
+
+_**Forward ported from 7.1.x:** 7.1.x_restore-M486-M486SX-ELAN.patch, 7.1.x_restore-pcmcia-hosts.patch, 7.1.x_restore-no-pci-devices.patch, 7.1.x_restore-pc110pad.patch_
+
+### [7.2.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.patch](shork-486/patches/linux/7.2.x/7.2.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.patch)
+
+* Original kernel: 7.2.0-rc1
+* Context: https://www.phoronix.com/news/AMD-K5-CPUs, https://www.phoronix.com/news/AMD-Elan-Linux-Driver-Removal
+
+This patch reverts the removal of various applicable CPU targets and features from TODO. It includes build targets for 586 (AMD K5, Cyrix 5x86, etc.), AMD Élan, IDT Winchip, RDC R-321x and UMC U5x, x87 math emulation support, and Geode GX1 support.
 
 
 

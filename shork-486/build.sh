@@ -1698,7 +1698,26 @@ compile_kernel()
     sudo sed -i "s/printf '%s' -dirty/printf '%s'/" scripts/setlocalversion
 
     # Apply our patches
-    if [[ "$LINUX_VER" == "7.1.2" ]]; then
+    if [[ "$LINUX_VER" == 7.2* ]]; then
+        echo -e "${GREEN}Applying 7.2.x_restore-387-586-elan-gx1-rdc321x-umc-winchip...${RESET}"
+        patch -p1 < "${PATCHES_DIR}/linux/7.2.x/7.2.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.patch"
+
+        echo -e "${GREEN}Applying 7.1.x_restore-M486-M486SX-ELAN patch...${RESET}"
+        patch -p1 < "${PATCHES_DIR}/linux/7.1.x/7.1.x_restore-M486-M486SX-ELAN.patch"
+
+        echo -e "${GREEN}Applying 7.1.x_restore-pcmcia-hosts patch...${RESET}"
+        patch -p1 < "${PATCHES_DIR}/linux/7.1.x/7.1.x_restore-pcmcia-hosts.patch"
+
+        echo -e "${GREEN}Applying 7.1.x_restore-no-pci-devices patch...${RESET}"
+        patch -p1 < "${PATCHES_DIR}/linux/7.1.x/7.1.x_restore-no-pci-devices.patch"
+
+        echo -e "${GREEN}Applying 7.1.x_restore-pc110pad patch...${RESET}"
+        patch -p1 < "${PATCHES_DIR}/linux/7.1.x/7.1.x_restore-pc110pad.patch"
+
+        # TODO
+        #echo -e "${GREEN}Applying 7.1.x_restore-isa-pcmcia-net patch...${RESET}"
+        #patch -p1 < "${PATCHES_DIR}/linux/7.1.x/7.1.x_restore-isa-pcmcia-net.patch"
+    elif [[ "$LINUX_VER" == 7.1* ]]; then
         echo -e "${GREEN}Applying 7.1.x_restore-M486-M486SX-ELAN patch...${RESET}"
         patch -p1 < "${PATCHES_DIR}/linux/7.1.x/7.1.x_restore-M486-M486SX-ELAN.patch"
 
