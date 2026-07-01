@@ -42,7 +42,7 @@ IS_ARCH=false
 IS_FEDORA=false
 IS_DEBIAN=true
 BUILD_TYPE="default"
-KERNEL_VER="7.1.2"
+LINUX_VER="7.1.2"
 TARGET_DISK=80
 TARGET_SWAP=8
 SCANCODE_SET=-1
@@ -140,7 +140,7 @@ IS_ARCH=$IS_ARCH
 IS_DEBIAN=$IS_DEBIAN
 IS_FEDORA=$IS_FEDORA
 BUILD_TYPE="$BUILD_TYPE"
-KERNEL_VER="$KERNEL_VER"
+LINUX_VER="$LINUX_VER"
 TARGET_DISK=$TARGET_DISK
 TARGET_SWAP=$TARGET_SWAP
 SCANCODE_SET=$SCANCODE_SET
@@ -445,17 +445,18 @@ fi
 
 
 # Get Linux kernel version (all)
-KERNEL_VER=$(dialog --clear \
+LINUX_VER=$(dialog --clear \
     --backtitle "SHORK 486 Build Configurator" \
     --title "Linux Kernel Version" \
     --cancel-label "Quit" \
-    --default-item "$KERNEL_VER" \
-    --menu "Please select which Linux kernel version you wish to use with SHORK 486. It is generally safe to use the newest major version, but if you experience hardware compatibility issues, try building with an older kernel to see if that resolves them. If so, please report it as an issue on the SHORK 486 GitHub repository." 13 $WIDTH 5 \
+    --default-item "$LINUX_VER" \
+    --menu "Please select which Linux kernel version you wish to use. It is generally safe to use the newest major version that isn't \"-rc\", but if you experience hardware compatibility issues, try building with an older kernel to see if that resolves them. If so, please report it as an issue on the SHORK 486 GitHub repository. Only select a \"-rc\" kernel if you know what you're doing." 14 $WIDTH 5 \
+    "7.2-rc1"   "7.2-rc1 (2026-06-28)" \
     "7.1.2"     "7.1.2 (2026-06-27)" \
     "7.0.14"    "7.0.14 (2026-06-27)" \
     3>&1 1>&2 2>&3)
 
-if [[ ! -n "$KERNEL_VER" ]]; then
+if [[ ! -n "$LINUX_VER" ]]; then
     exit 0
 fi
 

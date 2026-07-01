@@ -24,35 +24,35 @@ Whilst SHORK 486 itself is licensed under GPL 3.0 terms, the contents of the `sh
 
 ## 7.1.x
 
-### [7.1.x_restore-isa-pcmcia-net.patch](shork-486/patches/7.1.x_restore-isa-pcmcia-net.patch)
+### [7.1.x_restore-isa-pcmcia-net.patch](shork-486/patches/linux/7.1.x/7.1.x_restore-isa-pcmcia-net.patch)
 
 * Original kernel: 7.1.0
 * Context: https://www.phoronix.com/news/Linux-7.1-Removes-Old-Net, https://lore.kernel.org/all/20260422-v7-0-0-net-next-driver-removal-v1-v2-0-08a5b59784d5@lunn.ch/
 
 This patch reverts the removal of several ISA and PCMCIA network drivers from [this removal series](https://github.com/search?q=repo%3Atorvalds%2Flinux+net-next+driver-removal&type=commits). It includes the ISA drivers `3c515`, `lance`, `smc9194`, `ultra` and `wd80x3`, and the PCMCIA drivers `3c574`, `3c589`, `ax88190`, `fmvj18x`, `nmclan` and `smc91c92`. Several of these drivers include hardware relevant for SHORK 486.
 
-### [7.1.x_restore-pc110pad.patch](shork-486/patches/7.1.x_restore-pc110pad.patch)
+### [7.1.x_restore-pc110pad.patch](shork-486/patches/linux/7.1.x/7.1.x_restore-pc110pad.patch)
 
 * Original kernel: 7.1.0
 * Context: https://www.phoronix.com/news/Linux-7.1-PCI
 
 This patch reverts the removal of the `pc110pad` driver in [6f468ea360f0](https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=6f468ea360f0a6a1e45854afbc3019842ed891a8). This is for the IBM Palm Top PC 110's trackpad. The PC 110 is a 486SX-based device and a target for SHORK 486.
 
-### [7.1.x_restore-no-pci-devices.patch](shork-486/patches/7.1.x_restore-no-pci-devices.patch)
+### [7.1.x_restore-no-pci-devices.patch](shork-486/patches/linux/7.1.x/7.1.x_restore-no-pci-devices.patch)
 
 * Original kernel: 7.1.0
 * Context: https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=40286d6379aacfcc053253ef78dc78b09addffda
 
 This patch reverts the removal of the `no_pci_devices` function in [d79dc408deb6](https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=d79dc408deb6c192adbad7893ee0c22d50826511) as it is required by the above patch to restore the `pc110pad` driver.
 
-### [7.1.x_restore-pcmcia-hosts.patch](shork-486/patches/7.1.x_restore-pcmcia-hosts.patch)
+### [7.1.x_restore-pcmcia-hosts.patch](shork-486/patches/linux/7.1.x/7.1.x_restore-pcmcia-hosts.patch)
 
 * Original kernel: 7.1.0
 * Context: https://www.phoronix.com/news/Linux-7.1-Drops-Old-PCMCIA-Code
 
 This patch reverts the changes made in [b3c26ea81ccc](https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=b3c26ea81ccc522e77ed0b1707add61fc9206216) during 7.1-rc1 that restores some legacy PCMCIA host controller drivers and associated infrastructure. The drivers include i82092, i82365 and tcic.
 
-### [7.1.x_restore-M486-M486SX-ELAN.patch](shork-486/patches/7.1.x_restore-M486-M486SX-ELAN.patch)
+### [7.1.x_restore-M486-M486SX-ELAN.patch](shork-486/patches/linux/7.1.x/7.1.x_restore-M486-M486SX-ELAN.patch)
 
 * Original kernel: 7.1.0
 * Context: https://www.phoronix.com/news/Linux-7.1-Begins-Removing-i486
@@ -63,7 +63,7 @@ This patch reverts the changes made in [8b793a92d862](https://git.kernel.org/pub
 
 ## 7.0.x
 
-### [7.0.x_6.14.11-e820.patch](shork-486/patches/7.0.x_6.14.11-e820.patch), [7.0.x_6.14.11-e820-v2.patch](shork-486/patches/7.0.x_6.14.11-e820-v2.patch)
+### [7.0.x_6.14.11-e820.patch](shork-486/patches/linux/7.0.x/7.0.x_6.14.11-e820.patch), [7.0.x_6.14.11-e820-v2.patch](shork-486/patches/linux/7.0.x/7.0.x_6.14.11-e820-v2.patch)
 
 * Original kernel: 7.0.0
 * Context: https://github.com/SharktasticA/SHORK-486/issues/3, https://lore.kernel.org/lkml/20260415003021.1543723-1-david@davidgow.net/

@@ -105,7 +105,8 @@ CONFIGS_DIR="${CURR_DIR}/configs"
 PATCHES_DIR="${CURR_DIR}/patches"
 
 # Target software/feature versions
-LINUX_SRC="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git"
+LINUX_STABLE_SRC="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git"
+LINUX_TORVALDS_SRC="https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
 LINUX_VER="7.1.2"
 
 BUSYBOX_SRC="https://busybox.net/downloads"
@@ -1541,8 +1542,14 @@ download_kernel()
 {
     cd "$CURR_DIR/build"
     echo -e "${GREEN}Downloading the Linux kernel...${RESET}"
+
+    local LINUX_SRC="$LINUX_STABLE_SRC"
+    if [[ "$LINUX_VER" == *-rc* ]]; then
+        LINUX_SRC="$LINUX_TORVALDS_SRC"
+    fi
+
     if [ ! -d "linux" ]; then
-        git clone --depth=1 --branch "v$LINUX_VER" $LINUX_SRC || true
+        git clone --depth=1 --branch "v$LINUX_VER" "$LINUX_SRC" || true
         cd "$CURR_DIR/build/linux"
         configure_kernel
     fi
@@ -1693,19 +1700,19 @@ compile_kernel()
     # Apply our patches
     if [[ "$LINUX_VER" == "7.1.2" ]]; then
         echo -e "${GREEN}Applying 7.1.x_restore-M486-M486SX-ELAN patch...${RESET}"
-        patch -p1 < "${PATCHES_DIR}/linux/7.1.x_restore-M486-M486SX-ELAN.patch"
+        patch -p1 < "${PATCHES_DIR}/linux/7.1.x/7.1.x_restore-M486-M486SX-ELAN.patch"
 
         echo -e "${GREEN}Applying 7.1.x_restore-pcmcia-hosts patch...${RESET}"
-        patch -p1 < "${PATCHES_DIR}/linux/7.1.x_restore-pcmcia-hosts.patch"
+        patch -p1 < "${PATCHES_DIR}/linux/7.1.x/7.1.x_restore-pcmcia-hosts.patch"
 
         echo -e "${GREEN}Applying 7.1.x_restore-no-pci-devices patch...${RESET}"
-        patch -p1 < "${PATCHES_DIR}/linux/7.1.x_restore-no-pci-devices.patch"
+        patch -p1 < "${PATCHES_DIR}/linux/7.1.x/7.1.x_restore-no-pci-devices.patch"
 
         echo -e "${GREEN}Applying 7.1.x_restore-pc110pad patch...${RESET}"
-        patch -p1 < "${PATCHES_DIR}/linux/7.1.x_restore-pc110pad.patch"
+        patch -p1 < "${PATCHES_DIR}/linux/7.1.x/7.1.x_restore-pc110pad.patch"
 
         echo -e "${GREEN}Applying 7.1.x_restore-isa-pcmcia-net patch...${RESET}"
-        patch -p1 < "${PATCHES_DIR}/linux/7.1.x_restore-isa-pcmcia-net.patch"
+        patch -p1 < "${PATCHES_DIR}/linux/7.1.x/7.1.x_restore-isa-pcmcia-net.patch"
     fi
 
     echo -e "${GREEN}Compiling Linux kernel...${RESET}"
