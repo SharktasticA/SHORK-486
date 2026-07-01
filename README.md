@@ -41,8 +41,18 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 ### Hardware requirements
 
 * Processor: Intel 486SX or compatible (no FPU required)
-* Memory: 16MiB minimum/24MiB recommended (default build); 8/10MiB (minimal); 24/32MiB (maximal)
-* Disk: 80MiB IDE or SCSI (default); 8MiB (minimal); 400MiB (maximal)
+* Memory:
+    * **Default: 16MiB RAM (8MiB swap recommended)**
+    * Maximal: 32MiB RAM (recommended), 24MiB RAM + 8MiB swap (acceptable)
+    * Plus: 24MiB RAM + 8MiB swap (recommended), 16MiB RAM + 16MiB swap (acceptable)
+    * Offline: 12MiB RAM (8MiB swap recommended)
+    * Minimal: 8MiB RAM
+* IDE or SCSI disk: 
+    * **Default: 80MiB**
+    * Maximal: 440MiB
+    * Plus: 400MiB
+    * Offline: 60MiB
+    * Minimal: 8MiB
 * Graphics: IBM VGA or compatible (for most programs); VBE 2.0-compatible (for `shorkgui` and VBE resolutions in `shorkset`)
 * Monitor: VGA (640x480) or higher
 
@@ -141,8 +151,9 @@ SHORK DISC is a specialised version of the SHORK 486 Operating System that can b
 
 ### Hardware requirements
 
+* BIOS: El Torito supported
 * Processor: Intel 486SX or compatible (no FPU required)
-* Memory: 8MiB minimum/16MiB recommended
+* Memory: 8MiB RAM
 * Disc: any CD+/-R/RW
 * Graphics: IBM VGA or compatible
 * Monitor: VGA (640x480) or higher
@@ -175,7 +186,7 @@ SHORK DISKETTE is a specialised version of the SHORK 486 Operating System that i
 ### Hardware requirements
 
 * Processor: Intel 486SX or compatible (no FPU required)
-* Memory: 16MiB minimum/24MiB recommended
+* Memory: 16MiB RAM
 * Diskette: 1.44 or 2.88MB
 * Graphics: IBM VGA or compatible
 * Monitor: VGA (640x480) or higher
@@ -193,17 +204,17 @@ ash, awk, basename, cat, clear, cp, date, dd, df, echo, expr, free, grep, hostna
 
 ## Known issues
 
-* Despite working on a lot newer hardware, SHORK 486 and DISKETTE may run into a kernel panic with Intel Pentium Pro and some Intel Pentium II OverDrive processors. Research into the issue is ongoing.
+* Despite working on a lot newer hardware, SHORK 486, DISC and DISKETTE may run into a kernel panic with Intel Pentium Pro and some Intel Pentium II OverDrive processors. Research into the issue is ongoing.
 
 
 
 ## Building
 
-SHORK 486 and DISKETTE do not presently have or produce installation media, it must be compiled. The result are raw disk or diskette images you can write to real hardware or use as-is in emulation or virtualisation software. Building may require up to 5GiB of disk space. Please read "Notice & disclaimers" at the end of this readme before proceeding. 
+SHORK 486, DISC and DISKETTE do not presently have released compilations or media, so it must be compiled. The result are raw disk, disc or diskette images you can write to real hardware or use as-is in emulation or virtualisation software. Building may require up to 5GiB of disk space. Please read "Notice & disclaimers" at the end of this readme before proceeding. 
 
 ### Configuration
 
-Whilst you *can* build SHORK 486 immediately, it is recommended to first run the SHORK 486 Build Configurator (`config.sh`) whilst in the `shork-486` directory to tailor SHORK 486 to your liking.
+Whilst you *can* build SHORK 486 proper immediately, it is recommended to first run the SHORK 486 Build Configurator (`config.sh`) whilst in the `shork-486` directory to select SHORK DISC or SHORK DISKETTE if needed, and to tailor SHORK 486 to your liking.
 
 ### Native building
 
@@ -223,9 +234,10 @@ Once built, one or more disk images and an after-build report (`report.txt`) sho
 
 * `shork-486.img`: Can be used as-is with PC emulation software like 86Box or written to a real disk using (e.g.) `dd`.
 * `shork-486.vmdk`: Can be used as-is with VMware Workstation or Player.
-* `shork-diskette.img` Can be used as-is as an attached floppy diskette on most PC emulation and virtualisation software or written to a real diskette using (e.g.) `dd`.
+* `shork-disc.iso` Can be used as-is as an inserted optical disc on most PC emulation and virtualisation software or burned to a real disc using burning software.
+* `shork-diskette.img` Can be used as-is as an inserted floppy diskette on most PC emulation and virtualisation software or written to a real diskette using (e.g.) `dd`.
 
-It is recommended to move or copy the images out of this directory before extensive or serious use because they will be replaced if the build process is rerun. The after-build report is provided to confirm whether the build was completed as intended. It confirms the type of build made, the time it took to create, the minimum system memory requirement, some handy disk/diskette image statistics, and which programs or features are included or excluded.
+It is recommended to move or copy the images out of this directory before extensive or serious use because they will be replaced if the build process is rerun. The after-build report is provided to confirm whether the build was completed as intended. It confirms the type of build made, the time it took to create, the minimum system memory requirement, some handy disk/disc/diskette image statistics, and which programs or features are included or excluded.
 
 
 
@@ -244,10 +256,10 @@ It is recommended to move or copy the images out of this directory before extens
 When running the SHORK 486 Build Configurator, you will be prompted to select the following:
 
 * Build environment (Arch native, Debian native/Dockerised or Fedora native)
-* Target distribution (SHORK 486 or SHORK DISKETTE)
+* Target distribution (SHORK 486, SHORK DISC or SHORK DISKETTE)
 * Linux kernel version (7.1.2 or 7.0.14)
 * _If SHORK 486:_
-    * Build type (default, offline, minimal, maximal or custom)
+    * Build type (default, maximal, plus, offline, minimal or custom)
     * Target disk size (size in MiB)
     * Swap partition size (size in MiB)
 * _If SHORK DISKETTE:_
@@ -275,16 +287,13 @@ Below are further explanations for options that could not fit into the configura
 
 #### Build Type
 
-* **Default**: Builds SHORK 486 to the author's recommended configuration, trying to balance features and bundled software variety with system requirements. A default build requires 16MiB system memory and ~80MiB disk size.
-
-* **Offline**: The same as a default build but _without_ full networking support or software that requires an internet connection. An offline build requires 12MiB system memory and ~60MiB disk size.
-    * The after-build report will still report that "kernel-level networking support (base)" is included. This is required to satisfy htop's kernel requirements, but the kernel is still incapable of supporting real network connections.
-
-* **Minimal**: Builds SHORK 486 to its most minimal configuration. All bundled software and additional features are excluded, and multi-user system, networking and non-US keyboard layout support are disabled. A minimal build requires 8MiB system memory and ~8MiB disk size.
-
-* **Maximal**: Builds SHORK 486 with every bundled software or additional feature option enabled. It is provided as a curiosity for more modern hardware; it is not recommended for 486 and Pentium (P5)-era hardware. A maximal build requires 24MiB system memory and ~480MiB disk size.
-
-* **Custom**: You will later be asked to pick and choose bundled software and additional features. System memory and disk size requirements depend on what you choose.
+* **Default**: Builds SHORK 486 to the author's recommended configuration, trying to balance features and bundled software variety with system requirements.
+* **Maximal**: Builds SHORK 486 with every bundled software or additional feature option enabled. It is provided as a curiosity for more modern hardware; it is not recommended for 486 and Pentium (P5)-era hardware.
+* **Plus**: The same as a default but but _with_ all optional bundled software included.
+* **Offline**: The same as a default build but _without_ full networking support or software that requires an internet connection.
+    * The after-build report will still report that "kernel-level networking support (base)" is included. This is a technicality required to satisfy htop's kernel requirements, but the kernel is still incapable of supporting real network connections.
+* **Minimal**: Builds SHORK 486 to its most minimal configuration. All bundled software and additional features are excluded, and multi-user system, networking and non-US keyboard layout support are disabled.
+* **Custom**: You will later be asked to pick and choose bundled software and additional features.
 
 
 
@@ -311,9 +320,9 @@ Selecting "Yes" here will enable ethernet networking support in SHORK 486. BusyB
 
 
 
-#### Patched EXTLINUX/SYSLINUX
+#### Patched EXTLINUX/ISOLINUX/SYSLINUX
 
-EXTLINUX (SHORK 486) and SYSLINUX (SHORK DISKETTE) are the default bootloaders used for the SHORK 486 family. Selecting "Yes" here will tell the build script to use [my forked SYSLINUX repository](https://github.com/SharktasticA/syslinux) instead of your host Linux distribution's maintained packaged version. This version addresses a memory detection error to resolve the "Booting kernel failed: Invalid argument" or boot menu looping issue that the stock EXTLINUX/SYSLINUX may encounter with some BIOSes when attempting to boot the kernel with.
+EXTLINUX (SHORK 486), ISOLINUX (SHORK DISC) and SYSLINUX (SHORK DISKETTE) are the default bootloaders used for the SHORK 486 family. Selecting "Yes" here will tell the build script to use [my forked SYSLINUX repository](https://github.com/SharktasticA/syslinux) instead of your host Linux distribution's maintained packaged version. This version addresses a memory detection error to resolve the "Booting kernel failed: Invalid argument" or boot menu looping issue that the stock EXTLINUX/SYSLINUX may encounter with some BIOSes when attempting to boot the kernel with.
 
 * Some people need this, some people do not - see the list below, or try without first, then enable this if this error or something like it occurs.
 * Known hardware that need this includes: Chicony NB5 & [derivatives](https://www.macdat.net/laptops/chicony/nb5.php), HP OmniBook 800CT, IBM 2625 ThinkPad 365E/365ED, IBM 6381 PS/ValuePoint
@@ -328,7 +337,7 @@ EXTLINUX (SHORK 486) and SYSLINUX (SHORK DISKETTE) are the default bootloaders u
 
 * **file**: Adds the `file` command, which can identify a file's type by checking its contents against a database of possible magic signatures. Due to the size of said database, 16MiB RAM is required for it to work correctly.
 
-* **gcc**: Adds the GNU Assembler, GCC's C, C++ and Fortran compiler and musl C standard library. Using `g++` requires more system memory than usual, hence it is not included by default. RAM requirements are ideally 32MiB if no swap partition, 24MiB with 8MiB swap or 16MiB with 16MiB swap.
+* **gcc**: Adds the GNU Assembler, GCC's C, C++ and Fortran compiler and musl C standard library. Using `g++` requires more system memory than usual, hence it is not included by default. Memory requirements are ideally 32MiB system memory if no swap partition, 24MiB with 8MiB swap or 16MiB with 16MiB swap.
 
 * **shorktainment**: Includes the SHORK Entertainment programs bundle: shorklocomotive, shorkmatrix, and shorksay.
 

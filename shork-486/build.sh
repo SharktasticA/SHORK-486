@@ -325,13 +325,16 @@ if [ "$ID" == "shork-486" ]; then
     if [ "$BUILD_TYPE" = "custom" ]; then
         echo -e "${GREEN}Noting minimum RAM requirement for a SHORK 486 custom build...${RESET}"
         if [ "$INCLUDE_GCC" = true ]; then
-            EST_MIN_RAM="32MiB/24MiB + 8MiB swap"
+            EST_MIN_RAM="24MiB + 8MiB swap/16MiB + 16MiB swap"
         elif [ "$INCLUDE_GUI" = true ] || [ "$ENABLE_HIGHMEM" = true ] || [ "$ENABLE_SATA" = true ]; then
             EST_MIN_RAM="24MiB/16MiB + 8MiB swap"
         fi
     elif [ "$BUILD_TYPE" = "maximal" ]; then
         echo -e "${GREEN}Noting minimum RAM requirement for a SHORK 486 maximal build...${RESET}"
         EST_MIN_RAM="32MiB/24MiB + 8MiB swap"
+    elif [ "$BUILD_TYPE" = "plus" ]; then
+        echo -e "${GREEN}Noting minimum RAM requirement for a SHORK 486 plus build...${RESET}"
+        EST_MIN_RAM="24MiB + 8MiB swap/16MiB + 16MiB swap"
     elif [ "$BUILD_TYPE" = "offline" ]; then
         echo -e "${GREEN}Noting minimum RAM requirement for a SHORK 486 offline build...${RESET}"
         EST_MIN_RAM="12MiB"

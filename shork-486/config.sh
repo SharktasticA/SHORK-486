@@ -17,7 +17,7 @@ fi
 
 
 CURR_DIR=$(pwd)
-WIDTH=76
+WIDTH=80
 HEIGHT=20
 
 
@@ -27,11 +27,13 @@ CUSTOM_MIN_DISK=8
 DEFAULT_DEF_SWAP=8
 DEFAULT_MIN_DISK=80
 MAXIMAL_DEF_SWAP=8
-MAXIMAL_MIN_DISK=400
+MAXIMAL_MIN_DISK=440
 MINIMAL_DEF_SWAP=0
 MINIMAL_MIN_DISK=8
 OFFLINE_DEF_SWAP=8
 OFFLINE_MIN_DISK=60
+PLUS_DEF_SWAP=16
+PLUS_MIN_DISK=400
 
 ALWAYS_BUILD=true
 DIST="SHORK 486"
@@ -305,6 +307,15 @@ set_offline_vars()
     INCLUDE_TNFTP=false
 }
 
+set_plus_vars()
+{
+    set_default_vars
+    INCLUDE_C3270=true
+    INCLUDE_GCC=true
+    INCLUDE_JOE=true
+    INCLUDE_TN5250=true
+}
+
 set_maximal_vars()
 {
     set_default_vars
@@ -458,11 +469,12 @@ if [ "$ID" == "shork-486" ]; then
         --title "Build Type" \
         --cancel-label "Quit" \
         --default-item "$BUILD_TYPE" \
-        --menu "Select the build type, presets for SHORK 486 feature levels. The minimum requirements for each are enclosed in brackets. The \"custom\" option will enable further prompts for software and feature selection." 14 $WIDTH 5 \
-        "default" "Typical experience (16MiB RAM + 80MiB disk)" \
-        "offline" "Default sans networking (12MiB RAM + 60MiB disk)" \
-        "minimal" "Minimal build (8MiB RAM + 8MiB disk)" \
-        "maximal" "Maximal build (24MiB RAM + 400MiB disk)" \
+        --menu "Select the build type, presets for SHORK 486 feature levels. The minimum requirements for each are enclosed in brackets. The \"custom\" option will enable further prompts for software and feature selection." 15 $WIDTH 5 \
+        "default" "Typical experience (16MiB RAM, 8MiB swap, 80MiB disk)" \
+        "maximal" "Largest configuration (24MiB RAM, 8MiB swap, 440MiB disk)" \
+        "plus"    "Default w/ optional software (16MiB RAM, 16MiB swap, 400MiB disk)" \
+        "offline" "Default w/o networking (12MiB RAM, 8MiB swap, 60MiB disk)" \
+        "minimal" "Smallest configuration (8MiB RAM, 8MiB disk)" \
         "custom"  "Requirements depend on subsequent choices" \
         3>&1 1>&2 2>&3)
 
@@ -472,6 +484,8 @@ if [ "$ID" == "shork-486" ]; then
         set_default_vars
     elif [ "$BUILD_TYPE" == "offline" ]; then
         set_offline_vars
+    elif [ "$BUILD_TYPE" == "plus" ]; then
+        set_plus_vars
     elif [ "$BUILD_TYPE" == "minimal" ]; then
         set_minimal_vars
     elif [ "$BUILD_TYPE" == "maximal" ]; then
@@ -495,6 +509,12 @@ if [ "$ID" == "shork-486" ]; then
         if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
             TARGET_DISK=$OFFLINE_MIN_DISK
             TARGET_SWAP=$OFFLINE_DEF_SWAP
+        fi
+    elif [ "$BUILD_TYPE" == "plus" ]; then
+        CURR_MIN_DISK=$PLUS_MIN_DISK
+        if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
+            TARGET_DISK=$PLUS_MIN_DISK
+            TARGET_SWAP=$PLUS_DEF_SWAP
         fi
     elif [ "$BUILD_TYPE" == "minimal" ]; then
         CURR_MIN_DISK=$MINIMAL_MIN_DISK
@@ -559,7 +579,7 @@ if [ "$ID" == "shork-486" ]; then
             --backtitle "SHORK 486 Build Configurator" \
             --title "Swap Partition Size" \
             --cancel-label "Skip" \
-            --inputbox "If desired, enter a swap partition size in mebibytes (between 1 and 64) to use when creating the disk image containing SHORK 486. If a swap partition isn't needed or desired, please skip or enter \"0\"." \
+            --inputbox "Enter a swap partition size in mebibytes (between 1 and 64). Whilst not strictly needed, it is recommended to at least keep the default value if one was provided. If a swap partition isn't needed or desired, please skip or enter \"0\"." \
             9 $WIDTH "$TARGET_SWAP" \
             2>&1 >/dev/tty)
 
