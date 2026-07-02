@@ -127,7 +127,7 @@ FILE_SRC="https://github.com/file/file.git"
 FILE_VER="5_48"
 GCC_SRC="https://more.musl.cc/11/i686-linux-musl"
 GIT_SRC="https://github.com/git/git.git"
-GIT_VER="2.54.0"
+GIT_VER="2.55.0"
 HTOP_SRC="https://github.com/htop-dev/htop.git"
 HTOP_VER="3.5.1"
 JOE_SRC="https://github.com/joe-editor/joe"
@@ -188,7 +188,7 @@ TCC_SRC="https://github.com/Tiny-C-Compiler/tinycc-mirror-repository.git"
 TCC_VER="e5eedc0"
 TILDE_VER="1.1.3"
 TMUX_SRC="https://github.com/tmux/tmux.git"
-TMUX_VER="3.6b"
+TMUX_VER="3.7b"
 TN5250_SRC="https://github.com/tn5250/tn5250.git"
 TN5250_VER="0.18.0"
 TNFTP_SRC="https://ftp.netbsd.org/pub/NetBSD/misc/tnftp"
@@ -3876,8 +3876,8 @@ get_git()
     make configure
     ./configure --host=${HOST} --prefix=/usr CC="${CC}" AR="${AR}" RANLIB="${RANLIB}" CFLAGS="-Os -march=${ARCH} -static -I${PREFIX}/include" LDFLAGS="-static -L${PREFIX}/lib"
     sudo cp $CONFIGS_DIR/git.config.mak config.mak
-    make -j$(nproc)
-    sudo make DESTDIR=$DESTDIR install
+    make NO_RUST=1 -j$(nproc)
+    sudo make NO_RUST=1 DESTDIR=$DESTDIR install
 }
 
 # Download and compile htop

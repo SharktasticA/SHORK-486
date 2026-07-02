@@ -68,16 +68,16 @@ addgroup, adduser, ar, arch, ascii, ash, awk, basename, bc, beep, blkid, bunzip2
 |------|------------|---------|---------|------------|
 | [Dropbear](https://github.com/mkj/dropbear) | `scp`, `ssh` | 2026.91 | SCP and SSH clients | MIT + BSD 2-Clause |
 | [file](https://github.com/file/file) | `file` | 5_48 | File identification | BSD 2-Clause |
-| [Git](https://git-scm.com/) | `git` | 2.54.0 | Source control client | GPLv2 |
+| [Git](https://github.com/git/git) | `git` | 2.55.0 | Source control client | GPLv2 |
 | [htop](https://github.com/htop-dev/htop) | `htop` | 3.5.1 | Interactive process viewer | GPLv2 |
 | [Lynx](https://github.com/ThomasDickey/lynx-snapshots) | `lynx` | 2-9-3a | Terminal web browser | GPLv2 |
 | [Mg](https://github.com/troglobit/mg) | `mg` | 3.7 | Emacs-style text editor | Unlicense |
 | [MicroPython](https://github.com/micropython/micropython) | `micropython` | 1.28.0 | Python 3.4-syntax intepreter | MIT |
 | [mt-st](https://github.com/iustin/mt-st) | `mt`, `stinit` | 1.8 | Tape drive tools | GPLv2 
-| [nano](https://www.nano-editor.org) | `nano` | 9.1 | Pico-style text editor | GPLv3 |
+| [nano](https://www.nano-editor.org/dist) | `nano` | 9.1 | Pico-style text editor | GPLv3 |
 | [sc-im](https://github.com/andmarti1424/sc-im) | `sc-im` | 0.8.5 | Terminal spreadsheet editor | BSD 4-Clause |
 | [Tiny C Compiler](https://bellard.org/tcc/)‡ | `tcc` | `e5eedc0` | C compiler | LGPLv2.1 |
-| [tmux](https://github.com/tmux/tmux) | `tmux` | 3.6b | Terminal multiplexer | ISC |
+| [tmux](https://github.com/tmux/tmux) | `tmux` | 3.7b | Terminal multiplexer | ISC |
 | [tnftp](https://ftp.netbsd.org/pub/NetBSD/misc/tnftp/) | `ftp` | 20260211 | FTP client | BSD 2-Clause |
 
 #### Optional
