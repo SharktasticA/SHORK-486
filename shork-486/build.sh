@@ -1714,9 +1714,8 @@ compile_kernel()
         echo -e "${GREEN}Applying 7.1.x_restore-pc110pad patch...${RESET}"
         patch -p1 < "${PATCHES_DIR}/linux/7.1.x/7.1.x_restore-pc110pad.patch"
 
-        # TODO
-        #echo -e "${GREEN}Applying 7.1.x_restore-isa-pcmcia-net patch...${RESET}"
-        #patch -p1 < "${PATCHES_DIR}/linux/7.1.x/7.1.x_restore-isa-pcmcia-net.patch"
+        echo -e "${GREEN}Applying 7.2.x_restore-isa-pcmcia-net patch...${RESET}"
+        patch -p1 < "${PATCHES_DIR}/linux/7.2.x/7.2.x_restore-isa-pcmcia-net.patch"
     elif [[ "$LINUX_VER" == 7.1* ]]; then
         echo -e "${GREEN}Applying 7.1.x_restore-M486-M486SX-ELAN patch...${RESET}"
         patch -p1 < "${PATCHES_DIR}/linux/7.1.x/7.1.x_restore-M486-M486SX-ELAN.patch"
@@ -3641,7 +3640,7 @@ get_console_fonts()
 
 
 ######################################################
-## Packaged software building                       ##
+## Bundled software building                        ##
 ######################################################
 
 # Download and compile c3270
@@ -3874,7 +3873,14 @@ get_git()
     # Compile and install
     echo -e "${GREEN}Compiling Git...${RESET}"
     make configure
-    ./configure --host=${HOST} --prefix=/usr CC="${CC}" AR="${AR}" RANLIB="${RANLIB}" CFLAGS="-Os -march=${ARCH} -static -I${PREFIX}/include" LDFLAGS="-static -L${PREFIX}/lib"
+    ./configure \
+        --host=${HOST} \
+        --prefix=/usr \
+        CC="${CC}" \
+        AR="${AR}" \
+        RANLIB="${RANLIB}" \
+        CFLAGS="-Os -march=${ARCH} -static -I${PREFIX}/include" \
+        LDFLAGS="-static -L${PREFIX}/lib"
     sudo cp $CONFIGS_DIR/git.config.mak config.mak
     make NO_RUST=1 -j$(nproc)
     sudo make NO_RUST=1 DESTDIR=$DESTDIR install
@@ -7079,6 +7085,7 @@ elif [ "$ID" == "shork-diskette" ]; then
     compress_file_system
     build_diskette_img
 fi
+
 fix_perms
 clean_stale_mounts
 get_included_busybox_commands

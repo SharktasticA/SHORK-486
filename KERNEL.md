@@ -23,6 +23,13 @@ Whilst SHORK 486 itself is licensed under GPL 3.0 terms, the contents of the `sh
 
 _**Forward ported from 7.1.x:** 7.1.x_restore-M486-M486SX-ELAN.patch, 7.1.x_restore-pcmcia-hosts.patch, 7.1.x_restore-no-pci-devices.patch, 7.1.x_restore-pc110pad.patch_
 
+### [7.2.x_restore-isa-pcmcia-net.patch](shork-486/patches/linux/7.2.x/7.2.x_restore-isa-pcmcia-net.patch)
+
+* Original kernel: 7.2.0-rc1
+* Context: https://www.phoronix.com/news/Linux-7.1-Removes-Old-Net, https://lore.kernel.org/all/20260422-v7-0-0-net-next-driver-removal-v1-v2-0-08a5b59784d5@lunn.ch/
+
+This is a modification of `7.1.x_restore-isa-pcmcia-net.patch` that allows it to be cleanly applied to 7.2.x. This patch reverts the removal of several ISA and PCMCIA network drivers from [this removal series](https://github.com/search?q=repo%3Atorvalds%2Flinux+net-next+driver-removal&type=commits). It includes the ISA drivers `3c515`, `lance`, `smc9194`, `ultra` and `wd80x3`, and the PCMCIA drivers `3c574`, `3c589`, `ax88190`, `fmvj18x`, `nmclan` and `smc91c92`. Several of these drivers include hardware relevant for SHORK 486.
+
 ### [7.2.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.patch](shork-486/patches/linux/7.2.x/7.2.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.patch)
 
 * Original kernel: 7.2.0-rc1
