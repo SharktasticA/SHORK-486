@@ -225,6 +225,7 @@ ENABLE_CDROM=true
 ENABLE_FB=true
 ENABLE_HIGHMEM=false
 ENABLE_MENU=true
+ENABLE_NO_VDS032=true
 ENABLE_MULTIUSER_KRN=false
 ENABLE_MULTIUSER_REAL=false
 ENABLE_NET_BASE=false
@@ -5668,6 +5669,11 @@ install_extlinux_bootloader()
         sudo sed -i "s/atkbd.extra=1/atkbd.set=${SCANCODE_SET} atkbd.extra=1/" "/mnt/${ID}/boot/syslinux/syslinux.cfg"
     fi
 
+    # Disable vdso32 if ENABLE_NO_VDS032
+    if [ "$ENABLE_NO_VDS032" = true ]; then
+        sudo sed -i "s/vdso32=1/vdso32=0/" "/mnt/${ID}/boot/syslinux/syslinux.cfg"
+    fi
+
     sudo "$EXTLINUX_BIN" --install "/mnt/${ID}/boot/syslinux"
 
     # Configure for SERIAL_CON_PORT if serial console mode is enabled
@@ -5700,6 +5706,11 @@ install_grub_bootloader()
     # If required, specify the target scancode set
     if [[ $SCANCODE_SET != -1 ]]; then
         sudo sed -i "s/atkbd.extra=1/atkbd.set=${SCANCODE_SET} atkbd.extra=1/" "/mnt/${ID}/boot/grub/grub.cfg"
+    fi
+
+    # Disable vdso32 if ENABLE_NO_VDS032
+    if [ "$ENABLE_NO_VDS032" = true ]; then
+        sudo sed -i "s/vdso32=1/vdso32=0/" "/mnt/${ID}/boot/grub/grub.cfg"
     fi
 
     sudo mount --bind /dev  "/mnt/${ID}/dev"
@@ -5979,6 +5990,16 @@ build_disc_img()
     echo -e "${GREEN}Copying ISOLINUX configuration...${RESET}"
     copy_sysfile $CURR_DIR/sysfiles/disc/isolinux.cfg  "${DESTDIR}/boot/isolinux/isolinux.cfg"
 
+    # If required, specify the target scancode set
+    if [[ $SCANCODE_SET != -1 ]]; then
+        sudo sed -i "s/atkbd.extra=1/atkbd.set=${SCANCODE_SET} atkbd.extra=1/" "${DESTDIR}/boot/isolinux/isolinux.cfg"
+    fi
+
+    # Disable vdso32 if ENABLE_NO_VDS032
+    if [ "$ENABLE_NO_VDS032" = true ]; then
+        sudo sed -i "s/vdso32=1/vdso32=0/" "${DESTDIR}/boot/isolinux/isolinux.cfg"
+    fi
+
     # Install the kernel
     echo -e "${GREEN}Copying kernel image...${RESET}"
     sudo cp bzImage "${DESTDIR}/boot/bzImage"
@@ -6047,6 +6068,11 @@ build_diskette_img()
     # If required, specify the target scancode set
     if [[ $SCANCODE_SET != -1 ]]; then
         sudo sed -i "s/atkbd.extra=1/atkbd.set=${SCANCODE_SET} atkbd.extra=1/" "/mnt/${ID}/syslinux.cfg"
+    fi
+
+    # Disable vdso32 if ENABLE_NO_VDS032
+    if [ "$ENABLE_NO_VDS032" = true ]; then
+        sudo sed -i "s/vdso32=1/vdso32=0/" "/mnt/${ID}/syslinux.cfg"
     fi
 
     # Install the kernel

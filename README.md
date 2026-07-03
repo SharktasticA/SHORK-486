@@ -202,12 +202,6 @@ ash, awk, basename, cat, clear, cp, date, dd, df, echo, expr, free, grep, hostna
 
 
 
-## Known issues
-
-* Despite working on a lot newer hardware, SHORK 486, DISC and DISKETTE may run into a kernel panic with Intel Pentium Pro and some Intel Pentium II OverDrive processors. Research into the issue is ongoing.
-
-
-
 ## Building
 
 SHORK 486, DISC and DISKETTE do not presently have released compilations or media, so it must be compiled. The result are raw disk, disc or diskette images you can write to real hardware or use as-is in emulation or virtualisation software. Building may require up to 5GiB of disk space. Please read "Notice & disclaimers" at the end of this readme before proceeding. 
@@ -356,6 +350,8 @@ EXTLINUX (SHORK 486), ISOLINUX (SHORK DISC) and SYSLINUX (SHORK DISKETTE) are th
 
 * **highmem**: Adds kernel-level high memory support and declares that non-reserved physical memory starts at 16MiB instead of 1MiB. In general, this is provided in case someone wanted to try SHORK 486 on a more modern system with more than 875MiB RAM. **It is not needed for most '90s hardware**. Its RAM requirements are 24MiB with no swap partition or 16MiB with 8MiB swap.
 
+* **no-vdso32**: Adds `vdso32=0` to the Linux kernel command line to disable 32-bit vDSO and its SEP-based (SYSENTER/SYSEXIT) syscall path in favour of the universal `int $0x80`. This is enabled by default as it does not affect 486/586 performance but prevents a kernel panic with Intel Pentium Pro and Socket 8 Pentium II OverDrive processors that report SEP via CPUID but in fact do not work with it. If you plan to use SHORK 486 on 'real' Intel Pentium II or newer processors, you can disable this for a marginal performance gain.
+
 * **pci.ids**: Includes a database of graphics card PCI vendor and device IDs. It is safe to exclude it, but `shorkfetch` will not be able to identify any installed graphics cards.
 
 * **pcmcia**: Adds kernel-level CardBus/PCMCIA/PC Card support. It is primarily needed to support PCMCIA-based network controllers for laptops or unique desktop PCs like the IBM PS/2 E. For most desktop PCs, it is safe to exclude it.
@@ -400,7 +396,7 @@ These build script parameters are provided to help automate its use, especially 
 
 * `patches`: Contains diff patches for the Linux kernel and BusyBox to restore removed functionality/implement new functionality required for SHORK 486.
 
-* `payload`: 
+* `payload`: A place to put files you wish to bundle into a SHORK DISC image.
 
 * `release`: 
 

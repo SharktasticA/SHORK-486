@@ -85,6 +85,7 @@ INCLUDE_GUI=false
 ENABLE_HIGHMEM=false
 INCLUDE_KEYMAPS=false
 ENABLE_MENU=false
+ENABLE_NO_VDS032=true
 INCLUDE_PCI_IDS=false
 ENABLE_PCMCIA=false
 ENABLE_SATA=false
@@ -185,6 +186,7 @@ save_env()
         echo "ENABLE_HIGHMEM=$ENABLE_HIGHMEM"
         echo "INCLUDE_KEYMAPS=$INCLUDE_KEYMAPS"
         echo "ENABLE_MENU=$ENABLE_MENU"
+        echo "ENABLE_NO_VDS032=$ENABLE_NO_VDS032"
         echo "INCLUDE_PCI_IDS=$INCLUDE_PCI_IDS"
         echo "ENABLE_PCMCIA=$ENABLE_PCMCIA"
         echo "ENABLE_SATA=$ENABLE_SATA"
@@ -248,6 +250,7 @@ set_minimal_vars()
     ENABLE_HIGHMEM=false
     INCLUDE_KEYMAPS=false
     ENABLE_MENU=false
+    ENABLE_NO_VDS032=true
     INCLUDE_PCI_IDS=false
     ENABLE_PCMCIA=false
     ENABLE_SATA=false
@@ -291,6 +294,7 @@ set_default_vars()
     ENABLE_HIGHMEM=false
     INCLUDE_KEYMAPS=true
     ENABLE_MENU=true
+    ENABLE_NO_VDS032=true
     INCLUDE_PCI_IDS=true
     ENABLE_PCMCIA=true
     ENABLE_SATA=false
@@ -1057,6 +1061,7 @@ OPTIONS=$(dialog --clear \
     "gui"           "**SHORKGUI (+46MiB, EXPERIMENTAL)"                         $(val $INCLUDE_GUI) \
     "highmem"       "**Kernel-level high memory support"                        $(val $ENABLE_HIGHMEM) \
     "menu"          "*Menu-based bootloader (+0.5MiB)"                          $(val $ENABLE_MENU) \
+    "no-vdso32"     "*Disable 32-bit vDSO & SEP usage"                          $(val $ENABLE_NO_VDS032) \
     "pci.ids"       "*PCI IDs database (+0.1MiB)"                               $(val $INCLUDE_PCI_IDS) \
     "pcmcia"        "*Kernel-level PCMCIA support"                              $(val $ENABLE_PCMCIA) \
     "sata"          "**Kernel-level SATA support"                               $(val $ENABLE_SATA) \
@@ -1072,20 +1077,21 @@ SKIPPED=$?
 if [[ $SKIPPED -eq 1 ]]; then
     :
 else
-    if [[ $OPTIONS =~ "cdrom" ]];       then ENABLE_CDROM=true;         else ENABLE_CDROM=false;        fi
-    if [[ $OPTIONS =~ "con-fonts" ]];   then INCLUDE_CON_FONTS=true;    else INCLUDE_CON_FONTS=false;   fi
-    if [[ $OPTIONS =~ "grub" ]];        then USE_GRUB=true;             else USE_GRUB=false;            fi
-    if [[ $OPTIONS =~ "gui" ]];         then INCLUDE_GUI=true;          else INCLUDE_GUI=false;         fi
-    if [[ $OPTIONS =~ "highmem" ]];     then ENABLE_HIGHMEM=true;       else ENABLE_HIGHMEM=false;      fi
-    #if [[ $OPTIONS =~ "keymaps" ]];    then $INCLUDE_KEYMAPS=true;     else $INCLUDE_KEYMAPS=false;    fi
-    if [[ $OPTIONS =~ "menu" ]];        then ENABLE_MENU=true;          else ENABLE_MENU=false;         fi
-    if [[ $OPTIONS =~ "pci.ids" ]];     then INCLUDE_PCI_IDS=true;      else INCLUDE_PCI_IDS=false;     fi
-    if [[ $OPTIONS =~ "pcmcia" ]];      then ENABLE_PCMCIA=true;        else ENABLE_PCMCIA=false;       fi
-    if [[ $OPTIONS =~ "sata" ]];        then ENABLE_SATA=true;          else ENABLE_SATA=false;         fi
-    if [[ $OPTIONS =~ "scsi-exp" ]];    then ENABLE_SCSI_EXP=true;      else ENABLE_SCSI_EXP=false;     fi
-    if [[ $OPTIONS =~ "smp" ]];         then ENABLE_SMP=true;           else ENABLE_SMP=false;          fi
-    if [[ $OPTIONS =~ "usb" ]];         then ENABLE_USB=true;           else ENABLE_USB=false;          fi
-    if [[ $OPTIONS =~ "zswap" ]];       then ENABLE_ZSWAP=true;         else ENABLE_ZSWAP=false;        fi
+    if [[ $OPTIONS =~ "cdrom" ]];           then ENABLE_CDROM=true;         else ENABLE_CDROM=false;            fi
+    if [[ $OPTIONS =~ "con-fonts" ]];       then INCLUDE_CON_FONTS=true;    else INCLUDE_CON_FONTS=false;   fi
+    if [[ $OPTIONS =~ "grub" ]];            then USE_GRUB=true;             else USE_GRUB=false;                fi
+    if [[ $OPTIONS =~ "gui" ]];             then INCLUDE_GUI=true;          else INCLUDE_GUI=false;             fi
+    if [[ $OPTIONS =~ "highmem" ]];         then ENABLE_HIGHMEM=true;       else ENABLE_HIGHMEM=false;          fi
+    #if [[ $OPTIONS =~ "keymaps" ]];         then $INCLUDE_KEYMAPS=true;     else $INCLUDE_KEYMAPS=false;        fi
+    if [[ $OPTIONS =~ "menu" ]];            then ENABLE_MENU=true;          else ENABLE_MENU=false;             fi
+    if [[ $OPTIONS =~ "no-vdso32" ]];       then ENABLE_NO_VDS032=true;     else ENABLE_NO_VDS032=false;        fi
+    if [[ $OPTIONS =~ "pci.ids" ]];         then INCLUDE_PCI_IDS=true;      else INCLUDE_PCI_IDS=false;         fi
+    if [[ $OPTIONS =~ "pcmcia" ]];          then ENABLE_PCMCIA=true;        else ENABLE_PCMCIA=false;           fi
+    if [[ $OPTIONS =~ "sata" ]];            then ENABLE_SATA=true;          else ENABLE_SATA=false;             fi
+    if [[ $OPTIONS =~ "scsi-exp" ]];        then ENABLE_SCSI_EXP=true;      else ENABLE_SCSI_EXP=false;         fi
+    if [[ $OPTIONS =~ "smp" ]];             then ENABLE_SMP=true;           else ENABLE_SMP=false;              fi
+    if [[ $OPTIONS =~ "usb" ]];             then ENABLE_USB=true;           else ENABLE_USB=false;              fi
+    if [[ $OPTIONS =~ "zswap" ]];           then ENABLE_ZSWAP=true;         else ENABLE_ZSWAP=false;            fi
 fi
 
 
