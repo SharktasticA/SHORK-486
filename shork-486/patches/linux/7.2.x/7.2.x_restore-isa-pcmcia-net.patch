@@ -900,14 +900,14 @@ index 35b1956d3..aecbfabb4 100644
  CONFIG_HAPPYMEAL=m
  CONFIG_SUNGEM=m
 diff --git a/drivers/net/Makefile b/drivers/net/Makefile
-index 88e4c485d..74e75bfce 100644
+index 88e4c485d..aed5a1f8a 100644
 --- a/drivers/net/Makefile
 +++ b/drivers/net/Makefile
 @@ -6,6 +6,7 @@
  #
  # Networking Core Drivers
  #
-+obj-y += Space.o
++obj-$(CONFIG_NET) += Space.o
  obj-$(CONFIG_BONDING) += bonding/
  obj-$(CONFIG_IPVLAN) += ipvlan/
  obj-$(CONFIG_IPVTAP) += ipvlan/
