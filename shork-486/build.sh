@@ -213,6 +213,7 @@ PHYSICAL_ALIGN=0x2000
 PHYSICAL_START=""
 ROOT_PASSWD=""
 SCANCODE_SET=-1
+SERIAL_CON_PORT="ttyS0"
 SET_KEYMAP=""
 SHORKUTILS_RECLONE=false
 SKIP_BB=false
@@ -232,6 +233,7 @@ ENABLE_NET_PCMCIA=false
 ENABLE_PCMCIA=true
 ENABLE_SATA=false
 ENABLE_SCSI_EXP=true
+ENABLE_SERIAL_CON=false
 ENABLE_SMP=false
 ENABLE_SOUND=false
 ENABLE_TASKSTATS=false
@@ -5529,6 +5531,18 @@ build_file_system()
         copy_sysfile $CURR_DIR/sysfiles/services $DESTDIR/etc/services
     fi
 
+    # Configure for SERIAL_CON_PORT if serial console mode is enabled
+    if $ENABLE_SERIAL_CON; then
+        echo -e "${GREEN}Configuring system files for serial console mode...${RESET}"
+
+        if $ENABLE_MULTIUSER_REAL; then
+            sudo sed -i "s/^tty1::respawn:\/sbin\/getty -n 38400 tty1/${SERIAL_CON_PORT}::respawn:\/sbin\/getty -L ${SERIAL_CON_PORT} 115200 vt100/" "${DESTDIR}/etc/inittab"
+        else
+            sudo sed -i "s/^tty1::respawn/${SERIAL_CON_PORT}::respawn/" "${DESTDIR}/etc/inittab"
+        fi
+        sudo sed -i "/^tty[23]::respawn/d" "${DESTDIR}/etc/inittab"
+    fi
+
     if $INCLUDE_NANO; then
         echo -e "${GREEN}Copying pre-defined nano settings...${RESET}"
         sudo mkdir -p $DESTDIR/usr/etc
@@ -5656,6 +5670,14 @@ install_extlinux_bootloader()
 
     sudo "$EXTLINUX_BIN" --install "/mnt/${ID}/boot/syslinux"
 
+    # Configure for SERIAL_CON_PORT if serial console mode is enabled
+    if $ENABLE_SERIAL_CON; then
+        echo -e "${GREEN}Configuring bootloader for serial console mode...${RESET}"
+        sudo sed -i "s/Starting ${DIST}/Starting ${DIST} (serial console mode)/g" "/mnt/${ID}/boot/syslinux/syslinux.cfg"
+        sudo sed -i "s/console=tty1/console=${SERIAL_CON_PORT},115200n8/g" "/mnt/${ID}/boot/syslinux/syslinux.cfg"
+        sudo sed -i "s/ vga=normal//g" "/mnt/${ID}/boot/syslinux/syslinux.cfg"
+    fi
+
     # Install MBR boot code
     sudo dd if="$MBR_BIN" of="${CURR_DIR}/images/${ID}.img" bs=440 count=1 conv=notrunc
 }
@@ -5689,6 +5711,14 @@ install_grub_bootloader()
         GRUB_CMD="/usr/sbin/grub2-install"
     fi
     sudo $GRUB_CMD --target=i386-pc --boot-directory="/mnt/${ID}/boot" --modules="ext2 part_msdos biosdisk" --force "$1"
+
+    # Configure for SERIAL_CON_PORT if serial console mode is enabled
+    if $ENABLE_SERIAL_CON; then
+        echo -e "${GREEN}Configuring bootloader for serial console mode...${RESET}"
+        sudo sed -i "s/Starting ${DIST}/Starting ${DIST} (serial console mode)/g" "/mnt/${ID}/boot/grub/grub.cfg"
+        sudo sed -i "s/console=tty1/console=${SERIAL_CON_PORT},115200n8/g" "/mnt/${ID}/boot/grub/grub.cfg"
+        sudo sed -i "s/ vga=normal//g" "/mnt/${ID}/boot/grub/grub.cfg"
+    fi
 
     sudo umount "/mnt/${ID}/dev"
     sudo umount "/mnt/${ID}/proc"

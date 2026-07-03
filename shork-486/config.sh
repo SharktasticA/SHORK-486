@@ -50,6 +50,8 @@ SET_KEYMAP="en_us"
 HOSTNAME="shork-486"
 ENABLE_MULTIUSER_REAL=false
 ROOT_PASSWD=""
+ENABLE_SERIAL_CON=false
+SERIAL_CON_PORT="ttyS0"
 ENABLE_NET_ETH=false
 FIX_EXTLINUX=true
 INCLUDE_C3270=false
@@ -132,63 +134,65 @@ load_env()
 
 save_env()
 {
-    cat > .env <<EOF
-ALWAYS_BUILD=$ALWAYS_BUILD
-DIST="$DIST"
-ID="$ID"
-IS_ARCH=$IS_ARCH
-IS_DEBIAN=$IS_DEBIAN
-IS_FEDORA=$IS_FEDORA
-BUILD_TYPE="$BUILD_TYPE"
-LINUX_VER="$LINUX_VER"
-TARGET_DISK=$TARGET_DISK
-TARGET_SWAP=$TARGET_SWAP
-SCANCODE_SET=$SCANCODE_SET
-SET_KEYMAP="$SET_KEYMAP"
-HOSTNAME="$HOSTNAME"
-ENABLE_MULTIUSER_REAL=$ENABLE_MULTIUSER_REAL
-ROOT_PASSWD=$ROOT_PASSWD
-ENABLE_NET_ETH=$ENABLE_NET_ETH
-FIX_EXTLINUX=$FIX_EXTLINUX
-INCLUDE_C3270=$INCLUDE_C3270
-INCLUDE_CMATRIX=$INCLUDE_CMATRIX
-INCLUDE_DROPBEAR=$INCLUDE_DROPBEAR
-INCLUDE_FILE=$INCLUDE_FILE
-INCLUDE_GCC=$INCLUDE_GCC
-INCLUDE_GIT=$INCLUDE_GIT
-INCLUDE_HTOP=$INCLUDE_HTOP
-INCLUDE_JOE=$INCLUDE_JOE
-INCLUDE_LYNX=$INCLUDE_LYNX
-INCLUDE_MG=$INCLUDE_MG
-INCLUDE_MICROPYTHON=$INCLUDE_MICROPYTHON
-INCLUDE_MT_ST=$INCLUDE_MT_ST
-INCLUDE_NANO=$INCLUDE_NANO
-INCLUDE_SC_IM=$INCLUDE_SC_IM
-INCLUDE_SHORKSTALL=$INCLUDE_SHORKSTALL
-INCLUDE_SHORKTAINMENT=$INCLUDE_SHORKTAINMENT
-INCLUDE_STRACE=$INCLUDE_STRACE
-INCLUDE_TCC=$INCLUDE_TCC
-INCLUDE_TILDE=$INCLUDE_TILDE
-INCLUDE_TN5250=$INCLUDE_TN5250
-INCLUDE_TNFTP=$INCLUDE_TNFTP
-INCLUDE_TMUX=$INCLUDE_TMUX
-INCLUDE_UTIL_LINUX=$INCLUDE_UTIL_LINUX
-ENABLE_CDROM=$ENABLE_CDROM
-INCLUDE_CON_FONTS=$INCLUDE_CON_FONTS
-USE_GRUB=$USE_GRUB
-ENABLE_FB=$ENABLE_FB
-INCLUDE_GUI=$INCLUDE_GUI
-ENABLE_HIGHMEM=$ENABLE_HIGHMEM
-INCLUDE_KEYMAPS=$INCLUDE_KEYMAPS
-ENABLE_MENU=$ENABLE_MENU
-INCLUDE_PCI_IDS=$INCLUDE_PCI_IDS
-ENABLE_PCMCIA=$ENABLE_PCMCIA
-ENABLE_SATA=$ENABLE_SATA
-ENABLE_SCSI_EXP=$ENABLE_SCSI_EXP
-ENABLE_SMP=$ENABLE_SMP
-ENABLE_USB=$ENABLE_USB
-ENABLE_ZSWAP=$ENABLE_ZSWAP
-EOF
+    {
+        echo "ALWAYS_BUILD=$ALWAYS_BUILD"
+        printf 'DIST=%s\n' "$(printf '"%s"' "$DIST")"
+        printf 'ID=%s\n' "$(printf '"%s"' "$ID")"
+        echo "IS_ARCH=$IS_ARCH"
+        echo "IS_DEBIAN=$IS_DEBIAN"
+        echo "IS_FEDORA=$IS_FEDORA"
+        printf 'BUILD_TYPE=%s\n' "$(printf '"%s"' "$BUILD_TYPE")"
+        printf 'LINUX_VER=%s\n' "$(printf '"%s"' "$LINUX_VER")"
+        echo "TARGET_DISK=$TARGET_DISK"
+        echo "TARGET_SWAP=$TARGET_SWAP"
+        echo "SCANCODE_SET=$SCANCODE_SET"
+        printf 'SET_KEYMAP=%s\n' "$(printf '"%s"' "$SET_KEYMAP")"
+        printf 'HOSTNAME=%s\n' "$(printf '"%s"' "$HOSTNAME")"
+        echo "ENABLE_MULTIUSER_REAL=$ENABLE_MULTIUSER_REAL"
+        printf 'ROOT_PASSWD=%s\n' "$(printf "'%s'" "$ROOT_PASSWD")"
+        echo "ENABLE_SERIAL_CON=$ENABLE_SERIAL_CON"
+        printf 'SERIAL_CON_PORT=%s\n' "$(printf '"%s"' "$SERIAL_CON_PORT")"
+        echo "ENABLE_NET_ETH=$ENABLE_NET_ETH"
+        echo "FIX_EXTLINUX=$FIX_EXTLINUX"
+        echo "INCLUDE_C3270=$INCLUDE_C3270"
+        echo "INCLUDE_CMATRIX=$INCLUDE_CMATRIX"
+        echo "INCLUDE_DROPBEAR=$INCLUDE_DROPBEAR"
+        echo "INCLUDE_FILE=$INCLUDE_FILE"
+        echo "INCLUDE_GCC=$INCLUDE_GCC"
+        echo "INCLUDE_GIT=$INCLUDE_GIT"
+        echo "INCLUDE_HTOP=$INCLUDE_HTOP"
+        echo "INCLUDE_JOE=$INCLUDE_JOE"
+        echo "INCLUDE_LYNX=$INCLUDE_LYNX"
+        echo "INCLUDE_MG=$INCLUDE_MG"
+        echo "INCLUDE_MICROPYTHON=$INCLUDE_MICROPYTHON"
+        echo "INCLUDE_MT_ST=$INCLUDE_MT_ST"
+        echo "INCLUDE_NANO=$INCLUDE_NANO"
+        echo "INCLUDE_SC_IM=$INCLUDE_SC_IM"
+        echo "INCLUDE_SHORKSTALL=$INCLUDE_SHORKSTALL"
+        echo "INCLUDE_SHORKTAINMENT=$INCLUDE_SHORKTAINMENT"
+        echo "INCLUDE_STRACE=$INCLUDE_STRACE"
+        echo "INCLUDE_TCC=$INCLUDE_TCC"
+        echo "INCLUDE_TILDE=$INCLUDE_TILDE"
+        echo "INCLUDE_TN5250=$INCLUDE_TN5250"
+        echo "INCLUDE_TNFTP=$INCLUDE_TNFTP"
+        echo "INCLUDE_TMUX=$INCLUDE_TMUX"
+        echo "INCLUDE_UTIL_LINUX=$INCLUDE_UTIL_LINUX"
+        echo "ENABLE_CDROM=$ENABLE_CDROM"
+        echo "INCLUDE_CON_FONTS=$INCLUDE_CON_FONTS"
+        echo "USE_GRUB=$USE_GRUB"
+        echo "ENABLE_FB=$ENABLE_FB"
+        echo "INCLUDE_GUI=$INCLUDE_GUI"
+        echo "ENABLE_HIGHMEM=$ENABLE_HIGHMEM"
+        echo "INCLUDE_KEYMAPS=$INCLUDE_KEYMAPS"
+        echo "ENABLE_MENU=$ENABLE_MENU"
+        echo "INCLUDE_PCI_IDS=$INCLUDE_PCI_IDS"
+        echo "ENABLE_PCMCIA=$ENABLE_PCMCIA"
+        echo "ENABLE_SATA=$ENABLE_SATA"
+        echo "ENABLE_SCSI_EXP=$ENABLE_SCSI_EXP"
+        echo "ENABLE_SMP=$ENABLE_SMP"
+        echo "ENABLE_USB=$ENABLE_USB"
+        echo "ENABLE_ZSWAP=$ENABLE_ZSWAP"
+    } > .env
 
     echo "Your desired SHORK 486 build configuration has been saved to a .env file in the current directory. This configuration will automatically be used when SHORK 486 is next built. If you are using the \"--skip-busybox\" or \"--skip-kernel\" build parameters, you may need to build without them for some changes to take effect."
 }
@@ -574,7 +578,7 @@ if [ "$ID" == "shork-486" ]; then
 
 
 
-    # Get swap partition size (496)
+    # Get swap partition size (486)
     while true; do
         TARGET_SWAP_TMP=$(dialog --clear \
             --backtitle "SHORK 486 Build Configurator" \
@@ -745,7 +749,7 @@ if [ "$BUILD_TYPE" != "minimal" ] && [ "$ID" == "shork-486" ]; then
 
 
 
-    # Get root password
+    # Get root password (ENABLE_MULTIUSER_REAL=true)
     if [ "$ENABLE_MULTIUSER_REAL" == true ]; then
         while true; do
             # If root password has already been set, offer to reuse it...
@@ -757,7 +761,6 @@ if [ "$BUILD_TYPE" != "minimal" ] && [ "$ID" == "shork-486" ]; then
 
                 USE_EXISTING=$?
                 if [ "$USE_EXISTING" -eq 0 ]; then
-                    ROOT_PASSWD="'$ROOT_PASSWD'"
                     break
                 fi
             fi
@@ -814,7 +817,7 @@ if [ "$BUILD_TYPE" != "minimal" ] && [ "$ID" == "shork-486" ]; then
                 exit 1
             fi
 
-            ROOT_PASSWD="'$ROOT_PASSWD_HASH'"
+            ROOT_PASSWD="$ROOT_PASSWD_HASH"
             break
         done
     fi
@@ -822,31 +825,92 @@ fi
 
 
 
-# Get networking support choice (486)
-if [ "$BUILD_TYPE" == "custom" ] && [ "$ID" == "shork-486" ]; then
+if [ "$ID" == "shork-486" ]; then
     DEFAULT_FLAG=""
-    if ! $ENABLE_NET_ETH; then
+    if ! $ENABLE_SERIAL_CON; then
         DEFAULT_FLAG="--defaultno"
     fi
 
+    # Get serial console mode choice (486)
     dialog --clear \
         --backtitle "SHORK 486 Build Configurator" \
-        --title "Ethernet Networking Support" \
+        --title "Serial Console Mode" \
         $DEFAULT_FLAG \
-        --yesno "Do you want to enable ethernet networking support in SHORK 486? It includes kernel-level ethernet networking support and BusyBox's networking-related utilities, and you will be able to choose software that requires an internet connection in the next prompt." \
-        8 $WIDTH
+        --yesno "Do you want to build SHORK 486 in serial console mode? This will configure the system to input and output on a ttyS device instead of ttyX, allowing it to be used remotely over a serial port without manual configuration. You will be able to specify the exact port in the next prompt. Enabling this also disables multiple ttyX support and the menu-based bootloader." \
+        9 $WIDTH
 
     CHOICE=$?
 
     if [[ $CHOICE -eq 0 ]]; then
-        ENABLE_NET_ETH=true
-    elif [[ $CHOICE -eq 1 ]]; then
-        ENABLE_NET_ETH=false
-        INCLUDE_DROPBEAR=false
-        INCLUDE_GIT=false
-        INCLUDE_LYNX=false
-        INCLUDE_TN5250=false
-        INCLUDE_TNFTP=false
+        ENABLE_SERIAL_CON=true
+        ENABLE_MENU=false
+    else
+        ENABLE_SERIAL_CON=false
+        SERIAL_CON_PORT="ttyS0"
+    fi
+
+
+
+    # Get serial console port (ENABLE_SERIAL_CON=true)
+    if [ "$ENABLE_SERIAL_CON" == true ]; then
+        while true; do
+            SERIAL_CON_PORT_TMP=$(dialog --clear \
+                --backtitle "SHORK 486 Build Configurator" \
+                --title "Serial Console Port" \
+                --cancel-label "Skip" \
+                --inputbox "Enter a ttyS device to use for serial console mode by default. The ttyS number usually corresponds to a fixed hardware serial port - for example, ttyS0 is typically the first serial port (COM1)." \
+                9 $WIDTH "$SERIAL_CON_PORT" \
+                2>&1 >/dev/tty)
+
+            SKIPPED=$?
+
+            if [[ $SKIPPED -eq 1 ]]; then
+                SERIAL_CON_PORT="ttyS0"
+                break
+            fi
+
+            if [[ -z "$SERIAL_CON_PORT_TMP" ]]; then
+                dialog --clear \
+                    --backtitle "SHORK 486 Build Configurator" \
+                    --title "Serial Console Port" \
+                    --msgbox "The value cannot be empty." \
+                    6 $WIDTH
+                continue
+            fi
+
+            SERIAL_CON_PORT=$SERIAL_CON_PORT_TMP
+            break
+        done
+    fi
+
+
+
+    # Get networking support choice (486)
+    if [ "$BUILD_TYPE" == "custom" ]; then
+        DEFAULT_FLAG=""
+        if ! $ENABLE_NET_ETH; then
+            DEFAULT_FLAG="--defaultno"
+        fi
+
+        dialog --clear \
+            --backtitle "SHORK 486 Build Configurator" \
+            --title "Ethernet Networking Support" \
+            $DEFAULT_FLAG \
+            --yesno "Do you want to enable ethernet networking support in SHORK 486? It includes kernel-level ethernet networking support and BusyBox's networking-related utilities, and you will be able to choose software that requires an internet connection in the next prompt." \
+            8 $WIDTH
+
+        CHOICE=$?
+
+        if [[ $CHOICE -eq 0 ]]; then
+            ENABLE_NET_ETH=true
+        elif [[ $CHOICE -eq 1 ]]; then
+            ENABLE_NET_ETH=false
+            INCLUDE_DROPBEAR=false
+            INCLUDE_GIT=false
+            INCLUDE_LYNX=false
+            INCLUDE_TN5250=false
+            INCLUDE_TNFTP=false
+        fi
     fi
 fi
 
@@ -1025,6 +1089,26 @@ else
 fi
 
 
+
+# Conflict Resolution - +ENABLE_SERIAL_CON/+ENABLE_MENU
+if [ "$ENABLE_SERIAL_CON" = true ] && [ "$ENABLE_MENU" = true ]; then
+    dialog --clear \
+        --backtitle "SHORK 486 Build Configurator" \
+        --title "Conflict Resolution - +ENABLE_SERIAL_CON/+ENABLE_MENU" \
+        --yes-label "Serial console" \
+        --no-label "Menu-based bootloader" \
+        --yesno "You have chosen to enable \"serial console mode\" and \"menu-based bootloader\". A menu-based bootloader is inoperable when using SHORK 486 through a serial console. Do you want to keep serial console mode enabled, or disable it and keep a menu-based bootloader?" \
+        8 "$WIDTH"
+
+    CHOICE=$?
+
+    if [[ $CHOICE -eq 0 ]]; then
+        ENABLE_MENU=false
+    elif [[ $CHOICE -eq 1 ]]; then
+        ENABLE_SERIAL_CON=false
+        SERIAL_CON_PORT="ttyS0"
+    fi
+fi
 
 # Conflict Resolution - +FIX_EXTLINUX/+USE_GRUB
 if [ "$FIX_EXTLINUX" = true ] && [ "$USE_GRUB" = true ]; then
