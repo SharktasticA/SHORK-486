@@ -220,6 +220,7 @@ SKIP_BB=false
 SKIP_KRN=false
 TARGET_DISK=$DEFAULT_TARGET_DISK
 TARGET_SWAP=$DEFAULT_TARGET_SWAP
+TINY_KRN=false
 
 ENABLE_CDROM=true
 ENABLE_FB=true
@@ -307,6 +308,9 @@ while [ $# -gt 0 ]; do
         --skip-kernel)
             SKIP_KRN=true
             DONT_DEL_ROOT=true
+            ;;
+        --tiny)
+            TINY_KRN=true
             ;;
     esac
     shift
@@ -1563,7 +1567,11 @@ configure_kernel()
     echo -e "${GREEN}Copying base ${DIST} kernel configuration file...${RESET}"
 
     if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
-        cp $CONFIGS_DIR/linux/linux.config.base .config
+        if ! $TINY_KRN; then
+            cp $CONFIGS_DIR/linux/linux.config.base .config
+        else
+            cp $CONFIGS_DIR/linux/linux.config.base.tiny .config
+        fi
     elif [ "$ID" == "shork-diskette" ]; then
         cp $CONFIGS_DIR/linux/linux.config.base.diskette .config
     fi
@@ -1739,6 +1747,7 @@ compile_kernel()
     echo -e "${GREEN}Compiling Linux kernel...${RESET}"
     make ARCH=x86 olddefconfig
     make ARCH=x86 bzImage -j$(nproc)
+    $STRIP vmlinux
 
     sudo mv arch/x86/boot/bzImage "$CURR_DIR/build" || true
 }
