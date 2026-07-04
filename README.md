@@ -56,9 +56,9 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 * Graphics: IBM VGA or compatible (for most programs); VBE 2.0-compatible (for `shorkgui` and VBE resolutions in `shorkset`)
 * Monitor: VGA (640x480) or higher
 
-### BusyBox & util-linux
+### BusyBox
 
-addgroup, adduser, ar, arch, ascii, ash, awk, basename, bc, beep, blkid, bunzip2, bzcat, bzip2, cal, cat, chgrp, chmod, chown, chpasswd, chroot, chvt, clear, cp, cpio, crontab, cryptpw, cut, date, dc, dd, delgroup, deluser, df, diff, dirname, dmesg, dos2unix, du, echo, ed, eject, env, expand, expr, false, fdformat, fdisk, find, fold, free, ftpget, ftpput, getfattr, getty, grep, gunzip, gzip, halt, head, hexdump, hostname, ifconfig, init, ip, kill, killall, less, ln, loadkmap, login, losetup, ls, lsblk, lscpu, lspci, lsusb, lzcat, lzma, lzop, lzopcat, man, mdev, mkdir, mkdosfs/mkfs.ext2, mke2fs/mkfs.vfat, mknod, mkpasswd, mkswap, mount, mountpoint, mv, nice, nohup, nproc, partprobe, partx, passwd, paste, patch, ping, pkill, pmap, printenv, printf, ps, pstree, pwd, readlink, rev, rm, rmdir, route, sed, seq, setfattr, setfont, sfdisk, showkey, sleep, stat, strace, stty, su, sulogin, swapoff, swapon, sync, tar, taskset, tee, telnet, test, time, top, touch, tr, traceroute, tree, true, truncate, tty, udhcpc, umount, uname, uncompress, unexpand, unix2dos, unlzma, unlzop, unxz, unzip, uptime, users, usleep, uuidgen, vi, vmstat, volname, w, wc, wget, whereis, which, who, whoami, whois, xxd, xz, xzcat, yes, zcat
+addgroup, adduser, ar, arch, ascii, ash, awk, basename, bc, beep, blkid, bunzip2, bzcat, bzip2, cal, cat, chgrp, chmod, chown, chpasswd, chroot, chvt, clear, cp, cpio, crontab, cryptpw, cut, date, dc, dd, delgroup, deluser, df, diff, dirname, dmesg, dos2unix, du, echo, ed, eject, env, expand, expr, false, fdformat, fdisk, find, fold, free, ftpget, ftpput, getfattr, getty, grep, gunzip, gzip, halt, head, hexdump, hostname, ifconfig, init, ip, kill, killall, less, ln, loadkmap, login, losetup, ls, lsblk, lscpu, lspci, lsusb, lzcat, lzma, lzop, lzopcat, man, mdev, mkdir, mkdosfs/mkfs.ext2, mke2fs/mkfs.vfat, mknod, mkpasswd, mkswap, mount, mountpoint, mv, nice, nohup, nproc, partprobe, passwd, paste, patch, ping, pkill, pmap, printenv, printf, ps, pstree, pwd, readlink, rev, rm, rmdir, route, sed, seq, setfattr, setfont, showkey, sleep, stat, stty, su, sulogin, swapoff, swapon, sync, tar, taskset, tee, telnet, test, time, top, touch, tr, traceroute, tree, true, truncate, tty, udhcpc, umount, uname, uncompress, unexpand, unix2dos, unlzma, unlzop, unxz, unzip, uptime, users, usleep, uuidgen, vi, vmstat, volname, w, wc, wget, which, who, whoami, whois, xxd, xz, xzcat, yes, zcat
 
 ### Bundled software
 
@@ -67,32 +67,35 @@ addgroup, adduser, ar, arch, ascii, ash, awk, basename, bc, beep, blkid, bunzip2
 | Name | Command(s) | Version | Purpose | Licence(s) |
 |------|------------|---------|---------|------------|
 | [Dropbear](https://github.com/mkj/dropbear) | `scp`, `ssh` | 2026.91 | SCP and SSH clients | MIT + BSD 2-Clause |
-| [file](https://github.com/file/file) | `file` | 5_48 | File identification | BSD 2-Clause |
+| [file](https://github.com/file/file)* | `file` | 5_48 | File identification | BSD 2-Clause |
 | [Git](https://github.com/git/git) | `git` | 2.55.0 | Source control client | GPLv2 |
 | [htop](https://github.com/htop-dev/htop) | `htop` | 3.5.1 | Interactive process viewer | GPLv2 |
 | [Lynx](https://github.com/ThomasDickey/lynx-snapshots) | `lynx` | 2-9-3a | Terminal web browser | GPLv2 |
 | [Mg](https://github.com/troglobit/mg) | `mg` | 3.7 | Emacs-style text editor | Unlicense |
 | [MicroPython](https://github.com/micropython/micropython) | `micropython` | 1.28.0 | Python 3.4-syntax intepreter | MIT |
-| [mt-st](https://github.com/iustin/mt-st) | `mt`, `stinit` | 1.8 | Tape drive tools | GPLv2 
+| [mt-st](https://github.com/iustin/mt-st) | `mt`, `stinit` | 1.8 | Tape drive tools | GPLv2 |
 | [nano](https://www.nano-editor.org/dist) | `nano` | 9.1 | Pico-style text editor | GPLv3 |
 | [sc-im](https://github.com/andmarti1424/sc-im) | `sc-im` | 0.8.5 | Terminal spreadsheet editor | BSD 4-Clause |
-| [Tiny C Compiler](https://bellard.org/tcc/)‡ | `tcc` | `e5eedc0` | C compiler | LGPLv2.1 |
+| [strace](https://github.com/strace/strace)* | `strace` | 7.1 | System calls & signals tracer | LGPLv2.1 |
+| [Tiny C Compiler](https://bellard.org/tcc/)§ | `tcc` | `e5eedc0` | C compiler | LGPLv2.1 |
 | [tmux](https://github.com/tmux/tmux) | `tmux` | 3.7b | Terminal multiplexer | ISC |
 | [tnftp](https://ftp.netbsd.org/pub/NetBSD/misc/tnftp/) | `ftp` | 20260211 | FTP client | BSD 2-Clause |
+| [util-linux](https://github.com/util-linux/util-linux)* | `partx`, `sfdisk`, `whereis` | 2.42.2 | Extra Linux utilities | GPLv2 |
 
 #### Optional
 
 | Name | Command(s) | Version | Purpose | Licence(s) |
 |------|------------|---------|---------|------------|
-| [Binutils](https://musl.cc/)† | e.g. `ar`, `as`, `gprof`, `ld`, `nm`,<br>`objdump`, `ranlib`,`readelf`,<br>`strings`, `strip` | 2.37 | Binary tools to compliment GCC | GPLv3 |
-| [GCC](https://musl.cc/)†‡ | `gcc`, `g++`, `gfortran` | 11.2.1 | C, C++ and Fortran compilers | GPLv3 + GCC RLE |
-| [JOE](https://github.com/joe-editor/joe) | `joe` | 4.8 | WordStar-style text editor | GPLv2 |
-| [tn5250](https://github.com/tn5250/tn5250)* | `tn5250` | 0.18.0 | TCP/IP 5250 terminal emulator | LGPLv2.1 |
-| [x3270](https://github.com/pmattes/x3270)* | `c3270` | 4.5ga5 | 3270 terminal emulator | BSD 3-Clause |
+| [Binutils](https://musl.cc/)‡ | e.g. `ar`, `as`, `gprof`, `ld`, `nm`, `objdump`, `ranlib`,`readelf`, `strings`, `strip` | 2.37 | Binary tools to compliment GCC | GPLv3 |
+| [GCC](https://musl.cc/)‡§ | `gcc`, `g++`, `gfortran` | 11.2.1 | C, C++ and Fortran compilers | GPLv3 + GCC RLE |
+| [Joe's Own Editor](https://github.com/joe-editor/joe) | `joe` | 4.8 | WordStar & Emacs-blend text editor | GPLv2 |
+| [tn5250](https://github.com/tn5250/tn5250)† | `tn5250` | 0.18.0 | TCP/IP 5250 terminal emulator | LGPLv2.1 |
+| [x3270](https://github.com/pmattes/x3270)† | `c3270` | 4.5ga5 | 3270 terminal emulator | BSD 3-Clause |
 
-* _* Support for this is experimental - expect bugs_
-* _† GCC and Binutils are separate projects but are bundled together for SHORK 486_
-* _‡ [musl 1.2.6](https://musl.libc.org/) (MIT licensed) is included with GCC and Tiny C Compiler_
+* _* These are considered "essential" and can only be excluded when making a "custom" build_
+* _† Their inclusion is experimental - expect bugs_
+* _‡ GCC and Binutils are separate projects but are bundled together as one complete toolchain_
+* _§ [musl 1.2.6](https://musl.libc.org/) (MIT licensed) is automatically included with these_
 
 ### SHORK Utilities (shorkutils)
 
@@ -158,13 +161,17 @@ SHORK DISC is a specialised version of the SHORK 486 Operating System that can b
 * Graphics: IBM VGA or compatible
 * Monitor: VGA (640x480) or higher
 
-### BusyBox & util-linux
+### BusyBox
 
-ar, ash, awk, basename, bunzip2, bzcat, bzip2, cat, clear, cp, cpio, date, dd, df, diff, dirname, dmesg, echo, ed, eject, expr, fdformat, fdisk, free, grep, gunzip, gzip, hexdump, hostname, init, less, ln, ls, lsblk, lscpu, lzcat, lzma, lzop, lzopcat, mdev, mkdir, mount, mv, partx, patch, printenv, printf, pwd, rev, rm, sed, sfdisk, strace, sync, tar, tee, test, touch, true, umount, uname, uncompress, unlzma, unlzop, unxz, unzip, vi, whereis, which, xxd, xz, xzcat, zcat
+ar, ash, awk, basename, bunzip2, bzcat, bzip2, cat, clear, cp, cpio, date, dd, df, diff, dirname, dmesg, echo, ed, eject, expr, fdformat, fdisk, free, grep, gunzip, gzip, hexdump, hostname, init, less, ln, ls, lsblk, lscpu, lzcat, lzma, lzop, lzopcat, mdev, mkdir, mount, mv, patch, printenv, printf, pwd, rev, rm, sed, sync, tar, tee, test, touch, true, umount, uname, uncompress, unlzma, unlzop, unxz, unzip, vi, which, xxd, xz, xzcat, zcat
 
 ### Bundled software
 
-* [file](https://github.com/file/file)
+| Name | Command(s) | Version | Purpose | Licence(s) |
+|------|------------|---------|---------|------------|
+| [file](https://github.com/file/file) | `file` | 5_48 | File identification | BSD 2-Clause |
+| [strace](https://github.com/strace/strace) | `strace` | 7.1 | System calls & signals tracer | LGPLv2.1 |
+| [util-linux](https://github.com/util-linux/util-linux) | `partx`, `sfdisk`, `whereis` | 2.42.2 | Extra Linux utilities | GPLv2 |
 
 ### SHORK Utilities (shorkutils)
 
