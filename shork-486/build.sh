@@ -107,7 +107,7 @@ PATCHES_DIR="${CURR_DIR}/patches"
 # Target software/feature versions
 LINUX_STABLE_SRC="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git"
 LINUX_TORVALDS_SRC="https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
-LINUX_VER="7.1.2"
+LINUX_VER="7.1.3"
 
 BUSYBOX_SRC="https://busybox.net/downloads"
 BUSYBOX_VER="1.38.0"
