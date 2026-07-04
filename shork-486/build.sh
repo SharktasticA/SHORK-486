@@ -3839,15 +3839,16 @@ get_gcc()
     fi
     mkdir -p $DESTDIR/opt
     tar xzf $ARC -C $DESTDIR/opt
+
+    # Symlink all shared libraries so they're discoverable without needing a
+    # custom library path
     mkdir -p $DESTDIR/lib
     for f in $DESTDIR/opt/${ARCH}-linux-musl-native/lib/*.so*; do
         [ -e "$f" ] || continue
         target="${f#$DESTDIR}"
         ln -sf "$target" "$DESTDIR/lib/"
     done
-
-    # Copy licence file
-    #cp TODO $DESTDIR/LICENCES/${ARCH}-linux-musl-native.txt
+    ln -sf /opt/i486-linux-musl-native/lib/libc.so "${DESTDIR}/lib/ld-musl-i386.so.1"
 }
 
 # Download and compile Git
@@ -5160,6 +5161,13 @@ copy_licences()
         CSV+="\nfile,BSD 2-Clause,file.txt"
     fi
 
+    if $INCLUDE_GCC; then
+        wget -qO "${DESTDIR}/LICENCES/gcc.txt" "https://www.gnu.org/licenses/gpl-3.0.txt" || true
+        wget -qO "${DESTDIR}/LICENCES/gcc-exception.txt" "https://raw.githubusercontent.com/gcc-mirror/gcc/master/COPYING.RUNTIME" || true
+        CSV+="\nGCC,GNU GPLv3,gcc.txt"
+        CSV+="\nGCC Runtime,GCC Runtime Library Exception,gcc-exception.txt"
+    fi
+
     if $INCLUDE_GIT && 
        [ -f "$CURR_DIR/build/git/COPYING" ]; then
         cp "$CURR_DIR/build/git/COPYING" "$DESTDIR/LICENCES/git.txt" || true
@@ -5206,6 +5214,9 @@ copy_licences()
     if [ -f "$DESTDIR/usr/local/musl/lib/libc.so" ] &&
        [ -f "$CURR_DIR/build/musl-$MUSL_VER/COPYRIGHT" ]; then
         cp "$CURR_DIR/build/musl-$MUSL_VER/COPYRIGHT" "$DESTDIR/LICENCES/musl.txt" || true
+        CSV+="\nmusl,MIT,musl.txt"
+    elif $INCLUDE_GCC; then
+        wget -qO "${DESTDIR}/LICENCES/musl.txt" "https://git.musl-libc.org/cgit/musl/plain/COPYRIGHT" || true
         CSV+="\nmusl,MIT,musl.txt"
     fi
 
