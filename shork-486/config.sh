@@ -17,7 +17,7 @@ fi
 
 
 CURR_DIR=$(pwd)
-WIDTH=76
+WIDTH=80
 HEIGHT=20
 
 
@@ -27,11 +27,13 @@ CUSTOM_MIN_DISK=8
 DEFAULT_DEF_SWAP=8
 DEFAULT_MIN_DISK=80
 MAXIMAL_DEF_SWAP=8
-MAXIMAL_MIN_DISK=400
+MAXIMAL_MIN_DISK=440
 MINIMAL_DEF_SWAP=0
 MINIMAL_MIN_DISK=8
 OFFLINE_DEF_SWAP=8
 OFFLINE_MIN_DISK=60
+PLUS_DEF_SWAP=16
+PLUS_MIN_DISK=400
 
 ALWAYS_BUILD=true
 DIST="SHORK 486"
@@ -40,7 +42,7 @@ IS_ARCH=false
 IS_FEDORA=false
 IS_DEBIAN=true
 BUILD_TYPE="default"
-KERNEL_VER="7.1.2"
+LINUX_VER="7.1.2"
 TARGET_DISK=80
 TARGET_SWAP=8
 SCANCODE_SET=-1
@@ -48,6 +50,8 @@ SET_KEYMAP="en_us"
 HOSTNAME="shork-486"
 ENABLE_MULTIUSER_REAL=false
 ROOT_PASSWD=""
+ENABLE_SERIAL_CON=false
+SERIAL_CON_PORT="ttyS0"
 ENABLE_NET_ETH=false
 FIX_EXTLINUX=true
 INCLUDE_C3270=false
@@ -81,6 +85,7 @@ INCLUDE_GUI=false
 ENABLE_HIGHMEM=false
 INCLUDE_KEYMAPS=false
 ENABLE_MENU=false
+ENABLE_NO_VDS032=true
 INCLUDE_PCI_IDS=false
 ENABLE_PCMCIA=false
 ENABLE_SATA=false
@@ -130,63 +135,66 @@ load_env()
 
 save_env()
 {
-    cat > .env <<EOF
-ALWAYS_BUILD=$ALWAYS_BUILD
-DIST="$DIST"
-ID="$ID"
-IS_ARCH=$IS_ARCH
-IS_DEBIAN=$IS_DEBIAN
-IS_FEDORA=$IS_FEDORA
-BUILD_TYPE="$BUILD_TYPE"
-KERNEL_VER="$KERNEL_VER"
-TARGET_DISK=$TARGET_DISK
-TARGET_SWAP=$TARGET_SWAP
-SCANCODE_SET=$SCANCODE_SET
-SET_KEYMAP="$SET_KEYMAP"
-HOSTNAME="$HOSTNAME"
-ENABLE_MULTIUSER_REAL=$ENABLE_MULTIUSER_REAL
-ROOT_PASSWD=$ROOT_PASSWD
-ENABLE_NET_ETH=$ENABLE_NET_ETH
-FIX_EXTLINUX=$FIX_EXTLINUX
-INCLUDE_C3270=$INCLUDE_C3270
-INCLUDE_CMATRIX=$INCLUDE_CMATRIX
-INCLUDE_DROPBEAR=$INCLUDE_DROPBEAR
-INCLUDE_FILE=$INCLUDE_FILE
-INCLUDE_GCC=$INCLUDE_GCC
-INCLUDE_GIT=$INCLUDE_GIT
-INCLUDE_HTOP=$INCLUDE_HTOP
-INCLUDE_JOE=$INCLUDE_JOE
-INCLUDE_LYNX=$INCLUDE_LYNX
-INCLUDE_MG=$INCLUDE_MG
-INCLUDE_MICROPYTHON=$INCLUDE_MICROPYTHON
-INCLUDE_MT_ST=$INCLUDE_MT_ST
-INCLUDE_NANO=$INCLUDE_NANO
-INCLUDE_SC_IM=$INCLUDE_SC_IM
-INCLUDE_SHORKSTALL=$INCLUDE_SHORKSTALL
-INCLUDE_SHORKTAINMENT=$INCLUDE_SHORKTAINMENT
-INCLUDE_STRACE=$INCLUDE_STRACE
-INCLUDE_TCC=$INCLUDE_TCC
-INCLUDE_TILDE=$INCLUDE_TILDE
-INCLUDE_TN5250=$INCLUDE_TN5250
-INCLUDE_TNFTP=$INCLUDE_TNFTP
-INCLUDE_TMUX=$INCLUDE_TMUX
-INCLUDE_UTIL_LINUX=$INCLUDE_UTIL_LINUX
-ENABLE_CDROM=$ENABLE_CDROM
-INCLUDE_CON_FONTS=$INCLUDE_CON_FONTS
-USE_GRUB=$USE_GRUB
-ENABLE_FB=$ENABLE_FB
-INCLUDE_GUI=$INCLUDE_GUI
-ENABLE_HIGHMEM=$ENABLE_HIGHMEM
-INCLUDE_KEYMAPS=$INCLUDE_KEYMAPS
-ENABLE_MENU=$ENABLE_MENU
-INCLUDE_PCI_IDS=$INCLUDE_PCI_IDS
-ENABLE_PCMCIA=$ENABLE_PCMCIA
-ENABLE_SATA=$ENABLE_SATA
-ENABLE_SCSI_EXP=$ENABLE_SCSI_EXP
-ENABLE_SMP=$ENABLE_SMP
-ENABLE_USB=$ENABLE_USB
-ENABLE_ZSWAP=$ENABLE_ZSWAP
-EOF
+    {
+        echo "ALWAYS_BUILD=$ALWAYS_BUILD"
+        printf 'DIST=%s\n' "$(printf '"%s"' "$DIST")"
+        printf 'ID=%s\n' "$(printf '"%s"' "$ID")"
+        echo "IS_ARCH=$IS_ARCH"
+        echo "IS_DEBIAN=$IS_DEBIAN"
+        echo "IS_FEDORA=$IS_FEDORA"
+        printf 'BUILD_TYPE=%s\n' "$(printf '"%s"' "$BUILD_TYPE")"
+        printf 'LINUX_VER=%s\n' "$(printf '"%s"' "$LINUX_VER")"
+        echo "TARGET_DISK=$TARGET_DISK"
+        echo "TARGET_SWAP=$TARGET_SWAP"
+        echo "SCANCODE_SET=$SCANCODE_SET"
+        printf 'SET_KEYMAP=%s\n' "$(printf '"%s"' "$SET_KEYMAP")"
+        printf 'HOSTNAME=%s\n' "$(printf '"%s"' "$HOSTNAME")"
+        echo "ENABLE_MULTIUSER_REAL=$ENABLE_MULTIUSER_REAL"
+        printf 'ROOT_PASSWD=%s\n' "$(printf "'%s'" "$ROOT_PASSWD")"
+        echo "ENABLE_SERIAL_CON=$ENABLE_SERIAL_CON"
+        printf 'SERIAL_CON_PORT=%s\n' "$(printf '"%s"' "$SERIAL_CON_PORT")"
+        echo "ENABLE_NET_ETH=$ENABLE_NET_ETH"
+        echo "FIX_EXTLINUX=$FIX_EXTLINUX"
+        echo "INCLUDE_C3270=$INCLUDE_C3270"
+        echo "INCLUDE_CMATRIX=$INCLUDE_CMATRIX"
+        echo "INCLUDE_DROPBEAR=$INCLUDE_DROPBEAR"
+        echo "INCLUDE_FILE=$INCLUDE_FILE"
+        echo "INCLUDE_GCC=$INCLUDE_GCC"
+        echo "INCLUDE_GIT=$INCLUDE_GIT"
+        echo "INCLUDE_HTOP=$INCLUDE_HTOP"
+        echo "INCLUDE_JOE=$INCLUDE_JOE"
+        echo "INCLUDE_LYNX=$INCLUDE_LYNX"
+        echo "INCLUDE_MG=$INCLUDE_MG"
+        echo "INCLUDE_MICROPYTHON=$INCLUDE_MICROPYTHON"
+        echo "INCLUDE_MT_ST=$INCLUDE_MT_ST"
+        echo "INCLUDE_NANO=$INCLUDE_NANO"
+        echo "INCLUDE_SC_IM=$INCLUDE_SC_IM"
+        echo "INCLUDE_SHORKSTALL=$INCLUDE_SHORKSTALL"
+        echo "INCLUDE_SHORKTAINMENT=$INCLUDE_SHORKTAINMENT"
+        echo "INCLUDE_STRACE=$INCLUDE_STRACE"
+        echo "INCLUDE_TCC=$INCLUDE_TCC"
+        echo "INCLUDE_TILDE=$INCLUDE_TILDE"
+        echo "INCLUDE_TN5250=$INCLUDE_TN5250"
+        echo "INCLUDE_TNFTP=$INCLUDE_TNFTP"
+        echo "INCLUDE_TMUX=$INCLUDE_TMUX"
+        echo "INCLUDE_UTIL_LINUX=$INCLUDE_UTIL_LINUX"
+        echo "ENABLE_CDROM=$ENABLE_CDROM"
+        echo "INCLUDE_CON_FONTS=$INCLUDE_CON_FONTS"
+        echo "USE_GRUB=$USE_GRUB"
+        echo "ENABLE_FB=$ENABLE_FB"
+        echo "INCLUDE_GUI=$INCLUDE_GUI"
+        echo "ENABLE_HIGHMEM=$ENABLE_HIGHMEM"
+        echo "INCLUDE_KEYMAPS=$INCLUDE_KEYMAPS"
+        echo "ENABLE_MENU=$ENABLE_MENU"
+        echo "ENABLE_NO_VDS032=$ENABLE_NO_VDS032"
+        echo "INCLUDE_PCI_IDS=$INCLUDE_PCI_IDS"
+        echo "ENABLE_PCMCIA=$ENABLE_PCMCIA"
+        echo "ENABLE_SATA=$ENABLE_SATA"
+        echo "ENABLE_SCSI_EXP=$ENABLE_SCSI_EXP"
+        echo "ENABLE_SMP=$ENABLE_SMP"
+        echo "ENABLE_USB=$ENABLE_USB"
+        echo "ENABLE_ZSWAP=$ENABLE_ZSWAP"
+    } > .env
 
     echo "Your desired SHORK 486 build configuration has been saved to a .env file in the current directory. This configuration will automatically be used when SHORK 486 is next built. If you are using the \"--skip-busybox\" or \"--skip-kernel\" build parameters, you may need to build without them for some changes to take effect."
 }
@@ -242,6 +250,7 @@ set_minimal_vars()
     ENABLE_HIGHMEM=false
     INCLUDE_KEYMAPS=false
     ENABLE_MENU=false
+    ENABLE_NO_VDS032=true
     INCLUDE_PCI_IDS=false
     ENABLE_PCMCIA=false
     ENABLE_SATA=false
@@ -285,6 +294,7 @@ set_default_vars()
     ENABLE_HIGHMEM=false
     INCLUDE_KEYMAPS=true
     ENABLE_MENU=true
+    ENABLE_NO_VDS032=true
     INCLUDE_PCI_IDS=true
     ENABLE_PCMCIA=true
     ENABLE_SATA=false
@@ -303,6 +313,15 @@ set_offline_vars()
     INCLUDE_LYNX=false
     INCLUDE_TN5250=false
     INCLUDE_TNFTP=false
+}
+
+set_plus_vars()
+{
+    set_default_vars
+    INCLUDE_C3270=true
+    INCLUDE_GCC=true
+    INCLUDE_JOE=true
+    INCLUDE_TN5250=true
 }
 
 set_maximal_vars()
@@ -434,17 +453,18 @@ fi
 
 
 # Get Linux kernel version (all)
-KERNEL_VER=$(dialog --clear \
+LINUX_VER=$(dialog --clear \
     --backtitle "SHORK 486 Build Configurator" \
     --title "Linux Kernel Version" \
     --cancel-label "Quit" \
-    --default-item "$KERNEL_VER" \
-    --menu "Please select which Linux kernel version you wish to use with SHORK 486. It is generally safe to use the newest major version, but if you experience hardware compatibility issues, try building with an older kernel to see if that resolves them. If so, please report it as an issue on the SHORK 486 GitHub repository." 13 $WIDTH 5 \
+    --default-item "$LINUX_VER" \
+    --menu "Please select which Linux kernel version you wish to use. It is generally safe to use the newest major version that isn't \"-rc\", but if you experience hardware compatibility issues, try building with an older kernel to see if that resolves them. If so, please report it as an issue on the SHORK 486 GitHub repository. Only select a \"-rc\" kernel if you know what you're doing." 14 $WIDTH 5 \
+    "7.2-rc1"   "7.2-rc1 (2026-06-28)" \
     "7.1.2"     "7.1.2 (2026-06-27)" \
     "7.0.14"    "7.0.14 (2026-06-27)" \
     3>&1 1>&2 2>&3)
 
-if [[ ! -n "$KERNEL_VER" ]]; then
+if [[ ! -n "$LINUX_VER" ]]; then
     exit 0
 fi
 
@@ -458,11 +478,12 @@ if [ "$ID" == "shork-486" ]; then
         --title "Build Type" \
         --cancel-label "Quit" \
         --default-item "$BUILD_TYPE" \
-        --menu "Select the build type, presets for SHORK 486 feature levels. The minimum requirements for each are enclosed in brackets. The \"custom\" option will enable further prompts for software and feature selection." 14 $WIDTH 5 \
-        "default" "Typical experience (16MiB RAM + 80MiB disk)" \
-        "offline" "Default sans networking (12MiB RAM + 60MiB disk)" \
-        "minimal" "Minimal build (8MiB RAM + 8MiB disk)" \
-        "maximal" "Maximal build (24MiB RAM + 400MiB disk)" \
+        --menu "Select the build type, presets for SHORK 486 feature levels. The minimum requirements for each are enclosed in brackets. The \"custom\" option will enable further prompts for software and feature selection." 15 $WIDTH 5 \
+        "default" "Typical experience (16MiB RAM, 8MiB swap, 80MiB disk)" \
+        "maximal" "Largest configuration (24MiB RAM, 8MiB swap, 440MiB disk)" \
+        "plus"    "Default w/ optional software (16MiB RAM, 16MiB swap, 400MiB disk)" \
+        "offline" "Default w/o networking (12MiB RAM, 8MiB swap, 60MiB disk)" \
+        "minimal" "Smallest configuration (8MiB RAM, 8MiB disk)" \
         "custom"  "Requirements depend on subsequent choices" \
         3>&1 1>&2 2>&3)
 
@@ -472,6 +493,8 @@ if [ "$ID" == "shork-486" ]; then
         set_default_vars
     elif [ "$BUILD_TYPE" == "offline" ]; then
         set_offline_vars
+    elif [ "$BUILD_TYPE" == "plus" ]; then
+        set_plus_vars
     elif [ "$BUILD_TYPE" == "minimal" ]; then
         set_minimal_vars
     elif [ "$BUILD_TYPE" == "maximal" ]; then
@@ -495,6 +518,12 @@ if [ "$ID" == "shork-486" ]; then
         if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
             TARGET_DISK=$OFFLINE_MIN_DISK
             TARGET_SWAP=$OFFLINE_DEF_SWAP
+        fi
+    elif [ "$BUILD_TYPE" == "plus" ]; then
+        CURR_MIN_DISK=$PLUS_MIN_DISK
+        if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
+            TARGET_DISK=$PLUS_MIN_DISK
+            TARGET_SWAP=$PLUS_DEF_SWAP
         fi
     elif [ "$BUILD_TYPE" == "minimal" ]; then
         CURR_MIN_DISK=$MINIMAL_MIN_DISK
@@ -553,13 +582,13 @@ if [ "$ID" == "shork-486" ]; then
 
 
 
-    # Get swap partition size (496)
+    # Get swap partition size (486)
     while true; do
         TARGET_SWAP_TMP=$(dialog --clear \
             --backtitle "SHORK 486 Build Configurator" \
             --title "Swap Partition Size" \
             --cancel-label "Skip" \
-            --inputbox "If desired, enter a swap partition size in mebibytes (between 1 and 64) to use when creating the disk image containing SHORK 486. If a swap partition isn't needed or desired, please skip or enter \"0\"." \
+            --inputbox "Enter a swap partition size in mebibytes (between 1 and 64). Whilst not strictly needed, it is recommended to at least keep the default value if one was provided. If a swap partition isn't needed or desired, please skip or enter \"0\"." \
             9 $WIDTH "$TARGET_SWAP" \
             2>&1 >/dev/tty)
 
@@ -724,7 +753,7 @@ if [ "$BUILD_TYPE" != "minimal" ] && [ "$ID" == "shork-486" ]; then
 
 
 
-    # Get root password
+    # Get root password (ENABLE_MULTIUSER_REAL=true)
     if [ "$ENABLE_MULTIUSER_REAL" == true ]; then
         while true; do
             # If root password has already been set, offer to reuse it...
@@ -736,7 +765,6 @@ if [ "$BUILD_TYPE" != "minimal" ] && [ "$ID" == "shork-486" ]; then
 
                 USE_EXISTING=$?
                 if [ "$USE_EXISTING" -eq 0 ]; then
-                    ROOT_PASSWD="'$ROOT_PASSWD'"
                     break
                 fi
             fi
@@ -793,7 +821,7 @@ if [ "$BUILD_TYPE" != "minimal" ] && [ "$ID" == "shork-486" ]; then
                 exit 1
             fi
 
-            ROOT_PASSWD="'$ROOT_PASSWD_HASH'"
+            ROOT_PASSWD="$ROOT_PASSWD_HASH"
             break
         done
     fi
@@ -801,31 +829,92 @@ fi
 
 
 
-# Get networking support choice (486)
-if [ "$BUILD_TYPE" == "custom" ] && [ "$ID" == "shork-486" ]; then
+if [ "$ID" == "shork-486" ]; then
     DEFAULT_FLAG=""
-    if ! $ENABLE_NET_ETH; then
+    if ! $ENABLE_SERIAL_CON; then
         DEFAULT_FLAG="--defaultno"
     fi
 
+    # Get serial console mode choice (486)
     dialog --clear \
         --backtitle "SHORK 486 Build Configurator" \
-        --title "Ethernet Networking Support" \
+        --title "Serial Console Mode" \
         $DEFAULT_FLAG \
-        --yesno "Do you want to enable ethernet networking support in SHORK 486? It includes kernel-level ethernet networking support and BusyBox's networking-related utilities, and you will be able to choose software that requires an internet connection in the next prompt." \
-        8 $WIDTH
+        --yesno "Do you want to build SHORK 486 in serial console mode? This will configure the system to input and output on a ttyS device instead of ttyX, allowing it to be used remotely over a serial port without manual configuration. You will be able to specify the exact port in the next prompt. Enabling this also disables multiple ttyX support and the menu-based bootloader." \
+        9 $WIDTH
 
     CHOICE=$?
 
     if [[ $CHOICE -eq 0 ]]; then
-        ENABLE_NET_ETH=true
-    elif [[ $CHOICE -eq 1 ]]; then
-        ENABLE_NET_ETH=false
-        INCLUDE_DROPBEAR=false
-        INCLUDE_GIT=false
-        INCLUDE_LYNX=false
-        INCLUDE_TN5250=false
-        INCLUDE_TNFTP=false
+        ENABLE_SERIAL_CON=true
+        ENABLE_MENU=false
+    else
+        ENABLE_SERIAL_CON=false
+        SERIAL_CON_PORT="ttyS0"
+    fi
+
+
+
+    # Get serial console port (ENABLE_SERIAL_CON=true)
+    if [ "$ENABLE_SERIAL_CON" == true ]; then
+        while true; do
+            SERIAL_CON_PORT_TMP=$(dialog --clear \
+                --backtitle "SHORK 486 Build Configurator" \
+                --title "Serial Console Port" \
+                --cancel-label "Skip" \
+                --inputbox "Enter a ttyS device to use for serial console mode by default. The ttyS number usually corresponds to a fixed hardware serial port - for example, ttyS0 is typically the first serial port (COM1)." \
+                9 $WIDTH "$SERIAL_CON_PORT" \
+                2>&1 >/dev/tty)
+
+            SKIPPED=$?
+
+            if [[ $SKIPPED -eq 1 ]]; then
+                SERIAL_CON_PORT="ttyS0"
+                break
+            fi
+
+            if [[ -z "$SERIAL_CON_PORT_TMP" ]]; then
+                dialog --clear \
+                    --backtitle "SHORK 486 Build Configurator" \
+                    --title "Serial Console Port" \
+                    --msgbox "The value cannot be empty." \
+                    6 $WIDTH
+                continue
+            fi
+
+            SERIAL_CON_PORT=$SERIAL_CON_PORT_TMP
+            break
+        done
+    fi
+
+
+
+    # Get networking support choice (486)
+    if [ "$BUILD_TYPE" == "custom" ]; then
+        DEFAULT_FLAG=""
+        if ! $ENABLE_NET_ETH; then
+            DEFAULT_FLAG="--defaultno"
+        fi
+
+        dialog --clear \
+            --backtitle "SHORK 486 Build Configurator" \
+            --title "Ethernet Networking Support" \
+            $DEFAULT_FLAG \
+            --yesno "Do you want to enable ethernet networking support in SHORK 486? It includes kernel-level ethernet networking support and BusyBox's networking-related utilities, and you will be able to choose software that requires an internet connection in the next prompt." \
+            8 $WIDTH
+
+        CHOICE=$?
+
+        if [[ $CHOICE -eq 0 ]]; then
+            ENABLE_NET_ETH=true
+        elif [[ $CHOICE -eq 1 ]]; then
+            ENABLE_NET_ETH=false
+            INCLUDE_DROPBEAR=false
+            INCLUDE_GIT=false
+            INCLUDE_LYNX=false
+            INCLUDE_TN5250=false
+            INCLUDE_TNFTP=false
+        fi
     fi
 fi
 
@@ -879,7 +968,7 @@ if [ "$ENABLE_NET_ETH" == true ]; then
         #"cmatrix"       "Scrolling text screensaver (+0.4MiB)"                  "$(val "$INCLUDE_CMATRIX")"
         "dropbear"      "*SCP & SSH client (+0.4MiB)"                           "$(val "$INCLUDE_DROPBEAR")"
         "file"          "**File type identification (+10MiB)"                   "$(val "$INCLUDE_FILE")"
-        "gcc"           "**GCC (as, g++, gcc, gfortran) + musl (+215MiB)"       "$(val "$INCLUDE_GCC")"
+        "gcc"           "**GCC + binutils + musl (+215MiB)"                     "$(val "$INCLUDE_GCC")"
         "git"           "*Source control client (+19MiB)"                       "$(val "$INCLUDE_GIT")"
         "htop"          "*Interactive process viewer (+0.6MiB)"                 "$(val "$INCLUDE_HTOP")"
         "joe"           "WordStar-style text editor (+1.9MiB)"                  "$(val "$INCLUDE_JOE")"
@@ -887,7 +976,7 @@ if [ "$ENABLE_NET_ETH" == true ]; then
         "mg"            "*Emacs-style text editor (+0.3MiB)"                    "$(val "$INCLUDE_MG")"
         "micropython"   "*Python 3.4-syntax intepreter (+0.7MiB)"               "$(val "$INCLUDE_MICROPYTHON")"
         "mt-st"         "*Tape drive tools (+0.2MiB)"                           "$(val "$INCLUDE_MT_ST")"
-        "nano"          "*Text editor (+0.8MiB)"                                "$(val "$INCLUDE_NANO")"
+        "nano"          "*Pico-style text editor (+0.8MiB)"                     "$(val "$INCLUDE_NANO")"
         "sc-im"         "*Terminal spreadsheet editor (+2.8MiB)"                "$(val "$INCLUDE_SC_IM")"
         "shorktainment" "*shorkmatrix, shorksay & sl (+0.1MiB)"                 "$(val "$INCLUDE_SHORKTAINMENT")"
         "strace"        "*System calls & signals tracer (+1.1MiB)"              "$(val "$INCLUDE_STRACE")"
@@ -903,13 +992,13 @@ else
         "c3270"        "3270 terminal emulator (+1.8MiB, EXPERIMENTAL)"     "$(val "$INCLUDE_C3270")"
         #"cmatrix"       "Scrolling text screensaver (+0.4MiB)"              "$(val "$INCLUDE_CMATRIX")"
         "file"          "**File type identification (+10MiB)"               "$(val "$INCLUDE_FILE")"
-        "gcc"           "**GCC (as, g++, gcc, gfortran) + musl (+215MiB)"   "$(val "$INCLUDE_GCC")"
+        "gcc"           "**GCC + binutils + musl (+215MiB)"                 "$(val "$INCLUDE_GCC")"
         "htop"          "*Interactive process viewer (+0.6MiB)"             "$(val "$INCLUDE_HTOP")"
         "joe"           "Joe's Own Editor (+1.9MiB)"                        "$(val "$INCLUDE_JOE")"
         "mg"            "*Emacs-style text editor (+0.3MiB)"                "$(val "$INCLUDE_MG")"
         "micropython"   "*Python 3.4-syntax intepreter (+0.7MiB)"           "$(val "$INCLUDE_MICROPYTHON")"
         "mt-st"         "*Tape drive tools (+0.2MiB)"                       "$(val "$INCLUDE_MT_ST")"
-        "nano"          "*Text editor (+0.8MiB)"                            "$(val "$INCLUDE_NANO")"
+        "nano"          "*Pico-style text editor (+0.8MiB)"                 "$(val "$INCLUDE_NANO")"
         "sc-im"         "*Terminal spreadsheet editor (+2.8MiB)"            "$(val "$INCLUDE_SC_IM")"
         "shorktainment" "*shorkmatrix, shorksay & sl (+0.1MiB)"             "$(val "$INCLUDE_SHORKTAINMENT")"
         "strace"        "*System calls & signals tracer (+1.1MiB)"          "$(val "$INCLUDE_STRACE")"
@@ -972,6 +1061,7 @@ OPTIONS=$(dialog --clear \
     "gui"           "**SHORKGUI (+46MiB, EXPERIMENTAL)"                         $(val $INCLUDE_GUI) \
     "highmem"       "**Kernel-level high memory support"                        $(val $ENABLE_HIGHMEM) \
     "menu"          "*Menu-based bootloader (+0.5MiB)"                          $(val $ENABLE_MENU) \
+    "no-vdso32"     "*Disable 32-bit vDSO & SEP usage"                          $(val $ENABLE_NO_VDS032) \
     "pci.ids"       "*PCI IDs database (+0.1MiB)"                               $(val $INCLUDE_PCI_IDS) \
     "pcmcia"        "*Kernel-level PCMCIA support"                              $(val $ENABLE_PCMCIA) \
     "sata"          "**Kernel-level SATA support"                               $(val $ENABLE_SATA) \
@@ -987,23 +1077,44 @@ SKIPPED=$?
 if [[ $SKIPPED -eq 1 ]]; then
     :
 else
-    if [[ $OPTIONS =~ "cdrom" ]];       then ENABLE_CDROM=true;         else ENABLE_CDROM=false;        fi
-    if [[ $OPTIONS =~ "con-fonts" ]];   then INCLUDE_CON_FONTS=true;    else INCLUDE_CON_FONTS=false;   fi
-    if [[ $OPTIONS =~ "grub" ]];        then USE_GRUB=true;             else USE_GRUB=false;            fi
-    if [[ $OPTIONS =~ "gui" ]];         then INCLUDE_GUI=true;          else INCLUDE_GUI=false;         fi
-    if [[ $OPTIONS =~ "highmem" ]];     then ENABLE_HIGHMEM=true;       else ENABLE_HIGHMEM=false;      fi
-    #if [[ $OPTIONS =~ "keymaps" ]];    then $INCLUDE_KEYMAPS=true;     else $INCLUDE_KEYMAPS=false;    fi
-    if [[ $OPTIONS =~ "menu" ]];        then ENABLE_MENU=true;          else ENABLE_MENU=false;         fi
-    if [[ $OPTIONS =~ "pci.ids" ]];     then INCLUDE_PCI_IDS=true;      else INCLUDE_PCI_IDS=false;     fi
-    if [[ $OPTIONS =~ "pcmcia" ]];      then ENABLE_PCMCIA=true;        else ENABLE_PCMCIA=false;       fi
-    if [[ $OPTIONS =~ "sata" ]];        then ENABLE_SATA=true;          else ENABLE_SATA=false;         fi
-    if [[ $OPTIONS =~ "scsi-exp" ]];    then ENABLE_SCSI_EXP=true;      else ENABLE_SCSI_EXP=false;     fi
-    if [[ $OPTIONS =~ "smp" ]];         then ENABLE_SMP=true;           else ENABLE_SMP=false;          fi
-    if [[ $OPTIONS =~ "usb" ]];         then ENABLE_USB=true;           else ENABLE_USB=false;          fi
-    if [[ $OPTIONS =~ "zswap" ]];       then ENABLE_ZSWAP=true;         else ENABLE_ZSWAP=false;        fi
+    if [[ $OPTIONS =~ "cdrom" ]];           then ENABLE_CDROM=true;         else ENABLE_CDROM=false;            fi
+    if [[ $OPTIONS =~ "con-fonts" ]];       then INCLUDE_CON_FONTS=true;    else INCLUDE_CON_FONTS=false;   fi
+    if [[ $OPTIONS =~ "grub" ]];            then USE_GRUB=true;             else USE_GRUB=false;                fi
+    if [[ $OPTIONS =~ "gui" ]];             then INCLUDE_GUI=true;          else INCLUDE_GUI=false;             fi
+    if [[ $OPTIONS =~ "highmem" ]];         then ENABLE_HIGHMEM=true;       else ENABLE_HIGHMEM=false;          fi
+    #if [[ $OPTIONS =~ "keymaps" ]];         then $INCLUDE_KEYMAPS=true;     else $INCLUDE_KEYMAPS=false;        fi
+    if [[ $OPTIONS =~ "menu" ]];            then ENABLE_MENU=true;          else ENABLE_MENU=false;             fi
+    if [[ $OPTIONS =~ "no-vdso32" ]];       then ENABLE_NO_VDS032=true;     else ENABLE_NO_VDS032=false;        fi
+    if [[ $OPTIONS =~ "pci.ids" ]];         then INCLUDE_PCI_IDS=true;      else INCLUDE_PCI_IDS=false;         fi
+    if [[ $OPTIONS =~ "pcmcia" ]];          then ENABLE_PCMCIA=true;        else ENABLE_PCMCIA=false;           fi
+    if [[ $OPTIONS =~ "sata" ]];            then ENABLE_SATA=true;          else ENABLE_SATA=false;             fi
+    if [[ $OPTIONS =~ "scsi-exp" ]];        then ENABLE_SCSI_EXP=true;      else ENABLE_SCSI_EXP=false;         fi
+    if [[ $OPTIONS =~ "smp" ]];             then ENABLE_SMP=true;           else ENABLE_SMP=false;              fi
+    if [[ $OPTIONS =~ "usb" ]];             then ENABLE_USB=true;           else ENABLE_USB=false;              fi
+    if [[ $OPTIONS =~ "zswap" ]];           then ENABLE_ZSWAP=true;         else ENABLE_ZSWAP=false;            fi
 fi
 
 
+
+# Conflict Resolution - +ENABLE_SERIAL_CON/+ENABLE_MENU
+if [ "$ENABLE_SERIAL_CON" = true ] && [ "$ENABLE_MENU" = true ]; then
+    dialog --clear \
+        --backtitle "SHORK 486 Build Configurator" \
+        --title "Conflict Resolution - +ENABLE_SERIAL_CON/+ENABLE_MENU" \
+        --yes-label "Serial console" \
+        --no-label "Menu-based bootloader" \
+        --yesno "You have chosen to enable \"serial console mode\" and \"menu-based bootloader\". A menu-based bootloader is inoperable when using SHORK 486 through a serial console. Do you want to keep serial console mode enabled, or disable it and keep a menu-based bootloader?" \
+        8 "$WIDTH"
+
+    CHOICE=$?
+
+    if [[ $CHOICE -eq 0 ]]; then
+        ENABLE_MENU=false
+    elif [[ $CHOICE -eq 1 ]]; then
+        ENABLE_SERIAL_CON=false
+        SERIAL_CON_PORT="ttyS0"
+    fi
+fi
 
 # Conflict Resolution - +FIX_EXTLINUX/+USE_GRUB
 if [ "$FIX_EXTLINUX" = true ] && [ "$USE_GRUB" = true ]; then

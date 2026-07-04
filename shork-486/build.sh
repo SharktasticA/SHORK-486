@@ -90,9 +90,9 @@ CROSS="${ARCH}-linux-musl-cross"
 PREFIX="${CURR_DIR}/build/${CROSS}"
 AR="${PREFIX}/bin/${ARCH}-linux-musl-ar"
 CC="${PREFIX}/bin/${ARCH}-linux-musl-gcc"
-CC_STATIC="${CURR_DIR}/${ARCH}-linux-musl-gcc-static"
+CC_STATIC="${CURR_DIR}/compilation/${ARCH}-linux-musl-gcc-static"
 CXX="${PREFIX}/bin/${ARCH}-linux-musl-g++"
-CXX_STATIC="${CURR_DIR}/${ARCH}-linux-musl-gxx-static"
+CXX_STATIC="${CURR_DIR}/compilation/${ARCH}-linux-musl-gxx-static"
 DESTDIR="${CURR_DIR}/build/root"
 HOST="${ARCH}-linux-musl"
 LD="${PREFIX}/bin/${ARCH}-linux-musl-ld"
@@ -100,9 +100,21 @@ RANLIB="${PREFIX}/bin/${ARCH}-linux-musl-ranlib"
 STRIP="${PREFIX}/bin/${ARCH}-linux-musl-strip"
 SYSROOT="${PREFIX}/${ARCH}-linux-musl"
 
+# Other common locations
+CONFIGS_DIR="${CURR_DIR}/configs"
+PATCHES_DIR="${CURR_DIR}/patches"
+
 # Target software/feature versions
+LINUX_STABLE_SRC="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git"
+LINUX_TORVALDS_SRC="https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
+LINUX_VER="7.1.2"
+
 BUSYBOX_SRC="https://busybox.net/downloads"
 BUSYBOX_VER="1.38.0"
+
+SHORKFETCH_SRC="https://github.com/SharktasticA/shorkfetch.git"
+SHORKFETCH_VER="0.4.2"
+
 C3270_SRC="https://github.com/pmattes/x3270.git"
 C3270_VER="4.5ga5"
 CMATRIX_SRC="https://github.com/abishekvashok/cmatrix.git"
@@ -113,16 +125,21 @@ DROPBEAR_SRC="https://github.com/mkj/dropbear.git"
 DROPBEAR_VER="2026.91"
 FILE_SRC="https://github.com/file/file.git"
 FILE_VER="5_48"
+GCC_SRC="https://more.musl.cc/11/i686-linux-musl"
 GIT_SRC="https://github.com/git/git.git"
-GIT_VER="2.54.0"
+GIT_VER="2.55.0"
 HTOP_SRC="https://github.com/htop-dev/htop.git"
 HTOP_VER="3.5.1"
 JOE_SRC="https://github.com/joe-editor/joe"
 JOE_VER="4.8"
-KERNEL_SRC="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git"
-KERNEL_VER="7.1.2"
+LIBAO_SRC="https://github.com/xiph/libao.git"
+LIBAO_VER="1.2.2"
 LIBEVENT_SRC="https://github.com/libevent/libevent.git"
 LIBEVENT_VER="release-2.1.12-stable"
+LIBID3TAG_SRC="https://github.com/markjeee/libid3tag.git"
+LIBID3TAG_VER="7929736a334804dc5670b203c9129cac2708d31c"
+LIBMAD_SRC="https://github.com/markjeee/libmad.git"
+LIBMAD_VER="c2f96fa4166446ac99449bdf6905f4218fb7d6b5"
 LIBT3_SRC="https://os.ghalkes.nl/dist"
 LIBT3CONFIG_VER="1.0.0"
 LIBT3HIGHLIGHT_VER="0.5.0"
@@ -144,6 +161,8 @@ MG_SRC="https://github.com/troglobit/mg.git"
 MG_VER="3.7"
 MICROPYTHON_SRC="https://github.com/micropython/micropython.git"
 MICROPYTHON_VER="1.28.0"
+MPG321_SRC="https://github.com/GiterMirror/mpg321.git"
+MPG321_VER="a41a9397d10576d3aee39c2ed7628a78c285714d"
 MT_ST_SRC="https://github.com/iustin/mt-st.git"
 MT_ST_VER="1.8"
 MUSL_SRC="https://musl.libc.org/releases"
@@ -163,15 +182,13 @@ ROVER_SRC="https://github.com/lecram/rover.git"
 ROVER_VER="1.0.1"
 SC_IM_SRC="https://github.com/andmarti1424/sc-im.git"
 SC_IM_VER="0.8.5"
-SHORKFETCH_SRC="https://github.com/SharktasticA/shorkfetch.git"
-SHORKFETCH_VER="0.4.2"
 STRACE_SRC="https://github.com/strace/strace.git"
 STRACE_VER="7.1"
 TCC_SRC="https://github.com/Tiny-C-Compiler/tinycc-mirror-repository.git"
 TCC_VER="e5eedc0"
 TILDE_VER="1.1.3"
 TMUX_SRC="https://github.com/tmux/tmux.git"
-TMUX_VER="3.6b"
+TMUX_VER="3.7b"
 TN5250_SRC="https://github.com/tn5250/tn5250.git"
 TN5250_VER="0.18.0"
 TNFTP_SRC="https://ftp.netbsd.org/pub/NetBSD/misc/tnftp"
@@ -196,6 +213,7 @@ PHYSICAL_ALIGN=0x2000
 PHYSICAL_START=""
 ROOT_PASSWD=""
 SCANCODE_SET=-1
+SERIAL_CON_PORT="ttyS0"
 SET_KEYMAP=""
 SHORKUTILS_RECLONE=false
 SKIP_BB=false
@@ -207,6 +225,7 @@ ENABLE_CDROM=true
 ENABLE_FB=true
 ENABLE_HIGHMEM=false
 ENABLE_MENU=true
+ENABLE_NO_VDS032=true
 ENABLE_MULTIUSER_KRN=false
 ENABLE_MULTIUSER_REAL=false
 ENABLE_NET_BASE=false
@@ -215,7 +234,9 @@ ENABLE_NET_PCMCIA=false
 ENABLE_PCMCIA=true
 ENABLE_SATA=false
 ENABLE_SCSI_EXP=true
+ENABLE_SERIAL_CON=false
 ENABLE_SMP=false
+ENABLE_SOUND=false
 ENABLE_TASKSTATS=false
 ENABLE_USB=false
 ENABLE_ZSWAP=true
@@ -234,6 +255,7 @@ INCLUDE_KEYMAPS=true
 INCLUDE_LYNX=true
 INCLUDE_MG=true
 INCLUDE_MICROPYTHON=true
+INCLUDE_MPG321=false
 INCLUDE_MT_ST=true
 INCLUDE_NANO=true
 INCLUDE_PCI_IDS=true
@@ -307,13 +329,16 @@ if [ "$ID" == "shork-486" ]; then
     if [ "$BUILD_TYPE" = "custom" ]; then
         echo -e "${GREEN}Noting minimum RAM requirement for a SHORK 486 custom build...${RESET}"
         if [ "$INCLUDE_GCC" = true ]; then
-            EST_MIN_RAM="32MiB/24MiB + 8MiB swap"
+            EST_MIN_RAM="24MiB + 8MiB swap/16MiB + 16MiB swap"
         elif [ "$INCLUDE_GUI" = true ] || [ "$ENABLE_HIGHMEM" = true ] || [ "$ENABLE_SATA" = true ]; then
             EST_MIN_RAM="24MiB/16MiB + 8MiB swap"
         fi
     elif [ "$BUILD_TYPE" = "maximal" ]; then
         echo -e "${GREEN}Noting minimum RAM requirement for a SHORK 486 maximal build...${RESET}"
         EST_MIN_RAM="32MiB/24MiB + 8MiB swap"
+    elif [ "$BUILD_TYPE" = "plus" ]; then
+        echo -e "${GREEN}Noting minimum RAM requirement for a SHORK 486 plus build...${RESET}"
+        EST_MIN_RAM="24MiB + 8MiB swap/16MiB + 16MiB swap"
     elif [ "$BUILD_TYPE" = "offline" ]; then
         echo -e "${GREEN}Noting minimum RAM requirement for a SHORK 486 offline build...${RESET}"
         EST_MIN_RAM="12MiB"
@@ -358,20 +383,25 @@ if [ "$ENABLE_MULTIUSER_REAL" = true ]; then
     ENABLE_MULTIUSER_KRN=true
 fi
 
-# Override to ensure the "use GRUB" parameter is disabled when the "Fix EXTLINUX" parameter is used
-if $FIX_EXTLINUX; then
+# Ensure USE_GRUB is disabled with FIX_EXTLINUX
+if [ "$FIX_EXTLINUX" = true ]; then
     USE_GRUB=false
 fi
 
-# Override to ensure MULTIUSER_KRN and TASKSTATS are enabled with HTOP
+# Ensure MULTIUSER_KRN and TASKSTATS are enabled with HTOP
 if [ "$INCLUDE_HTOP" = true ]; then
     ENABLE_MULTIUSER_KRN=true
     ENABLE_TASKSTATS=true
 fi
 
-# Override to ensure NET_MIN is enabled with HTOP or NET
+# Ensure NET_BASE is enabled with HTOP or NET_ETH
 if [ "$INCLUDE_HTOP" = true ] || [ "$ENABLE_NET_ETH" = true ]; then
     ENABLE_NET_BASE=true
+fi
+
+# Ensure SOUND is enabled with MPG321
+if [ "$INCLUDE_MPG321" = true ]; then
+    ENABLE_SOUND=true
 fi
 
 # Ensure SCSI_EXT is enabled with MT_ST
@@ -440,7 +470,10 @@ fi
 # Check what other prerequisites we need
 NEED_CURL=false
 NEED_OPENSSL=false
+NEED_LIBAO=false
 NEED_LIBEVENT=false
+NEED_LIBID3TAG=false
+NEED_LIBMAD=false
 NEED_LIBXLSXWRITER=false
 NEED_LIBXML2=false
 NEED_LIBZIP=false
@@ -454,6 +487,12 @@ if $INCLUDE_GIT; then
     NEED_CURL=true
     NEED_OPENSSL=true
     NEED_ZLIB=true
+fi
+
+if $INCLUDE_MPG321; then
+    NEED_LIBAO=true
+    NEED_LIBID3TAG=true
+    NEED_LIBMAD=true
 fi
 
 if $INCLUDE_SC_IM; then
@@ -865,6 +904,61 @@ get_curl()
     make install
 }
 
+# Download and compile libao (required for mpg321) 
+get_libao()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/libao.a" ]; then
+        echo -e "${LIGHT_RED}libao already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d libao ]; then
+        echo -e "${YELLOW}libao source already present, resetting...${RESET}"
+        cd libao
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading libao...${RESET}"
+        git clone $LIBAO_SRC
+        cd libao
+        git checkout $LIBAO_VER
+    fi
+
+    # Compile and install
+    echo -e "${GREEN}Compiling libao...${RESET}"
+    ./autogen.sh
+    ./configure \
+        --host=$HOST \
+        --build=x86_64-linux-gnu \
+        --prefix=/usr \
+        --enable-shared \
+        --disable-static \
+        --disable-alsa \
+        --disable-esd \
+        --disable-arts \
+        --disable-pulse \
+        AR=$AR \
+        CC=$CC \
+        RANLIB=$RANLIB \
+        CPPFLAGS="-I$SYSROOT/usr/include" \
+        CFLAGS="-fPIC" \
+        LDFLAGS="-L$SYSROOT/usr/lib"
+
+    make -j$(nproc)
+    make DESTDIR=$SYSROOT install
+
+    sudo mkdir -p $DESTDIR/lib
+    sudo mkdir -p $DESTDIR/usr/lib/ao/plugins-4/
+    sudo cp $SYSROOT/lib/libc.so $DESTDIR/lib/
+    sudo cp $SYSROOT/usr/lib/libao.so* $DESTDIR/usr/lib/
+    sudo cp $SYSROOT/usr/lib/ao/plugins-4/liboss.so $DESTDIR/usr/lib/ao/plugins-4/
+    sudo ln -sf libc.so $DESTDIR/lib/ld-musl-i386.so.1
+}
+
 # Download and compile libevent (required for tmux)
 get_libevent()
 {
@@ -893,6 +987,96 @@ get_libevent()
     ./configure --host=${HOST} --prefix="${PREFIX}" --disable-shared  --enable-static --disable-samples --disable-openssl CC="${CC}"
     make -j$(nproc)
     make install
+}
+
+# Download and compile libmad (required for mpg321) 
+get_libmad()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/libmad.a" ]; then
+        echo -e "${LIGHT_RED}libmad already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d libmad ]; then
+        echo -e "${YELLOW}libmad source already present, resetting...${RESET}"
+        cd libmad
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading libmad...${RESET}"
+        git clone $LIBMAD_SRC libmad
+        cd libmad
+        git checkout $LIBMAD_VER
+    fi
+
+    # Its config.sub is too old to recognise musl
+    cp "${CURR_DIR}/compilation/config.guess" config.guess
+    cp "${CURR_DIR}/compilation/config.sub" config.sub
+
+    # Compile and install
+    echo -e "${GREEN}Compiling libmad...${RESET}"
+    ./configure \
+        --host=$HOST \
+        --prefix=/usr \
+        --enable-static \
+        --disable-shared \
+        AR=$AR \
+        CC=$CC_STATIC \
+        RANLIB=$RANLIB \
+        CFLAGS="-static -I$SYSROOT/usr/include" \
+        LDFLAGS="-static -L$SYSROOT/usr/lib"
+
+    make -j$(nproc)
+    make DESTDIR=$SYSROOT install
+}
+
+# Download and compile libid3tag (required for mpg321) 
+get_libid3tag()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/libid3tag.a" ]; then
+        echo -e "${LIGHT_RED}libid3tag already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d libid3tag ]; then
+        echo -e "${YELLOW}libid3tag source already present, resetting...${RESET}"
+        cd libid3tag
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading libid3tag...${RESET}"
+        git clone $LIBID3TAG_SRC libid3tag
+        cd libid3tag
+        git checkout $LIBID3TAG_VER
+    fi
+
+    # Its config.sub is too old to recognise musl
+    cp "${CURR_DIR}/compilation/config.guess" config.guess
+    cp "${CURR_DIR}/compilation/config.sub" config.sub
+
+    # Compile and install
+    echo -e "${GREEN}Compiling libid3tag...${RESET}"
+    ./configure \
+        --host=$HOST \
+        --prefix=/usr \
+        --enable-static \
+        --disable-shared \
+        AR=$AR \
+        CC=$CC_STATIC \
+        RANLIB=$RANLIB \
+        CFLAGS="-static -I$SYSROOT/usr/include" \
+        LDFLAGS="-static -L$SYSROOT/usr/lib"
+
+    make -j$(nproc)
+    make DESTDIR=$SYSROOT install
 }
 
 # Download and compile libxlsxwriter (required for sc-im)
@@ -1179,11 +1363,11 @@ get_busybox()
 
     echo -e "${GREEN}Copying base ${DIST} BusyBox .config file...${RESET}"
     if [ "$ID" == "shork-486" ]; then
-        cp $CURR_DIR/configs/busybox.config.base .config
+        cp $CONFIGS_DIR/busybox/busybox.config.base .config
     elif [ "$ID" == "shork-disc" ]; then
-        cp $CURR_DIR/configs/busybox.config.base.disc .config
+        cp $CONFIGS_DIR/busybox/busybox.config.base.disc .config
     elif [ "$ID" == "shork-diskette" ]; then
-        cp $CURR_DIR/configs/busybox.config.base.diskette .config
+        cp $CONFIGS_DIR/busybox/busybox.config.base.diskette .config
     fi
 
     # Ensure BusyBox behaves with our toolchain
@@ -1194,27 +1378,34 @@ get_busybox()
 
     # Patch in swap partition identification in lsblk implementation
     echo -e "${GREEN}Applying 1.38.0_lsblk_swap patch...${RESET}"
-    patch -p1 < "$CURR_DIR/patches/1.38.0_lsblk_swap.patch"
+    patch -p1 < "${PATCHES_DIR}/busybox/1.38.0_lsblk_swap.patch"
 
     if $ENABLE_MULTIUSER_REAL; then
         echo -e "${GREEN}Enabling BusyBox's multi-user utilities...${RESET}"
-        merge_busybox_frag "$CURR_DIR/configs/busybox.config.multiuser.frag"
+        merge_busybox_frag "$CONFIGS_DIR/busybox/busybox.config.multiuser.frag"
         
         echo -e "${GREEN}Applying 1.37.0-1.38.0_musl_utmp patch...${RESET}"
-        patch -p1 < "$CURR_DIR/patches/1.37.0-1.38.0_musl_utmp.patch"
+        patch -p1 < "${PATCHES_DIR}/busybox/1.37.0-1.38.0_musl_utmp.patch"
     fi
     
     if $ENABLE_NET_ETH; then
         echo -e "${GREEN}Enabling BusyBox's networking utilities...${RESET}"
-        merge_busybox_frag "$CURR_DIR/configs/busybox.config.net.frag"
+        merge_busybox_frag "$CONFIGS_DIR/busybox/busybox.config.net.frag"
     fi
 
     if $ENABLE_USB; then
         echo -e "${GREEN}Enabling BusyBox's USB-related utilities...${RESET}"
-        merge_busybox_frag "$CURR_DIR/configs/busybox.config.usb.frag"
+        merge_busybox_frag "$CONFIGS_DIR/busybox/busybox.config.usb.frag"
         yes | make oldconfig
     fi
-    
+
+    if $INCLUDE_GCC; then
+        echo -e "${GREEN}Disabling BusyBox's ar implementation in favour of GCC's...${RESET}"
+        sed -i 's/^CONFIG_AR=y$/# CONFIG_AR is not set/' .config
+        sed -i 's/^CONFIG_FEATURE_AR_LONG_FILENAMES=y$/# CONFIG_FEATURE_AR_LONG_FILENAMES is not set/' .config
+        sed -i 's/^CONFIG_FEATURE_AR_CREATE=y$/# CONFIG_FEATURE_AR_CREATE is not set/' .config
+    fi
+
     # Compile and install
     echo -e "${GREEN}Compiling BusyBox...${RESET}"
     make ARCH=x86 -j$(nproc)
@@ -1354,8 +1545,14 @@ download_kernel()
 {
     cd "$CURR_DIR/build"
     echo -e "${GREEN}Downloading the Linux kernel...${RESET}"
+
+    local LINUX_SRC="$LINUX_STABLE_SRC"
+    if [[ "$LINUX_VER" == *-rc* ]]; then
+        LINUX_SRC="$LINUX_TORVALDS_SRC"
+    fi
+
     if [ ! -d "linux" ]; then
-        git clone --depth=1 --branch "v$KERNEL_VER" $KERNEL_SRC || true
+        git clone --depth=1 --branch "v$LINUX_VER" "$LINUX_SRC" || true
         cd "$CURR_DIR/build/linux"
         configure_kernel
     fi
@@ -1366,9 +1563,9 @@ configure_kernel()
     echo -e "${GREEN}Copying base ${DIST} kernel configuration file...${RESET}"
 
     if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
-        cp $CURR_DIR/configs/linux.config.base .config
+        cp $CONFIGS_DIR/linux/linux.config.base .config
     elif [ "$ID" == "shork-diskette" ]; then
-        cp $CURR_DIR/configs/linux.config.base.diskette .config
+        cp $CONFIGS_DIR/linux/linux.config.base.diskette .config
     fi
 
     FRAGS=""
@@ -1376,80 +1573,85 @@ configure_kernel()
     if $ENABLE_CDROM; then
         echo -e "${GREEN}Enabling kernel-level CD-ROM & DVD-ROM support...${RESET}"
         if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
-            FRAGS+="$CURR_DIR/configs/linux.config.cdrom.frag "
+            FRAGS+="$CONFIGS_DIR/linux/linux.config.cdrom.frag "
         elif [ "$ID" == "shork-diskette" ]; then
-            FRAGS+="$CURR_DIR/configs/linux.config.cdrom.diskette.frag "
+            FRAGS+="$CONFIGS_DIR/linux/linux.config.cdrom.diskette.frag "
         fi
     fi
     
     if $ENABLE_FB; then
         echo -e "${GREEN}Enabling kernel-level framebuffer, VESA & enhanced VGA support...${RESET}"
-        FRAGS+="$CURR_DIR/configs/linux.config.fb.frag "
+        FRAGS+="$CONFIGS_DIR/linux/linux.config.fb.frag "
     fi
 
     if $INCLUDE_GUI; then
         echo -e "${GREEN}Enabling kernel-level event interface support...${RESET}"
-        FRAGS+="$CURR_DIR/configs/linux.config.x11.frag "
+        FRAGS+="$CONFIGS_DIR/linux/linux.config.x11.frag "
     fi
 
     if $ENABLE_HIGHMEM; then
         echo -e "${GREEN}Enabling kernel-level high memory support...${RESET}"
-        FRAGS+="$CURR_DIR/configs/linux.config.highmem.frag "
+        FRAGS+="$CONFIGS_DIR/linux/linux.config.highmem.frag "
     fi
 
     if $ENABLE_MULTIUSER_KRN; then
         echo -e "${GREEN}Enabling kernel-level multi-user support...${RESET}"
-        FRAGS+="$CURR_DIR/configs/linux.config.multiuser.frag "
+        FRAGS+="$CONFIGS_DIR/linux/linux.config.multiuser.frag "
     fi
 
     if $ENABLE_PCMCIA; then
         echo -e "${GREEN}Enabling kernel-level PCMCIA support...${RESET}"
-        FRAGS+="$CURR_DIR/configs/linux.config.pcmcia.frag "
+        FRAGS+="$CONFIGS_DIR/linux/linux.config.pcmcia.frag "
     fi
 
     if $ENABLE_NET_BASE; then
         echo -e "${GREEN}Enabling kernel-level networking support (base)...${RESET}"
-        FRAGS+="$CURR_DIR/configs/linux.config.net.base.frag "
+        FRAGS+="$CONFIGS_DIR/linux/linux.config.net.base.frag "
     fi
 
     if $ENABLE_NET_ETH; then
         echo -e "${GREEN}Enabling kernel-level networking support (ethernet)...${RESET}"
-        FRAGS+="$CURR_DIR/configs/linux.config.net.eth.frag "
+        FRAGS+="$CONFIGS_DIR/linux/linux.config.net.eth.frag "
     fi
 
     if $ENABLE_NET_PCMCIA; then
         echo -e "${GREEN}Enabling kernel-level networking support (PCMCIA)...${RESET}"
-        FRAGS+="$CURR_DIR/configs/linux.config.net.pcmcia.frag "
+        FRAGS+="$CONFIGS_DIR/linux/linux.config.net.pcmcia.frag "
     fi
 
     if $ENABLE_SATA; then
         echo -e "${GREEN}Enabling kernel-level SATA support...${RESET}"
-        FRAGS+="$CURR_DIR/configs/linux.config.sata.frag "
+        FRAGS+="$CONFIGS_DIR/linux/linux.config.sata.frag "
     fi
 
     if $ENABLE_SCSI_EXP; then
         echo -e "${GREEN}Enabling kernel-level SCSI media changer & tape drive support...${RESET}"
-        FRAGS+="$CURR_DIR/configs/linux.config.scsi.exp.frag "
+        FRAGS+="$CONFIGS_DIR/linux/linux.config.scsi.exp.frag "
     fi
 
     if $ENABLE_SMP; then
         echo -e "${GREEN}Enabling kernel-level symmetric multiprocessing (SMP) support...${RESET}"
-        FRAGS+="$CURR_DIR/configs/linux.config.smp.frag "
+        FRAGS+="$CONFIGS_DIR/linux/linux.config.smp.frag "
+    fi
+
+    if $ENABLE_SOUND; then
+        echo -e "${GREEN}Enabling kernel-level sound support...${RESET}"
+        FRAGS+="$CONFIGS_DIR/linux/linux.config.sound.frag "
     fi
 
     if $ENABLE_TASKSTATS; then
         echo -e "${GREEN}Enabling kernel-level taskstats support...${RESET}"
-        FRAGS+="$CURR_DIR/configs/linux.config.taskstats.frag "
+        FRAGS+="$CONFIGS_DIR/linux/linux.config.taskstats.frag "
     fi
 
     if $ENABLE_USB; then
         echo -e "${GREEN}Enabling kernel-level USB & HID support...${RESET}"
-        FRAGS+="$CURR_DIR/configs/linux.config.usb.frag "
+        FRAGS+="$CONFIGS_DIR/linux/linux.config.usb.frag "
     fi
 
     if $ENABLE_ZSWAP; then
         echo -e "${GREEN}Enabling kernel-level zswap support...${RESET}"
-        FRAGS+="$CURR_DIR/configs/linux.config.zswap.frag "
+        FRAGS+="$CONFIGS_DIR/linux/linux.config.zswap.frag "
     fi
 
     if [ -n "$PHYSICAL_START" ]; then
@@ -1467,8 +1669,8 @@ reset_kernel()
     cd "$CURR_DIR/build/linux"
 
     CURR_TAG=$(git describe --tags --exact-match 2>/dev/null || echo "")
-    if [ -n "$CURR_TAG" ] && [ "$CURR_TAG" != "v${KERNEL_VER}" ]; then
-        echo -e "${GREEN}Switching kernel version from ${CURR_TAG} to v${KERNEL_VER}...${RESET}"
+    if [ -n "$CURR_TAG" ] && [ "$CURR_TAG" != "v${LINUX_VER}" ]; then
+        echo -e "${GREEN}Switching kernel version from ${CURR_TAG} to v${LINUX_VER}...${RESET}"
         reclone_kernel
         return
     fi
@@ -1478,7 +1680,7 @@ reset_kernel()
     git reset --hard || true
     git clean -fdx || true
     make clean
-    git checkout "v${KERNEL_VER}"
+    git checkout "v${LINUX_VER}"
 
     configure_kernel
 }
@@ -1499,21 +1701,39 @@ compile_kernel()
     sudo sed -i "s/printf '%s' -dirty/printf '%s'/" scripts/setlocalversion
 
     # Apply our patches
-    if [[ "$KERNEL_VER" == "7.1.2" ]]; then
+    if [[ "$LINUX_VER" == 7.2* ]]; then
+        echo -e "${GREEN}Applying 7.2.x_restore-387-586-elan-gx1-rdc321x-umc-winchip...${RESET}"
+        patch -p1 < "${PATCHES_DIR}/linux/7.2.x/7.2.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.patch"
+
         echo -e "${GREEN}Applying 7.1.x_restore-M486-M486SX-ELAN patch...${RESET}"
-        patch -p1 < "$CURR_DIR/patches/7.1.x_restore-M486-M486SX-ELAN.patch"
+        patch -p1 < "${PATCHES_DIR}/linux/7.1.x/7.1.x_restore-M486-M486SX-ELAN.patch"
 
         echo -e "${GREEN}Applying 7.1.x_restore-pcmcia-hosts patch...${RESET}"
-        patch -p1 < "$CURR_DIR/patches/7.1.x_restore-pcmcia-hosts.patch"
+        patch -p1 < "${PATCHES_DIR}/linux/7.1.x/7.1.x_restore-pcmcia-hosts.patch"
 
         echo -e "${GREEN}Applying 7.1.x_restore-no-pci-devices patch...${RESET}"
-        patch -p1 < "$CURR_DIR/patches/7.1.x_restore-no-pci-devices.patch"
+        patch -p1 < "${PATCHES_DIR}/linux/7.1.x/7.1.x_restore-no-pci-devices.patch"
 
         echo -e "${GREEN}Applying 7.1.x_restore-pc110pad patch...${RESET}"
-        patch -p1 < "$CURR_DIR/patches/7.1.x_restore-pc110pad.patch"
+        patch -p1 < "${PATCHES_DIR}/linux/7.1.x/7.1.x_restore-pc110pad.patch"
+
+        echo -e "${GREEN}Applying 7.2.x_restore-isa-pcmcia-net patch...${RESET}"
+        patch -p1 < "${PATCHES_DIR}/linux/7.2.x/7.2.x_restore-isa-pcmcia-net.patch"
+    elif [[ "$LINUX_VER" == 7.1* ]]; then
+        echo -e "${GREEN}Applying 7.1.x_restore-M486-M486SX-ELAN patch...${RESET}"
+        patch -p1 < "${PATCHES_DIR}/linux/7.1.x/7.1.x_restore-M486-M486SX-ELAN.patch"
+
+        echo -e "${GREEN}Applying 7.1.x_restore-pcmcia-hosts patch...${RESET}"
+        patch -p1 < "${PATCHES_DIR}/linux/7.1.x/7.1.x_restore-pcmcia-hosts.patch"
+
+        echo -e "${GREEN}Applying 7.1.x_restore-no-pci-devices patch...${RESET}"
+        patch -p1 < "${PATCHES_DIR}/linux/7.1.x/7.1.x_restore-no-pci-devices.patch"
+
+        echo -e "${GREEN}Applying 7.1.x_restore-pc110pad patch...${RESET}"
+        patch -p1 < "${PATCHES_DIR}/linux/7.1.x/7.1.x_restore-pc110pad.patch"
 
         echo -e "${GREEN}Applying 7.1.x_restore-isa-pcmcia-net patch...${RESET}"
-        patch -p1 < "$CURR_DIR/patches/7.1.x_restore-isa-pcmcia-net.patch"
+        patch -p1 < "${PATCHES_DIR}/linux/7.1.x/7.1.x_restore-isa-pcmcia-net.patch"
     fi
 
     echo -e "${GREEN}Compiling Linux kernel...${RESET}"
@@ -1584,7 +1804,7 @@ get_v86d()
 
     # Compile and install
     echo -e "${GREEN}Compiling v86d...${RESET}"
-    sudo cp $CURR_DIR/configs/v86d.config.h config.h
+    sudo cp $CONFIGS_DIR/v86d.config.h config.h
     make clean >/dev/null 2>&1
     make CC="$CC -m32 -static -no-pie" v86d
     install -Dm755 v86d "$DESTDIR/sbin/v86d"
@@ -3423,7 +3643,7 @@ get_console_fonts()
 
 
 ######################################################
-## Packaged software building                       ##
+## Bundled software building                        ##
 ######################################################
 
 # Download and compile c3270
@@ -3607,7 +3827,7 @@ get_gcc()
 
     DIR="${ARCH}-linux-musl-native"
     ARC="${DIR}.tgz"
-    URI="https://musl.cc/${ARC}"
+    URI="${GCC_SRC}/${ARC}"
 
     # Download
     [ -f $ARC ] || wget $URI
@@ -3619,15 +3839,16 @@ get_gcc()
     fi
     mkdir -p $DESTDIR/opt
     tar xzf $ARC -C $DESTDIR/opt
+
+    # Symlink all shared libraries so they're discoverable without needing a
+    # custom library path
     mkdir -p $DESTDIR/lib
     for f in $DESTDIR/opt/${ARCH}-linux-musl-native/lib/*.so*; do
         [ -e "$f" ] || continue
         target="${f#$DESTDIR}"
         ln -sf "$target" "$DESTDIR/lib/"
     done
-
-    # Copy licence file
-    #cp TODO $DESTDIR/LICENCES/${ARCH}-linux-musl-native.txt
+    ln -sf /opt/i486-linux-musl-native/lib/libc.so "${DESTDIR}/lib/ld-musl-i386.so.1"
 }
 
 # Download and compile Git
@@ -3656,10 +3877,17 @@ get_git()
     # Compile and install
     echo -e "${GREEN}Compiling Git...${RESET}"
     make configure
-    ./configure --host=${HOST} --prefix=/usr CC="${CC}" AR="${AR}" RANLIB="${RANLIB}" CFLAGS="-Os -march=${ARCH} -static -I${PREFIX}/include" LDFLAGS="-static -L${PREFIX}/lib"
-    sudo cp $CURR_DIR/configs/git.config.mak config.mak
-    make -j$(nproc)
-    sudo make DESTDIR=$DESTDIR install
+    ./configure \
+        --host=${HOST} \
+        --prefix=/usr \
+        CC="${CC}" \
+        AR="${AR}" \
+        RANLIB="${RANLIB}" \
+        CFLAGS="-Os -march=${ARCH} -static -I${PREFIX}/include" \
+        LDFLAGS="-static -L${PREFIX}/lib"
+    sudo cp $CONFIGS_DIR/git.config.mak config.mak
+    make NO_RUST=1 -j$(nproc)
+    sudo make NO_RUST=1 DESTDIR=$DESTDIR install
 }
 
 # Download and compile htop
@@ -3943,6 +4171,60 @@ get_micropython()
     sudo ln -sf micropython "$DESTDIR/usr/bin/python3"
 }
 
+# Download and compile mpg321 (WIP)
+# Once down, uncomment relevant part of get_installed_programs_features
+get_mpg321()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$DESTDIR/usr/mpg321" ]; then
+        echo -e "${LIGHT_RED}mpg321 already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d mpg321 ]; then
+        echo -e "${YELLOW}mpg321 source already present, resetting...${RESET}"
+        cd mpg321
+        git config --global --add safe.directory $CURR_DIR/build/mpg321
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading mpg321...${RESET}"
+        git clone $MPG321_SRC
+        cd mpg321
+        git checkout $MPG321_VER
+    fi
+
+    # Its config.sub is too old to recognise musl
+    cp "${CURR_DIR}/compilation/config.guess" config.guess
+    cp "${CURR_DIR}/compilation/config.sub" config.sub
+
+    # Prevent make from trying to regenerate autotools files
+    touch aclocal.m4 configure config.h.in Makefile.in
+
+    # Compile and install
+    echo -e "${GREEN}Compiling mpg321...${RESET}"
+    ./configure \
+        --host=$HOST \
+        --build=x86_64-linux-gnu \
+        --prefix=/usr \
+        --enable-alsa=no \
+        --with-default-audio=oss \
+        AR=$AR \
+        CC=$CC_STATIC \
+        RANLIB=$RANLIB \
+        CPPFLAGS="-nostdinc -I$SYSROOT/usr/include -I$SYSROOT/include -I${PREFIX}/lib/gcc/i486-linux-musl/11.2.1/include" \
+        CFLAGS="-static -fcommon -std=gnu89" \
+        LDFLAGS="-static -L$SYSROOT/usr/lib" \
+        PKG_CONFIG_PATH="$SYSROOT/usr/lib/pkgconfig" \
+        ac_cv_func_malloc_0_nonnull=yes \
+        ac_cv_func_realloc_0_nonnull=yes
+    make -j$(nproc)
+    sudo make DESTDIR=$DESTDIR install
+}
+
 # Download and compile mt-st
 get_mt_st()
 {
@@ -4150,7 +4432,8 @@ get_tcc()
     ln -sf /usr/local/bin/i386-tcc $DESTDIR/usr/bin/tcc || true
 }
 
-# Download and compile tilde
+# Download and compile tilde (WIP)
+# Once down, uncomment relevant part of get_installed_programs_features
 get_tilde()
 {
     cd "$CURR_DIR/build"
@@ -4182,7 +4465,7 @@ get_tilde()
     ln -sf "$CC"  "$CURR_DIR/build/fake-tools/gcc"
     ln -sf "$CXX" "$CURR_DIR/build/fake-tools/g++"
     ln -sf "$LD"  "$CURR_DIR/build/fake-tools/ld"
-    cp "$CURR_DIR/i486-linux-musl-pkg-config" "$CURR_DIR/build/fake-tools/"
+    cp "$CURR_DIR/compilation/i486-linux-musl-pkg-config" "$CURR_DIR/build/fake-tools/"
     sudo ln -sf $(which libtool) /usr/local/bin/i486-linux-musl-libtool
 
     export PATH="$CURR_DIR/build/fake-tools:$PATH"
@@ -4783,7 +5066,7 @@ trim_fat()
             fi
         done
     fi
-    
+
     if $INCLUDE_GIT; then
         cd "$DESTDIR/usr/libexec/git-core"
         sudo rm -f git-imap-send git-http-fetch git-http-backend git-daemon git-p4 git-svn git-send-email
@@ -4811,22 +5094,14 @@ trim_fat()
         sudo rm -rf "$DESTDIR/usr/share/mg"
     fi
 
-    for bin in "$DESTDIR"/bin/*; do
-        if [ -f "$bin" ]; then
-            sudo $STRIP $bin 2>/dev/null || true
-        fi
-    done
-
-    for bin in "$DESTDIR"/sbin/*; do
-        if [ -f "$bin" ]; then
-            sudo $STRIP $bin 2>/dev/null || true
-        fi
-    done
-
-    for bin in "$DESTDIR"/usr/bin/*; do
-        if [ -f "$bin" ]; then
-            sudo $STRIP $bin 2>/dev/null || true
-        fi
+    # find . -type f -print -exec file {} \;
+    for dir in \
+        "$DESTDIR"/bin \
+        "$DESTDIR"/sbin \
+        "$DESTDIR"/usr/bin; do
+        for bin in "$dir"/*; do
+            [ -f "$bin" ] && sudo "$STRIP" "$bin" 2>/dev/null || true
+        done
     done
 }
 
@@ -4886,6 +5161,13 @@ copy_licences()
         CSV+="\nfile,BSD 2-Clause,file.txt"
     fi
 
+    if $INCLUDE_GCC; then
+        wget -qO "${DESTDIR}/LICENCES/gcc.txt" "https://www.gnu.org/licenses/gpl-3.0.txt" || true
+        wget -qO "${DESTDIR}/LICENCES/gcc-exception.txt" "https://raw.githubusercontent.com/gcc-mirror/gcc/master/COPYING.RUNTIME" || true
+        CSV+="\nGCC,GNU GPLv3,gcc.txt"
+        CSV+="\nGCC Runtime,GCC Runtime Library Exception,gcc-exception.txt"
+    fi
+
     if $INCLUDE_GIT && 
        [ -f "$CURR_DIR/build/git/COPYING" ]; then
         cp "$CURR_DIR/build/git/COPYING" "$DESTDIR/LICENCES/git.txt" || true
@@ -4933,6 +5215,9 @@ copy_licences()
        [ -f "$CURR_DIR/build/musl-$MUSL_VER/COPYRIGHT" ]; then
         cp "$CURR_DIR/build/musl-$MUSL_VER/COPYRIGHT" "$DESTDIR/LICENCES/musl.txt" || true
         CSV+="\nmusl,MIT,musl.txt"
+    elif $INCLUDE_GCC; then
+        wget -qO "${DESTDIR}/LICENCES/musl.txt" "https://git.musl-libc.org/cgit/musl/plain/COPYRIGHT" || true
+        CSV+="\nmusl,MIT,musl.txt"
     fi
 
     if $INCLUDE_MG && 
@@ -4945,6 +5230,12 @@ copy_licences()
        [ -f "$CURR_DIR/build/micropython/LICENSE" ]; then
         cp "$CURR_DIR/build/micropython/LICENSE" "$DESTDIR/LICENCES/micropython.txt" || true
         CSV+="\nMicroPython,MIT,micropython.txt"
+    fi
+
+    if $INCLUDE_MPG321 && 
+       [ -f "$CURR_DIR/build/mpg321/COPYING" ]; then
+        cp "$CURR_DIR/build/mpg321/COPYING" "$DESTDIR/LICENCES/mpg321.txt" || true
+        CSV+="\nmpg321,GNU GPLv2,mpg321.txt"
     fi
 
     if $INCLUDE_MT_ST && 
@@ -4974,6 +5265,15 @@ copy_licences()
     if [ -f "$DESTDIR/usr/bin/oneko" ]; then
         echo "Public domain" | sudo tee "$DESTDIR/LICENCES/oneko.txt" > /dev/null
         CSV+="\noneko,public domain,oneko.txt"
+    fi
+
+    if $INCLUDE_PCI_IDS && 
+       [ -f "../../COPYING" ]; then
+        {
+            printf "The pci.ids file is distributed with SHORK under the GNU General Public License\nv3. The PCI ID database is a compilation of factual data, and as such the\ncopyright only covers the aggregation and formatting. The copyright is held by\nMartin Mares and Albert Pool.\n\n--------------------------------------------------------------------------------\n\n"
+            cat "../../COPYING"
+        } > "$DESTDIR/LICENCES/pci-ids.txt" || true
+        CSV+="\npci.ids,GNU GPLv3,pci-ids.txt"
     fi
 
     if [ -f "$DESTDIR/usr/bin/rover" ]; then
@@ -5243,6 +5543,18 @@ build_file_system()
         copy_sysfile $CURR_DIR/sysfiles/services $DESTDIR/etc/services
     fi
 
+    # Configure for SERIAL_CON_PORT if serial console mode is enabled
+    if $ENABLE_SERIAL_CON; then
+        echo -e "${GREEN}Configuring system files for serial console mode...${RESET}"
+
+        if $ENABLE_MULTIUSER_REAL; then
+            sudo sed -i "s/^tty1::respawn:\/sbin\/getty -n 38400 tty1/${SERIAL_CON_PORT}::respawn:\/sbin\/getty -L ${SERIAL_CON_PORT} 115200 vt100/" "${DESTDIR}/etc/inittab"
+        else
+            sudo sed -i "s/^tty1::respawn/${SERIAL_CON_PORT}::respawn/" "${DESTDIR}/etc/inittab"
+        fi
+        sudo sed -i "/^tty[23]::respawn/d" "${DESTDIR}/etc/inittab"
+    fi
+
     if $INCLUDE_NANO; then
         echo -e "${GREEN}Copying pre-defined nano settings...${RESET}"
         sudo mkdir -p $DESTDIR/usr/etc
@@ -5368,7 +5680,20 @@ install_extlinux_bootloader()
         sudo sed -i "s/atkbd.extra=1/atkbd.set=${SCANCODE_SET} atkbd.extra=1/" "/mnt/${ID}/boot/syslinux/syslinux.cfg"
     fi
 
+    # Disable vdso32 if ENABLE_NO_VDS032
+    if [ "$ENABLE_NO_VDS032" = true ]; then
+        sudo sed -i "s/vdso32=1/vdso32=0/" "/mnt/${ID}/boot/syslinux/syslinux.cfg"
+    fi
+
     sudo "$EXTLINUX_BIN" --install "/mnt/${ID}/boot/syslinux"
+
+    # Configure for SERIAL_CON_PORT if serial console mode is enabled
+    if $ENABLE_SERIAL_CON; then
+        echo -e "${GREEN}Configuring bootloader for serial console mode...${RESET}"
+        sudo sed -i "s/Starting ${DIST}/Starting ${DIST} (serial console mode)/g" "/mnt/${ID}/boot/syslinux/syslinux.cfg"
+        sudo sed -i "s/console=tty1/console=${SERIAL_CON_PORT},115200n8/g" "/mnt/${ID}/boot/syslinux/syslinux.cfg"
+        sudo sed -i "s/ vga=normal//g" "/mnt/${ID}/boot/syslinux/syslinux.cfg"
+    fi
 
     # Install MBR boot code
     sudo dd if="$MBR_BIN" of="${CURR_DIR}/images/${ID}.img" bs=440 count=1 conv=notrunc
@@ -5394,6 +5719,11 @@ install_grub_bootloader()
         sudo sed -i "s/atkbd.extra=1/atkbd.set=${SCANCODE_SET} atkbd.extra=1/" "/mnt/${ID}/boot/grub/grub.cfg"
     fi
 
+    # Disable vdso32 if ENABLE_NO_VDS032
+    if [ "$ENABLE_NO_VDS032" = true ]; then
+        sudo sed -i "s/vdso32=1/vdso32=0/" "/mnt/${ID}/boot/grub/grub.cfg"
+    fi
+
     sudo mount --bind /dev  "/mnt/${ID}/dev"
     sudo mount --bind /proc "/mnt/${ID}/proc"
     sudo mount --bind /sys  "/mnt/${ID}/sys"
@@ -5403,6 +5733,14 @@ install_grub_bootloader()
         GRUB_CMD="/usr/sbin/grub2-install"
     fi
     sudo $GRUB_CMD --target=i386-pc --boot-directory="/mnt/${ID}/boot" --modules="ext2 part_msdos biosdisk" --force "$1"
+
+    # Configure for SERIAL_CON_PORT if serial console mode is enabled
+    if $ENABLE_SERIAL_CON; then
+        echo -e "${GREEN}Configuring bootloader for serial console mode...${RESET}"
+        sudo sed -i "s/Starting ${DIST}/Starting ${DIST} (serial console mode)/g" "/mnt/${ID}/boot/grub/grub.cfg"
+        sudo sed -i "s/console=tty1/console=${SERIAL_CON_PORT},115200n8/g" "/mnt/${ID}/boot/grub/grub.cfg"
+        sudo sed -i "s/ vga=normal//g" "/mnt/${ID}/boot/grub/grub.cfg"
+    fi
 
     sudo umount "/mnt/${ID}/dev"
     sudo umount "/mnt/${ID}/proc"
@@ -5536,10 +5874,10 @@ build_disk_img()
     else
         # Calculate some overhead to take into account metadata, partition
         # alignment, bootloader structures, etc.
-        OVERHEAD_BYTES=$((12 * 1024 * 1024))
+        OVERHEAD_BYTES=$((16 * 1024 * 1024))
         if [ "$INCLUDE_GCC" = true ] || [ "$INCLUDE_GUI" = true ]; then
             # We can assume these features demand more
-            OVERHEAD_BYTES=$((16 * 1024 * 1024))
+            OVERHEAD_BYTES=$((32 * 1024 * 1024))
         fi
         OVERHEAD_MIB=$(((OVERHEAD_BYTES + 1048575) / 1048576))
 
@@ -5554,7 +5892,7 @@ build_disk_img()
         # Use target disk value if provided and large enough
         if [ -n "$TARGET_DISK" ]; then
             if [ "$TARGET_DISK" -lt "$TOTAL_MIB" ]; then
-                echo -e "${YELLOW}WARNING: the provided target disk value (${TARGET_DISK}MiB) is smaller than required size (${TOTAL_DISK_SIZE}MiB) - using calculated size instead${RESET}"
+                echo -e "${YELLOW}WARNING: the provided target disk value (${TARGET_DISK}MiB) is smaller than required size (${TOTAL_MIB}MiB) - using calculated size instead${RESET}"
                 TOTAL_DISK_SIZE=$TOTAL_MIB
             else
                 echo -e "${GREEN}Using user-specified disk size (${TARGET_DISK}MiB)${RESET}"
@@ -5663,6 +6001,16 @@ build_disc_img()
     echo -e "${GREEN}Copying ISOLINUX configuration...${RESET}"
     copy_sysfile $CURR_DIR/sysfiles/disc/isolinux.cfg  "${DESTDIR}/boot/isolinux/isolinux.cfg"
 
+    # If required, specify the target scancode set
+    if [[ $SCANCODE_SET != -1 ]]; then
+        sudo sed -i "s/atkbd.extra=1/atkbd.set=${SCANCODE_SET} atkbd.extra=1/" "${DESTDIR}/boot/isolinux/isolinux.cfg"
+    fi
+
+    # Disable vdso32 if ENABLE_NO_VDS032
+    if [ "$ENABLE_NO_VDS032" = true ]; then
+        sudo sed -i "s/vdso32=1/vdso32=0/" "${DESTDIR}/boot/isolinux/isolinux.cfg"
+    fi
+
     # Install the kernel
     echo -e "${GREEN}Copying kernel image...${RESET}"
     sudo cp bzImage "${DESTDIR}/boot/bzImage"
@@ -5731,6 +6079,11 @@ build_diskette_img()
     # If required, specify the target scancode set
     if [[ $SCANCODE_SET != -1 ]]; then
         sudo sed -i "s/atkbd.extra=1/atkbd.set=${SCANCODE_SET} atkbd.extra=1/" "/mnt/${ID}/syslinux.cfg"
+    fi
+
+    # Disable vdso32 if ENABLE_NO_VDS032
+    if [ "$ENABLE_NO_VDS032" = true ]; then
+        sudo sed -i "s/vdso32=1/vdso32=0/" "/mnt/${ID}/syslinux.cfg"
     fi
 
     # Install the kernel
@@ -5937,6 +6290,23 @@ get_included_busybox_commands()
     check_bb_config "CONFIG_VMSTAT" ""
     check_bb_config "CONFIG_ASH" ""
 
+    # Added 2026-06-30
+    check_bb_config "CONFIG_UNCOMPRESS" ""
+    check_bb_config "CONFIG_GUNZIP" ""
+    check_bb_config "CONFIG_ZCAT" ""
+    check_bb_config "CONFIG_BUNZIP2" ""
+    check_bb_config "CONFIG_BZCAT" ""
+    check_bb_config "CONFIG_UNLZMA" ""
+    check_bb_config "CONFIG_LZCAT" ""
+    check_bb_config "CONFIG_LZMA" ""
+    check_bb_config "CONFIG_UNXZ" ""
+    check_bb_config "CONFIG_XZCAT" ""
+    check_bb_config "CONFIG_BZIP2" ""
+    check_bb_config "CONFIG_CPIO" ""
+    check_bb_config "CONFIG_LZOP" ""
+    check_bb_config "CONFIG_UNLZOP" ""
+    check_bb_config "CONFIG_LZOPCAT" ""
+
     readarray -t INCLUDED_BB_CMDS < <(printf '%s\n' "${INCLUDED_BB_CMDS[@]}" | sort)
     readarray -t EXCLUDED_BB_CMDS < <(printf '%s\n' "${EXCLUDED_BB_CMDS[@]}" | sort)
 }
@@ -6016,6 +6386,12 @@ get_installed_programs_features()
             INCLUDED_FEATURES+="\n * kernel-level SCSI media changer & tape drive support"
         else
             EXCLUDED_FEATURES+="\n * kernel-level SCSI media changer & tape drive support"
+        fi
+
+        if $ENABLE_SOUND; then
+            INCLUDED_FEATURES+="\n * kernel-level sound support"
+        else
+            EXCLUDED_FEATURES+="\n * kernel-level sound support"
         fi
 
         if $ENABLE_TASKSTATS; then
@@ -6291,6 +6667,12 @@ get_installed_programs_features()
             EXCLUDED_FEATURES+="\n * micropython"
         fi
 
+        #if [ -f "$DESTDIR/usr/bin/mpg321" ]; then
+        #    INCLUDED_FEATURES+="\n * mpg321 ($MPG321_VER)"
+        #else
+        #    EXCLUDED_FEATURES+="\n * mpg321"
+        #fi
+
         if [ -f "$DESTDIR/bin/mt" ]; then
             INCLUDED_FEATURES+="\n * mt (mt-st, $MT_ST_VER)"
         else
@@ -6416,7 +6798,7 @@ generate_report()
         "================================================================================"
         ""
         "OS/version:          $DIST $VER"
-        "Kernel:              Linux $KERNEL_VER"
+        "Kernel:              Linux $LINUX_VER"
         "Base:                BusyBox $BUSYBOX_VER"
         "Bootloader:          $BOOTLDR_USED"
     )
@@ -6595,6 +6977,7 @@ fi
 mkdir -p build/staging
 get_prerequisites
 get_musl_cross
+chmod +x "${CURR_DIR}/compilation/"*
 
 if ! $SKIP_BB; then
     get_busybox
@@ -6625,8 +7008,17 @@ fi
 if $NEED_CURL; then
     get_curl
 fi
+if $NEED_LIBAO; then
+    get_libao
+fi
 if $NEED_LIBEVENT; then
     get_libevent
+fi
+if $NEED_LIBID3TAG; then
+    get_libid3tag
+fi
+if $NEED_LIBMAD; then
+    get_libmad
 fi
 if $NEED_LIBXLSXWRITER; then
     get_libxlsxwriter
@@ -6690,6 +7082,9 @@ if $INCLUDE_MG; then
 fi
 if $INCLUDE_MICROPYTHON; then
     get_micropython
+fi
+if $INCLUDE_MPG321; then
+    get_mpg321
 fi
 if $INCLUDE_MT_ST; then
     get_mt_st
@@ -6757,6 +7152,7 @@ elif [ "$ID" == "shork-diskette" ]; then
     compress_file_system
     build_diskette_img
 fi
+
 fix_perms
 clean_stale_mounts
 get_included_busybox_commands

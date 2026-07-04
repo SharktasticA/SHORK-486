@@ -1,8 +1,8 @@
 # SHORK 486, DISC & DISKETTE
 
-SHORK 486 is an operating system for 486 and Pentium (P5) era vintage PCs. The aim is to produce a 32-bit Linux distribution that is very lean and functional but still capable on such PCs, often with my '90s IBM ThinkPads in mind. A default SHORK 486 system aims to work with at least 16MiB system memory and take up no more than ~80MiB on your disk. Despite those constraints, the default SHORK 486 experience includes [Linux kernel 7.1.2](KERNEL.md), many typical Linux commands, custom SHORK Utilities such as shorkdir (TUI file browser) and shorkfetch (*fetch clone), a terminal multiplexer, a C compiler and Python 3.4-syntax interpreter, a text web browser, an FTP, SCP and SSH client, a Git source control client, the ed, Mg (Emacs-style), nano and vi editors, a spreadsheet editor, IDE CD-ROM and DVD-ROM support, SCSI tape drive support, ISA, PCI and PCMCIA ethernet support, support for most major national keyboard layouts, and a cute ASCII shark welcome screen!
+SHORK 486 is a free and open-source operating system for 486 and Pentium (P5) era vintage personal computers. The aim is to produce a 32-bit Linux distribution that is lean and functional, but still capable on such PCs, often with my '90s IBM ThinkPads in mind. A default SHORK 486 system aims to work with at least 16MiB system memory and take up no more than ~80MiB on your disk. Despite those constraints, the default SHORK 486 experience includes [Linux kernel 7.1.2](KERNEL.md), many typical Linux commands, custom SHORK Utilities such as shorkdir (TUI file browser) and shorkfetch (*fetch clone), a terminal multiplexer, a C compiler and Python 3.4-syntax interpreter, a text web browser, an FTP, SCP and SSH client, a Git source control client, the ed, Mg (Emacs-style), nano and vi editors, a spreadsheet editor, IDE CD-ROM and DVD-ROM support, SCSI tape drive support, ISA, PCI and PCMCIA ethernet support, support for most major national keyboard layouts, and a cute ASCII shark welcome screen!
 
-A build configurator is available to alter SHORK 486 to your liking. For example, you can select the "minimal" build type that requires just 8MiB RAM and ~8MiB disk space, whilst still including most typical commands as before, some custom SHORK Utilities, and the ed and vi editors. If not a "minimal" build, multi-user support can be included. You can also select the "custom" build type, which lets you pick and choose specific software and features. Versions of SHORK 486 that can be burned to a CD (SHORK DISC) or small enough to fit on a 1.44MB floppy diskette (SHORK DISKETTE) are also available.
+A build configurator is available to alter SHORK 486 to your liking. For example, you can select the "minimal" build type that requires just 8MiB RAM and ~8MiB disk space, whilst still including most typical commands as before, some custom SHORK Utilities, and the ed and vi editors. You can also configure SHORK 486 for serial console use, multi-user support (if not "minimal" build), and pick and choose specific software and features (if "custom" build). Versions of SHORK 486 that can be burned to a CD (SHORK DISC) or small enough to fit on a 1.44MB floppy diskette (SHORK DISKETTE) are also available.
 
 <p align="center"><img alt="A photo of SHORK 486 running on an IBM ThinkPad 365ED after a cold boot" src="photos/20260223_365ed.jpg" width="512"></p>
 
@@ -28,6 +28,10 @@ Besides being something fun to try on old PCs, SHORK 486 was founded on the beli
 
 SHORK 486 is a modern and maintained Linux distribution that can run on a processor architecture from 1989. Depending on configuration, it only requires between 8 and 24MiB system memory whilst still packing a lot of functionality for its size. Due to various factors, making such a distribution is increasingly difficult in the 2020s. System requirements are ever-increasing, with even the otherwise excellent Micro Core and Tiny Core requiring at least 26-46MB RAM, putting them out of range of many early 486 systems. As of Linux kernel 7.1 and beyond, support for 486 processors and various ISA and PCMCIA networking hardware has been dropped, and 32-bit x86 support in general is currently dropped by most mainstream distributions. Given this situation, SHORK 486 will try to fill this niche of a ready-to-go Linux distribution for such PCs by sticking with a minimal-where-possible philosophy, customisability and restoring support for older hardware with newer Linux kernels!
 
+### Licences
+
+SHORK 486 is a free and open-source operating system. Its core is made up of [GPLv3](COPYING) (SHORK, SHORK Utilities, SHORK Entertainment) and [GPLv2](https://docs.kernel.org/process/license-rules.html) (Linux kernel, BusyBox, SYSLINUX) components. The contents of the `shork-486/patches` directory are also licensed under GPLv2 as they are derived from Linux kernel and BusyBox source code. SHORK 486 can also contain bundled software licensed under various permissive, copyleft, and even public-domain-equivalent licences. You can look at the bundled software list later in this README, or at the "Licences" portal in `shorkhelp` when running SHORK 486, to see their licences.
+
 
 
 ## SHORK 486
@@ -37,43 +41,58 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 ### Hardware requirements
 
 * Processor: Intel 486SX or compatible (no FPU required)
-* Memory: 16MiB minimum/24MiB recommended (default build); 8/10MiB (minimal); 24/32MiB (maximal)
-* Disk: 80MiB IDE or SCSI (default); 8MiB (minimal); 400MiB (maximal)
+* Memory:
+    * **Default: 16MiB RAM (8MiB swap recommended)**
+    * Maximal: 32MiB RAM (recommended), 24MiB RAM + 8MiB swap (acceptable)
+    * Plus: 24MiB RAM + 8MiB swap (recommended), 16MiB RAM + 16MiB swap (acceptable)
+    * Offline: 12MiB RAM (8MiB swap recommended)
+    * Minimal: 8MiB RAM
+* IDE or SCSI disk: 
+    * **Default: 80MiB**
+    * Maximal: 440MiB
+    * Plus: 400MiB
+    * Offline: 60MiB
+    * Minimal: 8MiB
 * Graphics: IBM VGA or compatible (for most programs); VBE 2.0-compatible (for `shorkgui` and VBE resolutions in `shorkset`)
 * Monitor: VGA (640x480) or higher
 
 ### BusyBox & util-linux
 
-addgroup, adduser, ar, arch, ascii, ash, awk, basename, bc, beep, blkid, cal, cat, chgrp, chmod, chown, chpasswd, chroot, chvt, clear, cp, crontab, cryptpw, cut, date, dc, dd, delgroup, deluser, df, diff, dirname, dmesg, dos2unix, du, echo, ed, eject, env, expand, expr, false, fdformat, fdisk, find, fold, free, ftpget, ftpput, getfattr, getty, grep, gzip, halt, head, hexdump, hostname, ifconfig, init, ip, kill, killall, less, ln, loadkmap, login, losetup, ls, lsblk, lscpu, lspci, lsusb, man, mdev, mkdir, mkdosfs/mkfs.ext2, mke2fs/mkfs.vfat, mknod, mkpasswd, mkswap, mount, mountpoint, mv, nice, nohup, nproc, partprobe, partx, passwd, paste, patch, ping, pkill, pmap, printenv, printf, ps, pstree, pwd, readlink, rev, rm, rmdir, route, sed, seq, setfattr, setfont, sfdisk, showkey, sleep, stat, strace, stty, su, sulogin, swapoff, swapon, sync, tar, taskset, tee, telnet, test, time, top, touch, tr, traceroute, tree, true, truncate, tty, udhcpc, umount, uname, unexpand, unix2dos, unzip, uptime, users, usleep, uuidgen, vi, vmstat, volname, w, wc, wget, whereis, which, who, whoami, whois, xxd, xz, yes
+addgroup, adduser, ar, arch, ascii, ash, awk, basename, bc, beep, blkid, bunzip2, bzcat, bzip2, cal, cat, chgrp, chmod, chown, chpasswd, chroot, chvt, clear, cp, cpio, crontab, cryptpw, cut, date, dc, dd, delgroup, deluser, df, diff, dirname, dmesg, dos2unix, du, echo, ed, eject, env, expand, expr, false, fdformat, fdisk, find, fold, free, ftpget, ftpput, getfattr, getty, grep, gunzip, gzip, halt, head, hexdump, hostname, ifconfig, init, ip, kill, killall, less, ln, loadkmap, login, losetup, ls, lsblk, lscpu, lspci, lsusb, lzcat, lzma, lzop, lzopcat, man, mdev, mkdir, mkdosfs/mkfs.ext2, mke2fs/mkfs.vfat, mknod, mkpasswd, mkswap, mount, mountpoint, mv, nice, nohup, nproc, partprobe, partx, passwd, paste, patch, ping, pkill, pmap, printenv, printf, ps, pstree, pwd, readlink, rev, rm, rmdir, route, sed, seq, setfattr, setfont, sfdisk, showkey, sleep, stat, strace, stty, su, sulogin, swapoff, swapon, sync, tar, taskset, tee, telnet, test, time, top, touch, tr, traceroute, tree, true, truncate, tty, udhcpc, umount, uname, uncompress, unexpand, unix2dos, unlzma, unlzop, unxz, unzip, uptime, users, usleep, uuidgen, vi, vmstat, volname, w, wc, wget, whereis, which, who, whoami, whois, xxd, xz, xzcat, yes, zcat
 
 ### Bundled software
 
-* [file](https://github.com/file/file) (file identification)
-* ftp (FTP client, [tnftp](https://ftp.netbsd.org/pub/NetBSD/misc/tnftp/))
-* [git](https://git-scm.com/) (Git source control client)
-* [htop](https://github.com/htop-dev) (interactive process viewer)
-* [lynx](https://github.com/ThomasDickey/lynx-snapshots) (terminal web browser)
-* [mg](https://github.com/troglobit/mg) (Emacs-style text editor)
-* [micropython](https://github.com/micropython/micropython) (Python 3.4-syntax intepreter)
-* mt (tape drive control, [mt-st](https://github.com/iustin/mt-st))
-* [nano](https://www.nano-editor.org) (text editor)
-* scp (SCP client, [Dropbear](https://github.com/mkj/dropbear))
-* [sc-im](https://github.com/andmarti1424/sc-im) (terminal spreadsheet editor)
-* ssh (SSH client, [Dropbear](https://github.com/mkj/dropbear))
-* stinit (tape drive initialiser, [mt-st](https://github.com/iustin/mt-st))
-* [tcc](https://bellard.org/tcc/) with [musl](https://musl.libc.org/) (C compiler)
-* [tmux](https://github.com/tmux/tmux) (terminal multiplexer)
+#### Default
+
+| Name | Command(s) | Version | Purpose | Licence(s) |
+|------|------------|---------|---------|------------|
+| [Dropbear](https://github.com/mkj/dropbear) | `scp`, `ssh` | 2026.91 | SCP and SSH clients | MIT + BSD 2-Clause |
+| [file](https://github.com/file/file) | `file` | 5_48 | File identification | BSD 2-Clause |
+| [Git](https://github.com/git/git) | `git` | 2.55.0 | Source control client | GPLv2 |
+| [htop](https://github.com/htop-dev/htop) | `htop` | 3.5.1 | Interactive process viewer | GPLv2 |
+| [Lynx](https://github.com/ThomasDickey/lynx-snapshots) | `lynx` | 2-9-3a | Terminal web browser | GPLv2 |
+| [Mg](https://github.com/troglobit/mg) | `mg` | 3.7 | Emacs-style text editor | Unlicense |
+| [MicroPython](https://github.com/micropython/micropython) | `micropython` | 1.28.0 | Python 3.4-syntax intepreter | MIT |
+| [mt-st](https://github.com/iustin/mt-st) | `mt`, `stinit` | 1.8 | Tape drive tools | GPLv2 
+| [nano](https://www.nano-editor.org/dist) | `nano` | 9.1 | Pico-style text editor | GPLv3 |
+| [sc-im](https://github.com/andmarti1424/sc-im) | `sc-im` | 0.8.5 | Terminal spreadsheet editor | BSD 4-Clause |
+| [Tiny C Compiler](https://bellard.org/tcc/)‡ | `tcc` | `e5eedc0` | C compiler | LGPLv2.1 |
+| [tmux](https://github.com/tmux/tmux) | `tmux` | 3.7b | Terminal multiplexer | ISC |
+| [tnftp](https://ftp.netbsd.org/pub/NetBSD/misc/tnftp/) | `ftp` | 20260211 | FTP client | BSD 2-Clause |
 
 #### Optional
 
-* [c3270](https://github.com/pmattes/x3270) (3270 emulator) (EXPERIMENTAL)
-* [GCC with musl](https://musl.cc/)
-    * as (assembler)
-    * g++ (C++ compiler)
-    * gcc (C compiler)
-    * gfortran (Fortran compiler)
-* [joe](https://github.com/joe-editor/joe) (WordStar-style text editor)
-* [tn5250](https://github.com/tn5250/tn5250) (TCP/IP 5250 emulator) (EXPERIMENTAL)
+| Name | Command(s) | Version | Purpose | Licence(s) |
+|------|------------|---------|---------|------------|
+| [Binutils](https://musl.cc/)† | e.g. `ar`, `as`, `gprof`, `ld`, `nm`,<br>`objdump`, `ranlib`,`readelf`,<br>`strings`, `strip` | 2.37 | Binary tools to compliment GCC | GPLv3 |
+| [GCC](https://musl.cc/)†‡ | `gcc`, `g++`, `gfortran` | 11.2.1 | C, C++ and Fortran compilers | GPLv3 + GCC RLE |
+| [JOE](https://github.com/joe-editor/joe) | `joe` | 4.8 | WordStar-style text editor | GPLv2 |
+| [tn5250](https://github.com/tn5250/tn5250)* | `tn5250` | 0.18.0 | TCP/IP 5250 terminal emulator | LGPLv2.1 |
+| [x3270](https://github.com/pmattes/x3270)* | `c3270` | 4.5ga5 | 3270 terminal emulator | BSD 3-Clause |
+
+* _* Support for this is experimental - expect bugs_
+* _† GCC and Binutils are separate projects but are bundled together for SHORK 486_
+* _‡ [musl 1.2.6](https://musl.libc.org/) (MIT licensed) is included with GCC and Tiny C Compiler_
 
 ### SHORK Utilities (shorkutils)
 
@@ -109,7 +128,7 @@ addgroup, adduser, ar, arch, ascii, ash, awk, basename, bc, beep, blkid, cal, ca
 * dialog
 * IRC client (exact one TBD)
 * make
-* mpc/MPD
+* mpc/MPD or mpg321
 * w3m
 
 ### SHORK 486 on modern hardware
@@ -132,15 +151,16 @@ SHORK DISC is a specialised version of the SHORK 486 Operating System that can b
 
 ### Hardware requirements
 
+* BIOS: El Torito supported
 * Processor: Intel 486SX or compatible (no FPU required)
-* Memory: 8MiB minimum/16MiB recommended
+* Memory: 8MiB RAM
 * Disc: any CD+/-R/RW
 * Graphics: IBM VGA or compatible
 * Monitor: VGA (640x480) or higher
 
 ### BusyBox & util-linux
 
-ash, awk, basename, cat, clear, cp, date, dd, df, diff, dirname, dmesg, echo, ed, eject, expr, fdformat, fdisk, free, grep, hexdump, hostname, init, less, ln, ls, lsblk, lscpu, mdev, mkdir, mount, mv, partx, patch, printenv, printf, pwd, rev, rm, sed, sfdisk, strace, sync, tee, test, touch, true, umount, uname, vi, whereis, which, xxd
+ar, ash, awk, basename, bunzip2, bzcat, bzip2, cat, clear, cp, cpio, date, dd, df, diff, dirname, dmesg, echo, ed, eject, expr, fdformat, fdisk, free, grep, gunzip, gzip, hexdump, hostname, init, less, ln, ls, lsblk, lscpu, lzcat, lzma, lzop, lzopcat, mdev, mkdir, mount, mv, partx, patch, printenv, printf, pwd, rev, rm, sed, sfdisk, strace, sync, tar, tee, test, touch, true, umount, uname, uncompress, unlzma, unlzop, unxz, unzip, vi, whereis, which, xxd, xz, xzcat, zcat
 
 ### Bundled software
 
@@ -166,7 +186,7 @@ SHORK DISKETTE is a specialised version of the SHORK 486 Operating System that i
 ### Hardware requirements
 
 * Processor: Intel 486SX or compatible (no FPU required)
-* Memory: 16MiB minimum/24MiB recommended
+* Memory: 16MiB RAM
 * Diskette: 1.44 or 2.88MB
 * Graphics: IBM VGA or compatible
 * Monitor: VGA (640x480) or higher
@@ -182,19 +202,13 @@ ash, awk, basename, cat, clear, cp, date, dd, df, echo, expr, free, grep, hostna
 
 
 
-## Known issues
-
-* Despite working on a lot newer hardware, SHORK 486 and DISKETTE may run into a kernel panic with Intel Pentium Pro and some Intel Pentium II OverDrive processors. Research into the issue is ongoing.
-
-
-
 ## Building
 
-SHORK 486 and DISKETTE do not presently have or produce installation media, it must be compiled. The result are raw disk or diskette images you can write to real hardware or use as-is in emulation or virtualisation software. Building may require up to 5GiB of disk space. Please read "Notice & disclaimers" at the end of this readme before proceeding. 
+SHORK 486, DISC and DISKETTE do not presently have released compilations or media, so it must be compiled. The result are raw disk, disc or diskette images you can write to real hardware or use as-is in emulation or virtualisation software. Building may require up to 5GiB of disk space. Please read "Notice & disclaimers" at the end of this readme before proceeding. 
 
 ### Configuration
 
-Whilst you *can* build SHORK 486 immediately, it is recommended to first run the SHORK 486 Build Configurator (`config.sh`) whilst in the `shork-486` directory to tailor SHORK 486 to your liking.
+Whilst you *can* build SHORK 486 proper immediately, it is recommended to first run the SHORK 486 Build Configurator (`config.sh`) whilst in the `shork-486` directory to select SHORK DISC or SHORK DISKETTE if needed, and to tailor SHORK 486 to your liking.
 
 ### Native building
 
@@ -214,9 +228,10 @@ Once built, one or more disk images and an after-build report (`report.txt`) sho
 
 * `shork-486.img`: Can be used as-is with PC emulation software like 86Box or written to a real disk using (e.g.) `dd`.
 * `shork-486.vmdk`: Can be used as-is with VMware Workstation or Player.
-* `shork-diskette.img` Can be used as-is as an attached floppy diskette on most PC emulation and virtualisation software or written to a real diskette using (e.g.) `dd`.
+* `shork-disc.iso` Can be used as-is as an inserted optical disc on most PC emulation and virtualisation software or burned to a real disc using burning software.
+* `shork-diskette.img` Can be used as-is as an inserted floppy diskette on most PC emulation and virtualisation software or written to a real diskette using (e.g.) `dd`.
 
-It is recommended to move or copy the images out of this directory before extensive or serious use because they will be replaced if the build process is rerun. The after-build report is provided to confirm whether the build was completed as intended. It confirms the type of build made, the time it took to create, the minimum system memory requirement, some handy disk/diskette image statistics, and which programs or features are included or excluded.
+It is recommended to move or copy the images out of this directory before extensive or serious use because they will be replaced if the build process is rerun. The after-build report is provided to confirm whether the build was completed as intended. It confirms the type of build made, the time it took to create, the minimum system memory requirement, some handy disk/disc/diskette image statistics, and which programs or features are included or excluded.
 
 
 
@@ -235,28 +250,30 @@ It is recommended to move or copy the images out of this directory before extens
 When running the SHORK 486 Build Configurator, you will be prompted to select the following:
 
 * Build environment (Arch native, Debian native/Dockerised or Fedora native)
-* Target distribution (SHORK 486 or SHORK DISKETTE)
-* Linux kernel version (7.1.2 or 7.0.14)
+* Target distribution (SHORK 486, SHORK DISC or SHORK DISKETTE)
+* Linux kernel version (7.2-rc1, 7.1.2 or 7.0.14)
 * _If SHORK 486:_
-    * Build type (default, offline, minimal, maximal or custom)
+    * Build type (default, maximal, plus, offline, minimal or custom)
     * Target disk size (size in MiB)
     * Swap partition size (size in MiB)
 * _If SHORK DISKETTE:_
     * Target diskette size (1.44MB or 2.88MB)
 * Keyboard scancode set (skip, set 2 or set 3)
 * _If SHORK 486:_
-    * If not "Minimal" build type selected:
+    * __If not "Minimal" build type selected:__
         * Keyboard layout (keymap) (single choice)
 * Hostname (text input)
 * _If SHORK 486:_
-    * If not "Minimal" build type selected:
+    * __If not "Minimal" build type selected:__
         * Multi-user support (yes/no)
             * Root password (text input)
-    * If "Custom" build type selected:
+    * Serial console mode (yes/no)
+        * Serial console port (text input)
+    * __If "Custom" build type selected:__
         * Ethernet networking support (yes/no)
 * Patched EXTLINUX/SYSLINUX (yes/no)
 * _If SHORK 486:_
-    * If "Custom" build type selected:
+    * __If "Custom" build type selected:__
         * Bundled software (multiple choice)
         * Options (all other configuration) (multiple choice)
 
@@ -266,16 +283,13 @@ Below are further explanations for options that could not fit into the configura
 
 #### Build Type
 
-* **Default**: Builds SHORK 486 to the author's recommended configuration, trying to balance features and bundled software variety with system requirements. A default build requires 16MiB system memory and ~80MiB disk size.
-
-* **Offline**: The same as a default build but _without_ full networking support or software that requires an internet connection. An offline build requires 12MiB system memory and ~60MiB disk size.
-    * The after-build report will still report that "kernel-level networking support (base)" is included. This is required to satisfy htop's kernel requirements, but the kernel is still incapable of supporting real network connections.
-
-* **Minimal**: Builds SHORK 486 to its most minimal configuration. All bundled software and additional features are excluded, and multi-user system, networking and non-US keyboard layout support are disabled. A minimal build requires 8MiB system memory and ~8MiB disk size.
-
-* **Maximal**: Builds SHORK 486 with every bundled software or additional feature option enabled. It is provided as a curiosity for more modern hardware; it is not recommended for 486 and Pentium (P5)-era hardware. A maximal build requires 24MiB system memory and ~480MiB disk size.
-
-* **Custom**: You will later be asked to pick and choose bundled software and additional features. System memory and disk size requirements depend on what you choose.
+* **Default**: Builds SHORK 486 to the author's recommended configuration, trying to balance features and bundled software variety with system requirements.
+* **Maximal**: Builds SHORK 486 with every bundled software or additional feature option enabled. It is provided as a curiosity for more modern hardware; it is not recommended for 486 and Pentium (P5)-era hardware.
+* **Plus**: The same as a default but but _with_ all optional bundled software included.
+* **Offline**: The same as a default build but _without_ full networking support or software that requires an internet connection.
+    * The after-build report will still report that "kernel-level networking support (base)" is included. This is a technicality required to satisfy htop's kernel requirements, but the kernel is still incapable of supporting real network connections.
+* **Minimal**: Builds SHORK 486 to its most minimal configuration. All bundled software and additional features are excluded, and multi-user system, networking and non-US keyboard layout support are disabled.
+* **Custom**: You will later be asked to pick and choose bundled software and additional features.
 
 
 
@@ -302,9 +316,9 @@ Selecting "Yes" here will enable ethernet networking support in SHORK 486. BusyB
 
 
 
-#### Patched EXTLINUX/SYSLINUX
+#### Patched EXTLINUX/ISOLINUX/SYSLINUX
 
-EXTLINUX (SHORK 486) and SYSLINUX (SHORK DISKETTE) are the default bootloaders used for the SHORK 486 family. Selecting "Yes" here will tell the build script to use [my forked SYSLINUX repository](https://github.com/SharktasticA/syslinux) instead of your host Linux distribution's maintained packaged version. This version addresses a memory detection error to resolve the "Booting kernel failed: Invalid argument" or boot menu looping issue that the stock EXTLINUX/SYSLINUX may encounter with some BIOSes when attempting to boot the kernel with.
+EXTLINUX (SHORK 486), ISOLINUX (SHORK DISC) and SYSLINUX (SHORK DISKETTE) are the default bootloaders used for the SHORK 486 family. Selecting "Yes" here will tell the build script to use [my forked SYSLINUX repository](https://github.com/SharktasticA/syslinux) instead of your host Linux distribution's maintained packaged version. This version addresses a memory detection error to resolve the "Booting kernel failed: Invalid argument" or boot menu looping issue that the stock EXTLINUX/SYSLINUX may encounter with some BIOSes when attempting to boot the kernel with.
 
 * Some people need this, some people do not - see the list below, or try without first, then enable this if this error or something like it occurs.
 * Known hardware that need this includes: Chicony NB5 & [derivatives](https://www.macdat.net/laptops/chicony/nb5.php), HP OmniBook 800CT, IBM 2625 ThinkPad 365E/365ED, IBM 6381 PS/ValuePoint
@@ -319,7 +333,7 @@ EXTLINUX (SHORK 486) and SYSLINUX (SHORK DISKETTE) are the default bootloaders u
 
 * **file**: Adds the `file` command, which can identify a file's type by checking its contents against a database of possible magic signatures. Due to the size of said database, 16MiB RAM is required for it to work correctly.
 
-* **gcc**: Adds the GNU Assembler, GCC's C, C++ and Fortran compiler and musl C standard library. Using `g++` requires more system memory than usual, hence it is not included by default. RAM requirements are ideally 32MiB if no swap partition, 24MiB with 8MiB swap or 16MiB with 16MiB swap.
+* **gcc**: Adds the GNU Assembler, GCC's C, C++ and Fortran compiler and musl C standard library. Using `g++` requires more system memory than usual, hence it is not included by default. Memory requirements are ideally 32MiB system memory if no swap partition, 24MiB with 8MiB swap or 16MiB with 16MiB swap.
 
 * **shorktainment**: Includes the SHORK Entertainment programs bundle: shorklocomotive, shorkmatrix, and shorksay.
 
@@ -335,6 +349,8 @@ EXTLINUX (SHORK 486) and SYSLINUX (SHORK DISKETTE) are the default bootloaders u
         * A PCI graphics card supported by `vesafb`
 
 * **highmem**: Adds kernel-level high memory support and declares that non-reserved physical memory starts at 16MiB instead of 1MiB. In general, this is provided in case someone wanted to try SHORK 486 on a more modern system with more than 875MiB RAM. **It is not needed for most '90s hardware**. Its RAM requirements are 24MiB with no swap partition or 16MiB with 8MiB swap.
+
+* **no-vdso32**: Adds `vdso32=0` to the Linux kernel command line to disable 32-bit vDSO and its SEP-based (SYSENTER/SYSEXIT) syscall path in favour of the universal `int $0x80`. This is enabled by default as it does not affect 486/586 performance but prevents a kernel panic with Intel Pentium Pro and Socket 8 Pentium II OverDrive processors that report SEP via CPUID but in fact do not work with it. If you plan to use SHORK 486 on 'real' Intel Pentium II or newer processors, you can disable this for a marginal performance gain.
 
 * **pci.ids**: Includes a database of graphics card PCI vendor and device IDs. It is safe to exclude it, but `shorkfetch` will not be able to identify any installed graphics cards.
 
@@ -380,7 +396,7 @@ These build script parameters are provided to help automate its use, especially 
 
 * `patches`: Contains diff patches for the Linux kernel and BusyBox to restore removed functionality/implement new functionality required for SHORK 486.
 
-* `payload`: 
+* `payload`: A place to put files you wish to bundle into a SHORK DISC image.
 
 * `release`: 
 
@@ -404,12 +420,12 @@ When built as a single-user system or a multi-user system with no additional use
 
 
 
+## AI policy
+
+SHORK 486 itself, SHORK Utilities and SHORK Entertainment are developed under a **no LLM-generated code or documentation** policy. PR requests that contain contributions from an LLM bot or are obviously LLM-generated/vibecoded will be denied. I cannot vouch this for third-party bundled software, or that the tutorials I'm learning from and sources I'm reading weren't influenced by LLM content unbeknownst to me, but I will do my best to recognise such and ensure this doesn't affect the things I control. Even considering locally-trained models or limiting LLM usage to speeding up repetitive tasks (etc.), my wish is for the SHORK family to be a human-made project. :)
+
+
+
 ## Acknowledgements
 
 * This product includes software developed by Andrés Martinelli <andmarti@gmail.com> (sc-im).
-
-
-
-## Licences
-
-SHORK 486 itself, SHORK Utilities and SHORK Entertainment are all licensed under [GPL 3.0 terms](COPYING). The contents of the `shork-486/patches` directory are licensed under [GPL 2.0 terms](https://docs.kernel.org/process/license-rules.html) as they are derived from Linux kernel and BusyBox source code.
