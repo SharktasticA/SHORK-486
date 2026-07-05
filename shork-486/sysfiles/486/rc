@@ -59,6 +59,11 @@ if [ -f /etc/shorkset.conf ]; then
     if [ "$KEYMAP" != "us" ] && [ -f "/usr/share/keymaps/$KEYMAP.kmap.bin" ]; then
         loadkmap < "/usr/share/keymaps/$KEYMAP.kmap.bin"
     fi
+
+    # Load system volume
+    if [ -c /dev/dsp ] && [ "$VOLUME" -ge 0 ] 2>/dev/null && [ "$VOLUME" -le 100 ] 2>/dev/null; then
+        /usr/libexec/shorkset -vl=$VOLUME
+    fi
 fi
 
 export ENV=/etc/profile

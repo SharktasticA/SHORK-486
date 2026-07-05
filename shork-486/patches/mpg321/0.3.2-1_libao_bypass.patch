@@ -1,0 +1,304 @@
+diff --git a/ao.c b/ao.c
+index 4d9fc42..9ef6c2d 100644
+--- a/ao.c
++++ b/ao.c
+@@ -35,6 +35,9 @@
+ #include <stdio.h>
+ #include <string.h>
+ #include <signal.h>
++#include <sys/soundcard.h>
++
++int oss_fd = -1;
+ 
+ void set_play_device(char *devicename)
+ {
+@@ -502,25 +505,23 @@ void open_ao_playdevice(struct mad_header const *header)
+             } else opened++;
+         }
+ 
+-        if(!opened &&  options.opt & MPG321_USE_OSS)
++        if(!opened && options.opt & MPG321_USE_OSS)
+         {
+-            ao_option *ao_options = NULL;
+-            int driver_id = ao_driver_id("oss");
+-
+-            if(options.device)
+-                ao_append_option(&ao_options, "dsp", options.device);
+-
+-            if((playdevice=ao_open_live(driver_id, &format, ao_options))==NULL)
+-            {
+-                if (options.device)
+-                {
+-                    fprintf(stderr, "Can't open libao driver with device %s (is device in use?)\n",
+-                        options.device);
+-                    exit(1);
+-                }
+-                else
+-                options.opt |= MPG321_USE_SUN;
+-            } else opened++;
++            const char *dsp = options.device ? options.device : "/dev/dsp";
++            int fmt = AFMT_S16_LE;
++            int ch = MAD_NCHANNELS(header);
++            int sp = header->samplerate;
++            
++            oss_fd = open(dsp, O_WRONLY);
++            if (oss_fd >= 0) {
++                int frag = 0x0004000a;
++                if (ioctl(oss_fd, SNDCTL_DSP_SETFRAGMENT, &frag) < 0) perror("SETFRAGMENT");
++                ioctl(oss_fd, SNDCTL_DSP_SETFMT, &fmt);
++                ioctl(oss_fd, SNDCTL_DSP_CHANNELS, &ch);
++                ioctl(oss_fd, SNDCTL_DSP_SPEED, &sp);
++                playdevice = (ao_device *)&oss_fd;
++                opened++;
++            }
+         }
+ 
+         if(!opened && options.opt & MPG321_USE_SUN)
+@@ -588,7 +589,7 @@ void open_ao_playdevice(struct mad_header const *header)
+ ao_device *open_ao_playdevice_buffer(struct mad_header const *header)
+ {
+         ao_sample_format format;
+-	ao_device *pldev = NULL;
++        ao_device *pldev = NULL;
+ 
+         /* Because these can sometimes block, we stop our custom signal handler,
+            and restore it afterwards */
+@@ -797,25 +798,23 @@ ao_device *open_ao_playdevice_buffer(struct mad_header const *header)
+             } else opened++;
+         }
+ 
+-        if(!opened &&  options.opt & MPG321_USE_OSS)
++        if(!opened && options.opt & MPG321_USE_OSS)
+         {
+-            ao_option *ao_options = NULL;
+-            int driver_id = ao_driver_id("oss");
+-
+-            if(options.device)
+-                ao_append_option(&ao_options, "dsp", options.device);
++            const char *dsp = options.device ? options.device : "/dev/dsp";
++            int fmt = AFMT_S16_LE;
++            int ch = format.channels;
++            int sp = format.rate;
+ 
+-            if((pldev=ao_open_live(driver_id, &format, ao_options))==NULL)
+-            {
+-                if (options.device)
+-                {
+-                    fprintf(stderr, "Can't open libao driver with device %s (is device in use?)\n",
+-                        options.device);
+-                    return NULL;
+-                }
+-                else
+-                options.opt |= MPG321_USE_SUN;
+-            } else opened++;
++            oss_fd = open(dsp, O_WRONLY);
++            if (oss_fd >= 0) {
++                int frag = 0x0004000a;
++                if (ioctl(oss_fd, SNDCTL_DSP_SETFRAGMENT, &frag) < 0) perror("SETFRAGMENT");
++                ioctl(oss_fd, SNDCTL_DSP_SETFMT, &fmt);
++                ioctl(oss_fd, SNDCTL_DSP_CHANNELS, &ch);
++                ioctl(oss_fd, SNDCTL_DSP_SPEED, &sp);
++                pldev = (ao_device *)&oss_fd;
++                opened++;
++            }
+         }
+ 
+         if(!opened && options.opt & MPG321_USE_SUN)
+diff --git a/fbuffer.c b/fbuffer.c
+index aff9d70..3306d4d 100644
+--- a/fbuffer.c
++++ b/fbuffer.c
+@@ -21,8 +21,9 @@
+ #include <sys/types.h>
+ #include <unistd.h>
+ #include <signal.h>
+-#include <ao/ao.h>
+ #include <sys/sem.h>
++#include <unistd.h>
++#include <errno.h>
+ 
+ #include "mpg321.h"
+ 
+@@ -30,10 +31,16 @@ ao_device *play_device = NULL;
+ extern int quit_now;
+ extern int stop_playing_file;
+ extern int buffer_size;
++extern int oss_fd;
+ signed long total_played_frames = 0;
+ 
+-void output_sighandler (int sig)	{
+-	ao_close (play_device);
++void output_sighandler (int sig){
++	if (oss_fd >= 0) {
++		close(oss_fd);
++		oss_fd = -1;
++	} else {
++		ao_close (play_device);
++	}
+ 	ao_shutdown ();
+ 	exit (EXIT_SUCCESS);
+ }
+@@ -76,7 +83,12 @@ void frame_buffer_p(){
+ 				handle_signals (SIGUSR1);
+ 			}
+ 		} else if ((channels != MAD_NCHANNELS(header) || rate != header->samplerate) && playdevice_is_live()){
+-			ao_close(play_device);
++			if (oss_fd >= 0) {
++				close(oss_fd);
++				oss_fd = -1;
++			} else {
++				ao_close(play_device);
++			}
+ 			channels = MAD_NCHANNELS(header);
+ 			rate = header->samplerate;
+ 			play_device = open_ao_playdevice_buffer(header);
+@@ -117,7 +129,21 @@ void frame_buffer_p(){
+ 			semop(semarray,&end_sops,1);
+ 			continue;
+ 		}
+-		ao_play(play_device, oframe->data, oframe->length);
++
++		if (oss_fd >= 0) {
++			ssize_t off = 0, n;
++			while (off < oframe->length) {
++				n = write(oss_fd, (char *)oframe->data + off, oframe->length - off);
++				if (n <= 0) {
++					if (errno == EINTR) continue;
++					break;
++				}
++				off += n;
++			}
++		} else {
++			ao_play(play_device, oframe->data, oframe->length);
++		}
++
+ 		total_played_frames+=1;
+ 		dframes->total_played_frames += 1;
+ 		output_buffer_position = getnext_place(output_buffer_position);
+diff --git a/mad.c b/mad.c
+index ddc0a2e..1881530 100644
+--- a/mad.c
++++ b/mad.c
+@@ -968,7 +968,13 @@ enum mad_flow output(void *data,
+ 	    }
+ 	    else if ((channels != MAD_NCHANNELS(header) || rate != header->samplerate) && playdevice_is_live())
+ 	    {
+-	    	    ao_close(playdevice);
++                extern int oss_fd;
++                if (oss_fd >= 0) {
++                    close(oss_fd);
++                    oss_fd = -1;
++                } else {
++                    ao_close(playdevice);
++                }
+ 	    	    channels = MAD_NCHANNELS(header);
+ 	    	    rate = header->samplerate;
+ 	    	    open_ao_playdevice(header);        
+@@ -1016,7 +1022,11 @@ enum mad_flow output(void *data,
+ 		(Output_Queue+mad_decoder_position)->length = pcm->length * 4;
+ 	}else
+ 	{
+-		ao_play(playdevice, stream, pcm->length * 4);
++        extern int oss_fd;
++        if (oss_fd >= 0)
++            write(oss_fd, stream, pcm->length * 4);
++        else
++            ao_play(playdevice, stream, pcm->length * 4);
+ 	}
+     }
+     
+@@ -1048,7 +1058,11 @@ enum mad_flow output(void *data,
+ 		(Output_Queue+mad_decoder_position)->length = pcm->length * 4;
+ 	}else
+ 	{
+-		ao_play(playdevice, stream, pcm->length * 4);
++		extern int oss_fd;
++        if (oss_fd >= 0)
++            write(oss_fd, stream, pcm->length * 4);
++        else
++            ao_play(playdevice, stream, pcm->length * 4);
+ 	}
+     }
+         
+@@ -1076,7 +1090,11 @@ enum mad_flow output(void *data,
+ 		(Output_Queue+mad_decoder_position)->length = pcm->length * 2;
+ 	}else
+ 	{
+-		ao_play(playdevice, stream, pcm->length * 2);
++		extern int oss_fd;
++        if (oss_fd >= 0)
++            write(oss_fd, stream, pcm->length * 2);
++        else
++            ao_play(playdevice, stream, pcm->length * 2);
+ 	}
+     }
+ 
+diff --git a/mpg321.c b/mpg321.c
+index 19282bb..67473c8 100644
+--- a/mpg321.c
++++ b/mpg321.c
+@@ -36,6 +36,7 @@
+ #include <math.h>
+ #include <libgen.h>
+ #include <signal.h>
++#include <ao/ao.h>
+ #include <limits.h>
+ #include <sys/time.h>
+ #include <assert.h>
+@@ -61,6 +62,7 @@
+ 
+ /* POSIX threads */
+ #include <pthread.h>
++#include <errno.h>
+ #include <semaphore.h>
+ 
+ 
+@@ -316,6 +318,7 @@ static int parse_id3( char *names[], const struct id3_tag *tag)
+ 
+ void mpg123_boilerplate()
+ {
++    return;
+     fprintf(stderr,"High Performance MPEG 1.0/2.0/2.5 Audio Player for Layer 1, 2, and 3.\n"
+         "Version " FAKEVERSION " (" VERSIONDATE "). Written and copyrights by Joe Drew,\n"
+ 	"now maintained by Nanakos Chrysostomos and others.\n"
+@@ -1152,10 +1155,15 @@ fall_back_to_read_from_fd:	//FIXME. Reported that on some embedded systems with
+ 
+     if(!(options.opt & MPG321_ENABLE_BUFFER))
+     {
+-  	     if(playdevice)
+-		     ao_close(playdevice);
+-	     ao_shutdown();
+-     }
++        extern int oss_fd;
++        if (oss_fd >= 0) {
++            close(oss_fd);
++            oss_fd = -1;
++        } else if (playdevice) {
++            ao_close(playdevice);
++        }
++        ao_shutdown();
++    }
+ 
+      if (!(options.opt & MPG321_REMOTE_PLAY))
+      {
+diff --git a/mpg321.h b/mpg321.h
+index 798bff0..88f9ee3 100644
+--- a/mpg321.h
++++ b/mpg321.h
+@@ -36,7 +36,7 @@
+ #include <sys/types.h>
+ #include <stdio.h>
+ #include <limits.h>
+-#include <ao/ao.h>
++#include <ao/ao.h> 
+ #include <mad.h>
+ #include <semaphore.h>
+ 
+@@ -200,6 +200,7 @@ void check_ao_default_play_device();
+ void check_default_play_device();
+ int playdevice_is_live();
+ void open_ao_playdevice(struct mad_header const *header);
++ao_device *open_ao_playdevice_buffer(struct mad_header const *header);
+ 
+ /* remote control (-R) functions */
+ void remote_get_input_wait(buffer *buf);

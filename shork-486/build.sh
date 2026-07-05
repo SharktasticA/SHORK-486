@@ -494,9 +494,10 @@ if $INCLUDE_GIT; then
 fi
 
 if $INCLUDE_MPG321; then
-    NEED_LIBAO=true
+    NEED_ZLIB=true
     NEED_LIBID3TAG=true
     NEED_LIBMAD=true
+    NEED_LIBAO=true
 fi
 
 if $INCLUDE_SC_IM; then
@@ -939,8 +940,8 @@ get_libao()
         --host=$HOST \
         --build=x86_64-linux-gnu \
         --prefix=/usr \
-        --enable-shared \
-        --disable-static \
+        --disable-shared \
+        --enable-static \
         --disable-alsa \
         --disable-esd \
         --disable-arts \
@@ -951,16 +952,16 @@ get_libao()
         CPPFLAGS="-I$SYSROOT/usr/include" \
         CFLAGS="-fPIC" \
         LDFLAGS="-L$SYSROOT/usr/lib"
-
     make -j$(nproc)
     make DESTDIR=$SYSROOT install
 
-    sudo mkdir -p $DESTDIR/lib
-    sudo mkdir -p $DESTDIR/usr/lib/ao/plugins-4/
-    sudo cp $SYSROOT/lib/libc.so $DESTDIR/lib/
-    sudo cp $SYSROOT/usr/lib/libao.so* $DESTDIR/usr/lib/
-    sudo cp $SYSROOT/usr/lib/ao/plugins-4/liboss.so $DESTDIR/usr/lib/ao/plugins-4/
-    sudo ln -sf libc.so $DESTDIR/lib/ld-musl-i386.so.1
+    # FOLLOWING NO LONGER NEEDED SINCE MPG321 PATCHES OUT REAL LIBAO USAGE
+    #sudo mkdir -p $DESTDIR/lib
+    #sudo mkdir -p $DESTDIR/usr/lib/ao/plugins-4/
+    #sudo cp $SYSROOT/lib/libc.so $DESTDIR/lib/
+    #sudo cp $SYSROOT/usr/lib/libao.so* $DESTDIR/usr/lib/
+    #sudo cp $SYSROOT/usr/lib/ao/plugins-4/liboss.so $DESTDIR/usr/lib/ao/plugins-4/
+    #sudo ln -sf libc.so $DESTDIR/lib/ld-musl-i386.so.1
 }
 
 # Download and compile libevent (required for tmux)
@@ -1021,6 +1022,8 @@ get_libmad()
     cp "${CURR_DIR}/compilation/config.guess" config.guess
     cp "${CURR_DIR}/compilation/config.sub" config.sub
 
+    local CFLAGS="-static -O2 -march=i486 -mtune=i486 -fomit-frame-pointer -I$SYSROOT/usr/include"
+
     # Compile and install
     echo -e "${GREEN}Compiling libmad...${RESET}"
     ./configure \
@@ -1031,10 +1034,9 @@ get_libmad()
         AR=$AR \
         CC=$CC_STATIC \
         RANLIB=$RANLIB \
-        CFLAGS="-static -I$SYSROOT/usr/include" \
+        CFLAGS="${CFLAGS}" \
         LDFLAGS="-static -L$SYSROOT/usr/lib"
-
-    make -j$(nproc)
+    make CFLAGS="${CFLAGS}" -j$(nproc)
     make DESTDIR=$SYSROOT install
 }
 
@@ -4187,9 +4189,9 @@ get_mpg321()
     cd "$CURR_DIR/build"
 
     # Skip if already compiled
-    if [ -f "$DESTDIR/usr/mpg321" ]; then
+    if [ -f "$DESTDIR/usr/bin/mpg321" ]; then
         echo -e "${LIGHT_RED}mpg321 already compiled, skipping...${RESET}"
-        return
+        #return
     fi
 
     # Download source
@@ -4213,6 +4215,9 @@ get_mpg321()
     # Prevent make from trying to regenerate autotools files
     touch aclocal.m4 configure config.h.in Makefile.in
 
+    # Patch out need for libao
+    patch -p1 < "${PATCHES_DIR}/mpg321/0.3.2-1_libao_bypass.patch"
+
     # Compile and install
     echo -e "${GREEN}Compiling mpg321...${RESET}"
     ./configure \
@@ -4227,7 +4232,8 @@ get_mpg321()
         CPPFLAGS="-nostdinc -I$SYSROOT/usr/include -I$SYSROOT/include -I${PREFIX}/lib/gcc/i486-linux-musl/11.2.1/include" \
         CFLAGS="-static -fcommon -std=gnu89" \
         LDFLAGS="-static -L$SYSROOT/usr/lib" \
-        PKG_CONFIG_PATH="$SYSROOT/usr/lib/pkgconfig" \
+        LIBAO_LIBS="-L$SYSROOT/usr/lib -lao" \
+        LIBAO_CFLAGS="-I$SYSROOT/usr/include" \
         ac_cv_func_malloc_0_nonnull=yes \
         ac_cv_func_realloc_0_nonnull=yes
     make -j$(nproc)
@@ -6676,11 +6682,11 @@ get_installed_programs_features()
             EXCLUDED_FEATURES+="\n * micropython"
         fi
 
-        #if [ -f "$DESTDIR/usr/bin/mpg321" ]; then
-        #    INCLUDED_FEATURES+="\n * mpg321 ($MPG321_VER)"
-        #else
-        #    EXCLUDED_FEATURES+="\n * mpg321"
-        #fi
+        if [ -f "$DESTDIR/usr/bin/mpg321" ]; then
+            INCLUDED_FEATURES+="\n * mpg321 ($MPG321_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * mpg321"
+        fi
 
         if [ -f "$DESTDIR/bin/mt" ]; then
             INCLUDED_FEATURES+="\n * mt (mt-st, $MT_ST_VER)"

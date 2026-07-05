@@ -65,6 +65,7 @@ INCLUDE_JOE=false
 INCLUDE_LYNX=false
 INCLUDE_MG=false
 INCLUDE_MICROPYTHON=false
+INCLUDE_MPG321=false
 INCLUDE_MT_ST=false
 INCLUDE_NANO=false
 INCLUDE_SC_IM=false
@@ -90,6 +91,7 @@ INCLUDE_PCI_IDS=false
 ENABLE_PCMCIA=false
 ENABLE_SATA=false
 ENABLE_SCSI_EXP=false
+ENABLE_SOUND=false
 ENABLE_SMP=false
 ENABLE_USB=false
 ENABLE_ZSWAP=false
@@ -166,6 +168,7 @@ save_env()
         echo "INCLUDE_LYNX=$INCLUDE_LYNX"
         echo "INCLUDE_MG=$INCLUDE_MG"
         echo "INCLUDE_MICROPYTHON=$INCLUDE_MICROPYTHON"
+        echo "INCLUDE_MPG321=$INCLUDE_MPG321"
         echo "INCLUDE_MT_ST=$INCLUDE_MT_ST"
         echo "INCLUDE_NANO=$INCLUDE_NANO"
         echo "INCLUDE_SC_IM=$INCLUDE_SC_IM"
@@ -191,6 +194,7 @@ save_env()
         echo "ENABLE_PCMCIA=$ENABLE_PCMCIA"
         echo "ENABLE_SATA=$ENABLE_SATA"
         echo "ENABLE_SCSI_EXP=$ENABLE_SCSI_EXP"
+        echo "ENABLE_SOUND=$ENABLE_SOUND"
         echo "ENABLE_SMP=$ENABLE_SMP"
         echo "ENABLE_USB=$ENABLE_USB"
         echo "ENABLE_ZSWAP=$ENABLE_ZSWAP"
@@ -230,6 +234,7 @@ set_minimal_vars()
     INCLUDE_LYNX=false
     INCLUDE_MG=false
     INCLUDE_MICROPYTHON=false
+    INCLUDE_MPG321=false
     INCLUDE_MT_ST=false
     INCLUDE_NANO=false
     INCLUDE_SC_IM=false
@@ -255,6 +260,7 @@ set_minimal_vars()
     ENABLE_PCMCIA=false
     ENABLE_SATA=false
     ENABLE_SCSI_EXP=false
+    ENABLE_SOUND=false
     ENABLE_SMP=false
     ENABLE_USB=false
     ENABLE_ZSWAP=false
@@ -274,6 +280,7 @@ set_default_vars()
     INCLUDE_LYNX=true
     INCLUDE_MG=true
     INCLUDE_MICROPYTHON=true
+    INCLUDE_MPG321=false
     INCLUDE_MT_ST=true
     INCLUDE_NANO=true
     INCLUDE_SC_IM=true
@@ -299,6 +306,7 @@ set_default_vars()
     ENABLE_PCMCIA=true
     ENABLE_SATA=false
     ENABLE_SCSI_EXP=true
+    ENABLE_SOUND=false
     ENABLE_SMP=false
     ENABLE_USB=false
     ENABLE_ZSWAP=true
@@ -321,16 +329,14 @@ set_plus_vars()
     INCLUDE_C3270=true
     INCLUDE_GCC=true
     INCLUDE_JOE=true
+    INCLUDE_MPG321=true
     INCLUDE_TN5250=true
+    ENABLE_SOUND=true
 }
 
 set_maximal_vars()
 {
-    set_default_vars
-    INCLUDE_C3270=true
-    INCLUDE_GCC=true
-    INCLUDE_JOE=true
-    INCLUDE_TN5250=true
+    set_plus_vars
     INCLUDE_GUI=true
     ENABLE_HIGHMEM=true
     ENABLE_SATA=true
@@ -975,6 +981,7 @@ if [ "$ENABLE_NET_ETH" == true ]; then
         "lynx"          "*Terminal web browser (+7.3MiB)"                       "$(val "$INCLUDE_LYNX")"
         "mg"            "*Emacs-style text editor (+0.3MiB)"                    "$(val "$INCLUDE_MG")"
         "micropython"   "*Python 3.4-syntax intepreter (+0.7MiB)"               "$(val "$INCLUDE_MICROPYTHON")"
+        "mpg321"        "MP3 player (+0.4MiB)"                                  "$(val "$INCLUDE_MPG321")"
         "mt-st"         "*Tape drive tools (+0.2MiB)"                           "$(val "$INCLUDE_MT_ST")"
         "nano"          "*Pico-style text editor (+0.8MiB)"                     "$(val "$INCLUDE_NANO")"
         "sc-im"         "*Terminal spreadsheet editor (+2.8MiB)"                "$(val "$INCLUDE_SC_IM")"
@@ -997,6 +1004,7 @@ else
         "joe"           "WordStar & Emacs-blend text editor (+1.9MiB)"      "$(val "$INCLUDE_JOE")"
         "mg"            "*Emacs-style text editor (+0.3MiB)"                "$(val "$INCLUDE_MG")"
         "micropython"   "*Python 3.4-syntax intepreter (+0.7MiB)"           "$(val "$INCLUDE_MICROPYTHON")"
+        "mpg321"        "MP3 player (+0.4MiB)"                              "$(val "$INCLUDE_MPG321")"
         "mt-st"         "*Tape drive tools (+0.2MiB)"                       "$(val "$INCLUDE_MT_ST")"
         "nano"          "*Pico-style text editor (+0.8MiB)"                 "$(val "$INCLUDE_NANO")"
         "sc-im"         "*Terminal spreadsheet editor (+2.8MiB)"            "$(val "$INCLUDE_SC_IM")"
@@ -1034,6 +1042,7 @@ else
     if [[ $BUNDLED =~ "lynx" ]];            then INCLUDE_LYNX=true;             else INCLUDE_LYNX=false;            fi
     if [[ $BUNDLED =~ "mg" ]];              then INCLUDE_MG=true;               else INCLUDE_MG=false;              fi
     if [[ $BUNDLED =~ "micropython" ]];     then INCLUDE_MICROPYTHON=true;      else INCLUDE_MICROPYTHON=false;     fi
+    if [[ $BUNDLED =~ "mpg321" ]];          then INCLUDE_MPG321=true;           else INCLUDE_MPG321=false;          fi
     if [[ $BUNDLED =~ "mt-st" ]];           then INCLUDE_MT_ST=true;            else INCLUDE_MT_ST=false;           fi
     if [[ $BUNDLED =~ "nano" ]];            then INCLUDE_NANO=true;             else INCLUDE_NANO=false;            fi
     if [[ $BUNDLED =~ "sc-im" ]];           then INCLUDE_SC_IM=true;            else INCLUDE_SC_IM=false;           fi
@@ -1045,6 +1054,14 @@ else
     if [[ $BUNDLED =~ "tn5250" ]];          then INCLUDE_TN5250=true;           else INCLUDE_TN5250=false;          fi
     if [[ $BUNDLED =~ "tnftp" ]];           then INCLUDE_TNFTP=true;            else INCLUDE_TNFTP=false;           fi
     if [[ $BUNDLED =~ "util-linux" ]];      then INCLUDE_UTIL_LINUX=true;       else INCLUDE_UTIL_LINUX=false;      fi
+fi
+
+# Enable prerequisites for selected bundled software
+if [ "$INCLUDE_MPG321" = true ]; then
+    ENABLE_SOUND=true
+fi
+if [ "$INCLUDE_MT_ST" = true ]; then
+    ENABLE_SCSI_EXP=true
 fi
 
 
@@ -1066,6 +1083,7 @@ OPTIONS=$(dialog --clear \
     "pcmcia"        "*Kernel-level PCMCIA support"                              $(val $ENABLE_PCMCIA) \
     "sata"          "**Kernel-level SATA support"                               $(val $ENABLE_SATA) \
     "scsi-exp"      "*Kernel-level SCSI media changer & tape drive support"     $(val $ENABLE_SCSI_EXP) \
+    "sound"         "Kernel-level sound support"                                $(val $ENABLE_SOUND) \
     "smp"           "**Kernel-level SMP support"                                $(val $ENABLE_SMP) \
     "usb"           "Kernel-level USB & HID support & lsusb (+0.2MiB)"          $(val $ENABLE_USB) \
     "zswap"         "*Kernel-level zswap support"                               $(val $ENABLE_ZSWAP) \
@@ -1089,6 +1107,7 @@ else
     if [[ $OPTIONS =~ "pcmcia" ]];          then ENABLE_PCMCIA=true;        else ENABLE_PCMCIA=false;           fi
     if [[ $OPTIONS =~ "sata" ]];            then ENABLE_SATA=true;          else ENABLE_SATA=false;             fi
     if [[ $OPTIONS =~ "scsi-exp" ]];        then ENABLE_SCSI_EXP=true;      else ENABLE_SCSI_EXP=false;         fi
+    if [[ $OPTIONS =~ "sound" ]];           then ENABLE_SOUND=true;         else ENABLE_SOUND=false;            fi
     if [[ $OPTIONS =~ "smp" ]];             then ENABLE_SMP=true;           else ENABLE_SMP=false;              fi
     if [[ $OPTIONS =~ "usb" ]];             then ENABLE_USB=true;           else ENABLE_USB=false;              fi
     if [[ $OPTIONS =~ "zswap" ]];           then ENABLE_ZSWAP=true;         else ENABLE_ZSWAP=false;            fi
@@ -1135,14 +1154,33 @@ if [ "$FIX_EXTLINUX" = true ] && [ "$USE_GRUB" = true ]; then
     fi
 fi
 
+# Conflict Resolution - +INCLUDE_MPG321/-ENABLE_SOUND
+if [ "$INCLUDE_MPG321" = true ] && [ "$ENABLE_SOUND" = false ]; then
+    dialog --clear \
+        --backtitle "SHORK 486 Build Configurator" \
+        --title "Conflict Resolution - +INCLUDE_MPG321/-ENABLE_SOUND" \
+        --yes-label "Enable sound" \
+        --no-label "Exclude mpg321" \
+        --yesno "You have chosen to include mpg321 and but not enable kernel-level sound support. Kernel-level sound support is required for mpg321 to produce audio. Do you wish to enable the required support, or exclude mpg321?" \
+        7 "$WIDTH"
+
+    CHOICE=$?
+
+    if [[ $CHOICE -eq 0 ]]; then
+        ENABLE_SOUND=true
+    elif [[ $CHOICE -eq 1 ]]; then
+        INCLUDE_MPG321=false
+    fi
+fi
+
 # Conflict Resolution - +MT_ST/-SCSI_EXP
 if [ "$INCLUDE_MT_ST" = true ] && [ "$ENABLE_SCSI_EXP" = false ]; then
     dialog --clear \
         --backtitle "SHORK 486 Build Configurator" \
         --title "Conflict Resolution - +MT_ST/-SCSI_EXP" \
         --yes-label "Enable support" \
-        --no-label "Disable tools" \
-        --yesno "You have chosen to enable \"tape drive tools\" but disable \"kernel-level SCSI media changer & tape drive support\". Kernel-level support is required for the tape drive tools to work. Do you wish to enable the required support, or disable the tools?" \
+        --no-label "Exclude tools" \
+        --yesno "You have chosen to enable \"tape drive tools\" but disable \"kernel-level SCSI media changer & tape drive support\". Kernel-level support is required for the tape drive tools to work. Do you wish to enable the required support, or exclude the tools?" \
         8 "$WIDTH"
 
     CHOICE=$?
