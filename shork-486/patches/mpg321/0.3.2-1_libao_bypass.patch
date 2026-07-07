@@ -107,32 +107,6 @@ index 4d9fc42..ee77e75 100644
          }
  
          if(!opened && options.opt & MPG321_USE_SUN)
-diff --git a/configure b/configure
-index d0609a6..e5d0393 100755
---- a/configure
-+++ b/configure
-@@ -2600,7 +2600,7 @@ fi
- 
- # Define the identity of the package.
-  PACKAGE=mpg321
-- VERSION=0.3.2
-+ VERSION=0.3.2-shork
- 
- 
- cat >>confdefs.h <<_ACEOF
-diff --git a/configure.ac b/configure.ac
-index bfd1d54..b431366 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -20,7 +20,7 @@ AC_PREREQ(2.59)
- AC_INIT
- AC_CONFIG_SRCDIR([mad.c])
- AC_CONFIG_HEADER([config.h])
--AM_INIT_AUTOMAKE(mpg321, 0.3.2)
-+AM_INIT_AUTOMAKE(mpg321, 0.3.2-shork)
- 
- # Checks for programs.
- AC_PROG_AWK
 diff --git a/fbuffer.c b/fbuffer.c
 index aff9d70..af26ef5 100644
 --- a/fbuffer.c
