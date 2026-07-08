@@ -119,7 +119,6 @@ addgroup, adduser, ar, arch, ascii, ash, awk, basename, bc, beep, blkid, bunzip2
 
 * shorkchess (chess game)
 * shorkdisk (disk mounting, unmounting and ejecting)
-* shorkmines (minesweeper-like game)
 * shorknet (network connection management)
 * shorksnek (snake-like game)
 * shorkvader (space invaders-like game)
