@@ -36,7 +36,7 @@ SHORK 486 is a free and open-source operating system. Its core is made up of [GP
 
 ## SHORK 486
 
-SHORK 486 proper is the main version of the SHORK 486 Operating System that is designed to be written/installed to a fixed disk (hard drive, solid-state drive, etc). It is the most robust, versatile and customisable version being developed with the goal of being 'daily-drivable' in mind. It can be built a single-user (root) or multi-user system.
+SHORK 486 proper is the main version of the SHORK 486 Operating System that is designed to be written/installed to a fixed disk (hard drive, solid-state drive, etc.) It is the most robust, versatile and customisable version being developed with the goal of being 'daily-drivable' in mind. It can be built as a single-user (root) or multi-user system.
 
 ### Hardware requirements
 
