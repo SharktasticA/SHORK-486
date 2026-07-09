@@ -1,6 +1,6 @@
 # SHORK 486, DISC & DISKETTE
 
-SHORK 486 is a free and open-source operating system for 486 and Pentium (P5) era vintage personal computers. The aim is to produce a 32-bit Linux distribution that is lean and functional, but still capable on such PCs, often with my '90s IBM ThinkPads in mind. A default SHORK 486 system aims to work with at least 16MiB system memory and take up no more than ~80MiB on your disk. Despite those constraints, the default SHORK 486 experience includes [Linux kernel 7.1.3](KERNEL.md), many typical Linux commands, custom SHORK Utilities such as shorkdir (TUI file browser) and shorkfetch (*fetch clone), a terminal multiplexer, a C compiler and Python 3.4-syntax interpreter, a text web browser, an FTP, SCP and SSH client, a Git source control client, the ed, Mg (Emacs-style), nano and vi editors, a spreadsheet editor, IDE CD-ROM and DVD-ROM support, SCSI tape drive support, ISA, PCI and PCMCIA ethernet support, support for most major national keyboard layouts, and a cute ASCII shark welcome screen!
+SHORK 486 is a free and open-source operating system for 486 and Pentium (P5) era vintage personal computers. The aim is to produce a 32-bit Linux distribution that is lean and functional, but still capable on such PCs, often with my '90s IBM ThinkPads in mind. A default SHORK 486 system aims to work with at least 16MiB system memory and take up no more than ~80MiB on your disk. Despite those constraints, the default SHORK 486 experience includes [Linux kernel 7.1.3](KERNEL.md), many typical Linux commands, custom SHORK Utilities such as shorkdir (TUI file browser) and shorkfetch (*fetch clone), a terminal multiplexer, a C compiler and Python 3.4-syntax interpreter, a text web browser, an FTP, SCP and SSH client, a Git source control client, the ed, Mg (Emacs-style), nano and vi editors, a spreadsheet editor, a minesweeper game, IDE CD-ROM and DVD-ROM support, SCSI tape drive support, ISA, PCI and PCMCIA ethernet support, support for most major national keyboard layouts, and a cute ASCII shark welcome screen!
 
 A build configurator is available to alter SHORK 486 to your liking. For example, you can select the "minimal" build type that requires just 8MiB RAM and ~8MiB disk space, whilst still including most typical commands as before, some custom SHORK Utilities, and the ed and vi editors. You can also configure SHORK 486 for serial console use, multi-user support (if not "minimal" build), and pick and choose specific software and features (if "custom" build). Versions of SHORK 486 that can be burned to a CD (SHORK DISC) or small enough to fit on a 1.44MB floppy diskette (SHORK DISKETTE) are also available.
 
@@ -67,7 +67,7 @@ addgroup, adduser, ar, arch, ascii, ash, awk, basename, bc, beep, blkid, bunzip2
 | Name | Command(s) | Version | Purpose | Licence(s) |
 |------|------------|---------|---------|------------|
 | [Dropbear](https://github.com/mkj/dropbear) | `scp`, `ssh` | 2026.91 | SCP and SSH clients | MIT + BSD 2-Clause |
-| [file](https://github.com/file/file)* | `file` | 5_48 | File identification | BSD 2-Clause |
+| [file](https://github.com/file/file)| `file` | 5_48 | File identification | BSD 2-Clause |
 | [Git](https://github.com/git/git) | `git` | 2.55.0 | Source control client | GPLv2 |
 | [htop](https://github.com/htop-dev/htop) | `htop` | 3.5.1 | Interactive process viewer | GPLv2 |
 | [Lynx](https://github.com/ThomasDickey/lynx-snapshots) | `lynx` | 2-9-3a | Terminal web browser | GPLv2 |
@@ -76,12 +76,12 @@ addgroup, adduser, ar, arch, ascii, ash, awk, basename, bc, beep, blkid, bunzip2
 | [mt-st](https://github.com/iustin/mt-st) | `mt`, `stinit` | 1.8 | Tape drive tools | GPLv2 |
 | [nano](https://www.nano-editor.org/dist) | `nano` | 9.1 | Pico-style text editor | GPLv3 |
 | [sc-im](https://github.com/andmarti1424/sc-im) | `sc-im` | 0.8.5 | Terminal spreadsheet editor | BSD 4-Clause |
-| [strace](https://github.com/strace/strace)* | `strace` | 7.1 | System calls & signals tracer | LGPLv2.1 |
+| [strace](https://github.com/strace/strace) | `strace` | 7.1 | System calls & signals tracer | LGPLv2.1 |
 | [terminal-mines](https://github.com/joelekstrom/terminal-mines) | `terminal-mines` | 1.2.0 | Minesweeper game | MIT |
 | [Tiny C Compiler](https://bellard.org/tcc/)§ | `tcc` | `e5eedc0` | C compiler | LGPLv2.1 |
 | [tmux](https://github.com/tmux/tmux) | `tmux` | 3.7b | Terminal multiplexer | ISC |
 | [tnftp](https://ftp.netbsd.org/pub/NetBSD/misc/tnftp/) | `ftp` | 20260211 | FTP client | BSD 2-Clause |
-| [util-linux](https://github.com/util-linux/util-linux)* | `partx`, `sfdisk`, `whereis` | 2.42.2 | Extra Linux utilities | GPLv2 |
+| [util-linux](https://github.com/util-linux/util-linux) | `partx`, `sfdisk`, `whereis` | 2.42.2 | Extra Linux utilities | GPLv2 |
 
 #### Optional
 
@@ -94,7 +94,6 @@ addgroup, adduser, ar, arch, ascii, ash, awk, basename, bc, beep, blkid, bunzip2
 | [tn5250](https://github.com/tn5250/tn5250)† | `tn5250` | 0.18.0 | TCP/IP 5250 terminal emulator | LGPLv2.1 |
 | [x3270](https://github.com/pmattes/x3270)† | `c3270` | 4.5ga5 | 3270 terminal emulator | BSD 3-Clause |
 
-* _* These are considered "essential" and can only be excluded when making a "custom" build_
 * _† Their inclusion is experimental - expect bugs_
 * _‡ GCC and Binutils are separate projects but are bundled together as one complete toolchain_
 * _§ [musl 1.2.6](https://musl.libc.org/) (MIT licensed) is automatically included with these_
