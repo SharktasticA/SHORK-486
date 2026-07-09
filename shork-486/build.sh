@@ -322,6 +322,13 @@ if [[ -f .env ]]; then
     source .env
 fi
 
+# If in Docker, make sure that the target distro is Debian
+if [ -n "$IN_DOCKER" ] && [ "$IS_DEBIAN" = false ]; then
+    IS_ARCH=false
+    IS_DEBIAN=true
+    IS_FEDORA=false
+fi
+
 
 
 ######################################################
