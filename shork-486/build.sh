@@ -4244,8 +4244,14 @@ get_mpg321()
         LDFLAGS="-static -L$SYSROOT/usr/lib" \
         LIBAO_LIBS="-L$SYSROOT/usr/lib -lao" \
         LIBAO_CFLAGS="-I$SYSROOT/usr/include" \
+        PKG_CONFIG_PATH="$SYSROOT/usr/lib/pkgconfig" \
+        PKG_CONFIG_LIBDIR="$SYSROOT/usr/lib/pkgconfig" \
+        PKG_CONFIG_SYSROOT_DIR="$SYSROOT" \
         ac_cv_func_malloc_0_nonnull=yes \
         ac_cv_func_realloc_0_nonnull=yes
+
+    sed -i "s|-L/usr/lib -lao|-L${SYSROOT}/usr/lib -lao|g" Makefile
+
     make -j$(nproc)
     sudo make DESTDIR=$DESTDIR install
 }
@@ -5171,7 +5177,7 @@ copy_licences()
 {
     cd "$CURR_DIR/build"
 
-    echo -e "${GREEN}Copying all needed licences for included software...${RESET}"
+    echo -e "${GREEN}Gathering & copying all needed licences for included software...${RESET}"
     mkdir -p "$DESTDIR/LICENCES"
     CSV="Name,Type,File"
 
