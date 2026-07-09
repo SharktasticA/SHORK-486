@@ -1119,8 +1119,8 @@ get_libxlsxwriter()
         CC="$CC_STATIC" \
         AR="$AR" \
         RANLIB="$RANLIB" \
-        CFLAGS="-static -O2 -I$PREFIX/include" \
-        LDFLAGS="-static -L$PREFIX/lib" \
+        CFLAGS="-static -O2 -I$PREFIX/include -I$SYSROOT/usr/include" \
+        LDFLAGS="-static -L$PREFIX/lib -L$SYSROOT/usr/lib" \
         MINIZIP=1 \
         -j$(nproc)
     cp -r include/* "$PREFIX/include/"
@@ -4026,7 +4026,7 @@ get_lynx()
     if [ -d lynx-snapshots ]; then
         echo -e "${YELLOW}Lynx source already present, resetting...${RESET}"
         cd lynx-snapshots
-        git config --global --add safe.directory "$CURR_DIR/build/lynx"
+        git config --global --add safe.directory "$CURR_DIR/build/lynx-snapshots"
         git reset --hard
         git clean -fdx
     else
@@ -4689,7 +4689,7 @@ get_tn5250()
     ./configure \
         --host=${ARCH}-linux-musl \
         --prefix=/usr \
-        --with-ssl \
+        --with-ssl="${SYSROOT}" \
         --disable-shared \
         --enable-static \
         AR="${AR}" \
