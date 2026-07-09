@@ -1097,6 +1097,7 @@ get_libxlsxwriter()
     # Download source
     if [ -d libxlsxwriter ]; then
         echo -e "${YELLOW}libxlsxwriter source already present, resetting...${RESET}"
+        git config --global --add safe.directory "$CURR_DIR/build/libxlsxwriter"
         cd libxlsxwriter
         git reset --hard
     else
