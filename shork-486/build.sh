@@ -4193,7 +4193,7 @@ get_mpg321()
     # Skip if already compiled
     if [ -f "$DESTDIR/usr/bin/mpg321" ]; then
         echo -e "${LIGHT_RED}mpg321 already compiled, skipping...${RESET}"
-        #return
+        return
     fi
 
     # Download source
