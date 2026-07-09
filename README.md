@@ -77,7 +77,6 @@ addgroup, adduser, ar, arch, ascii, ash, awk, basename, bc, beep, blkid, bunzip2
 | [nano](https://www.nano-editor.org/dist) | `nano` | 9.1 | Pico-style text editor | GPLv3 |
 | [sc-im](https://github.com/andmarti1424/sc-im) | `sc-im` | 0.8.5 | Terminal spreadsheet editor | BSD 4-Clause |
 | [strace](https://github.com/strace/strace) | `strace` | 7.1 | System calls & signals tracer | LGPLv2.1 |
-| [terminal-mines](https://github.com/joelekstrom/terminal-mines) | `terminal-mines` | 1.2.0 | Minesweeper game | MIT |
 | [Tiny C Compiler](https://bellard.org/tcc/)§ | `tcc` | `e5eedc0` | C compiler | LGPLv2.1 |
 | [tmux](https://github.com/tmux/tmux) | `tmux` | 3.7b | Terminal multiplexer | ISC |
 | [tnftp](https://ftp.netbsd.org/pub/NetBSD/misc/tnftp/) | `ftp` | 20260211 | FTP client | BSD 2-Clause |
