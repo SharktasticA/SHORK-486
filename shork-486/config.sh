@@ -73,7 +73,6 @@ INCLUDE_SHORKSTALL=false
 INCLUDE_SHORKTAINMENT=false
 INCLUDE_STRACE=false
 INCLUDE_TCC=false
-INCLUDE_TERMINAL_MINES=false
 INCLUDE_TILDE=false
 INCLUDE_TN5250=false
 INCLUDE_TNFTP=false
@@ -177,7 +176,6 @@ save_env()
         echo "INCLUDE_SHORKTAINMENT=$INCLUDE_SHORKTAINMENT"
         echo "INCLUDE_STRACE=$INCLUDE_STRACE"
         echo "INCLUDE_TCC=$INCLUDE_TCC"
-        echo "INCLUDE_TERMINAL_MINES=$INCLUDE_TERMINAL_MINES"
         echo "INCLUDE_TILDE=$INCLUDE_TILDE"
         echo "INCLUDE_TN5250=$INCLUDE_TN5250"
         echo "INCLUDE_TNFTP=$INCLUDE_TNFTP"
@@ -244,7 +242,6 @@ set_minimal_vars()
     INCLUDE_SHORKTAINMENT=false
     INCLUDE_STRACE=false
     INCLUDE_TCC=false
-    INCLUDE_TERMINAL_MINES=false
     INCLUDE_TILDE=false
     INCLUDE_TN5250=false
     INCLUDE_TNFTP=false
@@ -291,7 +288,6 @@ set_default_vars()
     INCLUDE_SHORKTAINMENT=true
     INCLUDE_STRACE=true
     INCLUDE_TCC=true
-    INCLUDE_TERMINAL_MINES=true
     INCLUDE_TILDE=false
     INCLUDE_TN5250=false
     INCLUDE_TNFTP=true
@@ -989,10 +985,9 @@ if [ "$ENABLE_NET_ETH" == true ]; then
         "mt-st"             "*Tape drive tools (+0.2MiB)"                           "$(val "$INCLUDE_MT_ST")"
         "nano"              "*Pico-style text editor (+0.8MiB)"                     "$(val "$INCLUDE_NANO")"
         "sc-im"             "*Terminal spreadsheet editor (+2.8MiB)"                "$(val "$INCLUDE_SC_IM")"
-        "shorktainment"     "*shorkmatrix, shorksay & sl (+0.1MiB)"                 "$(val "$INCLUDE_SHORKTAINMENT")"
+        "shorktainment"     "*shorkmatrix, shorkmines, shorksay & sl (+0.5MiB)"     "$(val "$INCLUDE_SHORKTAINMENT")"
         "strace"            "*System calls & signals tracer (+1.1MiB)"              "$(val "$INCLUDE_STRACE")"
         "tcc"               "*Tiny C Compiler + musl (+4MiB)"                       "$(val "$INCLUDE_TCC")"
-        "terminal-mines"    "*Minesweeper game (+0.4MiB)"                           "$(val "$INCLUDE_TERMINAL_MINES")"
         #"tilde"             "GUI-like text editor (+4.5MiB)"                       "$(val "$INCLUDE_TILDE")"
         "tn5250"            "TCP/IP 5250 terminal emulator (+6.4MiB, EXPERIMENTAL)" "$(val "$INCLUDE_TN5250")"
         "tnftp"             "*FTP client (+0.3MiB)"                                 "$(val "$INCLUDE_TNFTP")"
@@ -1013,10 +1008,9 @@ else
         "mt-st"             "*Tape drive tools (+0.2MiB)"                       "$(val "$INCLUDE_MT_ST")"
         "nano"              "*Pico-style text editor (+0.8MiB)"                 "$(val "$INCLUDE_NANO")"
         "sc-im"             "*Terminal spreadsheet editor (+2.8MiB)"            "$(val "$INCLUDE_SC_IM")"
-        "shorktainment"     "*shorkmatrix, shorksay & sl (+0.1MiB)"             "$(val "$INCLUDE_SHORKTAINMENT")"
+        "shorktainment"     "*shorkmatrix, shorkmines, shorksay & sl (+0.5MiB)" "$(val "$INCLUDE_SHORKTAINMENT")"
         "strace"            "*System calls & signals tracer (+1.1MiB)"          "$(val "$INCLUDE_STRACE")"
         "tcc"               "*Tiny C Compiler + musl (+4MiB)"                   "$(val "$INCLUDE_TCC")"
-        "terminal-mines"    "*Minesweeper game (+0.4MiB)"                       "$(val "$INCLUDE_TERMINAL_MINES")"
         #"tilde"             "GUI-like text editor (+4.5MiB)"                    "$(val "$INCLUDE_TILDE")"
         "util-linux"        "*lscpu, partx, sfdisk & whereis (+2.2MiB)"         "$(val "$INCLUDE_UTIL_LINUX")"
     )
@@ -1055,7 +1049,6 @@ else
     if [[ $BUNDLED =~ "shorktainment" ]];   then INCLUDE_SHORKTAINMENT=true;    else INCLUDE_SHORKTAINMENT=false;   fi
     if [[ $BUNDLED =~ "strace" ]];          then INCLUDE_STRACE=true;           else INCLUDE_STRACE=false;          fi
     if [[ $BUNDLED =~ "tcc" ]];             then INCLUDE_TCC=true;              else INCLUDE_TCC=false;             fi
-    if [[ $BUNDLED =~ "terminal-mines" ]];  then INCLUDE_TERMINAL_MINES=true;   else INCLUDE_TERMINAL_MINES=false;  fi
     #if [[ $BUNDLED =~ "tilde" ]];           then INCLUDE_TILDE=true;            else INCLUDE_TILDE=false;           fi
     if [[ $BUNDLED =~ "tmux" ]];            then INCLUDE_TMUX=true;             else INCLUDE_TMUX=false;            fi
     if [[ $BUNDLED =~ "tn5250" ]];          then INCLUDE_TN5250=true;           else INCLUDE_TN5250=false;          fi

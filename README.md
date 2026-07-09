@@ -30,7 +30,7 @@ SHORK 486 is a modern and maintained Linux distribution that can run on a proces
 
 ### Licences
 
-SHORK 486 is a free and open-source operating system. Its core is made up of [GPLv3](COPYING) (SHORK, SHORK Utilities, SHORK Entertainment) and [GPLv2](https://docs.kernel.org/process/license-rules.html) (Linux kernel, BusyBox, SYSLINUX) components. The contents of the `shork-486/patches` directory are also licensed under GPLv2 as they are derived from Linux kernel and BusyBox source code. SHORK 486 can also contain bundled software licensed under various permissive, copyleft, and even public-domain-equivalent licences. You can look at the bundled software list later in this README, or at the "Licences" portal in `shorkhelp` when running SHORK 486, to see their licences.
+SHORK 486 is a free and open-source operating system. Its core is made up of [GPLv3](COPYING) (SHORK, SHORK Utilities, most of SHORK Entertainment), [GPLv2](https://docs.kernel.org/process/license-rules.html) (Linux kernel, BusyBox, SYSLINUX), and [MIT](https://github.com/SharktasticA/shorkmines?tab=MIT-1-ov-file) (SHORKMINES) components. The contents of the `shork-486/patches` directory are also licensed under GPLv2 as they are derived from Linux kernel and BusyBox source code. SHORK 486 can also contain bundled software licensed under various permissive, copyleft, and even public-domain-equivalent licences. You can look at the bundled software list later in this README, or at the "Licences" portal in `shorkhelp` when running SHORK 486, to see their licences.
 
 
 
@@ -111,6 +111,7 @@ addgroup, adduser, ar, arch, ascii, ash, awk, basename, bc, beep, blkid, bunzip2
 
 * **[shorklocomotive](https://github.com/SharktasticA/shorklocomotive)** - A shark-themed take on [sl (Steam Locomotive)](https://github.com/mtoyoda/sl) that kindly pokes fun at making typos when trying to type `ls`. Available as `sl` and `shorklocomotive`.
 * **[shorkmatrix](https://github.com/SharktasticA/shorkmatrix)** - A quick, blue-themed take on the [CMatrix](https://github.com/abishekvashok/cmatrix) "digital rain" vertical scrolling text screensaver. Available as `cmatrix` and `shorkmatrix`.
+* **[shorkmines](https://github.com/SharktasticA/shorkmines)** - A terminal-based minesweeper game based on [terminal-mines](https://github.com/joelekstrom/terminal-mines). Available as `shorkmines` and `terminal-mines`.
 * **[shorksay](https://github.com/SharktasticA/shorksay)** - A shark-themed take on [cowsay](https://github.com/cowsay-org/cowsay), a "simple and silly" program that outputs an ASCII art shark and speech bubble containing a message of your choice. Available as `shorksay` and `cowsay`.
 
 ### Planned, todo & under consideration

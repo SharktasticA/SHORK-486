@@ -114,6 +114,8 @@ BUSYBOX_VER="1.38.0"
 
 SHORKFETCH_SRC="https://github.com/SharktasticA/shorkfetch.git"
 SHORKFETCH_VER="0.4.3"
+SHORKMINES_SRC="https://github.com/SharktasticA/shorkmines.git"
+SHORKMINES_VER=""
 
 C3270_SRC="https://github.com/pmattes/x3270.git"
 C3270_VER="4.5ga5"
@@ -186,8 +188,6 @@ STRACE_SRC="https://github.com/strace/strace.git"
 STRACE_VER="7.1"
 TCC_SRC="https://github.com/Tiny-C-Compiler/tinycc-mirror-repository.git"
 TCC_VER="e5eedc0"
-TERMINAL_MINES_SRC="https://github.com/joelekstrom/terminal-mines.git"
-TERMINAL_MINES_VER="1.2.0"
 TILDE_VER="1.1.3"
 TMUX_SRC="https://github.com/tmux/tmux.git"
 TMUX_VER="3.7b"
@@ -268,7 +268,6 @@ INCLUDE_SHORKTAINMENT=true
 INCLUDE_STRACE=true
 INCLUDE_TESTS=false
 INCLUDE_TCC=true
-INCLUDE_TERMINAL_MINES=true
 INCLUDE_TILDE=false
 INCLUDE_TMUX=true
 INCLUDE_TN5250=false
@@ -4450,48 +4449,6 @@ get_tcc()
     ln -sf /usr/local/bin/i386-tcc $DESTDIR/usr/bin/tcc || true
 }
 
-# Download and compile terminal-mines
-get_terminal_mines()
-{
-    cd "$CURR_DIR/build"
-
-    # Skip if already compiled
-    if [ -f "$DESTDIR/usr/bin/terminal-mines" ]; then
-        echo -e "${LIGHT_RED}terminal-mines already compiled, skipping...${RESET}"
-        return
-    fi
-
-    # Download source
-    if [ -d terminal-mines ]; then
-        echo -e "${YELLOW}terminal-mines source already present, resetting...${RESET}"
-        cd terminal-mines
-        git config --global --add safe.directory "$CURR_DIR/build/terminal-mines"
-        git reset --hard
-    else
-        echo -e "${GREEN}Downloading terminal-mines...${RESET}"
-        git clone --branch "${TERMINAL_MINES_VER}" $TERMINAL_MINES_SRC
-        cd terminal-mines
-    fi
-
-    # Patch in SHORK's extra keybinds
-    patch -p1 < "${PATCHES_DIR}/terminal-lines/1.2.0_shork_keybinds.patch"
-
-    sed -i '1i SYSROOT ?=' makefile
-    sed -i 's|^CPPFLAGS = -Ilibminesweeper/include$|CPPFLAGS = -Ilibminesweeper/include -I$(SYSROOT)/include|' makefile
-    sed -i 's|^LDFLAGS = -Llibminesweeper$|LDFLAGS = -Llibminesweeper -L$(SYSROOT)/lib|' makefile
-    sed -i 's|^LDLIBS = -lncurses -lminesweeper$|LDLIBS = -lncursesw -lminesweeper|' makefile
-    sed -i 's|^\t\$(MAKE) -C libminesweeper$|\t$(MAKE) -C libminesweeper SYSROOT=$(SYSROOT)|' makefile
-
-    git submodule update --init
-    sed -i '1i SYSROOT ?=' libminesweeper/makefile
-    sed -i 's|^$(CC) $(C_FLAGS) -c lib/minesweeper.c -Iinclude$|$(CC) $(C_FLAGS) -c lib/minesweeper.c -Iinclude -I$(SYSROOT)/include|' libminesweeper/makefile
-
-    # Compile and install
-    echo -e "${GREEN}Compiling terminal-mines...${RESET}"
-    make ascii-only CC="${CC_STATIC}" SYSROOT="$PREFIX" -j$(nproc)
-    sudo make DESTDIR="${DESTDIR}" PREFIX="/usr" install
-}
-
 # Download and compile tilde (WIP)
 # Once done, uncomment relevant part of get_installed_programs_features
 get_tilde()
@@ -5066,6 +5023,41 @@ get_shorkmatrix()
     fi
 }
 
+# Download and compile shorkmines
+get_shorkmines()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ "$SHORKUTILS_RECLONE" != "true" ] && [ -f "$DESTDIR/usr/bin/shorkmines" ]; then
+        echo -e "${LIGHT_RED}shorkmines already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Delete if present
+    if [ -d shorkmines ]; then
+        echo -e "${YELLOW}shorkmines source already present, recloning...${RESET}"
+        sudo rm -r shorkmines
+    fi
+
+    # Download source
+    echo -e "${GREEN}Downloading shorkmines...${RESET}"
+    git clone $SHORKMINES_SRC
+    cd shorkmines
+
+    git submodule update --init
+    sed -i '1i SYSROOT ?=' libminesweeper/makefile
+    sed -i 's|^$(CC) $(C_FLAGS) -c lib/minesweeper.c -Iinclude$|$(CC) $(C_FLAGS) -c lib/minesweeper.c -Iinclude -I$(SYSROOT)/include|' libminesweeper/makefile
+
+    # Compile and install
+    echo -e "${GREEN}Compiling shorkmines...${RESET}"
+    make CC="${CC_STATIC}" EMBEDDED=1 SYSROOT="$PREFIX" -j$(nproc)
+    sudo make DESTDIR="${DESTDIR}" PREFIX="/usr" install
+
+    # Symlink shorkmines to terminal-mines
+    sudo ln -sf shorkmines "$DESTDIR/usr/bin/terminal-mines"
+}
+
 # Download and compile shorksay
 get_shorksay()
 {
@@ -5347,6 +5339,12 @@ copy_licences()
         CSV+="\nsc-im,BSD 4-Clause,sc-im.txt"
     fi
 
+    if $INCLUDE_SHORKTAINMENT &&
+       [ -f "$CURR_DIR/build/shorkmines/LICENSE" ]; then
+        cp "$CURR_DIR/build/shorkmines/LICENSE" "$DESTDIR/LICENCES/shorkmines.txt" || true
+        CSV+="\nSHORKMINES,MIT,shorkmines.txt"
+    fi
+
     if [ -f "$DESTDIR/usr/bin/st" ] && 
        [ -f "$CURR_DIR/build/st/LICENSE" ]; then
         cp "$CURR_DIR/build/st/LICENSE" "$DESTDIR/LICENCES/st.txt" || true
@@ -5370,11 +5368,6 @@ copy_licences()
        [ -f "$CURR_DIR/build/tinycc-mirror-repository/COPYING" ]; then
         cp "$CURR_DIR/build/tinycc-mirror-repository/COPYING" "$DESTDIR/LICENCES/tcc.txt" || true
         CSV+="\nTiny C Compiler,GNU LGPLv2.1,tcc.txt"
-    fi
-
-    if $INCLUDE_TERMINAL_MINES; then
-        wget -qO "${DESTDIR}/LICENCES/terminal-mines.txt" "https://raw.githubusercontent.com/joelekstrom/terminal-mines/refs/heads/master/LICENSE" || true
-        CSV+="\nterminal-mines,MIT,terminal-mines.txt"
     fi
 
     if $INCLUDE_CON_FONTS && 
@@ -6562,6 +6555,12 @@ get_installed_programs_features()
             EXCLUDED_FEATURES+="\n * shorkmatrix"
         fi
 
+        if [ -f "$DESTDIR/usr/bin/shorkmines" ]; then
+            INCLUDED_FEATURES+="\n * shorkmines"
+        else
+            EXCLUDED_FEATURES+="\n * shorkmines"
+        fi
+
         if [ -f "$DESTDIR/usr/bin/shorksay" ]; then
             INCLUDED_FEATURES+="\n * shorksay"
         else
@@ -6808,12 +6807,6 @@ get_installed_programs_features()
             INCLUDED_FEATURES+="\n * tcc ($TCC_VER)"
         else
             EXCLUDED_FEATURES+="\n * tcc"
-        fi
-
-        if [ -f "$DESTDIR/usr/bin/terminal-mines" ]; then
-            INCLUDED_FEATURES+="\n * terminal-mines ($TERMINAL_MINES_VER)"
-        else
-            EXCLUDED_FEATURES+="\n * terminal-mines"
         fi
 
         if [ -f "$DESTDIR/usr/bin/tic" ]; then
@@ -7170,9 +7163,6 @@ if $INCLUDE_TCC; then
     get_musl
     get_tcc
 fi
-if $INCLUDE_TERMINAL_MINES; then
-    get_terminal_mines
-fi
 if $INCLUDE_TILDE; then
     get_tilde
 fi
@@ -7205,6 +7195,7 @@ fi
 if $INCLUDE_SHORKTAINMENT; then
     get_shorklocomotive
     get_shorkmatrix
+    get_shorkmines
     get_shorksay
 fi
 
