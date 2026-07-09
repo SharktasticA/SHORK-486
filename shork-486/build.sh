@@ -6659,6 +6659,8 @@ get_installed_programs_features()
             EXCLUDED_FEATURES+="\n * gfortran"
         fi
 
+        # TODO: Add Binutils
+
         if [ -f "$DESTDIR/usr/bin/c3270" ]; then
             INCLUDED_FEATURES+="\n * c3270 ($C3270_VER)"
         else
