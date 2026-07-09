@@ -6647,18 +6647,6 @@ get_installed_programs_features()
 
     # SHORKTUI
     if [ "$ID" == "shork-486" ]; then
-        if $ENABLE_MULTIUSER_REAL; then
-            INCLUDED_FEATURES+="\n * BusyBox multi-user utilities"
-        else
-            EXCLUDED_FEATURES+="\n * BusyBox multi-user utilities"
-        fi
-
-        if $ENABLE_NET_ETH; then
-            INCLUDED_FEATURES+="\n * BusyBox networking utilities"
-        else
-            EXCLUDED_FEATURES+="\n * BusyBox networking utilities"
-        fi
-
         if $INCLUDE_GCC; then
             INCLUDED_FEATURES+="\n * as"
             INCLUDED_FEATURES+="\n * g++"
