@@ -182,6 +182,7 @@ ar, ash, awk, basename, bunzip2, bzcat, bzip2, cat, clear, cp, cpio, date, dd, d
 
 * **[shorklocomotive](https://github.com/SharktasticA/shorklocomotive)**
 * **[shorkmatrix](https://github.com/SharktasticA/shorkmatrix)**
+* **[shorkmines](https://github.com/SharktasticA/shorkmines)**
 * **[shorksay](https://github.com/SharktasticA/shorksay)**
 
 
