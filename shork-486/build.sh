@@ -2609,7 +2609,17 @@ get_fontconfig()
     # Compile and install
     echo -e "${GREEN}Compiling fontconfig...${RESET}"
     #./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP" LIBS="-lpng16 -lz -lm"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP" LIBS="-lz -lm"
+    ./configure \
+        --host="$HOST" \
+        --prefix=/usr \
+        --disable-shared \
+        --enable-static \
+        --disable-docs \
+        CC="$CC_STATIC" \
+        AR="$AR" \
+        RANLIB="$RANLIB" \
+        STRIP="$STRIP" \
+        LIBS="-lz -lm"
     make -j$(nproc)
     make DESTDIR="$SYSROOT" install
 }
