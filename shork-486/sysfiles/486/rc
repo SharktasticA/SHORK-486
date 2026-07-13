@@ -46,23 +46,26 @@ fi
 
 [ -r /etc/hostname ] && hostname "$(cat /etc/hostname)"
 
-# Load SHORKSET settings
-if [ -f /etc/shorkset.conf ]; then
-    . /etc/shorkset.conf
+if [ -x "/usr/libexec/shorkset" ]; then
 
-    # Load custom console font
-    if [ "$FONT_PSF" != "default" ] && [ -c /dev/tty1 ]; then
-        setfont -C /dev/tty1 $FONT_PSF
-    fi
+    # Load SHORKSET settings
+    if [ -f /etc/shorkset.conf ]; then
+        . /etc/shorkset.conf
 
-    # Load persistent keymap
-    if [ "$KEYMAP" != "us" ] && [ -f "/usr/share/keymaps/$KEYMAP.kmap.bin" ]; then
-        loadkmap < "/usr/share/keymaps/$KEYMAP.kmap.bin"
-    fi
+        # Load custom console font
+        if [ "$FONT_PSF" != "default" ] && [ -c /dev/tty1 ]; then
+            setfont -C /dev/tty1 $FONT_PSF
+        fi
 
-    # Load system volume
-    if [ -c /dev/dsp ] && [ "$VOLUME" -ge 0 ] 2>/dev/null && [ "$VOLUME" -le 100 ] 2>/dev/null; then
-        /usr/libexec/shorkset -vl=$VOLUME
+        # Load persistent keymap
+        if [ "$KEYMAP" != "us" ] && [ -f "/usr/share/keymaps/$KEYMAP.kmap.bin" ]; then
+            loadkmap < "/usr/share/keymaps/$KEYMAP.kmap.bin"
+        fi
+
+        # Load system volume
+        if [ -c /dev/dsp ] && [ "$VOLUME" -ge 0 ] 2>/dev/null && [ "$VOLUME" -le 100 ] 2>/dev/null; then
+            /usr/libexec/shorkset -vl=$VOLUME
+        fi
     fi
 fi
 

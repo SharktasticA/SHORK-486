@@ -56,6 +56,7 @@ ENABLE_NET_ETH=false
 FIX_EXTLINUX=true
 INCLUDE_C3270=false
 INCLUDE_CMATRIX=false
+INCLUDE_DIALOG=false
 INCLUDE_DROPBEAR=false
 INCLUDE_FILE=false
 INCLUDE_GCC=false
@@ -159,6 +160,7 @@ save_env()
         echo "FIX_EXTLINUX=$FIX_EXTLINUX"
         echo "INCLUDE_C3270=$INCLUDE_C3270"
         echo "INCLUDE_CMATRIX=$INCLUDE_CMATRIX"
+        echo "INCLUDE_DIALOG=$INCLUDE_DIALOG"
         echo "INCLUDE_DROPBEAR=$INCLUDE_DROPBEAR"
         echo "INCLUDE_FILE=$INCLUDE_FILE"
         echo "INCLUDE_GCC=$INCLUDE_GCC"
@@ -224,7 +226,8 @@ set_minimal_vars()
     ENABLE_MULTIUSER_REAL=false
     ENABLE_NET_ETH=false
     INCLUDE_C3270=false
-    #INCLUDE_CMATRIX=false
+    INCLUDE_CMATRIX=false
+    INCLUDE_DIALOG=false
     INCLUDE_DROPBEAR=false
     INCLUDE_FILE=false
     INCLUDE_GCC=false
@@ -270,7 +273,7 @@ set_default_vars()
 {
     ENABLE_NET_ETH=true
     INCLUDE_C3270=false
-    #INCLUDE_CMATRIX=true
+    INCLUDE_DIALOG=true
     INCLUDE_DROPBEAR=true
     INCLUDE_FILE=true
     INCLUDE_GCC=false
@@ -972,6 +975,7 @@ if [ "$ENABLE_NET_ETH" == true ]; then
     BUNDLED_ITEMS+=(
         "c3270"             "3270 terminal emulator (+1.8MiB, EXPERIMENTAL)"        "$(val "$INCLUDE_C3270")"
         #"cmatrix"           "Scrolling text screensaver (+0.4MiB)"                  "$(val "$INCLUDE_CMATRIX")"
+        "dialog"            "*Shell script TUI widgets (+0.5MiB)"                   "$(val "$INCLUDE_DIALOG")"
         "dropbear"          "*SCP & SSH client (+0.4MiB)"                           "$(val "$INCLUDE_DROPBEAR")"
         "file"              "**File type identification (+10MiB)"                   "$(val "$INCLUDE_FILE")"
         "gcc"               "**GCC + binutils + musl (+215MiB)"                     "$(val "$INCLUDE_GCC")"
@@ -998,6 +1002,7 @@ else
     BUNDLED_ITEMS+=(
         "c3270"             "3270 terminal emulator (+1.8MiB, EXPERIMENTAL)"    "$(val "$INCLUDE_C3270")"
         #"cmatrix"           "Scrolling text screensaver (+0.4MiB)"              "$(val "$INCLUDE_CMATRIX")"
+        "dialog"            "*Shell script TUI widgets (+0.5MiB)"               "$(val "$INCLUDE_DIALOG")"
         "file"              "**File type identification (+10MiB)"               "$(val "$INCLUDE_FILE")"
         "gcc"               "**GCC + binutils + musl (+215MiB)"                 "$(val "$INCLUDE_GCC")"
         "htop"              "*Interactive process viewer (+0.6MiB)"             "$(val "$INCLUDE_HTOP")"
@@ -1033,6 +1038,7 @@ if [[ $SKIPPED -eq 1 ]]; then
 else
     if [[ $BUNDLED =~ "c3270" ]];           then INCLUDE_C3270=true;            else INCLUDE_C3270=false;         fi
     #if [[ $BUNDLED =~ "cmatrix" ]];         then INCLUDE_CMATRIX=true;          else INCLUDE_CMATRIX=false;         fi
+    if [[ $BUNDLED =~ "dialog" ]];          then INCLUDE_DIALOG=true;           else INCLUDE_DIALOG=false;          fi
     if [[ $BUNDLED =~ "dropbear" ]];        then INCLUDE_DROPBEAR=true;         else INCLUDE_DROPBEAR=false;        fi
     if [[ $BUNDLED =~ "file" ]];            then INCLUDE_FILE=true;             else INCLUDE_FILE=false;            fi
     if [[ $BUNDLED =~ "gcc" ]];             then INCLUDE_GCC=true;              else INCLUDE_GCC=false;             fi

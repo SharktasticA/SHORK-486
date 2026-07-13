@@ -249,7 +249,7 @@ ENABLE_ZSWAP=true
 INCLUDE_C3270=false
 INCLUDE_CON_FONTS=true
 INCLUDE_CMATRIX=false
-INCLUDE_DIALOG=false
+INCLUDE_DIALOG=true
 INCLUDE_DROPBEAR=true
 INCLUDE_FILE=true
 INCLUDE_GCC=false
@@ -6736,7 +6736,13 @@ get_installed_programs_features()
         #    INCLUDED_FEATURES+="\n * cmatrix ($CMATRIX_VER)"
         #else
         #    EXCLUDED_FEATURES+="\n * cmatrix"
-        #fi
+        #
+
+        if [ -f "$DESTDIR/usr/bin/dialog" ]; then
+            INCLUDED_FEATURES+="\n * dialog ($DIALOG_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * dialog"
+        fi
     fi
 
     if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
