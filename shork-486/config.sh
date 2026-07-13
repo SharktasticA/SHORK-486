@@ -64,6 +64,7 @@ INCLUDE_GIT=false
 INCLUDE_HTOP=false
 INCLUDE_JOE=false
 INCLUDE_LYNX=false
+INCLUDE_MAKE=false
 INCLUDE_MG=false
 INCLUDE_MICROPYTHON=false
 INCLUDE_MPG321=false
@@ -168,6 +169,7 @@ save_env()
         echo "INCLUDE_HTOP=$INCLUDE_HTOP"
         echo "INCLUDE_JOE=$INCLUDE_JOE"
         echo "INCLUDE_LYNX=$INCLUDE_LYNX"
+        echo "INCLUDE_MAKE=$INCLUDE_MAKE"
         echo "INCLUDE_MG=$INCLUDE_MG"
         echo "INCLUDE_MICROPYTHON=$INCLUDE_MICROPYTHON"
         echo "INCLUDE_MPG321=$INCLUDE_MPG321"
@@ -235,6 +237,7 @@ set_minimal_vars()
     INCLUDE_HTOP=false
     INCLUDE_JOE=false
     INCLUDE_LYNX=false
+    INCLUDE_MAKE=false
     INCLUDE_MG=false
     INCLUDE_MICROPYTHON=false
     INCLUDE_MPG321=false
@@ -281,6 +284,7 @@ set_default_vars()
     INCLUDE_HTOP=true
     INCLUDE_JOE=false
     INCLUDE_LYNX=true
+    INCLUDE_MAKE=false
     INCLUDE_MG=true
     INCLUDE_MICROPYTHON=true
     INCLUDE_MPG321=false
@@ -332,6 +336,7 @@ set_plus_vars()
     INCLUDE_C3270=true
     INCLUDE_GCC=true
     INCLUDE_JOE=true
+    INCLUDE_MAKE=true
     INCLUDE_MPG321=true
     INCLUDE_TN5250=true
     ENABLE_SOUND=true
@@ -983,6 +988,7 @@ if [ "$ENABLE_NET_ETH" == true ]; then
         "htop"              "*Interactive process viewer (+0.6MiB)"                 "$(val "$INCLUDE_HTOP")"
         "joe"               "WordStar & Emacs-blend text editor (+1.9MiB)"          "$(val "$INCLUDE_JOE")"
         "lynx"              "*Terminal web browser (+7.3MiB)"                       "$(val "$INCLUDE_LYNX")"
+        "make"              "Build automation tool (+0.3MiB)"                       "$(val "$INCLUDE_MAKE")"
         "mg"                "*Emacs-style text editor (+0.3MiB)"                    "$(val "$INCLUDE_MG")"
         "micropython"       "*Python 3.4-syntax intepreter (+0.7MiB)"               "$(val "$INCLUDE_MICROPYTHON")"
         "mpg321"            "MP3 player (+0.4MiB)"                                  "$(val "$INCLUDE_MPG321")"
@@ -1007,6 +1013,7 @@ else
         "gcc"               "**GCC + binutils + musl (+215MiB)"                 "$(val "$INCLUDE_GCC")"
         "htop"              "*Interactive process viewer (+0.6MiB)"             "$(val "$INCLUDE_HTOP")"
         "joe"               "WordStar & Emacs-blend text editor (+1.9MiB)"      "$(val "$INCLUDE_JOE")"
+        "make"              "Build automation tool (+0.3MiB)"                   "$(val "$INCLUDE_MAKE")"
         "mg"                "*Emacs-style text editor (+0.3MiB)"                "$(val "$INCLUDE_MG")"
         "micropython"       "*Python 3.4-syntax intepreter (+0.7MiB)"           "$(val "$INCLUDE_MICROPYTHON")"
         "mpg321"            "MP3 player (+0.4MiB)"                              "$(val "$INCLUDE_MPG321")"
@@ -1046,6 +1053,7 @@ else
     if [[ $BUNDLED =~ "htop" ]];            then INCLUDE_HTOP=true;             else INCLUDE_HTOP=false;            fi
     if [[ $BUNDLED =~ "joe" ]];             then INCLUDE_JOE=true;              else INCLUDE_JOE=false;             fi
     if [[ $BUNDLED =~ "lynx" ]];            then INCLUDE_LYNX=true;             else INCLUDE_LYNX=false;            fi
+    if [[ $BUNDLED =~ "make" ]];            then INCLUDE_MAKE=true;             else INCLUDE_MAKE=false;              fi
     if [[ $BUNDLED =~ "mg" ]];              then INCLUDE_MG=true;               else INCLUDE_MG=false;              fi
     if [[ $BUNDLED =~ "micropython" ]];     then INCLUDE_MICROPYTHON=true;      else INCLUDE_MICROPYTHON=false;     fi
     if [[ $BUNDLED =~ "mpg321" ]];          then INCLUDE_MPG321=true;           else INCLUDE_MPG321=false;          fi

@@ -161,6 +161,8 @@ LIBZIP_SRC="https://github.com/nih-at/libzip.git"
 LIBZIP_VER="1.11.4"
 LYNX_SRC="https://github.com/ThomasDickey/lynx-snapshots.git"
 LYNX_VER="2-9-3a"
+MAKE_SRC="https://ftp.gnu.org/gnu/make"
+MAKE_VER="4.4.1"
 MG_SRC="https://github.com/troglobit/mg.git"
 MG_VER="3.7"
 MICROPYTHON_SRC="https://github.com/micropython/micropython.git"
@@ -259,6 +261,7 @@ INCLUDE_HTOP=true
 INCLUDE_JOE=true
 INCLUDE_KEYMAPS=true
 INCLUDE_LYNX=true
+INCLUDE_MAKE=false
 INCLUDE_MG=true
 INCLUDE_MICROPYTHON=true
 INCLUDE_MPG321=false
@@ -4150,6 +4153,46 @@ get_musl()
     sudo make DESTDIR=$DESTDIR install
 }
 
+# Download and compile Make
+get_make()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$DESTDIR/usr/bin/make" ]; then
+        echo -e "${LIGHT_RED}Make already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading Make...${RESET}"
+
+    MAKE="make-${MAKE_VER}"
+    MAKE_ARC="${MAKE}.tar.gz"
+    MAKE_URI="${MAKE_SRC}/${MAKE_ARC}"
+
+    # Download source
+    [ -f $MAKE_ARC ] || wget $MAKE_URI
+
+    # Extract source
+    if [ -d $MAKE ]; then
+        echo -e "${YELLOW}Make's source archive is already present, re-extracting before proceeding...${RESET}"
+        sudo rm -rf $MAKE
+    fi
+    tar xzf $MAKE_ARC
+    cd $MAKE
+
+    # Compile program
+    echo -e "${GREEN}Compiling Make...${RESET}"
+    ./configure \
+        --host=${HOST} \
+        --prefix=/usr \
+        CC="${CC_STATIC}" \
+        CFLAGS="-Os -march=${ARCH} -mno-fancy-math-387 -I${PREFIX}/include" \
+        LDFLAGS="-static -L${PREFIX}/lib"
+    make -j$(nproc)
+    sudo make DESTDIR=$DESTDIR install
+}
+
 # Download and compile Mg
 get_mg()
 {
@@ -5349,6 +5392,12 @@ copy_licences()
     elif $INCLUDE_GCC; then
         wget -qO "${DESTDIR}/LICENCES/musl.txt" "https://git.musl-libc.org/cgit/musl/plain/COPYRIGHT" || true
         CSV+="\nmusl,MIT,musl.txt"
+    fi
+
+    if $INCLUDE_MAKE && 
+       [ -f "$CURR_DIR/build/make-${MAKE_VER}/COPYING" ]; then
+        cp "$CURR_DIR/build/make-${MAKE_VER}/COPYING" "$DESTDIR/LICENCES/make.txt" || true
+        CSV+="\nMake,GNU GPLv3,make.txt"
     fi
 
     if $INCLUDE_MG && 
@@ -6794,6 +6843,12 @@ get_installed_programs_features()
             EXCLUDED_FEATURES+="\n * lynx"
         fi
 
+        if [ -f "$DESTDIR/usr/bin/make" ]; then
+            INCLUDED_FEATURES+="\n * make ($MAKE_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * make"
+        fi
+
         if [ -f "$DESTDIR/usr/bin/mg" ]; then
             INCLUDED_FEATURES+="\n * mg ($MG_VER)"
         else
@@ -7218,6 +7273,9 @@ if $INCLUDE_JOE; then
 fi
 if $INCLUDE_LYNX; then
     get_lynx
+fi
+if $INCLUDE_MAKE; then
+    get_make
 fi
 if $INCLUDE_MG; then
     get_mg

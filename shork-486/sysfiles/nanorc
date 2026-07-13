@@ -1,8 +1,7 @@
 ######################################################
 ## /usr/etc/nanorc                                  ##
 ######################################################
-## Pre-defined nano configuration enabling line     ##
-## numbers and soft wrap features                   ##
+## Pre-defined nano configuration                   ##
 ######################################################
 ## Kali (sharktastica.co.uk)                        ##
 ######################################################
@@ -10,5 +9,5 @@
 
 
 set linenumbers
-set tabsize 4
-set tabstospaces
+#set tabsize 4
+#set tabstospaces
