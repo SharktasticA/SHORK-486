@@ -123,6 +123,8 @@ CMATRIX_SRC="https://github.com/abishekvashok/cmatrix.git"
 CMATRIX_VER="2.0"
 CURL_SRC="https://curl.se/download"
 CURL_VER="8.21.0"
+DIALOG_SRC="https://invisible-mirror.net/archives/dialog"
+DIALOG_VER="1.3-20260107"
 DROPBEAR_SRC="https://github.com/mkj/dropbear.git"
 DROPBEAR_VER="2026.91"
 FILE_SRC="https://github.com/file/file.git"
@@ -247,6 +249,7 @@ ENABLE_ZSWAP=true
 INCLUDE_C3270=false
 INCLUDE_CON_FONTS=true
 INCLUDE_CMATRIX=false
+INCLUDE_DIALOG=false
 INCLUDE_DROPBEAR=true
 INCLUDE_FILE=true
 INCLUDE_GCC=false
@@ -3763,6 +3766,48 @@ get_cmatrix()
     sudo make DESTDIR=$DESTDIR install
 }
 
+# Download and compile dialog
+get_dialog()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$DESTDIR/usr/bin/dialog" ]; then
+        echo -e "dialog already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading dialog...${RESET}"
+
+    DIR="dialog-${DIALOG_VER}"
+    ARC="${DIR}.tgz"
+    URI="${DIALOG_SRC}/${ARC}"
+
+    # Download
+    [ -f $ARC ] || wget $URI
+
+    # Extract
+    if [ -d $DIR ]; then
+        echo -e "${YELLOW}dialog's source archive is already present, re-extracting before proceeding...${RESET}"
+        sudo rm -rf $DIR
+    fi
+    tar xzf $ARC
+    cd $DIR
+
+    # Compile and install
+    echo -e "${GREEN}Compiling dialog...${RESET}"
+    ./configure \
+        --host=${HOST} \
+        --prefix=/usr \
+        CC="${CC_STATIC}" \
+        AR="${AR}" \
+        RANLIB="${RANLIB}" \
+        CFLAGS="-Os -march=${ARCH} -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
+        LDFLAGS="-static -L${PREFIX}/lib"
+    make -j$(nproc)
+    sudo make DESTDIR=$DESTDIR install
+}
+
 # Download and compile Dropbear
 get_dropbear()
 {
@@ -5122,6 +5167,10 @@ trim_fat()
 
     sudo rm -rf "$DESTDIR/usr/lib/pkgconfig" "$DESTDIR/usr/man" "$DESTDIR/usr/share/bash-completion" "$DESTDIR/usr/share/doc" "$DESTDIR/usr/share/info" "$DESTDIR/usr/share/man"
 
+    if $INCLUDE_DIALOG; then
+        sudo rm -rf "$DESTDIR/usr/lib/libdialog.a"
+    fi
+
     if $INCLUDE_FILE; then
         sudo rm -rf "$DESTDIR/usr/include/magic.h"
         sudo rm -rf "$DESTDIR/usr/lib/libmagic.a"
@@ -5216,6 +5265,12 @@ copy_licences()
        [ -f "$CURR_DIR/build/cmatrix/COPYING" ]; then
         cp "$CURR_DIR/build/cmatrix/COPYING" "$DESTDIR/LICENCES/cmatrix.txt" || true
         CSV+="\nCMatrix,GNU GPLv3,cmatrix.txt"
+    fi
+
+    if $INCLUDE_DIALOG && 
+       [ -f "$CURR_DIR/build/dialog-${DIALOG_VER}/COPYING" ]; then
+        cp "$CURR_DIR/build/dialog-${DIALOG_VER}/COPYING" "$DESTDIR/LICENCES/dialog.txt" || true
+        CSV+="\ndialog,GNU LGPLv2.1,dialog.txt"
     fi
 
     if $INCLUDE_DROPBEAR && 
@@ -7133,6 +7188,9 @@ if $INCLUDE_C3270; then
 fi
 if $INCLUDE_CMATRIX; then
     get_cmatrix
+fi
+if $INCLUDE_DIALOG; then
+    get_dialog
 fi
 if $INCLUDE_DROPBEAR; then
     get_dropbear
