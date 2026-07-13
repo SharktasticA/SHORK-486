@@ -131,7 +131,6 @@ addgroup, adduser, ar, arch, ascii, ash, awk, basename, bc, beep, blkid, bunzip2
 * cfdisk
 * cURL
 * IRC client (exact one TBD)
-* make
 * w3m
 
 ### SHORK 486 on modern hardware
