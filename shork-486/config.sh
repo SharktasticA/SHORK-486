@@ -1023,6 +1023,7 @@ else
         "shorktainment"     "*shorkmatrix, shorkmines, shorksay & sl (+0.5MiB)" "$(val "$INCLUDE_SHORKTAINMENT")"
         "strace"            "*System calls & signals tracer (+1.1MiB)"          "$(val "$INCLUDE_STRACE")"
         "tcc"               "*Tiny C Compiler + musl (+4MiB)"                   "$(val "$INCLUDE_TCC")"
+        "tmux"              "*Terminal multiplexer (+1.7MiB)"                   "$(val "$INCLUDE_TMUX")"
         #"tilde"             "GUI-like text editor (+4.5MiB)"                    "$(val "$INCLUDE_TILDE")"
         "util-linux"        "*lscpu, partx, sfdisk & whereis (+2.2MiB)"         "$(val "$INCLUDE_UTIL_LINUX")"
     )
