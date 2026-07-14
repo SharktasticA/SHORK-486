@@ -113,7 +113,7 @@ BUSYBOX_SRC="https://busybox.net/downloads"
 BUSYBOX_VER="1.38.0"
 
 SHORKFETCH_SRC="https://github.com/SharktasticA/shorkfetch.git"
-SHORKFETCH_VER="0.4.3"
+SHORKFETCH_VER="0.4.4"
 SHORKMINES_SRC="https://github.com/SharktasticA/shorkmines.git"
 SHORKMINES_VER=""
 
