@@ -176,6 +176,8 @@ MUSL_VER="1.2.6"
 NANO_SRC="https://www.nano-editor.org/dist"
 NANO_DIST="v9"
 NANO_VER="9.1"
+NASM_SRC="https://github.com/netwide-assembler/nasm.git"
+NASM_VER="3.02"
 NCURSES_SRC="https://github.com/mirror/ncurses.git"
 NCURSES_VER="6.4"
 NEDIT_SRC="https://git.code.sf.net/p/nedit/git"
@@ -267,6 +269,7 @@ INCLUDE_MICROPYTHON=true
 INCLUDE_MPG321=false
 INCLUDE_MT_ST=true
 INCLUDE_NANO=true
+INCLUDE_NASM=false
 INCLUDE_PCI_IDS=true
 INCLUDE_SC_IM=true
 INCLUDE_SHORKSTALL=false
@@ -351,6 +354,10 @@ if [ "$ID" == "shork-486" ]; then
             EST_MIN_RAM="24MiB + 8MiB swap/16MiB + 16MiB swap"
         elif [ "$INCLUDE_GUI" = true ] || [ "$ENABLE_HIGHMEM" = true ] || [ "$ENABLE_SATA" = true ]; then
             EST_MIN_RAM="24MiB/16MiB + 8MiB swap"
+        elif [ "$ENABLE_NET_ETH" = true ]; then
+            EST_MIN_RAM="16MiB"
+        else
+            EST_MIN_RAM="12MiB"
         fi
     elif [ "$BUILD_TYPE" = "maximal" ]; then
         echo -e "${GREEN}Noting minimum RAM requirement for a SHORK 486 maximal build...${RESET}"
@@ -4431,6 +4438,43 @@ get_nano()
     sudo make DESTDIR=$DESTDIR install
 }
 
+# Download and compile NASM
+get_nasm()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$DESTDIR/usr/bin/nasm" ]; then
+        echo -e "${LIGHT_RED}NASM already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d nasm ]; then
+        echo -e "${YELLOW}NASM source already present, resetting...${RESET}"
+        cd nasm
+        git config --global --add safe.directory "$CURR_DIR/build/nasm"
+        git reset --hard
+    else
+        echo -e "${GREEN}Downloading NASM...${RESET}"
+        git clone --branch "nasm-${NASM_VER}" $NASM_SRC
+        cd nasm
+    fi
+
+    # Compile and install
+    echo -e "${GREEN}Compiling NASM...${RESET}"
+    ./autogen.sh
+    ./configure \
+        --host=${HOST} \
+        --prefix=/usr \
+        CC="${CC_STATIC}" \
+        CFLAGS="-I${PREFIX}/include" \
+        LDFLAGS="-L${PREFIX}/lib -static"
+    make -j$(nproc)
+    sudo install -D -m 755 nasm "$DESTDIR/usr/bin/nasm"
+    sudo install -D -m 755 ndisasm "$DESTDIR/usr/bin/ndisasm"
+}
+
 # Download and compile Rover
 get_rover()
 {
@@ -5428,6 +5472,12 @@ copy_licences()
        [ -f "$CURR_DIR/build/nano-$NANO_VER/COPYING" ]; then
         cp "$CURR_DIR/build/nano-$NANO_VER/COPYING" "$DESTDIR/LICENCES/nano.txt" || true
         CSV+="\nnano,GNU GPLv3,nano.txt"
+    fi
+
+    if $INCLUDE_NASM && 
+       [ -f "$CURR_DIR/build/nasm/LICENSE" ]; then
+        cp "$CURR_DIR/build/nasm/LICENSE" "$DESTDIR/LICENCES/nasm.txt" || true
+        CSV+="\nNASM,BSD 2-Clause,nasm.txt"
     fi
 
     if [ -f "${PREFIX}/lib/libncursesw.a" ] && 
@@ -6878,6 +6928,18 @@ get_installed_programs_features()
         else
             EXCLUDED_FEATURES+="\n * nano"
         fi
+
+        if [ -f "$DESTDIR/usr/bin/nasm" ]; then
+            INCLUDED_FEATURES+="\n * nasm (NASM, $NASM_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * nasm"
+        fi
+
+        if [ -f "$DESTDIR/usr/bin/ndisasm" ]; then
+            INCLUDED_FEATURES+="\n * ndisasm (NASM, $NASM_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * ndisasm"
+        fi
     fi
 
     if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
@@ -7291,6 +7353,9 @@ if $INCLUDE_MT_ST; then
 fi
 if $INCLUDE_NANO; then
     get_nano
+fi
+if $INCLUDE_NASM; then
+    get_nasm
 fi
 if $INCLUDE_SC_IM; then
     get_sc_im

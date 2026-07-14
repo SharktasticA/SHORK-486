@@ -70,6 +70,7 @@ INCLUDE_MICROPYTHON=false
 INCLUDE_MPG321=false
 INCLUDE_MT_ST=false
 INCLUDE_NANO=false
+INCLUDE_NASM=false
 INCLUDE_SC_IM=false
 INCLUDE_SHORKSTALL=false
 INCLUDE_SHORKTAINMENT=false
@@ -175,6 +176,7 @@ save_env()
         echo "INCLUDE_MPG321=$INCLUDE_MPG321"
         echo "INCLUDE_MT_ST=$INCLUDE_MT_ST"
         echo "INCLUDE_NANO=$INCLUDE_NANO"
+        echo "INCLUDE_NASM=$INCLUDE_NASM"
         echo "INCLUDE_SC_IM=$INCLUDE_SC_IM"
         echo "INCLUDE_SHORKSTALL=$INCLUDE_SHORKSTALL"
         echo "INCLUDE_SHORKTAINMENT=$INCLUDE_SHORKTAINMENT"
@@ -243,6 +245,7 @@ set_minimal_vars()
     INCLUDE_MPG321=false
     INCLUDE_MT_ST=false
     INCLUDE_NANO=false
+    INCLUDE_NASM=false
     INCLUDE_SC_IM=false
     INCLUDE_SHORKSTALL=false
     INCLUDE_SHORKTAINMENT=false
@@ -290,6 +293,7 @@ set_default_vars()
     INCLUDE_MPG321=false
     INCLUDE_MT_ST=true
     INCLUDE_NANO=true
+    INCLUDE_NASM=false
     INCLUDE_SC_IM=true
     INCLUDE_SHORKSTALL=false
     INCLUDE_SHORKTAINMENT=true
@@ -338,6 +342,7 @@ set_plus_vars()
     INCLUDE_JOE=true
     INCLUDE_MAKE=true
     INCLUDE_MPG321=true
+    INCLUDE_NASM=true
     INCLUDE_TN5250=true
     ENABLE_SOUND=true
 }
@@ -994,6 +999,7 @@ if [ "$ENABLE_NET_ETH" == true ]; then
         "mpg321"            "MP3 player (+0.4MiB)"                                  "$(val "$INCLUDE_MPG321")"
         "mt-st"             "*Tape drive tools (+0.2MiB)"                           "$(val "$INCLUDE_MT_ST")"
         "nano"              "*Pico-style text editor (+0.8MiB)"                     "$(val "$INCLUDE_NANO")"
+        "nasm"              "Portable x86 assembler & disassembler (+2.5MiB)"       "$(val "$INCLUDE_NASM")"
         "sc-im"             "*Terminal spreadsheet editor (+2.8MiB)"                "$(val "$INCLUDE_SC_IM")"
         "shorktainment"     "*shorkmatrix, shorkmines, shorksay & sl (+0.5MiB)"     "$(val "$INCLUDE_SHORKTAINMENT")"
         "strace"            "*System calls & signals tracer (+1.1MiB)"              "$(val "$INCLUDE_STRACE")"
@@ -1019,6 +1025,7 @@ else
         "mpg321"            "MP3 player (+0.4MiB)"                              "$(val "$INCLUDE_MPG321")"
         "mt-st"             "*Tape drive tools (+0.2MiB)"                       "$(val "$INCLUDE_MT_ST")"
         "nano"              "*Pico-style text editor (+0.8MiB)"                 "$(val "$INCLUDE_NANO")"
+        "nasm"              "Portable x86 assembler & disassembler (+2.5MiB)"   "$(val "$INCLUDE_NASM")"
         "sc-im"             "*Terminal spreadsheet editor (+2.8MiB)"            "$(val "$INCLUDE_SC_IM")"
         "shorktainment"     "*shorkmatrix, shorkmines, shorksay & sl (+0.5MiB)" "$(val "$INCLUDE_SHORKTAINMENT")"
         "strace"            "*System calls & signals tracer (+1.1MiB)"          "$(val "$INCLUDE_STRACE")"
@@ -1060,6 +1067,7 @@ else
     if [[ $BUNDLED =~ "mpg321" ]];          then INCLUDE_MPG321=true;           else INCLUDE_MPG321=false;          fi
     if [[ $BUNDLED =~ "mt-st" ]];           then INCLUDE_MT_ST=true;            else INCLUDE_MT_ST=false;           fi
     if [[ $BUNDLED =~ "nano" ]];            then INCLUDE_NANO=true;             else INCLUDE_NANO=false;            fi
+    if [[ $BUNDLED =~ "nasm" ]];            then INCLUDE_NASM=true;             else INCLUDE_NASM=false;            fi
     if [[ $BUNDLED =~ "sc-im" ]];           then INCLUDE_SC_IM=true;            else INCLUDE_SC_IM=false;           fi
     if [[ $BUNDLED =~ "shorktainment" ]];   then INCLUDE_SHORKTAINMENT=true;    else INCLUDE_SHORKTAINMENT=false;   fi
     if [[ $BUNDLED =~ "strace" ]];          then INCLUDE_STRACE=true;           else INCLUDE_STRACE=false;          fi
@@ -1204,5 +1212,26 @@ if [ "$INCLUDE_MT_ST" = true ] && [ "$ENABLE_SCSI_EXP" = false ]; then
         ENABLE_SCSI_EXP=true
     elif [[ $CHOICE -eq 1 ]]; then
         INCLUDE_MT_ST=false
+    fi
+fi
+
+
+
+# Advisory - +INCLUDE_NASM/-INCLUDE_GCC
+if [ "$INCLUDE_NASM" = true ] && [ "$INCLUDE_GCC" = false ]; then
+    dialog --clear \
+        --backtitle "SHORK 486 Build Configurator" \
+        --title "Advisory - +INCLUDE_NASM/-INCLUDE_GCC" \
+        --yes-label "Include GCC + binutils + musl" \
+        --no-label "Ignore" \
+        --yesno "You have chosen to include NASM but exclude GCC + binutils + musl. Whilst NASM will work without it, SHORK 486 will lack a linker to produce a final binary from NASM's output. If this is fine for your usage or you will provide your own linker, you may ignore this advisory. Otherwise, including GCC + binutils + musl will provide a linker to use." \
+        9 "$WIDTH"
+
+    CHOICE=$?
+
+    if [[ $CHOICE -eq 0 ]]; then
+        INCLUDE_GCC=true
+    elif [[ $CHOICE -eq 1 ]]; then
+        :
     fi
 fi
