@@ -1224,7 +1224,7 @@ if [ "$INCLUDE_NASM" = true ] && [ "$INCLUDE_GCC" = false ]; then
         --title "Advisory - +INCLUDE_NASM/-INCLUDE_GCC" \
         --yes-label "Include GCC + binutils + musl" \
         --no-label "Ignore" \
-        --yesno "You have chosen to include NASM but exclude GCC + binutils + musl. Whilst NASM will work without it, SHORK 486 will lack a linker to produce a final binary from NASM's output. If this is fine for your usage or you will provide your own linker, you may ignore this advisory. Otherwise, including GCC + binutils + musl will provide a linker to use." \
+        --yesno "You have chosen to include NASM but exclude GCC + binutils + musl. Whilst NASM will work without it, SHORK 486 will lack a linker to produce a final binary from NASM's ELF output. If you only intend to produce flat binaries, use ndisasm or provide your own linker, you may ignore this advisory. Otherwise, including GCC + binutils + musl will provide a linker to use." \
         9 "$WIDTH"
 
     CHOICE=$?
