@@ -295,7 +295,7 @@ Below are further explanations for options that could not fit into the configura
 * **Maximal**: Builds SHORK 486 with every bundled software or additional feature option enabled. It is provided as a curiosity for more modern hardware; it is not recommended for 486 and Pentium (P5)-era hardware.
 * **Plus**: The same as a default but but _with_ all optional bundled software included.
 * **Offline**: The same as a default build but _without_ full networking support or software that requires an internet connection.
-    * The after-build report will still report that "kernel-level networking support (base)" is included. This is a technicality required to satisfy htop's kernel requirements, but the kernel is still incapable of supporting real network connections.
+    * The after-build report will still report that "kernel-level networking support (base)" is included. This is a technicality required to satisfy htop's or tmux's kernel requirements, but the kernel is still incapable of supporting real network connections.
 * **Minimal**: Builds SHORK 486 to its most minimal configuration. All bundled software and additional features are excluded, and multi-user system, networking and non-US keyboard layout support are disabled.
 * **Custom**: You will later be asked to pick and choose bundled software and additional features.
 

@@ -420,8 +420,8 @@ if [ "$INCLUDE_HTOP" = true ]; then
     ENABLE_TASKSTATS=true
 fi
 
-# Ensure NET_BASE is enabled with HTOP or NET_ETH
-if [ "$INCLUDE_HTOP" = true ] || [ "$ENABLE_NET_ETH" = true ]; then
+# Ensure NET_BASE is enabled with HTOP, TMUX or NET_ETH
+if [ "$INCLUDE_HTOP" = true ] || [ "$INCLUDE_TMUX" = true ] || [ "$ENABLE_NET_ETH" = true ]; then
     ENABLE_NET_BASE=true
 fi
 
