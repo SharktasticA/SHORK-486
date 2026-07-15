@@ -134,6 +134,8 @@ GIT_SRC="https://github.com/git/git.git"
 GIT_VER="2.55.0"
 HTOP_SRC="https://github.com/htop-dev/htop.git"
 HTOP_VER="3.5.1"
+INDENT_SRC="https://ftp.gnu.org/gnu/indent"
+INDENT_VER="2.2.13"
 JOE_SRC="https://github.com/joe-editor/joe"
 JOE_VER="4.8"
 LIBAO_SRC="https://github.com/xiph/libao.git"
@@ -260,7 +262,8 @@ INCLUDE_GCC=false
 INCLUDE_GIT=true
 INCLUDE_GUI=false
 INCLUDE_HTOP=true
-INCLUDE_JOE=true
+INCLUDE_INDENT=false
+INCLUDE_JOE=false
 INCLUDE_KEYMAPS=true
 INCLUDE_LYNX=true
 INCLUDE_MAKE=false
@@ -4007,37 +4010,43 @@ get_htop()
     sudo cp htop $DESTDIR/usr/bin
 }
 
-# Download and compile lapifetch
-get_lapifetch()
+# Download and compile Indent
+get_indent()
 {
     cd "$CURR_DIR/build"
 
     # Skip if already compiled
-    if [ -f "$DESTDIR/usr/local/bin/lapifetch" ]; then
-        echo -e "${LIGHT_RED}lapifetch already compiled, skipping...${RESET}"
+    if [ -f "$DESTDIR/usr/bin/indent" ]; then
+        echo -e "${LIGHT_RED}Indent already compiled, skipping...${RESET}"
         return
     fi
 
+    echo -e "${GREEN}Downloading Indent...${RESET}"
+
+    INDENT="indent-${INDENT_VER}"
+    INDENT_ARC="${INDENT}.tar.xz"
+    INDENT_URI="${INDENT_SRC}/${INDENT_ARC}"
+
     # Download source
-    if [ -d lapifetch ]; then
-        echo -e "${YELLOW}lapifetch source already present, resetting...${RESET}"
-        cd lapifetch
-        git config --global --add safe.directory "$CURR_DIR/build/lapifetch"
-        git reset --hard
-    else
-        echo -e "${GREEN}Downloading lapifetch...${RESET}"
-        git clone https://github.com/asunyan-dev/lapifetch.git
-        cd lapifetch
+    [ -f $INDENT_ARC ] || wget $INDENT_URI
+
+    # Extract source
+    if [ -d $INDENT ]; then
+        echo -e "${YELLOW}Indent's source archive is already present, re-extracting before proceeding...${RESET}"
+        sudo rm -rf $INDENT
     fi
+    tar xf $INDENT_ARC
+    cd $INDENT
 
-    sed -i 's/^install: all$/install:/' Makefile
-    sed -i '1s/^/DESTDIR =\n\n/' Makefile
-    sed -i 's|cp $(TARGET) /usr/local/bin|cp $(TARGET) $(DESTDIR)/usr/local/bin|' Makefile
-    sed -i 's|rm -f /usr/local/bin/$(TARGET)|rm -f $(DESTDIR)/usr/local/bin/$(TARGET)|' Makefile
-
-    # Compile and install
-    echo -e "${GREEN}Compiling lapifetch...${RESET}"
-    make -j$(nproc) CXX="${CXX_STATIC}"
+    # Compile program
+    echo -e "${GREEN}Compiling Indent...${RESET}"
+    ./configure \
+        --host=${HOST} \
+        --prefix=/usr \
+        CC="${CC_STATIC}" \
+        CFLAGS="-Os -march=${ARCH} -mno-fancy-math-387 -I${PREFIX}/include" \
+        LDFLAGS="-static -L${PREFIX}/lib"
+    make -j$(nproc)
     sudo make DESTDIR=$DESTDIR install
 }
 
@@ -4077,6 +4086,40 @@ get_joe()
         --sysconfdir=/etc \
         CC="${CC_STATIC}"
     make -j$(nproc)
+    sudo make DESTDIR=$DESTDIR install
+}
+
+# Download and compile lapifetch
+get_lapifetch()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$DESTDIR/usr/local/bin/lapifetch" ]; then
+        echo -e "${LIGHT_RED}lapifetch already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d lapifetch ]; then
+        echo -e "${YELLOW}lapifetch source already present, resetting...${RESET}"
+        cd lapifetch
+        git config --global --add safe.directory "$CURR_DIR/build/lapifetch"
+        git reset --hard
+    else
+        echo -e "${GREEN}Downloading lapifetch...${RESET}"
+        git clone https://github.com/asunyan-dev/lapifetch.git
+        cd lapifetch
+    fi
+
+    sed -i 's/^install: all$/install:/' Makefile
+    sed -i '1s/^/DESTDIR =\n\n/' Makefile
+    sed -i 's|cp $(TARGET) /usr/local/bin|cp $(TARGET) $(DESTDIR)/usr/local/bin|' Makefile
+    sed -i 's|rm -f /usr/local/bin/$(TARGET)|rm -f $(DESTDIR)/usr/local/bin/$(TARGET)|' Makefile
+
+    # Compile and install
+    echo -e "${GREEN}Compiling lapifetch...${RESET}"
+    make -j$(nproc) CXX="${CXX_STATIC}"
     sudo make DESTDIR=$DESTDIR install
 }
 
@@ -4297,8 +4340,7 @@ get_micropython()
     sudo ln -sf micropython "$DESTDIR/usr/bin/python3"
 }
 
-# Download and compile mpg321 (WIP)
-# Once down, uncomment relevant part of get_installed_programs_features
+# Download and compile mpg321
 get_mpg321()
 {
     cd "$CURR_DIR/build"
@@ -5409,6 +5451,12 @@ copy_licences()
        [ -f "$CURR_DIR/build/syslinux/COPYING" ]; then
         cp "$CURR_DIR/build/syslinux/COPYING" "$DESTDIR/LICENCES/isolinux.txt" || true
         CSV+="\nISOLINUX,GNU GPLv2,isolinux.txt"
+    fi
+
+    if $INCLUDE_INDENT && 
+       [ -f "$CURR_DIR/build/indent-${INDENT_VER}/COPYING" ]; then
+        cp "$CURR_DIR/build/indent-${INDENT_VER}/COPYING" "$DESTDIR/LICENCES/indent.txt" || true
+        CSV+="\nIndent,GNU GPLv3,indent.txt"
     fi
 
     if $INCLUDE_JOE && 
@@ -6871,6 +6919,12 @@ get_installed_programs_features()
             EXCLUDED_FEATURES+="\n * htop"
         fi
 
+        if [ -f "$DESTDIR/usr/bin/indent" ]; then
+            INCLUDED_FEATURES+="\n * indent ($INDENT_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * indent"
+        fi
+
         if [ -f "$DESTDIR/usr/bin/joe" ]; then
             INCLUDED_FEATURES+="\n * joe ($JOE_VER)"
         else
@@ -7329,6 +7383,9 @@ if $INCLUDE_GIT; then
 fi
 if $INCLUDE_HTOP; then
     get_htop
+fi
+if $INCLUDE_INDENT; then
+    get_indent
 fi
 if $INCLUDE_JOE; then
     get_joe
