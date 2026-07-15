@@ -121,6 +121,10 @@ C3270_SRC="https://github.com/pmattes/x3270.git"
 C3270_VER="4.5ga5"
 CMATRIX_SRC="https://github.com/abishekvashok/cmatrix.git"
 CMATRIX_VER="2.0"
+CSCOPE_SRC="https://git.code.sf.net/p/cscope/cscope cscope-cscope"
+CSCOPE_VER="15.9"
+CTAGS_SRC="https://github.com/universal-ctags/ctags.git"
+CTAGS_VER="p6.2.20260705.0"
 CURL_SRC="https://curl.se/download"
 CURL_VER="8.21.0"
 DIALOG_SRC="https://invisible-mirror.net/archives/dialog"
@@ -255,6 +259,8 @@ ENABLE_ZSWAP=true
 INCLUDE_C3270=false
 INCLUDE_CON_FONTS=true
 INCLUDE_CMATRIX=false
+INCLUDE_CSCOPE=false
+INCLUDE_CTAGS=false
 INCLUDE_DIALOG=true
 INCLUDE_DROPBEAR=true
 INCLUDE_FILE=true
@@ -510,6 +516,10 @@ NEED_ZLIB=false
 
 if [ -n "$USED_WM" ]; then
     NEED_ZLIB=true
+fi
+
+if $INCLUDE_CTAGS; then
+    NEED_LIBXML2=true
 fi
 
 if $INCLUDE_GIT; then
@@ -1147,7 +1157,7 @@ get_libxlsxwriter()
     cp src/libxlsxwriter.a "$PREFIX/lib/"
 }
 
-# Download and compile libxml2 (required for sc-im)
+# Download and compile libxml2 (required for ctags and sc-im)
 get_libxml2()
 {
     cd "$CURR_DIR/build"
@@ -3779,6 +3789,86 @@ get_cmatrix()
     sudo make DESTDIR=$DESTDIR install
 }
 
+# Download and compile Cscope
+get_cscope()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$DESTDIR/usr/bin/cscope" ]; then
+        echo -e "${LIGHT_RED}Cscope already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d cscope-cscope ]; then
+        echo -e "${YELLOW}Cscope source already present, resetting & cleaning...${RESET}"
+        cd cscope-cscope
+        git config --global --add safe.directory "$CURR_DIR/build/cscope-cscope"
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading Cscope...${RESET}"
+        git clone --branch "v${CSCOPE_VER}" $CSCOPE_SRC
+        cd cscope-cscope
+    fi
+
+    # Compile program
+    echo -e "${GREEN}Compiling Cscope...${RESET}"
+    autoreconf -fi
+    ./configure \
+        --host=${HOST} \
+        --prefix=/usr \
+        CC="${CC_STATIC}" \
+        CFLAGS="-Os -march=${ARCH} -mno-fancy-math-387 -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
+        LDFLAGS="-static -L${PREFIX}/lib"
+    make -j$(nproc)
+    sudo make DESTDIR=$DESTDIR install
+}
+
+# Download and compile Universal Ctags
+get_ctags()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$DESTDIR/usr/bin/ctags" ]; then
+        echo -e "${LIGHT_RED}Universal Ctags already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d ctags ]; then
+        echo -e "${YELLOW}Universal Ctags source already present, resetting & cleaning...${RESET}"
+        cd ctags
+        git config --global --add safe.directory "$CURR_DIR/build/ctags"
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading Universal Ctags...${RESET}"
+        git clone --branch ${CTAGS_VER} $CTAGS_SRC
+        cd ctags
+    fi
+
+    # Compile program
+    echo -e "${GREEN}Compiling Universal Ctags...${RESET}"
+    ./autogen.sh
+    ./configure \
+        --host=${HOST} \
+        --prefix=/usr \
+        --disable-pcre2 \
+        --disable-external-sort \
+        --disable-yaml \
+        --disable-json \
+        --disable-iconv \
+        --disable-seccomp \
+        CC="${CC_STATIC}" \
+        CFLAGS="-Os -march=${ARCH} -mno-fancy-math-387 -I${PREFIX}/include" \
+        LDFLAGS="-static -L${PREFIX}/lib"
+    make -j$(nproc)
+    sudo make DESTDIR=$DESTDIR install
+}
+
 # Download and compile dialog
 get_dialog()
 {
@@ -5396,6 +5486,12 @@ copy_licences()
         CSV+="\nCMatrix,GNU GPLv3,cmatrix.txt"
     fi
 
+    if $INCLUDE_CSCOPE && 
+       [ -f "$CURR_DIR/build/cscope-cscope/COPYING" ]; then
+        cp "$CURR_DIR/build/cscope-cscope/COPYING" "$DESTDIR/LICENCES/cscope.txt" || true
+        CSV+="\nCscope,BSD 3-Clause,cscope.txt"
+    fi
+
     if $INCLUDE_DIALOG && 
        [ -f "$CURR_DIR/build/dialog-${DIALOG_VER}/COPYING" ]; then
         cp "$CURR_DIR/build/dialog-${DIALOG_VER}/COPYING" "$DESTDIR/LICENCES/dialog.txt" || true
@@ -5421,8 +5517,9 @@ copy_licences()
         CSV+="\nfile,BSD 2-Clause,file.txt"
     fi
 
-    if $INCLUDE_GCC; then
-        wget -qO "${DESTDIR}/LICENCES/gcc.txt" "https://www.gnu.org/licenses/gpl-3.0.txt" || true
+    if $INCLUDE_GCC &&
+       [ -f "../../COPYING" ]; then
+        cp "../../COPYING" "$DESTDIR/LICENCES/gcc.txt" || true
         wget -qO "${DESTDIR}/LICENCES/gcc-exception.txt" "https://raw.githubusercontent.com/gcc-mirror/gcc/master/COPYING.RUNTIME" || true
         CSV+="\nGCC,GNU GPLv3,gcc.txt"
         CSV+="\nGCC Runtime,GCC Runtime Library Exception,gcc-exception.txt"
@@ -5642,6 +5739,12 @@ copy_licences()
        [ -f "$CURR_DIR/build/twm/COPYING" ]; then
         cp "$CURR_DIR/build/twm/COPYING" "$DESTDIR/LICENCES/twm.txt" || true
         CSV+="\nTWM,MIT,twm.txt"
+    fi
+
+    if $INCLUDE_CTAGS && 
+       [ -f "$CURR_DIR/build/ctags/COPYING" ]; then
+        cp "$CURR_DIR/build/ctags/COPYING" "$DESTDIR/LICENCES/ctags.txt" || true
+        CSV+="\nUniversal Ctags,GPLv2,ctags.txt"
     fi
 
     if $INCLUDE_UTIL_LINUX && 
@@ -6885,6 +6988,18 @@ get_installed_programs_features()
         #    EXCLUDED_FEATURES+="\n * cmatrix"
         #
 
+        if [ -f "$DESTDIR/usr/bin/cscope" ]; then
+            INCLUDED_FEATURES+="\n * cscope ($CSCOPE_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * cscope"
+        fi
+
+        if [ -f "$DESTDIR/usr/bin/ctags" ]; then
+            INCLUDED_FEATURES+="\n * ctags (Universal Ctags, $CTAGS_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * ctags"
+        fi
+
         if [ -f "$DESTDIR/usr/bin/dialog" ]; then
             INCLUDED_FEATURES+="\n * dialog ($DIALOG_VER)"
         else
@@ -7005,6 +7120,12 @@ get_installed_programs_features()
     fi
 
     if [ "$ID" == "shork-486" ]; then
+        if [ -f "$DESTDIR/usr/bin/readtags" ]; then
+            INCLUDED_FEATURES+="\n * readtags (Universal Ctags, $CTAGS_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * readtags"
+        fi
+
         if [ -f "$DESTDIR/usr/bin/scp" ]; then
             INCLUDED_FEATURES+="\n * scp (Dropbear, $DROPBEAR_VER)"
         else
@@ -7365,6 +7486,12 @@ if $INCLUDE_C3270; then
 fi
 if $INCLUDE_CMATRIX; then
     get_cmatrix
+fi
+if $INCLUDE_CSCOPE; then
+    get_cscope
+fi
+if $INCLUDE_CTAGS; then
+    get_ctags
 fi
 if $INCLUDE_DIALOG; then
     get_dialog

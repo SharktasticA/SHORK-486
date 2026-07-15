@@ -87,6 +87,7 @@ addgroup, adduser, ar, arch, ascii, ash, awk, basename, bc, beep, blkid, bunzip2
 
 | Name | Command(s) | Version | Purpose | Licence(s) |
 |------|------------|---------|---------|------------|
+| [Cscope](https://cscope.sourceforge.net/) | `cscope` | 15.9 | C/C++ code browser | BSD 3-Clause |
 | [GCC](https://musl.cc/)‡§ | `gcc`, `g++`, `gfortran` | 11.2.1 | C, C++ and Fortran compilers | GPLv3 + GCC RLE |
 | [GNU Binutils](https://musl.cc/)‡ | e.g. `ar`, `as`, `gprof`, `ld`, `nm`, `objdump`, `ranlib`,`readelf`, `strings`, `strip` | 2.37 | Binary tools to compliment GCC | GPLv3 |
 | [GNU Indent](https://www.gnu.org/software/indent/) | `indent` | 2.2.13 | C code formatter | GPLv3 |
@@ -95,6 +96,7 @@ addgroup, adduser, ar, arch, ascii, ash, awk, basename, bc, beep, blkid, bunzip2
 | [mpg321](https://mpg321.sourceforge.net/)† | `mpg321` | 0.3.2-1 | MP3 player | GPLv2 |
 | [NASM](https://www.nasm.us/) | `nasm`, `ndisasm` | 3.02 | Portable x86 assembler & disassembler | BSD 2-Clause |
 | [tn5250](https://github.com/tn5250/tn5250)† | `tn5250` | 0.18.0 | TCP/IP 5250 terminal emulator | LGPLv2.1 |
+| [Universal Ctags](https://ctags.io/) | `ctags`, `readtags` | 6.2.0 | Source code object indexing | GPLv2 |
 | [x3270](https://github.com/pmattes/x3270)† | `c3270` | 4.5ga5 | 3270 terminal emulator | BSD 3-Clause |
 
 * _† Their inclusion is experimental - expect bugs_
@@ -128,11 +130,18 @@ addgroup, adduser, ar, arch, ascii, ash, awk, basename, bc, beep, blkid, bunzip2
 
 #### Bundled software
 
+* autoreconf
+* automake
 * BASIC interpreter (exact one TBD)
+* bison
 * cmake
 * cfdisk
 * cURL
+* flex
+* GDB
 * IRC client (exact one TBD)
+* libtool
+* pkg-config
 * w3m
 
 ### SHORK 486 on modern hardware

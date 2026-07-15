@@ -56,6 +56,8 @@ ENABLE_NET_ETH=false
 FIX_EXTLINUX=true
 INCLUDE_C3270=false
 INCLUDE_CMATRIX=false
+INCLUDE_CSCOPE=false
+INCLUDE_CTAGS=false
 INCLUDE_DIALOG=false
 INCLUDE_DROPBEAR=false
 INCLUDE_FILE=false
@@ -163,6 +165,8 @@ save_env()
         echo "FIX_EXTLINUX=$FIX_EXTLINUX"
         echo "INCLUDE_C3270=$INCLUDE_C3270"
         echo "INCLUDE_CMATRIX=$INCLUDE_CMATRIX"
+        echo "INCLUDE_CSCOPE=$INCLUDE_CSCOPE"
+        echo "INCLUDE_CTAGS=$INCLUDE_CTAGS"
         echo "INCLUDE_DIALOG=$INCLUDE_DIALOG"
         echo "INCLUDE_DROPBEAR=$INCLUDE_DROPBEAR"
         echo "INCLUDE_FILE=$INCLUDE_FILE"
@@ -233,6 +237,8 @@ set_minimal_vars()
     ENABLE_NET_ETH=false
     INCLUDE_C3270=false
     INCLUDE_CMATRIX=false
+    INCLUDE_CSCOPE=false
+    INCLUDE_CTAGS=false
     INCLUDE_DIALOG=false
     INCLUDE_DROPBEAR=false
     INCLUDE_FILE=false
@@ -282,6 +288,9 @@ set_default_vars()
 {
     ENABLE_NET_ETH=true
     INCLUDE_C3270=false
+    INCLUDE_CMATRIX=false
+    INCLUDE_CSCOPE=false
+    INCLUDE_CTAGS=false
     INCLUDE_DIALOG=true
     INCLUDE_DROPBEAR=true
     INCLUDE_FILE=true
@@ -342,6 +351,8 @@ set_plus_vars()
 {
     set_default_vars
     INCLUDE_C3270=true
+    INCLUDE_CSCOPE=true
+    INCLUDE_CTAGS=true
     INCLUDE_GCC=true
     INCLUDE_INDENT=true
     INCLUDE_JOE=true
@@ -990,6 +1001,8 @@ if [ "$ENABLE_NET_ETH" == true ]; then
     BUNDLED_ITEMS+=(
         "c3270"             "3270 terminal emulator (+1.8MiB, EXPERIMENTAL)"        "$(val "$INCLUDE_C3270")"
         #"cmatrix"           "Scrolling text screensaver (+0.4MiB)"                  "$(val "$INCLUDE_CMATRIX")"
+        "cscope"            "C/C++ code browser (+1MiB)"                            "$(val "$INCLUDE_CSCOPE")"
+        "ctags"             "Source code object indexing (+1.5MiB)"                 "$(val "$INCLUDE_CTAGS")"
         "dialog"            "*Shell script TUI widgets (+0.5MiB)"                   "$(val "$INCLUDE_DIALOG")"
         "dropbear"          "*SCP & SSH client (+0.4MiB)"                           "$(val "$INCLUDE_DROPBEAR")"
         "file"              "**File type identification (+10MiB)"                   "$(val "$INCLUDE_FILE")"
@@ -1020,6 +1033,8 @@ else
     BUNDLED_ITEMS+=(
         "c3270"             "3270 terminal emulator (+1.8MiB, EXPERIMENTAL)"    "$(val "$INCLUDE_C3270")"
         #"cmatrix"           "Scrolling text screensaver (+0.4MiB)"              "$(val "$INCLUDE_CMATRIX")"
+        "cscope"            "C/C++ code browser (+1MiB)"                        "$(val "$INCLUDE_CSCOPE")"
+        "ctags"             "Source code object indexing (+1.5MiB)"             "$(val "$INCLUDE_CTAGS")"
         "dialog"            "*Shell script TUI widgets (+0.5MiB)"               "$(val "$INCLUDE_DIALOG")"
         "file"              "**File type identification (+10MiB)"               "$(val "$INCLUDE_FILE")"
         "gcc"               "**GCC + binutils + musl (+215MiB)"                 "$(val "$INCLUDE_GCC")"
@@ -1058,8 +1073,10 @@ SKIPPED=$?
 if [[ $SKIPPED -eq 1 ]]; then
     :
 else
-    if [[ $BUNDLED =~ "c3270" ]];           then INCLUDE_C3270=true;            else INCLUDE_C3270=false;         fi
+    if [[ $BUNDLED =~ "c3270" ]];           then INCLUDE_C3270=true;            else INCLUDE_C3270=false;           fi
     #if [[ $BUNDLED =~ "cmatrix" ]];         then INCLUDE_CMATRIX=true;          else INCLUDE_CMATRIX=false;         fi
+    if [[ $BUNDLED =~ "cscope" ]];          then INCLUDE_CSCOPE=true;           else INCLUDE_CSCOPE=false;          fi
+    if [[ $BUNDLED =~ "ctags" ]];           then INCLUDE_CTAGS=true;            else INCLUDE_CTAGS=false;           fi
     if [[ $BUNDLED =~ "dialog" ]];          then INCLUDE_DIALOG=true;           else INCLUDE_DIALOG=false;          fi
     if [[ $BUNDLED =~ "dropbear" ]];        then INCLUDE_DROPBEAR=true;         else INCLUDE_DROPBEAR=false;        fi
     if [[ $BUNDLED =~ "file" ]];            then INCLUDE_FILE=true;             else INCLUDE_FILE=false;            fi
