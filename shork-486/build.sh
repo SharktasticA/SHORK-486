@@ -119,8 +119,6 @@ SHORKMINES_VER=""
 
 C3270_SRC="https://github.com/pmattes/x3270.git"
 C3270_VER="4.5ga5"
-CMATRIX_SRC="https://github.com/abishekvashok/cmatrix.git"
-CMATRIX_VER="2.0"
 CSCOPE_SRC="https://git.code.sf.net/p/cscope/cscope cscope-cscope"
 CSCOPE_VER="15.9"
 CTAGS_SRC="https://github.com/universal-ctags/ctags.git"
@@ -192,8 +190,6 @@ OPENSSL_SRC="https://github.com/openssl/openssl.git"
 OPENSSL_VER="3.6.3"
 PCRE2_SRC="https://github.com/PCRE2Project/pcre2/releases/download"
 PCRE2_VER="10.47"
-ROVER_SRC="https://github.com/lecram/rover.git"
-ROVER_VER="1.0.1"
 SC_IM_SRC="https://github.com/andmarti1424/sc-im.git"
 SC_IM_VER="0.8.5"
 STRACE_SRC="https://github.com/strace/strace.git"
@@ -258,7 +254,6 @@ ENABLE_ZSWAP=true
 
 INCLUDE_C3270=false
 INCLUDE_CON_FONTS=true
-INCLUDE_CMATRIX=false
 INCLUDE_CSCOPE=false
 INCLUDE_CTAGS=false
 INCLUDE_DIALOG=true
@@ -526,6 +521,10 @@ if $INCLUDE_GIT; then
     NEED_CURL=true
     NEED_OPENSSL=true
     NEED_ZLIB=true
+fi
+
+if $INCLUDE_LYNX; then
+    NEED_OPENSSL=true
 fi
 
 if $INCLUDE_MPG321; then
@@ -1208,6 +1207,7 @@ get_libzip()
         echo -e "${YELLOW}libzip source already present, resetting...${RESET}"
         cd libzip
         git reset --hard
+        git clean -fdx
     else
         echo -e "${GREEN}Downloading libzip...${RESET}"
         git clone --branch v${LIBZIP_VER} $LIBZIP_SRC
@@ -3703,210 +3703,138 @@ get_console_fonts()
 ## Bundled software building                        ##
 ######################################################
 
-# Download and compile c3270
-get_c3270()
+# Download a program from a Git repository and compile with configure
+get_prog_git()
 {
     cd "$CURR_DIR/build"
 
+    local BIN_DIR="$1"
+    local TEST_BIN="$2"
+    local NAME="$3"
+    local GIT_DIR="$4"
+    local SRC="$5"
+    local VER="$6"
+    local AUTOGEN=$7
+    local AUTORECONF=$8
+    local CONFIGURE="$9"
+
+    local CONFIGURE_ARR=()
+    eval "CONFIGURE_ARR=($CONFIGURE)"
+
     # Skip if already compiled
-    if [ -f "$DESTDIR/usr/bin/c3270" ]; then
-        echo -e "${LIGHT_RED}c3270 already compiled, skipping...${RESET}"
+    if [ -f "$DESTDIR/$BIN_DIR/$TEST_BIN" ]; then
+        echo -e "${LIGHT_RED}$NAME already compiled, skipping...${RESET}"
         return
     fi
 
     # Download source
-    if [ -d x3270 ]; then
-        echo -e "${YELLOW}c3270 source already present, resetting & cleaning...${RESET}"
-        cd x3270
-        git config --global --add safe.directory "$CURR_DIR/build/x3270"
+    if [ -d $GIT_DIR ]; then
+        echo -e "${YELLOW}$NAME source already present, resetting & cleaning...${RESET}"
+        cd $GIT_DIR
+        git config --global --add safe.directory "$CURR_DIR/build/$GIT_DIR"
         git reset --hard
         git clean -fdx
     else
-        echo -e "${GREEN}Downloading c3270...${RESET}"
-        git clone --branch ${C3270_VER} $C3270_SRC
-        cd x3270
-    fi
-
-    # Compile and install
-    #echo -e "${GREEN}Compiling x3270...${RESET}"
-    ./configure \
-        --host=${HOST} \
-        --prefix=/usr \
-        --enable-c3270 \
-        --disable-x3270 \
-        --disable-s3270 \
-        --disable-b3270 \
-        --disable-tcl3270 \
-        --disable-pr3287 \
-        --disable-x3270if \
-        --disable-playback \
-        --disable-mitm \
-        --disable-wc3270 \
-        CC="${CC_STATIC}" \
-        AR="${AR}" \
-        RANLIB="${RANLIB}" \
-        CFLAGS="-Os -march=${ARCH} -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
-        LDFLAGS="-static -L${PREFIX}/lib"
-    make -j$(nproc)
-    sudo make DESTDIR=$DESTDIR install
-}
-
-# Download and compile CMatrix
-get_cmatrix()
-{
-    cd "$CURR_DIR/build"
-
-    # Skip if already compiled
-    if [ -f "$DESTDIR/usr/bin/cmatrix" ]; then
-        echo -e "${LIGHT_RED}CMatrix already compiled, skipping...${RESET}"
-        return
-    fi
-
-    # Download source
-    if [ -d cmatrix ]; then
-        echo -e "${YELLOW}CMatrix source already present, resetting...${RESET}"
-        cd cmatrix
-        git config --global --add safe.directory "$CURR_DIR/build/cmatrix"
-        git reset --hard
-    else
-        echo -e "${GREEN}Downloading CMatrix...${RESET}"
-        git clone --branch v${CMATRIX_VER} $CMATRIX_SRC
-        cd cmatrix
-    fi
-
-    # Compile and install
-    echo -e "${GREEN}Compiling CMatrix...${RESET}"
-    autoreconf -i
-    ./configure \
-        --host=${HOST} \
-        --prefix=/usr \
-        CC="${CC_STATIC}" \
-        AR="${AR}" \
-        RANLIB="${RANLIB}" \
-        CFLAGS="-Os -march=${ARCH} -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
-        LDFLAGS="-static -L${PREFIX}/lib"
-    make -j$(nproc)
-    sudo make DESTDIR=$DESTDIR install
-}
-
-# Download and compile Cscope
-get_cscope()
-{
-    cd "$CURR_DIR/build"
-
-    # Skip if already compiled
-    if [ -f "$DESTDIR/usr/bin/cscope" ]; then
-        echo -e "${LIGHT_RED}Cscope already compiled, skipping...${RESET}"
-        return
-    fi
-
-    # Download source
-    if [ -d cscope-cscope ]; then
-        echo -e "${YELLOW}Cscope source already present, resetting & cleaning...${RESET}"
-        cd cscope-cscope
-        git config --global --add safe.directory "$CURR_DIR/build/cscope-cscope"
-        git reset --hard
-        git clean -fdx
-    else
-        echo -e "${GREEN}Downloading Cscope...${RESET}"
-        git clone --branch "v${CSCOPE_VER}" $CSCOPE_SRC
-        cd cscope-cscope
+        echo -e "${GREEN}Downloading $NAME...${RESET}"
+        git clone --branch $VER $SRC
+        cd $GIT_DIR
     fi
 
     # Compile program
-    echo -e "${GREEN}Compiling Cscope...${RESET}"
-    autoreconf -fi
-    ./configure \
-        --host=${HOST} \
-        --prefix=/usr \
-        CC="${CC_STATIC}" \
-        CFLAGS="-Os -march=${ARCH} -mno-fancy-math-387 -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
-        LDFLAGS="-static -L${PREFIX}/lib"
+    echo -e "${GREEN}Compiling $NAME...${RESET}"
+    if $AUTOGEN; then
+        ./autogen.sh
+    fi
+    if $AUTORECONF; then
+        autoreconf -fi
+    fi
+    if [ -x ./configure ] || [ -f ./configure ]; then
+        ./configure \
+            --host=${HOST} \
+            --prefix=/usr \
+            "${CONFIGURE_ARR[@]}" \
+            CC="${CC_STATIC}" \
+            AR="${AR}" \
+            RANLIB="${RANLIB}" \
+            STRIP="${STRIP}" \
+            CFLAGS="-Os -march=${ARCH} -mno-fancy-math-387 -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
+            CPPFLAGS="-I${SYSROOT}/include -I${PREFIX}/include -I${PREFIX}/include/ncursesw -DHAVE_FORKPTY" \
+            LDFLAGS="-static -L${SYSROOT}/lib -L${PREFIX}/lib" \
+            LIBEVENT_CFLAGS="-I${PREFIX}/include" \
+            LIBEVENT_LIBS="-L${PREFIX}/lib -levent" \
+            CURSES_CFLAGS="-I${PREFIX}/include/ncursesw -I${PREFIX}/include" \
+            CURSES_LIBS="-L${PREFIX}/lib -lncursesw"
+    fi
     make -j$(nproc)
     sudo make DESTDIR=$DESTDIR install
 }
 
-# Download and compile Universal Ctags
-get_ctags()
+# Download a program from a tarball source and compile with configure
+get_prog_tar()
 {
     cd "$CURR_DIR/build"
 
+    local BIN_DIR="$1"
+    local TEST_BIN="$2"
+    local NAME="$3"
+    local SRC_DIR="$4"
+    local ARC_EXT="$5"
+    local SRC_URI="$6"
+    local TAR_CMD="$7"
+    local AUTOGEN=$8
+    local AUTORECONF=$9
+    local CONFIGURE="${10}"
+
+    local CONFIGURE_ARR=()
+    eval "CONFIGURE_ARR=($CONFIGURE)"
+
     # Skip if already compiled
-    if [ -f "$DESTDIR/usr/bin/ctags" ]; then
-        echo -e "${LIGHT_RED}Universal Ctags already compiled, skipping...${RESET}"
+    if [ -f "$DESTDIR/$BIN_DIR/$TEST_BIN" ]; then
+        echo -e "${LIGHT_RED}$NAME already compiled, skipping...${RESET}"
         return
     fi
+
+    echo -e "${GREEN}Downloading $NAME...${RESET}"
+
+    ARC="${SRC_DIR}.${ARC_EXT}"
+    URI="${SRC_URI}/${ARC}"
 
     # Download source
-    if [ -d ctags ]; then
-        echo -e "${YELLOW}Universal Ctags source already present, resetting & cleaning...${RESET}"
-        cd ctags
-        git config --global --add safe.directory "$CURR_DIR/build/ctags"
-        git reset --hard
-        git clean -fdx
-    else
-        echo -e "${GREEN}Downloading Universal Ctags...${RESET}"
-        git clone --branch ${CTAGS_VER} $CTAGS_SRC
-        cd ctags
-    fi
-
-    # Compile program
-    echo -e "${GREEN}Compiling Universal Ctags...${RESET}"
-    ./autogen.sh
-    ./configure \
-        --host=${HOST} \
-        --prefix=/usr \
-        --disable-pcre2 \
-        --disable-external-sort \
-        --disable-yaml \
-        --disable-json \
-        --disable-iconv \
-        --disable-seccomp \
-        CC="${CC_STATIC}" \
-        CFLAGS="-Os -march=${ARCH} -mno-fancy-math-387 -I${PREFIX}/include" \
-        LDFLAGS="-static -L${PREFIX}/lib"
-    make -j$(nproc)
-    sudo make DESTDIR=$DESTDIR install
-}
-
-# Download and compile dialog
-get_dialog()
-{
-    cd "$CURR_DIR/build"
-
-    # Skip if already compiled
-    if [ -f "$DESTDIR/usr/bin/dialog" ]; then
-        echo -e "dialog already compiled, skipping...${RESET}"
-        return
-    fi
-
-    echo -e "${GREEN}Downloading dialog...${RESET}"
-
-    DIR="dialog-${DIALOG_VER}"
-    ARC="${DIR}.tgz"
-    URI="${DIALOG_SRC}/${ARC}"
-
-    # Download
     [ -f $ARC ] || wget $URI
 
-    # Extract
-    if [ -d $DIR ]; then
-        echo -e "${YELLOW}dialog's source archive is already present, re-extracting before proceeding...${RESET}"
-        sudo rm -rf $DIR
+    # Extract source
+    if [ -d $SRC_DIR ]; then
+        echo -e "${YELLOW}$NAME's source archive is already present, re-extracting before proceeding...${RESET}"
+        sudo rm -rf $SRC_DIR
     fi
-    tar xzf $ARC
-    cd $DIR
+    tar $TAR_CMD $ARC
+    cd $SRC_DIR
 
-    # Compile and install
-    echo -e "${GREEN}Compiling dialog...${RESET}"
-    ./configure \
-        --host=${HOST} \
-        --prefix=/usr \
-        CC="${CC_STATIC}" \
-        AR="${AR}" \
-        RANLIB="${RANLIB}" \
-        CFLAGS="-Os -march=${ARCH} -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
-        LDFLAGS="-static -L${PREFIX}/lib"
+    # Compile program
+    echo -e "${GREEN}Compiling $NAME...${RESET}"
+    if $AUTOGEN; then
+        ./autogen.sh
+    fi
+    if $AUTORECONF; then
+        autoreconf -fi
+    fi
+    if [ -x ./configure ] || [ -f ./configure ]; then
+        ./configure \
+            --host=${HOST} \
+            --prefix=/usr \
+            "${CONFIGURE_ARR[@]}" \
+            CC="${CC_STATIC}" \
+            AR="${AR}" \
+            RANLIB="${RANLIB}" \
+            STRIP="${STRIP}" \
+            CFLAGS="-Os -march=${ARCH} -mno-fancy-math-387 -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
+            CPPFLAGS="-I${SYSROOT}/include -I${PREFIX}/include -I${PREFIX}/include/ncursesw -DHAVE_FORKPTY" \
+            LDFLAGS="-static -L${SYSROOT}/lib -L${PREFIX}/lib" \
+            LIBEVENT_CFLAGS="-I${PREFIX}/include" \
+            LIBEVENT_LIBS="-L${PREFIX}/lib -levent" \
+            CURSES_CFLAGS="-I${PREFIX}/include/ncursesw -I${PREFIX}/include" \
+            CURSES_LIBS="-L${PREFIX}/lib -lncursesw"
+    fi
     make -j$(nproc)
     sudo make DESTDIR=$DESTDIR install
 }
@@ -4100,46 +4028,6 @@ get_htop()
     sudo cp htop $DESTDIR/usr/bin
 }
 
-# Download and compile Indent
-get_indent()
-{
-    cd "$CURR_DIR/build"
-
-    # Skip if already compiled
-    if [ -f "$DESTDIR/usr/bin/indent" ]; then
-        echo -e "${LIGHT_RED}Indent already compiled, skipping...${RESET}"
-        return
-    fi
-
-    echo -e "${GREEN}Downloading Indent...${RESET}"
-
-    INDENT="indent-${INDENT_VER}"
-    INDENT_ARC="${INDENT}.tar.xz"
-    INDENT_URI="${INDENT_SRC}/${INDENT_ARC}"
-
-    # Download source
-    [ -f $INDENT_ARC ] || wget $INDENT_URI
-
-    # Extract source
-    if [ -d $INDENT ]; then
-        echo -e "${YELLOW}Indent's source archive is already present, re-extracting before proceeding...${RESET}"
-        sudo rm -rf $INDENT
-    fi
-    tar xf $INDENT_ARC
-    cd $INDENT
-
-    # Compile program
-    echo -e "${GREEN}Compiling Indent...${RESET}"
-    ./configure \
-        --host=${HOST} \
-        --prefix=/usr \
-        CC="${CC_STATIC}" \
-        CFLAGS="-Os -march=${ARCH} -mno-fancy-math-387 -I${PREFIX}/include" \
-        LDFLAGS="-static -L${PREFIX}/lib"
-    make -j$(nproc)
-    sudo make DESTDIR=$DESTDIR install
-}
-
 # Download and compile JOE
 get_joe()
 {
@@ -4210,126 +4098,6 @@ get_lapifetch()
     # Compile and install
     echo -e "${GREEN}Compiling lapifetch...${RESET}"
     make -j$(nproc) CXX="${CXX_STATIC}"
-    sudo make DESTDIR=$DESTDIR install
-}
-
-# Download and compile Lynx
-get_lynx()
-{
-    cd "$CURR_DIR/build"
-
-    # Skip if already compiled
-    if [ -f "$DESTDIR/usr/bin/lynx" ]; then
-        echo -e "${LIGHT_RED}Lynx already compiled, skipping...${RESET}"
-        return
-    fi
-
-    # Download source
-    if [ -d lynx-snapshots ]; then
-        echo -e "${YELLOW}Lynx source already present, resetting...${RESET}"
-        cd lynx-snapshots
-        git config --global --add safe.directory "$CURR_DIR/build/lynx-snapshots"
-        git reset --hard
-        git clean -fdx
-    else
-        echo -e "${GREEN}Downloading Lynx...${RESET}"
-        git clone --branch "v${LYNX_VER}" $LYNX_SRC
-        cd lynx-snapshots
-    fi
-
-    # Compile and install
-    echo -e "${GREEN}Compiling Lynx...${RESET}"
-    make configure
-    ./configure \
-        --host=${HOST} \
-        --prefix=/usr \
-        --with-ssl \
-        --with-ssl-dir="$SYSROOT" \
-        --with-openssl \
-        CC="${CC_STATIC}" \
-        AR="${AR}" \
-        RANLIB="${RANLIB}" \
-        CPPFLAGS="-I${SYSROOT}/include -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
-        CFLAGS="-Os -march=${ARCH}" \
-        LDFLAGS="-static -L${SYSROOT}/lib -L${PREFIX}/lib" \
-        LIBS="-lncursesw -ltinfo -latomic"
-    make -j$(nproc)
-    sudo make DESTDIR=$DESTDIR install
-}
-
-# Download and compile musl
-get_musl()
-{
-    cd "$CURR_DIR/build"
-
-    # Skip if already compiled
-    if [ -f "$DESTDIR/usr/local/musl/lib/libc.so" ]; then
-        echo -e "${LIGHT_RED}musl already compile, skipping...${RESET}"
-        return
-    fi
-
-    echo -e "${GREEN}Downloading musl...${RESET}"
-
-    MUSL="musl-${MUSL_VER}"
-    MUSL_ARC="${MUSL}.tar.gz"
-    MUSL_URI="${MUSL_SRC}/${MUSL_ARC}"
-
-    # Download source
-    [ -f $MUSL_ARC ] || wget $MUSL_URI
-
-    # Extract source
-    if [ -d $MUSL ]; then
-        echo -e "${YELLOW}musl's source archive is already present, re-extracting before proceeding...${RESET}"
-        sudo rm -rf $MUSL
-    fi
-    tar xzf $MUSL_ARC
-    cd $MUSL
-
-    # Compile and install
-    echo -e "${GREEN}Compiling musl...${RESET}"
-    make configure
-    ./configure --host=${HOST} CC=$CC_STATIC AR=$AR RANLIB=$RANLIB
-    make -j$(nproc)
-    sudo make DESTDIR=$DESTDIR install
-}
-
-# Download and compile Make
-get_make()
-{
-    cd "$CURR_DIR/build"
-
-    # Skip if already compiled
-    if [ -f "$DESTDIR/usr/bin/make" ]; then
-        echo -e "${LIGHT_RED}Make already compiled, skipping...${RESET}"
-        return
-    fi
-
-    echo -e "${GREEN}Downloading Make...${RESET}"
-
-    MAKE="make-${MAKE_VER}"
-    MAKE_ARC="${MAKE}.tar.gz"
-    MAKE_URI="${MAKE_SRC}/${MAKE_ARC}"
-
-    # Download source
-    [ -f $MAKE_ARC ] || wget $MAKE_URI
-
-    # Extract source
-    if [ -d $MAKE ]; then
-        echo -e "${YELLOW}Make's source archive is already present, re-extracting before proceeding...${RESET}"
-        sudo rm -rf $MAKE
-    fi
-    tar xzf $MAKE_ARC
-    cd $MAKE
-
-    # Compile program
-    echo -e "${GREEN}Compiling Make...${RESET}"
-    ./configure \
-        --host=${HOST} \
-        --prefix=/usr \
-        CC="${CC_STATIC}" \
-        CFLAGS="-Os -march=${ARCH} -mno-fancy-math-387 -I${PREFIX}/include" \
-        LDFLAGS="-static -L${PREFIX}/lib"
-    make -j$(nproc)
     sudo make DESTDIR=$DESTDIR install
 }
 
@@ -4493,36 +4261,6 @@ get_mpg321()
     sudo make DESTDIR=$DESTDIR install
 }
 
-# Download and compile mt-st
-get_mt_st()
-{
-    cd "$CURR_DIR/build"
-
-    # Skip if already compiled
-    if [ -f "$DESTDIR/bin/mt" ] && [ -f "$DESTDIR/sbin/stinit" ]; then
-        echo -e "${LIGHT_RED}mt-st already compiled, skipping...${RESET}"
-        return
-    fi
-
-    # Download source
-    if [ -d mt-st ]; then
-        echo -e "${YELLOW}mt-st source already present, resetting...${RESET}"
-        cd mt-st
-        git config --global --add safe.directory $CURR_DIR/build/mt-st
-        git reset --hard
-        git clean -fdx
-    else
-        echo -e "${GREEN}Downloading mt-st...${RESET}"
-        git clone --branch "v${MT_ST_VER}" $MT_ST_SRC
-        cd mt-st
-    fi
-
-    # Compile and install
-    echo -e "${GREEN}Compiling mt-st...${RESET}"
-    make -j$(nproc) CC=$CC_STATIC
-    sudo make DESTDIR=$DESTDIR install
-}
-
 # Download and compile nano
 get_nano()
 {
@@ -4605,51 +4343,6 @@ get_nasm()
     make -j$(nproc)
     sudo install -D -m 755 nasm "$DESTDIR/usr/bin/nasm"
     sudo install -D -m 755 ndisasm "$DESTDIR/usr/bin/ndisasm"
-}
-
-# Download and compile Rover
-get_rover()
-{
-    cd "$CURR_DIR/build"
-
-    # Skip if already compiled
-    if [ -f "$DESTDIR/usr/bin/rover" ]; then
-        echo -e "${LIGHT_RED}Rover already compiled, skipping...${RESET}"
-        return
-    fi
-
-    # Download source
-    if [ -d rover ]; then
-        echo -e "${YELLOW}Rover source already present, resetting...${RESET}"
-        cd rover
-        git config --global --add safe.directory $CURR_DIR/build/rover
-        git reset --hard
-        git clean -fdx
-    else
-        echo -e "${GREEN}Downloading Rover...${RESET}"
-        git clone --branch v$ROVER_VER $ROVER_SRC
-        cd rover
-    fi
-
-    # Patch rover to support alternate key assignments
-    echo '// Alternate key binds for ${DIST}' | sudo tee -a config.h > /dev/null
-    echo '#define RVK_DOWN_ALT          "B"' | sudo tee -a config.h > /dev/null
-    echo '#define RVK_UP_ALT            "A"' | sudo tee -a config.h > /dev/null
-    #echo '#define RVK_JUMP_BOTTOM_ALT   "TODO"' | sudo tee -a config.h > /dev/null
-    #echo '#define RVK_JUMP_TOP_ALT      "TODO"' | sudo tee -a config.h > /dev/null
-    echo '#define RVK_CD_DOWN_ALT       "C"' | sudo tee -a config.h > /dev/null
-    echo '#define RVK_CD_UP_ALT         "D"' | sudo tee -a config.h > /dev/null
-    sudo sed -i 's/if (!strcmp(key, RVK_DOWN))/if (!strcmp(key, RVK_DOWN) || !strcmp(key, RVK_DOWN_ALT))/' rover.c
-    sudo sed -i 's/if (!strcmp(key, RVK_UP))/if (!strcmp(key, RVK_UP) || !strcmp(key, RVK_UP_ALT))/' rover.c
-    #sudo sed -i 's/if (!strcmp(key, RVK_JUMP_BOTTOM))/if (!strcmp(key, RVK_JUMP_BOTTOM) || !strcmp(key, RVK_JUMP_BOTTOM_ALT))/' rover.c
-    #sudo sed -i 's/if (!strcmp(key, RVK_JUMP_TOP))/if (!strcmp(key, RVK_JUMP_TOP) || !strcmp(key, RVK_JUMP_TOP_ALT))/' rover.c
-    sudo sed -i 's/if (!strcmp(key, RVK_CD_DOWN))/if (!strcmp(key, RVK_CD_DOWN) || !strcmp(key, RVK_CD_DOWN_ALT))/' rover.c
-    sudo sed -i 's/if (!strcmp(key, RVK_CD_UP))/if (!strcmp(key, RVK_CD_UP) || !strcmp(key, RVK_CD_UP_ALT))/' rover.c
-
-    # Compile and install
-    echo -e "${GREEN}Compiling Rover...${RESET}"
-    make -j$(nproc) CC="${CC_STATIC}" CFLAGS="-I${PREFIX}/include -I${PREFIX}/include/ncursesw -D_POSIX_C_SOURCE=200809L" LDFLAGS="-L${PREFIX}/lib -lncursesw -static" rover
-    sudo make PREFIX=/usr DESTDIR=$DESTDIR install
 }
 
 # Download and compile sc-im
@@ -4893,51 +4586,6 @@ get_tilde()
 
         cd "$CURR_DIR/build"
     done
-}
-
-# Download and compile tmux
-get_tmux()
-{
-    cd "$CURR_DIR/build"
-
-    # Skip if already compiled
-    if [ -f "$DESTDIR/usr/bin/tmux" ]; then
-        echo -e "${LIGHT_RED}tmux already compiled, skipping...${RESET}"
-        return
-    fi
-
-    # Download source
-    if [ -d tmux ]; then
-        echo -e "${YELLOW}tmux source already present, resetting...${RESET}"
-        cd tmux
-        git config --global --add safe.directory "$CURR_DIR/build/tmux"
-        git reset --hard
-    else
-        echo -e "${GREEN}Downloading tmux...${RESET}"
-        git clone --branch "${TMUX_VER}" $TMUX_SRC
-        cd tmux
-    fi
-
-    export ac_cv_func_forkpty=yes
-    export ac_cv_search_forkpty=-lutil
-
-    # Compile and install
-    echo -e "${GREEN}Compiling tmux...${RESET}"
-    ./autogen.sh
-    ./configure \
-        --host=${HOST} \
-        --prefix=/usr \
-        CC="${CC}" \
-        CFLAGS="-I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
-        CPPFLAGS="-I${PREFIX}/include -DHAVE_FORKPTY" \
-        LDFLAGS="-L${PREFIX}/lib -static" \
-        LIBEVENT_CFLAGS="-I${PREFIX}/include" \
-        LIBEVENT_LIBS="-L${PREFIX}/lib -levent" \
-        CURSES_CFLAGS="-I${PREFIX}/include/ncursesw -I${PREFIX}/include" \
-        CURSES_LIBS="-L${PREFIX}/lib -lncursesw" \
-        LIBS="-levent -lncursesw -lutil -lrt -lpthread -lm"
-    make -j$(nproc)
-    sudo make DESTDIR=$DESTDIR install
 }
 
 # Download and compile tn5250
@@ -5304,11 +4952,7 @@ get_shorkmatrix()
     echo -e "${GREEN}Compiling shorkmatrix...${RESET}"
     make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
     sudo make DESTDIR=$DESTDIR install
-
-    # Symlink shorkmatrix to cmatrix if CMatrix is not installed
-    if ! $INCLUDE_CMATRIX; then
-        sudo ln -sf shorkmatrix "$DESTDIR/usr/bin/cmatrix"
-    fi
+    sudo ln -sf shorkmatrix "$DESTDIR/usr/bin/cmatrix"
 }
 
 # Download and compile shorkmines
@@ -5480,12 +5124,6 @@ copy_licences()
         CSV+="\nc3270,BSD 3-Clause,c3270.txt"
     fi
 
-    if $INCLUDE_CMATRIX && 
-       [ -f "$CURR_DIR/build/cmatrix/COPYING" ]; then
-        cp "$CURR_DIR/build/cmatrix/COPYING" "$DESTDIR/LICENCES/cmatrix.txt" || true
-        CSV+="\nCMatrix,GNU GPLv3,cmatrix.txt"
-    fi
-
     if $INCLUDE_CSCOPE && 
        [ -f "$CURR_DIR/build/cscope-cscope/COPYING" ]; then
         cp "$CURR_DIR/build/cscope-cscope/COPYING" "$DESTDIR/LICENCES/cscope.txt" || true
@@ -5649,11 +5287,6 @@ copy_licences()
             cat "../../COPYING"
         } > "$DESTDIR/LICENCES/pci-ids.txt" || true
         CSV+="\npci.ids,GNU GPLv3,pci-ids.txt"
-    fi
-
-    if [ -f "$DESTDIR/usr/bin/rover" ]; then
-        echo "Public domain" | sudo tee "$DESTDIR/LICENCES/rover.txt" > /dev/null
-        CSV+="\nRover,public domain,rover.txt"
     fi
 
     if $INCLUDE_SC_IM && 
@@ -7017,12 +6650,6 @@ get_installed_programs_features()
             EXCLUDED_FEATURES+="\n * c3270"
         fi
 
-        #if [ -f "$DESTDIR/usr/bin/cmatrix" ] && [ "$ENABLE_CMATRIX" = true ]; then
-        #    INCLUDED_FEATURES+="\n * cmatrix ($CMATRIX_VER)"
-        #else
-        #    EXCLUDED_FEATURES+="\n * cmatrix"
-        #
-
         if [ -f "$DESTDIR/usr/bin/cscope" ]; then
             INCLUDED_FEATURES+="\n * cscope ($CSCOPE_VER)"
         else
@@ -7517,19 +7144,53 @@ if $INCLUDE_CON_FONTS; then
 fi
 
 if $INCLUDE_C3270; then
-    get_c3270
-fi
-if $INCLUDE_CMATRIX; then
-    get_cmatrix
+    get_prog_git \
+        "usr/bin" \
+        "c3270" \
+        "c3270" \
+        "x3270" \
+        "$C3270_SRC" \
+        "$C3270_VER" \
+        false \
+        false \
+        "--enable-c3270 --disable-x3270 --disable-s3270 --disable-b3270 --disable-tcl3270 --disable-pr3287 --disable-x3270if --disable-playback  --disable-mitm --disable-wc3270"
 fi
 if $INCLUDE_CSCOPE; then
-    get_cscope
+    get_prog_git \
+        "usr/bin" \
+        "cscope" \
+        "cscope" \
+        "cscope-cscope" \
+        "$CSCOPE_SRC" \
+        "v$CSCOPE_VER" \
+        false \
+        true \
+        ""
 fi
 if $INCLUDE_CTAGS; then
-    get_ctags
+    get_prog_git \
+        "usr/bin" \
+        "ctags" \
+        "ctags" \
+        "ctags" \
+        "$CTAGS_SRC" \
+        "$CTAGS_VER" \
+        true \
+        false \
+        "--disable-pcre2 --disable-external-sort --disable-yaml --disable-json --disable-iconv --disable-seccomp"
 fi
 if $INCLUDE_DIALOG; then
-    get_dialog
+    get_prog_tar \
+        "usr/bin" \
+        "dialog" \
+        "dialog" \
+        "dialog-${DIALOG_VER}" \
+        "tgz" \
+        "$DIALOG_SRC" \
+        "xzf" \
+        false \
+        false \
+        ""
 fi
 if $INCLUDE_DROPBEAR; then
     get_dropbear
@@ -7547,16 +7208,45 @@ if $INCLUDE_HTOP; then
     get_htop
 fi
 if $INCLUDE_INDENT; then
-    get_indent
+    get_prog_tar \
+        "usr/bin" \
+        "indent" \
+        "indent" \
+        "indent-${INDENT_VER}" \
+        "tar.xz" \
+        "$INDENT_SRC" \
+        "xf" \
+        false \
+        false \
+        ""
 fi
 if $INCLUDE_JOE; then
     get_joe
 fi
 if $INCLUDE_LYNX; then
-    get_lynx
+    get_prog_git \
+        "usr/bin" \
+        "lynx" \
+        "lynx" \
+        "lynx-snapshots" \
+        "$LYNX_SRC" \
+        "v$LYNX_VER" \
+        false \
+        false \
+        "-with-ssl --with-ssl-dir=\"$SYSROOT\" --with-openssl LIBS=\"-lncursesw -ltinfo -latomic\""
 fi
 if $INCLUDE_MAKE; then
-    get_make
+    get_prog_tar \
+        "usr/bin" \
+        "make" \
+        "make" \
+        "make-${MAKE_VER}" \
+        "tar.gz" \
+        "$MAKE_SRC" \
+        "xzf" \
+        false \
+        false \
+        ""
 fi
 if $INCLUDE_MG; then
     get_mg
@@ -7568,7 +7258,16 @@ if $INCLUDE_MPG321; then
     get_mpg321
 fi
 if $INCLUDE_MT_ST; then
-    get_mt_st
+    get_prog_git \
+        "bin" \
+        "mt" \
+        "mt-st" \
+        "mt-st" \
+        "$MT_ST_SRC" \
+        "v$MT_ST_VER" \
+        false \
+        false \
+        ""
 fi
 if $INCLUDE_NANO; then
     get_nano
@@ -7580,14 +7279,33 @@ if $INCLUDE_SC_IM; then
     get_sc_im
 fi
 if $INCLUDE_TCC; then
-    get_musl
+    get_prog_tar \
+        "usr/local/musl/lib/" \
+        "libc.so" \
+        "musl" \
+        "musl-${MUSL_VER}" \
+        "tar.gz" \
+        "$MUSL_SRC" \
+        "xzf" \
+        false \
+        false \
+        ""
     get_tcc
 fi
 if $INCLUDE_TILDE; then
     get_tilde
 fi
 if $INCLUDE_TMUX; then
-    get_tmux
+    get_prog_git \
+        "usr/bin" \
+        "tmux" \
+        "tmux" \
+        "tmux" \
+        "$TMUX_SRC" \
+        "$TMUX_VER" \
+        true \
+        false \
+        "LIBS=\"-levent -lncursesw -lutil -lrt -lpthread -lm\""
 fi
 if $INCLUDE_TN5250; then
     get_tn5250
