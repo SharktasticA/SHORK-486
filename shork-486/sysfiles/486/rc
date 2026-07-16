@@ -47,6 +47,8 @@ fi
 [ -r /etc/hostname ] && hostname "$(cat /etc/hostname)"
 
 if [ -x "/usr/libexec/shorkset" ]; then
+    # Remount /dev to allow exec (needed for SHORKSET VM86 features)
+    mount -o remount,exec,dev /dev
 
     # Load SHORKSET settings
     if [ -f /etc/shorkset.conf ]; then
@@ -90,38 +92,40 @@ clear
 
 # Show welcome banner and OS name
 if [ -f /banners/welcome ]; then
-    COLS=$(stty size 2>/dev/null | awk '{print $2}')
+    TERM_WIDTH=$(stty size 2>/dev/null | awk '{print $2}')
     BANNER_WIDTH=36
     BUFFER=""
     
-    TOTAL_PAD=$((COLS - BANNER_WIDTH))
+    TOTAL_PAD=$((TERM_WIDTH - BANNER_WIDTH))
     RIGHT_PAD=$((TOTAL_PAD / 2))
     LEFT_PAD=$((TOTAL_PAD - RIGHT_PAD))
 
     # Print top border
-    BUFFER="$(printf "%*s\n" "$COLS" '')"
+    BUFFER="$(printf "%*s\n" "$TERM_WIDTH" '')"
 
     while IFS= read -r line; do
         BUFFER="${BUFFER}$(printf "%*s%s%*s\n" "$LEFT_PAD" '' "$line" "$RIGHT_PAD" '')"
     done < banners/welcome
-    BUFFER="${BUFFER}$(printf "%*s\n" "$COLS" '')"
+    BUFFER="${BUFFER}$(printf "%*s\n" "$TERM_WIDTH" '')"
 
-    # Show OS name
-    OS="@DIST@"
-    TOTAL_PAD=$((COLS - ${#OS}))
-    RIGHT_PAD=$((TOTAL_PAD / 2))
-    LEFT_PAD=$((TOTAL_PAD - RIGHT_PAD))
-    BUFFER="${BUFFER}$(printf "%*s%s%*s\n" "$LEFT_PAD" '' "$OS" "$RIGHT_PAD" '')"
+    if [ "$TERM_WIDTH" -gt 40 ]; then
+        # Show OS name
+        OS="@DIST@"
+        TOTAL_PAD=$((TERM_WIDTH - ${#OS}))
+        RIGHT_PAD=$((TOTAL_PAD / 2))
+        LEFT_PAD=$((TOTAL_PAD - RIGHT_PAD))
+        BUFFER="${BUFFER}$(printf "%*s%s%*s\n" "$LEFT_PAD" '' "$OS" "$RIGHT_PAD" '')"
 
-    # Show author
-    AUTHOR="Kali (links.sharktastica.co.uk)"
-    TOTAL_PAD=$((COLS - ${#AUTHOR}))
-    RIGHT_PAD=$((TOTAL_PAD / 2))
-    LEFT_PAD=$((TOTAL_PAD - RIGHT_PAD))
-    BUFFER="${BUFFER}$(printf "%*s%s%*s\n" "$LEFT_PAD" '' "$AUTHOR" "$RIGHT_PAD" '')"
+        # Show author
+        AUTHOR="Kali (links.sharktastica.co.uk)"
+        TOTAL_PAD=$((TERM_WIDTH - ${#AUTHOR}))
+        RIGHT_PAD=$((TOTAL_PAD / 2))
+        LEFT_PAD=$((TOTAL_PAD - RIGHT_PAD))
+        BUFFER="${BUFFER}$(printf "%*s%s%*s\n" "$LEFT_PAD" '' "$AUTHOR" "$RIGHT_PAD" '')"
 
-    # Print bottom border
-    BUFFER="${BUFFER}$(printf "%*s" "$COLS" '')"
+        # Print bottom border
+        BUFFER="${BUFFER}$(printf "%*s" "$TERM_WIDTH" '')"
+    fi
 
     # Set terminal to white on blue
     printf "\x1b[37;44m"
