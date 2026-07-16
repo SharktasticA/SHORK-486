@@ -3716,7 +3716,12 @@ get_prog_git()
     local VER="$6"
     local AUTOGEN=$7
     local AUTORECONF=$8
-    local CONFIGURE="$9"
+    local CONFIGURE_PREFIX="${9}" 
+    local CONFIGURE="${10}"
+
+    if [ -n "$CONFIGURE_PREFIX" ]; then
+        CONFIGURE_PREFIX=("--prefix=${CONFIGURE_PREFIX}")
+    fi
 
     local CONFIGURE_ARR=()
     eval "CONFIGURE_ARR=($CONFIGURE)"
@@ -3751,7 +3756,7 @@ get_prog_git()
     if [ -x ./configure ] || [ -f ./configure ]; then
         ./configure \
             --host=${HOST} \
-            --prefix=/usr \
+            "${CONFIGURE_PREFIX}" \
             "${CONFIGURE_ARR[@]}" \
             CC="${CC_STATIC}" \
             AR="${AR}" \
@@ -3783,7 +3788,12 @@ get_prog_tar()
     local TAR_CMD="$7"
     local AUTOGEN=$8
     local AUTORECONF=$9
-    local CONFIGURE="${10}"
+    local CONFIGURE_PREFIX="${10}" 
+    local CONFIGURE="${11}"
+
+    if [ -n "$CONFIGURE_PREFIX" ]; then
+        CONFIGURE_PREFIX=("--prefix=${CONFIGURE_PREFIX}")
+    fi
 
     local CONFIGURE_ARR=()
     eval "CONFIGURE_ARR=($CONFIGURE)"
@@ -3821,7 +3831,7 @@ get_prog_tar()
     if [ -x ./configure ] || [ -f ./configure ]; then
         ./configure \
             --host=${HOST} \
-            --prefix=/usr \
+            "${CONFIGURE_PREFIX}" \
             "${CONFIGURE_ARR[@]}" \
             CC="${CC_STATIC}" \
             AR="${AR}" \
@@ -7153,6 +7163,7 @@ if $INCLUDE_C3270; then
         "$C3270_VER" \
         false \
         false \
+        "/usr" \
         "--enable-c3270 --disable-x3270 --disable-s3270 --disable-b3270 --disable-tcl3270 --disable-pr3287 --disable-x3270if --disable-playback  --disable-mitm --disable-wc3270"
 fi
 if $INCLUDE_CSCOPE; then
@@ -7165,6 +7176,7 @@ if $INCLUDE_CSCOPE; then
         "v$CSCOPE_VER" \
         false \
         true \
+        "/usr" \
         ""
 fi
 if $INCLUDE_CTAGS; then
@@ -7177,6 +7189,7 @@ if $INCLUDE_CTAGS; then
         "$CTAGS_VER" \
         true \
         false \
+        "/usr" \
         "--disable-pcre2 --disable-external-sort --disable-yaml --disable-json --disable-iconv --disable-seccomp"
 fi
 if $INCLUDE_DIALOG; then
@@ -7190,6 +7203,7 @@ if $INCLUDE_DIALOG; then
         "xzf" \
         false \
         false \
+        "/usr" \
         ""
 fi
 if $INCLUDE_DROPBEAR; then
@@ -7218,6 +7232,7 @@ if $INCLUDE_INDENT; then
         "xf" \
         false \
         false \
+        "/usr" \
         ""
 fi
 if $INCLUDE_JOE; then
@@ -7233,6 +7248,7 @@ if $INCLUDE_LYNX; then
         "v$LYNX_VER" \
         false \
         false \
+        "/usr" \
         "-with-ssl --with-ssl-dir=\"$SYSROOT\" --with-openssl LIBS=\"-lncursesw -ltinfo -latomic\""
 fi
 if $INCLUDE_MAKE; then
@@ -7246,6 +7262,7 @@ if $INCLUDE_MAKE; then
         "xzf" \
         false \
         false \
+        "/usr" \
         ""
 fi
 if $INCLUDE_MG; then
@@ -7267,6 +7284,7 @@ if $INCLUDE_MT_ST; then
         "v$MT_ST_VER" \
         false \
         false \
+        "/usr" \
         ""
 fi
 if $INCLUDE_NANO; then
@@ -7280,7 +7298,7 @@ if $INCLUDE_SC_IM; then
 fi
 if $INCLUDE_TCC; then
     get_prog_tar \
-        "usr/local/musl/lib/" \
+        "usr/local/musl/lib" \
         "libc.so" \
         "musl" \
         "musl-${MUSL_VER}" \
@@ -7289,6 +7307,7 @@ if $INCLUDE_TCC; then
         "xzf" \
         false \
         false \
+        "" \
         ""
     get_tcc
 fi
@@ -7305,6 +7324,7 @@ if $INCLUDE_TMUX; then
         "$TMUX_VER" \
         true \
         false \
+        "/usr" \
         "LIBS=\"-levent -lncursesw -lutil -lrt -lpthread -lm\""
 fi
 if $INCLUDE_TN5250; then
