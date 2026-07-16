@@ -49,8 +49,8 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
     * Minimal: 8MiB RAM
 * IDE or SCSI disk: 
     * **Default: 80MiB**
-    * Maximal: 440MiB
-    * Plus: 400MiB
+    * Maximal: 480MiB
+    * Plus: 440MiB
     * Offline: 60MiB
     * Minimal: 8MiB
 * Graphics: IBM VGA or compatible (for most programs); VBE 2.0-compatible (for `shorkgui` and VBE resolutions in `shorkset`)
