@@ -4800,6 +4800,7 @@ get_shorkhelp()
 
     # Compile and install
     echo -e "${GREEN}Compiling shorkhelp...${RESET}"
+    make clean
     make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
     sudo make DESTDIR=$DESTDIR install
 
@@ -6007,13 +6008,53 @@ build_disk_img()
     sudo fsck.ext4 -f -p "$root_part"
 }
 
+# Copy after-build report to system (SHORK 486)
+copy_report()
+{
+    cd $CURR_DIR/build/
+
+    cleanup()
+    {
+        set +e
+
+        mountpoint="/mnt/${ID}"
+        if mountpoint -q "$mountpoint" 2>/dev/null; then
+            sudo umount -lf "$mountpoint" || true
+        fi
+
+        if [ -n "$loop" ]; then
+            sudo kpartx -dv "$loop" 2>/dev/null || true
+            sudo losetup -d "$loop" 2>/dev/null || true
+        fi
+    }
+    trap cleanup EXIT ERR INT TERM
+
+    echo -e "${GREEN}Copying after-build report to disk image...${RESET}"
+
+    # Expose the partition(s) in the existing image
+    loop=$(sudo losetup -f --show "../images/${ID}.img")
+    sudo kpartx -av "$loop"
+    root_part="/dev/mapper/$(basename "$loop")p1"
+
+    # Mount root partition and copy the report in
+    sudo mkdir -p "/mnt/${ID}"
+    sudo mount "$root_part" "/mnt/${ID}"
+    sudo mkdir -p "/mnt/${ID}/var/log/shork"
+    sudo cp "$CURR_DIR/images/report.txt" "/mnt/${ID}/var/log/shork/build-report.log"
+
+    # Ensure file system is in a clean state
+    echo -e "${GREEN}Unmounting file system...${RESET}"
+    sudo umount "/mnt/${ID}"
+    sudo fsck.ext4 -f -p "$root_part"
+}
+
 # Converts the disk image to VMware virtual machine disk format for testing
 # (SHORK 486)
 convert_disk_img()
 {
     cd $CURR_DIR/images/
 
-    echo -e "${GREEN}Creating VMware virtual machine disk from disk image...${RESET}"
+    echo -e "${GREEN}Creating VMware virtual machine disk from raw disk image...${RESET}"
     qemu-img convert -f raw -O vmdk "${ID}.img" "${ID}.vmdk"
 }
 
@@ -7368,7 +7409,6 @@ find_mbr_bin
 build_file_system
 if [ "$ID" == "shork-486" ]; then
     build_disk_img
-    convert_disk_img
 elif [ "$ID" == "shork-disc" ]; then
     build_disc_img
 elif [ "$ID" == "shork-diskette" ]; then
@@ -7376,8 +7416,12 @@ elif [ "$ID" == "shork-diskette" ]; then
     build_diskette_img
 fi
 
-fix_perms
-clean_stale_mounts
 get_included_busybox_commands
 get_installed_programs_features
 generate_report
+if [ "$ID" == "shork-486" ]; then
+    copy_report
+    convert_disk_img
+fi
+fix_perms
+clean_stale_mounts
