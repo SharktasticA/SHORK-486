@@ -207,6 +207,8 @@ TWM_SRC="https://gitlab.freedesktop.org/xorg/app/twm.git"
 TWM_VER="1.0.13.1"
 UTIL_LINUX_SRC="https://github.com/util-linux/util-linux.git"
 UTIL_LINUX_VER="2.42.2"
+VIM_SRC="https://github.com/vim/vim.git"
+VIM_VER="9.2.0782"
 ZLIB_SRC="https://github.com/madler/zlib.git"
 ZLIB_VER="1.3.2"
 
@@ -286,6 +288,7 @@ INCLUDE_TMUX=true
 INCLUDE_TN5250=false
 INCLUDE_TNFTP=true
 INCLUDE_UTIL_LINUX=true
+INCLUDE_VIM=false
 
 USE_GRUB=false
 
@@ -5397,6 +5400,12 @@ copy_licences()
         CSV+="\nutil-linux,GNU GPLv2,util-linux.txt"
     fi
 
+    if $INCLUDE_VIM && 
+       [ -f "$CURR_DIR/build/vim/LICENSE" ]; then
+        cp "$CURR_DIR/build/vim/LICENSE" "$DESTDIR/LICENCES/vim.txt" || true
+        CSV+="\nVim,Vim License,vim.txt"
+    fi
+
     if [ -f "$DESTDIR/usr/bin/xli" ] && 
        [ -f "$CURR_DIR/build/xli/LICENSE" ]; then
         cp "$CURR_DIR/build/xli/LICENSE" "$DESTDIR/LICENCES/xli.txt" || true
@@ -6912,6 +6921,18 @@ get_installed_programs_features()
         else
             EXCLUDED_FEATURES+="\n * tn5250"
         fi
+
+        if [ -f "$DESTDIR/usr/bin/vim" ]; then
+            INCLUDED_FEATURES+="\n * vim (Vim, $VIM_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * vim (Vim)"
+        fi
+
+        if [ -f "$DESTDIR/usr/bin/vimtutor" ]; then
+            INCLUDED_FEATURES+="\n * vimtutor (Vim, $VIM_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * vimtutor (Vim)"
+        fi
     fi
 
     if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
@@ -6919,6 +6940,14 @@ get_installed_programs_features()
             INCLUDED_FEATURES+="\n * whereis (util-linux, $UTIL_LINUX_VER)"
         else
             EXCLUDED_FEATURES+="\n * whereis (util-linux)"
+        fi
+    fi
+
+    if [ "$ID" == "shork-486" ]; then
+        if $INCLUDE_VIM && [ -f "$DESTDIR/usr/bin/xxd" ]; then
+            INCLUDED_FEATURES+="\n * xxd (Vim, $VIM_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * xxd (Vim)"
         fi
     fi
 }
@@ -7373,6 +7402,19 @@ if $INCLUDE_TN5250; then
 fi
 if $INCLUDE_TNFTP; then
     get_tnftp
+fi
+if $INCLUDE_VIM; then
+    get_prog_git \
+        "usr/bin" \
+        "vim" \
+        "vim" \
+        "vim" \
+        "$VIM_SRC" \
+        "v$VIM_VER" \
+        false \
+        false \
+        "/usr" \
+        "--with-features=normal --disable-gui --without-x --disable-nls --disable-channel --disable-netbeans --disable-terminal --disable-python3interp --disable-perlinterp --disable-rubyinterp --disable-luainterp --disable-tclinterp --disable-cscope --disable-acl --disable-gpm --disable-sysmouse --disable-selinux --disable-canberra --without-wayland --disable-libsodium --disable-smack"
 fi
 
 get_shorkhelp
