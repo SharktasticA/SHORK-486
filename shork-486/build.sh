@@ -6422,6 +6422,9 @@ get_included_busybox_commands()
     check_bb_config "CONFIG_ID" ""
     check_bb_config "CONFIG_LOGNAME" ""
 
+    # Added 2026-07-17
+    check_bb_config "CONFIG_FALLOCATE" ""
+
     readarray -t INCLUDED_BB_CMDS < <(printf '%s\n' "${INCLUDED_BB_CMDS[@]}" | sort)
     readarray -t EXCLUDED_BB_CMDS < <(printf '%s\n' "${EXCLUDED_BB_CMDS[@]}" | sort)
 }
