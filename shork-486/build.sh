@@ -6330,7 +6330,11 @@ get_included_busybox_commands()
     check_bb_config "CONFIG_FDFORMAT" ""
     check_bb_config "CONFIG_FDISK" ""
     check_bb_config "CONFIG_HEXDUMP" ""
-    check_bb_config "CONFIG_XXD" ""
+    if ! $INCLUDE_VIM; then
+        check_bb_config "CONFIG_XXD" ""
+    else
+        EXCLUDED_BB_CMDS+=("xxd")
+    fi
     check_bb_config "CONFIG_LOSETUP" ""
     check_bb_config "CONFIG_LSBLK" ""
     check_bb_config "CONFIG_LSPCI" ""
