@@ -83,6 +83,7 @@ INCLUDE_TN5250=false
 INCLUDE_TNFTP=false
 INCLUDE_TMUX=false
 INCLUDE_UTIL_LINUX=false
+INCLUDE_VIM=false
 ENABLE_CDROM=false
 INCLUDE_CON_FONTS=false
 USE_GRUB=false
@@ -191,6 +192,7 @@ save_env()
         echo "INCLUDE_TNFTP=$INCLUDE_TNFTP"
         echo "INCLUDE_TMUX=$INCLUDE_TMUX"
         echo "INCLUDE_UTIL_LINUX=$INCLUDE_UTIL_LINUX"
+        echo "INCLUDE_VIM=$INCLUDE_VIM"
         echo "ENABLE_CDROM=$ENABLE_CDROM"
         echo "INCLUDE_CON_FONTS=$INCLUDE_CON_FONTS"
         echo "USE_GRUB=$USE_GRUB"
@@ -262,6 +264,7 @@ set_minimal_vars()
     INCLUDE_TNFTP=false
     INCLUDE_TMUX=false
     INCLUDE_UTIL_LINUX=false
+    INCLUDE_VIM=false
     ENABLE_CDROM=false
     INCLUDE_CON_FONTS=false
     USE_GRUB=false
@@ -313,6 +316,7 @@ set_default_vars()
     INCLUDE_TNFTP=true
     INCLUDE_TMUX=true
     INCLUDE_UTIL_LINUX=true
+    INCLUDE_VIM=false
     ENABLE_CDROM=true
     INCLUDE_CON_FONTS=true
     USE_GRUB=false
@@ -356,6 +360,7 @@ set_plus_vars()
     INCLUDE_MPG321=true
     INCLUDE_NASM=true
     INCLUDE_TN5250=true
+    INCLUDE_VIM=true
     ENABLE_SOUND=true
 }
 
@@ -1023,6 +1028,7 @@ if [ "$ENABLE_NET_ETH" == true ]; then
         "tnftp"             "*FTP client (+0.3MiB)"                                 "$(val "$INCLUDE_TNFTP")"
         "tmux"              "*Terminal multiplexer (+1.7MiB)"                       "$(val "$INCLUDE_TMUX")"
         "util-linux"        "*lscpu, partx, sfdisk & whereis (+2.2MiB)"             "$(val "$INCLUDE_UTIL_LINUX")"
+        "vim"               "**Vi IMproved text editor (+23MiB)"                    "$(val "$INCLUDE_VIM")"
     )
 else
     BUNDLED_ITEMS+=(
@@ -1049,6 +1055,7 @@ else
         "tmux"              "*Terminal multiplexer (+1.7MiB)"                   "$(val "$INCLUDE_TMUX")"
         #"tilde"             "GUI-like text editor (+4.5MiB)"                    "$(val "$INCLUDE_TILDE")"
         "util-linux"        "*lscpu, partx, sfdisk & whereis (+2.2MiB)"         "$(val "$INCLUDE_UTIL_LINUX")"
+        "vim"               "**Vi IMproved text editor (+23MiB)"                "$(val "$INCLUDE_VIM")"
     )
 fi
 
@@ -1095,6 +1102,7 @@ else
     if [[ $BUNDLED =~ "tn5250" ]];          then INCLUDE_TN5250=true;           else INCLUDE_TN5250=false;          fi
     if [[ $BUNDLED =~ "tnftp" ]];           then INCLUDE_TNFTP=true;            else INCLUDE_TNFTP=false;           fi
     if [[ $BUNDLED =~ "util-linux" ]];      then INCLUDE_UTIL_LINUX=true;       else INCLUDE_UTIL_LINUX=false;      fi
+    if [[ $BUNDLED =~ "vim" ]];             then INCLUDE_VIM=true;              else INCLUDE_VIM=false;      fi
 fi
 
 # Enable prerequisites for selected bundled software

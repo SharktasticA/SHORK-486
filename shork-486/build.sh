@@ -3717,10 +3717,11 @@ get_prog_git()
     local GIT_DIR="$4"
     local SRC="$5"
     local VER="$6"
-    local AUTOGEN=$7
-    local AUTORECONF=$8
-    local CONFIGURE_PREFIX="${9}" 
-    local CONFIGURE="${10}"
+    local PATCH_FILE="$7"
+    local AUTOGEN=$8
+    local AUTORECONF=$9
+    local CONFIGURE_PREFIX="${10}" 
+    local CONFIGURE="${11}"
 
     if [ -n "$CONFIGURE_PREFIX" ]; then
         CONFIGURE_PREFIX=("--prefix=${CONFIGURE_PREFIX}")
@@ -3748,6 +3749,10 @@ get_prog_git()
         cd $GIT_DIR
     fi
 
+    if [ -n "$PATCH_FILE" ]; then
+        patch -p1 < "${PATCHES_DIR}/${PATCH_FILE}"
+    fi
+
     # Compile program
     echo -e "${GREEN}Compiling $NAME...${RESET}"
     if $AUTOGEN; then
@@ -3765,9 +3770,9 @@ get_prog_git()
             AR="${AR}" \
             RANLIB="${RANLIB}" \
             STRIP="${STRIP}" \
-            CFLAGS="-Os -march=${ARCH} -mno-fancy-math-387 -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
+            CFLAGS="-Os -march=${ARCH} -mno-fancy-math-387 -ffunction-sections -fdata-sections -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
             CPPFLAGS="-I${SYSROOT}/include -I${PREFIX}/include -I${PREFIX}/include/ncursesw -DHAVE_FORKPTY" \
-            LDFLAGS="-static -L${SYSROOT}/lib -L${PREFIX}/lib" \
+            LDFLAGS="-static -Wl,--gc-sections -s -L${PREFIX}/lib" \
             LIBEVENT_CFLAGS="-I${PREFIX}/include" \
             LIBEVENT_LIBS="-L${PREFIX}/lib -levent" \
             CURSES_CFLAGS="-I${PREFIX}/include/ncursesw -I${PREFIX}/include" \
@@ -3840,9 +3845,9 @@ get_prog_tar()
             AR="${AR}" \
             RANLIB="${RANLIB}" \
             STRIP="${STRIP}" \
-            CFLAGS="-Os -march=${ARCH} -mno-fancy-math-387 -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
+            CFLAGS="-Os -march=${ARCH} -mno-fancy-math-387 -ffunction-sections -fdata-sections -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
             CPPFLAGS="-I${SYSROOT}/include -I${PREFIX}/include -I${PREFIX}/include/ncursesw -DHAVE_FORKPTY" \
-            LDFLAGS="-static -L${SYSROOT}/lib -L${PREFIX}/lib" \
+            LDFLAGS="-static -Wl,--gc-sections -s -L${PREFIX}/lib" \
             LIBEVENT_CFLAGS="-I${PREFIX}/include" \
             LIBEVENT_LIBS="-L${PREFIX}/lib -levent" \
             CURSES_CFLAGS="-I${PREFIX}/include/ncursesw -I${PREFIX}/include" \
@@ -5094,6 +5099,15 @@ trim_fat()
 
     if $INCLUDE_MG; then
         sudo rm -rf "$DESTDIR/usr/share/mg"
+    fi
+
+    if $INCLUDE_VIM; then
+        KEEP='^(nosyntax|syntax|synload|syncolor|a65|asm.*|avra|fasm|ia64|masm|mmix|nasm|tasm|tiasm|vmasm|z8a|cpp?|cs|csc|sh|bash|make|cmake.*|diff|vim.*|basic|freebasic|ibasic|qb64|vb|awk|git.*|tmux|python2?|pyrex|pymanifest|cfg|conf.*|dosini|change(log)?|debchangelog|cabal.*|fortran|rust|tex|plaintex|texinfo|texmf|initex|context|n?roff|man|x?html.*|css|javascript.*|java|javacc|json.*|modula[23].*|m3build|m3quake|php|phtml|xml|xsd|xslt|xquery|dtd|yaml|sql.*|mysql|plsql|esqlc|n1ql|typescript.*)\.vim$'
+        for d in syntax indent ftplugin; do
+            find "$DESTDIR/usr/share/vim/vim92/$d" -maxdepth 1 -type f -printf '%f\n' 2>/dev/null | grep -Ev "$KEEP" | xargs -I{} sudo rm -f "$DESTDIR/usr/share/vim/vim92/$d/{}"
+        done
+        find "$DESTDIR/usr/share/vim/vim92/syntax" -maxdepth 1 -type d -printf '%f\n' | grep -v '^shared$\|^modula2$' | xargs -I{} sudo rm -rf "$DESTDIR/usr/share/vim/vim92/syntax/{}"
+        find "$DESTDIR/usr/share/vim/vim92/tutor" -maxdepth 1 -type f ! -name 'tutor1' ! -name 'tutor2' ! -name 'tutor.vim' ! -name 'README.txt' -exec sudo rm -f {} +
     fi
 
     # find . -type f -print -exec file {} \;
@@ -7234,6 +7248,7 @@ if $INCLUDE_C3270; then
         "x3270" \
         "$C3270_SRC" \
         "$C3270_VER" \
+        "" \
         false \
         false \
         "/usr" \
@@ -7247,6 +7262,7 @@ if $INCLUDE_CSCOPE; then
         "cscope-cscope" \
         "$CSCOPE_SRC" \
         "v$CSCOPE_VER" \
+        "" \
         false \
         true \
         "/usr" \
@@ -7260,6 +7276,7 @@ if $INCLUDE_CTAGS; then
         "ctags" \
         "$CTAGS_SRC" \
         "$CTAGS_VER" \
+        "" \
         true \
         false \
         "/usr" \
@@ -7319,6 +7336,7 @@ if $INCLUDE_LYNX; then
         "lynx-snapshots" \
         "$LYNX_SRC" \
         "v$LYNX_VER" \
+        "" \
         false \
         false \
         "/usr" \
@@ -7355,6 +7373,7 @@ if $INCLUDE_MT_ST; then
         "mt-st" \
         "$MT_ST_SRC" \
         "v$MT_ST_VER" \
+        "" \
         false \
         false \
         "/usr" \
@@ -7395,6 +7414,7 @@ if $INCLUDE_TMUX; then
         "tmux" \
         "$TMUX_SRC" \
         "$TMUX_VER" \
+        "" \
         true \
         false \
         "/usr" \
@@ -7414,6 +7434,7 @@ if $INCLUDE_VIM; then
         "vim" \
         "$VIM_SRC" \
         "v$VIM_VER" \
+        "vim/9.2_ext_feature_culling.patch" \
         false \
         false \
         "/usr" \

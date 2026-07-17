@@ -24,12 +24,84 @@ if [ -d /opt/i486-linux-musl-native/bin ]; then
 fi
 export PATH
 
+
+
+# Ensures sync and shell exist upon SHORKSET's exit so settings are guaranteed
+# saved and applied immediately
 shorkset()
 {
     /usr/libexec/shorkset "$@" || return
     sync
     exit
 }
+
+# Wraps launching Vim with creating a 16-128MiB swapfile for it to help prevent
+# the kernel killing Vim when the system runs out of RAM
+vim()
+{
+    if [ ! -x /usr/bin/vim ]; then
+        printf "${SHELL}: vim: not found\n"
+        return 127
+    fi
+
+    local VIMSWAP_DIR="/var/tmp"
+    local VIMSWAP_PATH="${VIMSWAP_DIR}/.vim_ramswap.$$"
+    local VIMSWAP_MIN=$((16 * 1024 * 1024))
+    local VIMSWAP_MAX=$((128 * 1024 * 1024))
+    local TARGET_B=$VIMSWAP_MIN
+
+    # Clamp target swap between MIN and MAX, else match RAM if within range
+    local TARGET_B=$VIMSWAP_MIN
+    local RAM_B=$(awk '/MemTotal/ {print $2 * 1024}' /proc/meminfo)
+    if [ -z "$RAM_B" ] || [ "$RAM_B" -le 0 ]; then
+        TARGET_B=$VIMSWAP_MIN
+    elif [ "$RAM_B" -lt "$VIMSWAP_MIN" ]; then
+        TARGET_B=$VIMSWAP_MIN
+    elif [ "$RAM_B" -gt "$VIMSWAP_MAX" ]; then
+        TARGET_B=$VIMSWAP_MAX
+    else
+        TARGET_B=$RAM_B
+    fi
+
+    # Make sure target is less than half root partition size
+    local ROOT_B=$(df -B1 --output=size / 2>/dev/null | tail -n1 | tr -d ' ')
+    if [ -n "$ROOT_B" ] && [ "$ROOT_B" -gt 0 ]; then
+        if [ "$ROOT_B" -lt $((TARGET_B * 2)) ]; then
+            TARGET_B=$((ROOT_B / 2))
+            [ "$TARGET_B" -gt "$VIMSWAP_MAX" ] && TARGET_B=$VIMSWAP_MAX
+        fi
+    fi
+
+    local TARGET_MB=$((TARGET_B / 1048576))
+    [ "$TARGET_MB" -lt 1 ] && TARGET_MB=1
+
+    local VIMSWAP_OK=0
+    mkdir -p "${VIMSWAP_DIR}"
+    if fallocate -l "${TARGET_MB}M" "$VIMSWAP_PATH" 2>/dev/null \
+        && chmod 600 "$VIMSWAP_PATH" \
+        && mkswap "$VIMSWAP_PATH" >/dev/null 2>&1 \
+        && swapon "$VIMSWAP_PATH" 2>/dev/null; then
+        VIMSWAP_OK=1
+    fi
+
+    vimswap_cleanup()
+    {
+        if [ "$VIMSWAP_OK" = "1" ]; then
+            swapoff "$VIMSWAP_PATH" 2>/dev/null
+        fi
+        rm -f "$VIMSWAP_PATH"
+        trap - EXIT INT TERM
+    }
+    trap vimswap_cleanup EXIT INT TERM
+
+    /usr/bin/vim "$@"
+    local RET=$?
+
+    vimswap_cleanup
+    return $RET
+}
+
+
 
 # Show welcome tip (if first boot marker does not exist)
 if [ ! -f /etc/.past_first_boot ] && [ "$(tty)" = "/dev/tty1" ]; then
