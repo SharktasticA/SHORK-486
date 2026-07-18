@@ -58,7 +58,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 
 ### BusyBox
 
-addgroup, adduser, ar, arch, ascii, ash, awk, base32, base64, basename, bc, beep, blkid, bunzip2, bzcat, bzip2, cal, cat, cksum, chgrp, chmod, chown, chpasswd, chroot, chvt, clear, comm, cp, cpio, crc32, crontab, cryptpw, cut, date, dc, dd, delgroup, deluser, df, diff, dirname, dmesg, dos2unix, du, echo, ed, eject, env, expand, expr, factor, fallocate, false, fdformat, fdisk, find, fold, free, ftpget, ftpput, getfattr, getty, grep, gunzip, gzip, halt, head, hexdump, hostid, hostname, id, ifconfig, init, install, ip, kill, killall, less, link, ln, loadkmap, login, logname, losetup, ls, lsblk, lscpu, lspci, lsusb, lzcat, lzma, lzop, lzopcat, man, mdev, md5sum, mkdir, mkdosfs/mkfs.ext2, mke2fs/mkfs.vfat, mkfifo, mknod, mkpasswd, mktemp, mkswap, mount, mountpoint, mv, nice, nl, nohup, nproc, od, partprobe, passwd, paste, patch, ping, pkill, pmap, printenv, printf, ps, pstree, pwd, readlink, realpath, rev, rm, rmdir, route, sed, seq, setfattr, setfont, sha1sum, sha256sum, sha384sum, sha3sum, sha512sum, shred, showkey, shuf, sleep, sort, split, stat, stty, su, sulogin, sum, swapoff, swapon, sync, tac, tail, tar, taskset, tee, telnet, test, time, timeout, top, touch, tr, traceroute, tree, true, truncate, tsort, tty, udhcpc, umount, uname, uncompress, unexpand, uniq, unix2dos, unlink, unlzma, unlzop, unxz, unzip, uptime, users, usleep, uuidgen, vi, vmstat, volname, w, wc, wget, which, who, whoami, whois, xxd, xz, xzcat, yes, zcat
+addgroup, adduser, ar, arch, ascii, ash, awk, base32, base64, basename, bc, beep, blkid, bunzip2, bzcat, bzip2, cal, cat, cksum, chgrp, chmod, chown, chpasswd, chroot, chvt, clear, comm, cp, cpio, crc32, crontab, cryptpw, cut, date, dc, dd, delgroup, deluser, df, diff, dirname, dmesg, dos2unix, du, echo, ed, egrep, eject, env, expand, expr, factor, fallocate, false, fdflush, fdformat, fdisk, fgrep, find, fold, free, ftpget, ftpput, fuser, getfattr, getopt, getty, grep, gunzip, gzip, halt, head, hexdump, hexedit, hostid, hostname, hwclock, id, ifconfig, init, install, iostat, ip, kill, killall, less, link, ln, loadkmap, login, logname, losetup, ls, lsblk, lscpu, lsof, lspci, lsscsi, lsusb, lzcat, lzma, lzop, lzopcat, man, mdev, md5sum, mkdir, mkdosfs/mkfs.ext2, mke2fs/mkfs.vfat, mkfifo, mknod, mkpasswd, mktemp, mkswap, more, mount, mountpoint, mv, netcat, nice, nl, nohup, nproc, od, partprobe, passwd, paste, patch, pgrep, pidof, ping, pkill, pmap, printenv, printf, ps, pstree, pwd, pwdx, readlink, realpath, rev, rm, rmdir, route, sed, seq, setfattr, setfont, sha1sum, sha256sum, sha384sum, sha3sum, sha512sum, shred, showkey, shuf, sleep, sort, split, stat, strings, stty, su, sulogin, sum, swapoff, swapon, sync, tac, tail, tar, taskset, tee, telnet, test, time, timeout, top, touch, tr, traceroute, tree, true, truncate, tsort, tty, udhcpc, umount, uname, uncompress, unexpand, uniq, unix2dos, unlink, unlzma, unlzop, unxz, unzip, uptime, users, usleep, uuidgen, vi, vmstat, volname, w, watch, wc, wget, which, who, whoami, whois, xargs, xxd, xz, xzcat, yes, zcat
 
 ### Bundled software
 
@@ -89,7 +89,7 @@ addgroup, adduser, ar, arch, ascii, ash, awk, base32, base64, basename, bc, beep
 |------|------------|---------|---------|------------|
 | [Cscope](https://cscope.sourceforge.net/) | `cscope` | 15.9 | C/C++ code browser | BSD 3-Clause |
 | [GCC](https://musl.cc/)‡§ | `gcc`, `g++`, `gfortran` | 11.2.1 | C, C++ and Fortran compilers | GPLv3 + GCC RLE |
-| [GNU Binutils](https://musl.cc/)‡ | e.g. `ar`*, `as`, `gprof`, `ld`, `nm`, `objdump`, `ranlib`,`readelf`, `strings`, `strip` | 2.37 | Binary tools to compliment GCC | GPLv3 |
+| [GNU Binutils](https://musl.cc/)‡ | e.g. `ar`\*, `as`, `gprof`, `ld`, `nm`, `objdump`, `ranlib`,`readelf`, `strings`\*, `strip` | 2.37 | Binary tools to compliment GCC | GPLv3 |
 | [GNU Indent](https://www.gnu.org/software/indent/) | `indent` | 2.2.13 | C code formatter | GPLv3 |
 | [GNU Make](https://www.gnu.org/software/make/) | `make` | 4.4.1 | Build automation tool | GPLv3 |
 | [Joe's Own Editor](https://github.com/joe-editor/joe) | `joe` | 4.8 | WordStar & Emacs-blend text editor | GPLv2 |
@@ -98,9 +98,9 @@ addgroup, adduser, ar, arch, ascii, ash, awk, base32, base64, basename, bc, beep
 | [tn5250](https://github.com/tn5250/tn5250)† | `tn5250` | 0.18.0 | TCP/IP 5250 terminal emulator | LGPLv2.1 |
 | [Universal Ctags](https://ctags.io/) | `ctags`, `readtags` | 6.2.0 | Source code object indexing | GPLv2 |
 | [x3270](https://github.com/pmattes/x3270)† | `c3270` | 4.5ga5 | 3270 terminal emulator | BSD 3-Clause |
-| [Vim](https://www.vim.org/)† | `ex`, `view`, `rvim`, `rview`, `vim`, `vimdiff`, `vimtutor`, `xxd`* | 9.2 | Vi IMproved text editor | Vim |
+| [Vim](https://www.vim.org/)† | `ex`, `view`, `rvim`, `rview`, `vim`, `vimdiff`, `vimtutor`, `xxd`\* | 9.2 | Vi IMproved text editor | Vim |
 
-* _This replaces a BusyBox version of the same utility_
+* \* _This replaces a BusyBox version of the same utility_
 * _† Their inclusion is experimental - expect bugs_
 * _‡ GCC and GNU Binutils are separate projects but are bundled together as one complete toolchain_
 * _§ [musl 1.2.6](https://musl.libc.org/) (MIT licensed) is automatically included with these_
@@ -154,7 +154,7 @@ SHORK 486 _can_ be used on some newer hardware if you so desire, but there are s
 
 * A default SHORK 486 system will not recognise more than ~875MiB of memory. The "highmem" configuration option is available to address this, though the minimum system memory requirement is raised to 24MiB/16MiB + 8MiB swap.
 
-* A default SHORK 486 system only supports IDE hard drives. The "sata" configuration option is available to address this, though the recommended system memory amount is raised to 24MiB/16MiB + 8MiB swap.
+* A default SHORK 486 system only supports IDE or SCSI hard drives. The "sata" configuration option is available to address this, though the recommended system memory amount is raised to 24MiB/16MiB + 8MiB swap.
 
 _The planned SHORK 686 will make these modern system-orientated options obsolete in the future._
 
@@ -326,13 +326,13 @@ Allows you to specify an IBM scancode set for SHORK 486 to request. For most AT 
 
 #### Multi-User Support
 
-Selecting "Yes" here will enable multi-user and password-protected user support in SHORK 486. BusyBox will include implementations for the `addgroup`, `adduser`, `chgrp`, `chown`, `chpasswd`, `chroot`, `cryptpw`, `delgroup`, `deluser`, `getty`, `login`, `mkpasswd`, `passwd`, `su`, `sulogin`, `users`, `w` and `who` commands. You will be asked to input a root password in the following prompt.
+Selecting "Yes" here will enable multi-user and password-protected user support in SHORK 486. BusyBox will include implementations for the `addgroup`, `adduser`, `chgrp`, `chown`, `chpasswd`, `chroot`, `cryptpw`, `delgroup`, `deluser`, `getty`, `id`, `login`, `logname`, `mkpasswd`, `passwd`, `su`, `sulogin`, `users`, `w` and `who` commands. You will be asked to input a root password in the following prompt.
 
 
 
 #### Ethernet Networking Support
 
-Selecting "Yes" here will enable ethernet networking support in SHORK 486. BusyBox will include implementations for the `ftpget`, `ftpput`, `ifconfig`, `ip`, `ping`, `route`, `telnet`, `traceroute`, `udhcpc`, `wget` and `whois` commands. You will be allowed to select bundled software and options that require an internet connection in the subsequent prompts.
+Selecting "Yes" here will enable ethernet networking support in SHORK 486. BusyBox will include implementations for the `ftpget`, `ftpput`, `ifconfig`, `ip`, `netcat`, `ping`, `route`, `telnet`, `traceroute`, `udhcpc`, `wget` and `whois` commands. You will be allowed to select bundled software and options that require an internet connection in the subsequent prompts.
 
 
 

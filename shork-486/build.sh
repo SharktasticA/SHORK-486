@@ -1445,10 +1445,11 @@ get_busybox()
     fi
 
     if $INCLUDE_GCC; then
-        echo -e "${GREEN}Disabling BusyBox's ar implementation in favour of GCC's...${RESET}"
+        echo -e "${GREEN}Disabling BusyBox's ar and strings implementations in favour of GNU Bintuils'...${RESET}"
         sed -i 's/^CONFIG_AR=y$/# CONFIG_AR is not set/' .config
         sed -i 's/^CONFIG_FEATURE_AR_LONG_FILENAMES=y$/# CONFIG_FEATURE_AR_LONG_FILENAMES is not set/' .config
         sed -i 's/^CONFIG_FEATURE_AR_CREATE=y$/# CONFIG_FEATURE_AR_CREATE is not set/' .config
+        sed -i 's/^CONFIG_STRINGS=y$/# CONFIG_STRINGS is not set/' .config
     fi
 
     # Compile and install
@@ -6442,6 +6443,26 @@ get_included_busybox_commands()
 
     # Added 2026-07-17
     check_bb_config "CONFIG_FALLOCATE" ""
+
+    # Added 2026-07-18
+    check_bb_config "CONFIG_EGREP" ""
+    check_bb_config "CONFIG_FGREP" ""
+    check_bb_config "CONFIG_XARGS" ""
+    check_bb_config "CONFIG_FDFLUSH" ""
+    check_bb_config "CONFIG_GETOPT" ""
+    check_bb_config "CONFIG_HWCLOCK" ""
+    check_bb_config "CONFIG_MORE" ""
+    check_bb_config "CONFIG_HEXEDIT" ""
+    check_bb_config "CONFIG_LSSCSI" ""
+    check_bb_config "CONFIG_STRINGS" ""
+    check_bb_config "CONFIG_FUSER" ""
+    check_bb_config "CONFIG_IOSTAT" ""
+    check_bb_config "CONFIG_LSOF" ""
+    check_bb_config "CONFIG_PGREP" ""
+    check_bb_config "CONFIG_PIDOF" ""
+    check_bb_config "CONFIG_PWDX" ""
+    check_bb_config "CONFIG_WATCH" ""
+    check_bb_config "CONFIG_NETCAT" ""
 
     readarray -t INCLUDED_BB_CMDS < <(printf '%s\n' "${INCLUDED_BB_CMDS[@]}" | sort)
     readarray -t EXCLUDED_BB_CMDS < <(printf '%s\n' "${EXCLUDED_BB_CMDS[@]}" | sort)

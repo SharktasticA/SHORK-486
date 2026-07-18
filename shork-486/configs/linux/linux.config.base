@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/x86 7.2.0-rc1 Kernel Configuration
+# Linux/x86 7.2.0-rc3 Kernel Configuration
 #
 CONFIG_CC_VERSION_TEXT="gcc (Debian 14.2.0-19) 14.2.0"
 CONFIG_CC_IS_GCC=y
@@ -655,7 +655,6 @@ CONFIG_FLATMEM_MANUAL=y
 CONFIG_FLATMEM=y
 CONFIG_SPARSEMEM_STATIC=y
 CONFIG_HAVE_GUP_FAST=y
-CONFIG_EXCLUSIVE_SYSTEM_RAM=y
 CONFIG_ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE=y
 # CONFIG_COMPACTION is not set
 # CONFIG_PAGE_REPORTING is not set
@@ -1304,7 +1303,59 @@ CONFIG_EDAC_ATOMIC_SCRUB=y
 CONFIG_EDAC_SUPPORT=y
 CONFIG_RTC_LIB=y
 CONFIG_RTC_MC146818_LIB=y
-# CONFIG_RTC_CLASS is not set
+CONFIG_RTC_CLASS=y
+# CONFIG_RTC_HCTOSYS is not set
+# CONFIG_RTC_SYSTOHC is not set
+# CONFIG_RTC_DEBUG is not set
+# CONFIG_RTC_NVMEM is not set
+
+#
+# RTC interfaces
+#
+# CONFIG_RTC_INTF_SYSFS is not set
+# CONFIG_RTC_INTF_PROC is not set
+CONFIG_RTC_INTF_DEV=y
+# CONFIG_RTC_INTF_DEV_UIE_EMUL is not set
+# CONFIG_RTC_DRV_TEST is not set
+
+#
+# I2C RTC drivers
+#
+
+#
+# SPI RTC drivers
+#
+
+#
+# SPI and I2C RTC drivers
+#
+
+#
+# Platform RTC drivers
+#
+CONFIG_RTC_DRV_CMOS=y
+# CONFIG_RTC_DRV_DS1286 is not set
+# CONFIG_RTC_DRV_DS1511 is not set
+# CONFIG_RTC_DRV_DS1553 is not set
+# CONFIG_RTC_DRV_DS1685_FAMILY is not set
+# CONFIG_RTC_DRV_DS1742 is not set
+# CONFIG_RTC_DRV_DS2404 is not set
+# CONFIG_RTC_DRV_STK17TA8 is not set
+# CONFIG_RTC_DRV_M48T86 is not set
+# CONFIG_RTC_DRV_M48T35 is not set
+# CONFIG_RTC_DRV_M48T59 is not set
+# CONFIG_RTC_DRV_MSM6242 is not set
+# CONFIG_RTC_DRV_RP5C01 is not set
+
+#
+# on-CPU RTC drivers
+#
+# CONFIG_RTC_DRV_FTRTC010 is not set
+# CONFIG_RTC_DRV_GOLDFISH is not set
+
+#
+# HID Sensor RTC drivers
+#
 # CONFIG_DMADEVICES is not set
 
 #
