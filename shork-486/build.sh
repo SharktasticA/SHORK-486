@@ -877,6 +877,7 @@ get_ncurses()
 
     ln -sf "${PREFIX}/lib/libncursesw.a" "${PREFIX}/lib/libncurses.a"
     ln -sf "${PREFIX}/lib/libncursesw.a" "${PREFIX}/lib/libtinfo.a"
+    ln -sf "${PREFIX}/lib/libncursesw.a" "${PREFIX}/lib/libcurses.a"
 }
 
 # Download and compile tic (required for shorkset)
