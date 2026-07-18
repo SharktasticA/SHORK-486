@@ -67,13 +67,13 @@ addgroup, adduser, ar, arch, ascii, ash, awk, base32, base64, basename, bc, beep
 | Name | Command(s) | Version | Purpose | Licence(s) |
 |------|------------|---------|---------|------------|
 | [dialog](https://invisible-mirror.net/dialog/dialog.html) | `dialog` | 1.3 | Shell script TUI widgets | LGPLv2.1 |
-| [Dropbear](https://github.com/mkj/dropbear) | `scp`, `ssh` | 2026.91 | SCP and SSH clients | MIT + BSD 2-Clause |
+| [Dropbear](https://github.com/mkj/dropbear) | `scp`, `ssh` | 2026.92 | SCP and SSH clients | MIT + BSD 2-Clause |
 | [file](https://github.com/file/file)| `file` | 5_48 | File identification | BSD 2-Clause |
 | [Git](https://github.com/git/git) | `git` | 2.55.0 | Source control client | GPLv2 |
 | [GNU nano](https://www.nano-editor.org/) | `nano` | 9.1 | Pico-style text editor | GPLv3 |
 | [htop](https://github.com/htop-dev/htop) | `htop` | 3.5.1 | Interactive process viewer | GPLv2 |
 | [Lynx](https://github.com/ThomasDickey/lynx-snapshots) | `lynx` | 2-9-3a | Terminal web browser | GPLv2 |
-| [Mg](https://github.com/troglobit/mg) | `mg` | 3.7 | Emacs-style text editor | Unlicense |
+| [Mg](https://github.com/troglobit/mg) | `mg` | 4.0 | Emacs-style text editor | Unlicense |
 | [MicroPython](https://github.com/micropython/micropython) | `micropython` | 1.28.0 | Python 3.4-syntax intepreter | MIT |
 | [mt-st](https://github.com/iustin/mt-st) | `mt`, `stinit` | 1.8 | Tape drive tools | GPLv2 |
 | [sc-im](https://github.com/andmarti1424/sc-im) | `sc-im` | 0.8.5 | Terminal spreadsheet editor | BSD 4-Clause |
