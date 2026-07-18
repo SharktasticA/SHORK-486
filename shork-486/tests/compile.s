@@ -14,6 +14,7 @@ _start:
     movl $len, %edx
     int $0x80
 
+    # exit(0)
     movl $1, %eax
     xorl %ebx, %ebx
     int $0x80

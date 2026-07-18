@@ -1,6 +1,6 @@
 # SHORK 486, DISC & DISKETTE
 
-SHORK 486 is a free and open-source operating system for 486 and Pentium (P5) era vintage personal computers. The aim is to produce a 32-bit Linux distribution that is lean and functional, but still capable on such PCs, often with my '90s IBM ThinkPads in mind. A default SHORK 486 system aims to work with at least 16MiB system memory and take up no more than ~80MiB on your disk. Despite those constraints, the default SHORK 486 experience includes [Linux kernel 7.1.3](KERNEL.md), many typical Linux commands, custom SHORK Utilities such as shorkdir (TUI file browser) and shorkfetch (*fetch clone), a terminal multiplexer, a C compiler and Python 3.4-syntax interpreter, a text web browser, an FTP, SCP and SSH client, a Git source control client, the ed, Mg (Emacs-style), nano and vi editors, a spreadsheet editor, IDE CD-ROM and DVD-ROM support, SCSI tape drive support, ISA, PCI and PCMCIA ethernet support, support for most major national keyboard layouts, and a cute ASCII shark welcome screen!
+SHORK 486 is a free and open-source operating system for 486 and Pentium (P5) era vintage personal computers. The aim is to produce a 32-bit Linux distribution that is lean and functional, but still capable on such PCs, often with my '90s IBM ThinkPads in mind. A default SHORK 486 system aims to work with at least 16MiB system memory and take up no more than ~80MiB on your disk. Despite those constraints, the default SHORK 486 experience includes [Linux kernel 7.1.3](KERNEL.md), many typical Linux commands, custom SHORK Utilities such as shorkdir (TUI file browser) and shorkfetch (*fetch clone), a terminal multiplexer, a C compiler, Python 3.4-syntax interpreter and dialog for shell script TUI widgets, a text web browser, an FTP, SCP and SSH client, a Git source control client, the ed, Mg (Emacs-style), nano and vi editors, a spreadsheet editor, a minesweeper game, IDE CD-ROM and DVD-ROM support, SCSI tape drive support, ISA, PCI and PCMCIA ethernet support, support for most major national keyboard layouts, and a cute ASCII shark welcome screen!
 
 A build configurator is available to alter SHORK 486 to your liking. For example, you can select the "minimal" build type that requires just 8MiB RAM and ~8MiB disk space, whilst still including most typical commands as before, some custom SHORK Utilities, and the ed and vi editors. You can also configure SHORK 486 for serial console use, multi-user support (if not "minimal" build), and pick and choose specific software and features (if "custom" build). Versions of SHORK 486 that can be burned to a CD (SHORK DISC) or small enough to fit on a 1.44MB floppy diskette (SHORK DISKETTE) are also available.
 
@@ -30,13 +30,13 @@ SHORK 486 is a modern and maintained Linux distribution that can run on a proces
 
 ### Licences
 
-SHORK 486 is a free and open-source operating system. Its core is made up of [GPLv3](COPYING) (SHORK, SHORK Utilities, SHORK Entertainment) and [GPLv2](https://docs.kernel.org/process/license-rules.html) (Linux kernel, BusyBox, SYSLINUX) components. The contents of the `shork-486/patches` directory are also licensed under GPLv2 as they are derived from Linux kernel and BusyBox source code. SHORK 486 can also contain bundled software licensed under various permissive, copyleft, and even public-domain-equivalent licences. You can look at the bundled software list later in this README, or at the "Licences" portal in `shorkhelp` when running SHORK 486, to see their licences.
+SHORK 486 is a free and open-source operating system. Its core is made up of [GPLv3](COPYING) (SHORK, SHORK Utilities, most of SHORK Entertainment), [GPLv2](https://docs.kernel.org/process/license-rules.html) (Linux kernel, BusyBox, SYSLINUX), and [MIT](https://github.com/SharktasticA/shorkmines?tab=MIT-1-ov-file) (SHORKMINES) components. The contents of the `shork-486/patches` directory are also licensed under GPLv2 as they are derived from Linux kernel and BusyBox source code. SHORK 486 can also contain bundled software licensed under various permissive, copyleft, and even public-domain-equivalent licences. You can look at the bundled software list later in this README, or at the "Licences" portal in `shorkhelp` when running SHORK 486, to see their licences.
 
 
 
 ## SHORK 486
 
-SHORK 486 proper is the main version of the SHORK 486 Operating System that is designed to be written/installed to a fixed disk (hard drive, solid-state drive, etc). It is the most robust, versatile and customisable version being developed with the goal of being 'daily-drivable' in mind. It can be built a single-user (root) or multi-user system.
+SHORK 486 proper is the main version of the SHORK 486 Operating System that is designed to be written/installed to a fixed disk (hard drive, solid-state drive, etc.) It is the most robust, versatile and customisable version being developed with the goal of being 'daily-drivable' in mind. It can be built as a single-user (root) or multi-user system.
 
 ### Hardware requirements
 
@@ -49,8 +49,8 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
     * Minimal: 8MiB RAM
 * IDE or SCSI disk: 
     * **Default: 80MiB**
-    * Maximal: 440MiB
-    * Plus: 400MiB
+    * Maximal: 480MiB
+    * Plus: 440MiB
     * Offline: 60MiB
     * Minimal: 8MiB
 * Graphics: IBM VGA or compatible (for most programs); VBE 2.0-compatible (for `shorkgui` and VBE resolutions in `shorkset`)
@@ -58,7 +58,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 
 ### BusyBox
 
-addgroup, adduser, ar, arch, ascii, ash, awk, basename, bc, beep, blkid, bunzip2, bzcat, bzip2, cal, cat, chgrp, chmod, chown, chpasswd, chroot, chvt, clear, cp, cpio, crontab, cryptpw, cut, date, dc, dd, delgroup, deluser, df, diff, dirname, dmesg, dos2unix, du, echo, ed, eject, env, expand, expr, false, fdformat, fdisk, find, fold, free, ftpget, ftpput, getfattr, getty, grep, gunzip, gzip, halt, head, hexdump, hostname, ifconfig, init, ip, kill, killall, less, ln, loadkmap, login, losetup, ls, lsblk, lscpu, lspci, lsusb, lzcat, lzma, lzop, lzopcat, man, mdev, mkdir, mkdosfs/mkfs.ext2, mke2fs/mkfs.vfat, mknod, mkpasswd, mkswap, mount, mountpoint, mv, nice, nohup, nproc, partprobe, passwd, paste, patch, ping, pkill, pmap, printenv, printf, ps, pstree, pwd, readlink, rev, rm, rmdir, route, sed, seq, setfattr, setfont, showkey, sleep, stat, stty, su, sulogin, swapoff, swapon, sync, tar, taskset, tee, telnet, test, time, top, touch, tr, traceroute, tree, true, truncate, tty, udhcpc, umount, uname, uncompress, unexpand, unix2dos, unlzma, unlzop, unxz, unzip, uptime, users, usleep, uuidgen, vi, vmstat, volname, w, wc, wget, which, who, whoami, whois, xxd, xz, xzcat, yes, zcat
+addgroup, adduser, ar, arch, ascii, ash, awk, base32, base64, basename, bc, beep, blkid, bunzip2, bzcat, bzip2, cal, cat, cksum, chgrp, chmod, chown, chpasswd, chroot, chvt, clear, comm, cp, cpio, crc32, crontab, cryptpw, cut, date, dc, dd, delgroup, deluser, df, diff, dirname, dmesg, dos2unix, du, echo, ed, egrep, eject, env, expand, expr, factor, fallocate, false, fdflush, fdformat, fdisk, fgrep, find, fold, free, ftpget, ftpput, fuser, getfattr, getopt, getty, grep, gunzip, gzip, halt, head, hexdump, hexedit, hostid, hostname, hwclock, id, ifconfig, init, install, iostat, ip, kill, killall, less, link, ln, loadkmap, login, logname, losetup, ls, lsblk, lscpu, lsof, lspci, lsscsi, lsusb, lzcat, lzma, lzop, lzopcat, man, mdev, md5sum, mkdir, mkdosfs/mkfs.ext2, mke2fs/mkfs.vfat, mkfifo, mknod, mkpasswd, mktemp, mkswap, more, mount, mountpoint, mv, netcat, nice, nl, nohup, nproc, od, partprobe, passwd, paste, patch, pgrep, pidof, ping, pkill, pmap, printenv, printf, ps, pstree, pwd, pwdx, readlink, realpath, rev, rm, rmdir, route, sed, seq, setfattr, setfont, sha1sum, sha256sum, sha384sum, sha3sum, sha512sum, shred, showkey, shuf, sleep, sort, split, stat, strings, stty, su, sulogin, sum, swapoff, swapon, sync, tac, tail, tar, taskset, tee, telnet, test, time, timeout, top, touch, tr, traceroute, tree, true, truncate, tsort, tty, udhcpc, umount, uname, uncompress, unexpand, uniq, unix2dos, unlink, unlzma, unlzop, unxz, unzip, uptime, users, usleep, uuidgen, vi, vmstat, volname, w, watch, wc, wget, which, who, whoami, whois, xargs, xxd, xz, xzcat, yes, zcat
 
 ### Bundled software
 
@@ -66,35 +66,43 @@ addgroup, adduser, ar, arch, ascii, ash, awk, basename, bc, beep, blkid, bunzip2
 
 | Name | Command(s) | Version | Purpose | Licence(s) |
 |------|------------|---------|---------|------------|
+| [dialog](https://invisible-mirror.net/dialog/dialog.html) | `dialog` | 1.3 | Shell script TUI widgets | LGPLv2.1 |
 | [Dropbear](https://github.com/mkj/dropbear) | `scp`, `ssh` | 2026.91 | SCP and SSH clients | MIT + BSD 2-Clause |
-| [file](https://github.com/file/file)* | `file` | 5_48 | File identification | BSD 2-Clause |
+| [file](https://github.com/file/file)| `file` | 5_48 | File identification | BSD 2-Clause |
 | [Git](https://github.com/git/git) | `git` | 2.55.0 | Source control client | GPLv2 |
+| [GNU nano](https://www.nano-editor.org/) | `nano` | 9.1 | Pico-style text editor | GPLv3 |
 | [htop](https://github.com/htop-dev/htop) | `htop` | 3.5.1 | Interactive process viewer | GPLv2 |
 | [Lynx](https://github.com/ThomasDickey/lynx-snapshots) | `lynx` | 2-9-3a | Terminal web browser | GPLv2 |
 | [Mg](https://github.com/troglobit/mg) | `mg` | 3.7 | Emacs-style text editor | Unlicense |
 | [MicroPython](https://github.com/micropython/micropython) | `micropython` | 1.28.0 | Python 3.4-syntax intepreter | MIT |
 | [mt-st](https://github.com/iustin/mt-st) | `mt`, `stinit` | 1.8 | Tape drive tools | GPLv2 |
-| [nano](https://www.nano-editor.org/dist) | `nano` | 9.1 | Pico-style text editor | GPLv3 |
 | [sc-im](https://github.com/andmarti1424/sc-im) | `sc-im` | 0.8.5 | Terminal spreadsheet editor | BSD 4-Clause |
-| [strace](https://github.com/strace/strace)* | `strace` | 7.1 | System calls & signals tracer | LGPLv2.1 |
+| [strace](https://github.com/strace/strace) | `strace` | 7.1 | System calls & signals tracer | LGPLv2.1 |
 | [Tiny C Compiler](https://bellard.org/tcc/)§ | `tcc` | `e5eedc0` | C compiler | LGPLv2.1 |
 | [tmux](https://github.com/tmux/tmux) | `tmux` | 3.7b | Terminal multiplexer | ISC |
 | [tnftp](https://ftp.netbsd.org/pub/NetBSD/misc/tnftp/) | `ftp` | 20260211 | FTP client | BSD 2-Clause |
-| [util-linux](https://github.com/util-linux/util-linux)* | `partx`, `sfdisk`, `whereis` | 2.42.2 | Extra Linux utilities | GPLv2 |
+| [util-linux](https://github.com/util-linux/util-linux) | `partx`, `sfdisk`, `whereis` | 2.42.2 | Extra Linux utilities | GPLv2 |
 
-#### Optional
+#### Plus & maximal/optional with custom
 
 | Name | Command(s) | Version | Purpose | Licence(s) |
 |------|------------|---------|---------|------------|
-| [Binutils](https://musl.cc/)‡ | e.g. `ar`, `as`, `gprof`, `ld`, `nm`, `objdump`, `ranlib`,`readelf`, `strings`, `strip` | 2.37 | Binary tools to compliment GCC | GPLv3 |
+| [Cscope](https://cscope.sourceforge.net/) | `cscope` | 15.9 | C/C++ code browser | BSD 3-Clause |
 | [GCC](https://musl.cc/)‡§ | `gcc`, `g++`, `gfortran` | 11.2.1 | C, C++ and Fortran compilers | GPLv3 + GCC RLE |
+| [GNU Binutils](https://musl.cc/)‡ | e.g. `ar`\*, `as`, `gprof`, `ld`, `nm`, `objdump`, `ranlib`,`readelf`, `strings`\*, `strip` | 2.37 | Binary tools to compliment GCC | GPLv3 |
+| [GNU Indent](https://www.gnu.org/software/indent/) | `indent` | 2.2.13 | C code formatter | GPLv3 |
+| [GNU Make](https://www.gnu.org/software/make/) | `make` | 4.4.1 | Build automation tool | GPLv3 |
 | [Joe's Own Editor](https://github.com/joe-editor/joe) | `joe` | 4.8 | WordStar & Emacs-blend text editor | GPLv2 |
+| [mpg321](https://mpg321.sourceforge.net/)† | `mpg321` | 0.3.2-1 | MP3 player | GPLv2 |
+| [NASM](https://www.nasm.us/) | `nasm`, `ndisasm` | 3.02 | Portable x86 assembler & disassembler | BSD 2-Clause |
 | [tn5250](https://github.com/tn5250/tn5250)† | `tn5250` | 0.18.0 | TCP/IP 5250 terminal emulator | LGPLv2.1 |
+| [Universal Ctags](https://ctags.io/) | `ctags`, `readtags` | 6.2.0 | Source code object indexing | GPLv2 |
 | [x3270](https://github.com/pmattes/x3270)† | `c3270` | 4.5ga5 | 3270 terminal emulator | BSD 3-Clause |
+| [Vim](https://www.vim.org/)† | `ex`, `view`, `rvim`, `rview`, `vim`, `vimdiff`, `vimtutor`, `xxd`\* | 9.2 | Vi IMproved text editor | Vim |
 
-* _* These are considered "essential" and can only be excluded when making a "custom" build_
+* \* _This replaces a BusyBox version of the same utility_
 * _† Their inclusion is experimental - expect bugs_
-* _‡ GCC and Binutils are separate projects but are bundled together as one complete toolchain_
+* _‡ GCC and GNU Binutils are separate projects but are bundled together as one complete toolchain_
 * _§ [musl 1.2.6](https://musl.libc.org/) (MIT licensed) is automatically included with these_
 
 ### SHORK Utilities (shorkutils)
@@ -103,12 +111,13 @@ addgroup, adduser, ar, arch, ascii, ash, awk, basename, bc, beep, blkid, bunzip2
 * **[shorkfetch](https://github.com/SharktasticA/shorkfetch)** - Displays basic system and environment information. Similar to fastfetch, neofetch, etc.
 * **[shorkhelp](https://github.com/SharktasticA/shorkhelp)** - Informs of SHORK 486's capabilities and provides guidance.
 * **[shorkoff](https://github.com/SharktasticA/shorkoff)** - A shutdown helper that safely brings the system to a controlled halt before a manual power off.
-* **[shorkset](https://github.com/SharktasticA/shorkset)** - A settings program for changing display resolution (VGA, and if compatible, VESA), keyboard layout (keymap), the terminal's PSF font, and the terminal's font colour.
+* **[shorkset](https://github.com/SharktasticA/shorkset)** - A settings program for changing display resolution (VGA, and if compatible, VBE), keyboard layout (keymap), system sound volume, the terminal's PSF font, and the terminal's font colour.
 
 ### SHORK Entertainment (shorktainment)
 
 * **[shorklocomotive](https://github.com/SharktasticA/shorklocomotive)** - A shark-themed take on [sl (Steam Locomotive)](https://github.com/mtoyoda/sl) that kindly pokes fun at making typos when trying to type `ls`. Available as `sl` and `shorklocomotive`.
 * **[shorkmatrix](https://github.com/SharktasticA/shorkmatrix)** - A quick, blue-themed take on the [CMatrix](https://github.com/abishekvashok/cmatrix) "digital rain" vertical scrolling text screensaver. Available as `cmatrix` and `shorkmatrix`.
+* **[shorkmines](https://github.com/SharktasticA/shorkmines)** - A terminal-based minesweeper game based on [terminal-mines](https://github.com/joelekstrom/terminal-mines). Available as `shorkmines` and `terminal-mines`.
 * **[shorksay](https://github.com/SharktasticA/shorksay)** - A shark-themed take on [cowsay](https://github.com/cowsay-org/cowsay), a "simple and silly" program that outputs an ASCII art shark and speech bubble containing a message of your choice. Available as `shorksay` and `cowsay`.
 
 ### Planned, todo & under consideration
@@ -117,21 +126,24 @@ addgroup, adduser, ar, arch, ascii, ash, awk, basename, bc, beep, blkid, bunzip2
 
 * shorkchess (chess game)
 * shorkdisk (disk mounting, unmounting and ejecting)
-* shorkmines (minesweeper-like game)
 * shorknet (network connection management)
 * shorksnek (snake-like game)
 * shorkvader (space invaders-like game)
 
 #### Bundled software
 
+* autoreconf
+* automake
 * BASIC interpreter (exact one TBD)
+* bison
 * cmake
 * cfdisk
 * cURL
-* dialog
+* flex
+* GDB
 * IRC client (exact one TBD)
-* make
-* mpc/MPD or mpg321
+* libtool
+* pkg-config
 * w3m
 
 ### SHORK 486 on modern hardware
@@ -142,7 +154,7 @@ SHORK 486 _can_ be used on some newer hardware if you so desire, but there are s
 
 * A default SHORK 486 system will not recognise more than ~875MiB of memory. The "highmem" configuration option is available to address this, though the minimum system memory requirement is raised to 24MiB/16MiB + 8MiB swap.
 
-* A default SHORK 486 system only supports IDE hard drives. The "sata" configuration option is available to address this, though the recommended system memory amount is raised to 24MiB/16MiB + 8MiB swap.
+* A default SHORK 486 system only supports IDE or SCSI hard drives. The "sata" configuration option is available to address this, though the recommended system memory amount is raised to 24MiB/16MiB + 8MiB swap.
 
 _The planned SHORK 686 will make these modern system-orientated options obsolete in the future._
 
@@ -182,6 +194,7 @@ ar, ash, awk, basename, bunzip2, bzcat, bzip2, cat, clear, cp, cpio, date, dd, d
 
 * **[shorklocomotive](https://github.com/SharktasticA/shorklocomotive)**
 * **[shorkmatrix](https://github.com/SharktasticA/shorkmatrix)**
+* **[shorkmines](https://github.com/SharktasticA/shorkmines)**
 * **[shorksay](https://github.com/SharktasticA/shorksay)**
 
 
@@ -294,7 +307,7 @@ Below are further explanations for options that could not fit into the configura
 * **Maximal**: Builds SHORK 486 with every bundled software or additional feature option enabled. It is provided as a curiosity for more modern hardware; it is not recommended for 486 and Pentium (P5)-era hardware.
 * **Plus**: The same as a default but but _with_ all optional bundled software included.
 * **Offline**: The same as a default build but _without_ full networking support or software that requires an internet connection.
-    * The after-build report will still report that "kernel-level networking support (base)" is included. This is a technicality required to satisfy htop's kernel requirements, but the kernel is still incapable of supporting real network connections.
+    * The after-build report will still report that "kernel-level networking support (base)" is included. This is a technicality required to satisfy htop's or tmux's kernel requirements, but the kernel is still incapable of supporting real network connections.
 * **Minimal**: Builds SHORK 486 to its most minimal configuration. All bundled software and additional features are excluded, and multi-user system, networking and non-US keyboard layout support are disabled.
 * **Custom**: You will later be asked to pick and choose bundled software and additional features.
 
@@ -313,13 +326,13 @@ Allows you to specify an IBM scancode set for SHORK 486 to request. For most AT 
 
 #### Multi-User Support
 
-Selecting "Yes" here will enable multi-user and password-protected user support in SHORK 486. BusyBox will include implementations for the `addgroup`, `adduser`, `chgrp`, `chown`, `chpasswd`, `chroot`, `cryptpw`, `delgroup`, `deluser`, `getty`, `login`, `mkpasswd`, `passwd`, `su`, `sulogin`, `users`, `w` and `who` commands. You will be asked to input a root password in the following prompt.
+Selecting "Yes" here will enable multi-user and password-protected user support in SHORK 486. BusyBox will include implementations for the `addgroup`, `adduser`, `chgrp`, `chown`, `chpasswd`, `chroot`, `cryptpw`, `delgroup`, `deluser`, `getty`, `id`, `login`, `logname`, `mkpasswd`, `passwd`, `su`, `sulogin`, `users`, `w` and `who` commands. You will be asked to input a root password in the following prompt.
 
 
 
 #### Ethernet Networking Support
 
-Selecting "Yes" here will enable ethernet networking support in SHORK 486. BusyBox will include implementations for the `ftpget`, `ftpput`, `ifconfig`, `ip`, `ping`, `route`, `telnet`, `traceroute`, `udhcpc`, `wget` and `whois` commands. You will be allowed to select bundled software and options that require an internet connection in the subsequent prompts.
+Selecting "Yes" here will enable ethernet networking support in SHORK 486. BusyBox will include implementations for the `ftpget`, `ftpput`, `ifconfig`, `ip`, `netcat`, `ping`, `route`, `telnet`, `traceroute`, `udhcpc`, `wget` and `whois` commands. You will be allowed to select bundled software and options that require an internet connection in the subsequent prompts.
 
 
 
@@ -342,7 +355,9 @@ EXTLINUX (SHORK 486), ISOLINUX (SHORK DISC) and SYSLINUX (SHORK DISKETTE) are th
 
 * **gcc**: Adds the GNU Assembler, GCC's C, C++ and Fortran compiler and musl C standard library. Using `g++` requires more system memory than usual, hence it is not included by default. Memory requirements are ideally 32MiB system memory if no swap partition, 24MiB with 8MiB swap or 16MiB with 16MiB swap.
 
-* **shorktainment**: Includes the SHORK Entertainment programs bundle: shorklocomotive, shorkmatrix, and shorksay.
+* **shorktainment**: Includes the SHORK Entertainment programs bundle: shorklocomotive, shorkmatrix, shorkmines, and shorksay.
+
+* **vim**: Adds the Vi IMproved (Vim) text editor. Some of its features like syntax highlighting seem be memory-intensive for 486-era levels of RAM, so memory requirements are ideally 32MiB system memory if no swap partition, 24MiB with 8MiB swap or 16MiB with 16MiB swap. In the worst case scenario, SHORK 486 will automatically create a swapfile between 16-128MiB to help keep Vim running.
 
 #### Options
 

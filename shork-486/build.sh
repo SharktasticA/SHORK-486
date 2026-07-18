@@ -114,13 +114,19 @@ BUSYBOX_VER="1.38.0"
 
 SHORKFETCH_SRC="https://github.com/SharktasticA/shorkfetch.git"
 SHORKFETCH_VER="0.4.4"
+SHORKMINES_SRC="https://github.com/SharktasticA/shorkmines.git"
+SHORKMINES_VER=""
 
 C3270_SRC="https://github.com/pmattes/x3270.git"
 C3270_VER="4.5ga5"
-CMATRIX_SRC="https://github.com/abishekvashok/cmatrix.git"
-CMATRIX_VER="2.0"
+CSCOPE_SRC="https://git.code.sf.net/p/cscope/cscope cscope-cscope"
+CSCOPE_VER="15.9"
+CTAGS_SRC="https://github.com/universal-ctags/ctags.git"
+CTAGS_VER="p6.2.20260705.0"
 CURL_SRC="https://curl.se/download"
 CURL_VER="8.21.0"
+DIALOG_SRC="https://invisible-mirror.net/archives/dialog"
+DIALOG_VER="1.3-20260107"
 DROPBEAR_SRC="https://github.com/mkj/dropbear.git"
 DROPBEAR_VER="2026.91"
 FILE_SRC="https://github.com/file/file.git"
@@ -130,6 +136,8 @@ GIT_SRC="https://github.com/git/git.git"
 GIT_VER="2.55.0"
 HTOP_SRC="https://github.com/htop-dev/htop.git"
 HTOP_VER="3.5.1"
+INDENT_SRC="https://ftp.gnu.org/gnu/indent"
+INDENT_VER="2.2.13"
 JOE_SRC="https://github.com/joe-editor/joe"
 JOE_VER="4.8"
 LIBAO_SRC="https://github.com/xiph/libao.git"
@@ -157,6 +165,8 @@ LIBZIP_SRC="https://github.com/nih-at/libzip.git"
 LIBZIP_VER="1.11.4"
 LYNX_SRC="https://github.com/ThomasDickey/lynx-snapshots.git"
 LYNX_VER="2-9-3a"
+MAKE_SRC="https://ftp.gnu.org/gnu/make"
+MAKE_VER="4.4.1"
 MG_SRC="https://github.com/troglobit/mg.git"
 MG_VER="3.7"
 MICROPYTHON_SRC="https://github.com/micropython/micropython.git"
@@ -170,6 +180,8 @@ MUSL_VER="1.2.6"
 NANO_SRC="https://www.nano-editor.org/dist"
 NANO_DIST="v9"
 NANO_VER="9.1"
+NASM_SRC="https://github.com/netwide-assembler/nasm.git"
+NASM_VER="3.02"
 NCURSES_SRC="https://github.com/mirror/ncurses.git"
 NCURSES_VER="6.4"
 NEDIT_SRC="https://git.code.sf.net/p/nedit/git"
@@ -178,8 +190,6 @@ OPENSSL_SRC="https://github.com/openssl/openssl.git"
 OPENSSL_VER="3.6.3"
 PCRE2_SRC="https://github.com/PCRE2Project/pcre2/releases/download"
 PCRE2_VER="10.47"
-ROVER_SRC="https://github.com/lecram/rover.git"
-ROVER_VER="1.0.1"
 SC_IM_SRC="https://github.com/andmarti1424/sc-im.git"
 SC_IM_VER="0.8.5"
 STRACE_SRC="https://github.com/strace/strace.git"
@@ -197,6 +207,8 @@ TWM_SRC="https://gitlab.freedesktop.org/xorg/app/twm.git"
 TWM_VER="1.0.13.1"
 UTIL_LINUX_SRC="https://github.com/util-linux/util-linux.git"
 UTIL_LINUX_VER="2.42.2"
+VIM_SRC="https://github.com/vim/vim.git"
+VIM_VER="9.2.0782"
 ZLIB_SRC="https://github.com/madler/zlib.git"
 ZLIB_VER="1.3.2"
 
@@ -244,21 +256,26 @@ ENABLE_ZSWAP=true
 
 INCLUDE_C3270=false
 INCLUDE_CON_FONTS=true
-INCLUDE_CMATRIX=false
+INCLUDE_CSCOPE=false
+INCLUDE_CTAGS=false
+INCLUDE_DIALOG=true
 INCLUDE_DROPBEAR=true
 INCLUDE_FILE=true
 INCLUDE_GCC=false
 INCLUDE_GIT=true
 INCLUDE_GUI=false
 INCLUDE_HTOP=true
-INCLUDE_JOE=true
+INCLUDE_INDENT=false
+INCLUDE_JOE=false
 INCLUDE_KEYMAPS=true
 INCLUDE_LYNX=true
+INCLUDE_MAKE=false
 INCLUDE_MG=true
 INCLUDE_MICROPYTHON=true
 INCLUDE_MPG321=false
 INCLUDE_MT_ST=true
 INCLUDE_NANO=true
+INCLUDE_NASM=false
 INCLUDE_PCI_IDS=true
 INCLUDE_SC_IM=true
 INCLUDE_SHORKSTALL=false
@@ -271,6 +288,7 @@ INCLUDE_TMUX=true
 INCLUDE_TN5250=false
 INCLUDE_TNFTP=true
 INCLUDE_UTIL_LINUX=true
+INCLUDE_VIM=false
 
 USE_GRUB=false
 
@@ -343,6 +361,10 @@ if [ "$ID" == "shork-486" ]; then
             EST_MIN_RAM="24MiB + 8MiB swap/16MiB + 16MiB swap"
         elif [ "$INCLUDE_GUI" = true ] || [ "$ENABLE_HIGHMEM" = true ] || [ "$ENABLE_SATA" = true ]; then
             EST_MIN_RAM="24MiB/16MiB + 8MiB swap"
+        elif [ "$ENABLE_NET_ETH" = true ]; then
+            EST_MIN_RAM="16MiB"
+        else
+            EST_MIN_RAM="12MiB"
         fi
     elif [ "$BUILD_TYPE" = "maximal" ]; then
         echo -e "${GREEN}Noting minimum RAM requirement for a SHORK 486 maximal build...${RESET}"
@@ -405,8 +427,8 @@ if [ "$INCLUDE_HTOP" = true ]; then
     ENABLE_TASKSTATS=true
 fi
 
-# Ensure NET_BASE is enabled with HTOP or NET_ETH
-if [ "$INCLUDE_HTOP" = true ] || [ "$ENABLE_NET_ETH" = true ]; then
+# Ensure NET_BASE is enabled with HTOP, TMUX or NET_ETH
+if [ "$INCLUDE_HTOP" = true ] || [ "$INCLUDE_TMUX" = true ] || [ "$ENABLE_NET_ETH" = true ]; then
     ENABLE_NET_BASE=true
 fi
 
@@ -494,16 +516,25 @@ if [ -n "$USED_WM" ]; then
     NEED_ZLIB=true
 fi
 
+if $INCLUDE_CTAGS; then
+    NEED_LIBXML2=true
+fi
+
 if $INCLUDE_GIT; then
     NEED_CURL=true
     NEED_OPENSSL=true
     NEED_ZLIB=true
 fi
 
+if $INCLUDE_LYNX; then
+    NEED_OPENSSL=true
+fi
+
 if $INCLUDE_MPG321; then
-    NEED_LIBAO=true
+    NEED_ZLIB=true
     NEED_LIBID3TAG=true
     NEED_LIBMAD=true
+    NEED_LIBAO=true
 fi
 
 if $INCLUDE_SC_IM; then
@@ -946,8 +977,8 @@ get_libao()
         --host=$HOST \
         --build=x86_64-linux-gnu \
         --prefix=/usr \
-        --enable-shared \
-        --disable-static \
+        --disable-shared \
+        --enable-static \
         --disable-alsa \
         --disable-esd \
         --disable-arts \
@@ -958,16 +989,16 @@ get_libao()
         CPPFLAGS="-I$SYSROOT/usr/include" \
         CFLAGS="-fPIC" \
         LDFLAGS="-L$SYSROOT/usr/lib"
-
     make -j$(nproc)
     make DESTDIR=$SYSROOT install
 
-    sudo mkdir -p $DESTDIR/lib
-    sudo mkdir -p $DESTDIR/usr/lib/ao/plugins-4/
-    sudo cp $SYSROOT/lib/libc.so $DESTDIR/lib/
-    sudo cp $SYSROOT/usr/lib/libao.so* $DESTDIR/usr/lib/
-    sudo cp $SYSROOT/usr/lib/ao/plugins-4/liboss.so $DESTDIR/usr/lib/ao/plugins-4/
-    sudo ln -sf libc.so $DESTDIR/lib/ld-musl-i386.so.1
+    # FOLLOWING NO LONGER NEEDED SINCE MPG321 PATCHES OUT REAL LIBAO USAGE
+    #sudo mkdir -p $DESTDIR/lib
+    #sudo mkdir -p $DESTDIR/usr/lib/ao/plugins-4/
+    #sudo cp $SYSROOT/lib/libc.so $DESTDIR/lib/
+    #sudo cp $SYSROOT/usr/lib/libao.so* $DESTDIR/usr/lib/
+    #sudo cp $SYSROOT/usr/lib/ao/plugins-4/liboss.so $DESTDIR/usr/lib/ao/plugins-4/
+    #sudo ln -sf libc.so $DESTDIR/lib/ld-musl-i386.so.1
 }
 
 # Download and compile libevent (required for tmux)
@@ -1028,6 +1059,8 @@ get_libmad()
     cp "${CURR_DIR}/compilation/config.guess" config.guess
     cp "${CURR_DIR}/compilation/config.sub" config.sub
 
+    local CFLAGS="-static -O2 -march=i486 -mtune=i486 -fomit-frame-pointer -I$SYSROOT/usr/include"
+
     # Compile and install
     echo -e "${GREEN}Compiling libmad...${RESET}"
     ./configure \
@@ -1038,10 +1071,9 @@ get_libmad()
         AR=$AR \
         CC=$CC_STATIC \
         RANLIB=$RANLIB \
-        CFLAGS="-static -I$SYSROOT/usr/include" \
+        CFLAGS="${CFLAGS}" \
         LDFLAGS="-static -L$SYSROOT/usr/lib"
-
-    make -j$(nproc)
+    make CFLAGS="${CFLAGS}" -j$(nproc)
     make DESTDIR=$SYSROOT install
 }
 
@@ -1127,7 +1159,7 @@ get_libxlsxwriter()
     cp src/libxlsxwriter.a "$PREFIX/lib/"
 }
 
-# Download and compile libxml2 (required for sc-im)
+# Download and compile libxml2 (required for ctags and sc-im)
 get_libxml2()
 {
     cd "$CURR_DIR/build"
@@ -1178,6 +1210,7 @@ get_libzip()
         echo -e "${YELLOW}libzip source already present, resetting...${RESET}"
         cd libzip
         git reset --hard
+        git clean -fdx
     else
         echo -e "${GREEN}Downloading libzip...${RESET}"
         git clone --branch v${LIBZIP_VER} $LIBZIP_SRC
@@ -1412,10 +1445,11 @@ get_busybox()
     fi
 
     if $INCLUDE_GCC; then
-        echo -e "${GREEN}Disabling BusyBox's ar implementation in favour of GCC's...${RESET}"
+        echo -e "${GREEN}Disabling BusyBox's ar and strings implementations in favour of GNU Bintuils'...${RESET}"
         sed -i 's/^CONFIG_AR=y$/# CONFIG_AR is not set/' .config
         sed -i 's/^CONFIG_FEATURE_AR_LONG_FILENAMES=y$/# CONFIG_FEATURE_AR_LONG_FILENAMES is not set/' .config
         sed -i 's/^CONFIG_FEATURE_AR_CREATE=y$/# CONFIG_FEATURE_AR_CREATE is not set/' .config
+        sed -i 's/^CONFIG_STRINGS=y$/# CONFIG_STRINGS is not set/' .config
     fi
 
     # Compile and install
@@ -3673,88 +3707,153 @@ get_console_fonts()
 ## Bundled software building                        ##
 ######################################################
 
-# Download and compile c3270
-get_c3270()
+# Download a program from a Git repository and compile with configure
+get_prog_git()
 {
     cd "$CURR_DIR/build"
 
+    local BIN_DIR="$1"
+    local TEST_BIN="$2"
+    local NAME="$3"
+    local GIT_DIR="$4"
+    local SRC="$5"
+    local VER="$6"
+    local PATCH_FILE="$7"
+    local AUTOGEN=$8
+    local AUTORECONF=$9
+    local CONFIGURE_PREFIX="${10}" 
+    local CONFIGURE="${11}"
+
+    if [ -n "$CONFIGURE_PREFIX" ]; then
+        CONFIGURE_PREFIX=("--prefix=${CONFIGURE_PREFIX}")
+    fi
+
+    local CONFIGURE_ARR=()
+    eval "CONFIGURE_ARR=($CONFIGURE)"
+
     # Skip if already compiled
-    if [ -f "$DESTDIR/usr/bin/c3270" ]; then
-        echo -e "${LIGHT_RED}c3270 already compiled, skipping...${RESET}"
+    if [ -f "$DESTDIR/$BIN_DIR/$TEST_BIN" ]; then
+        echo -e "${LIGHT_RED}$NAME already compiled, skipping...${RESET}"
         return
     fi
 
     # Download source
-    if [ -d x3270 ]; then
-        echo -e "${YELLOW}c3270 source already present, resetting & cleaning...${RESET}"
-        cd x3270
-        git config --global --add safe.directory "$CURR_DIR/build/x3270"
+    if [ -d $GIT_DIR ]; then
+        echo -e "${YELLOW}$NAME source already present, resetting & cleaning...${RESET}"
+        cd $GIT_DIR
+        git config --global --add safe.directory "$CURR_DIR/build/$GIT_DIR"
         git reset --hard
         git clean -fdx
     else
-        echo -e "${GREEN}Downloading c3270...${RESET}"
-        git clone --branch ${C3270_VER} $C3270_SRC
-        cd x3270
+        echo -e "${GREEN}Downloading $NAME...${RESET}"
+        git clone --branch $VER $SRC
+        cd $GIT_DIR
     fi
 
-    # Compile and install
-    #echo -e "${GREEN}Compiling x3270...${RESET}"
-    ./configure \
-        --host=${HOST} \
-        --prefix=/usr \
-        --enable-c3270 \
-        --disable-x3270 \
-        --disable-s3270 \
-        --disable-b3270 \
-        --disable-tcl3270 \
-        --disable-pr3287 \
-        --disable-x3270if \
-        --disable-playback \
-        --disable-mitm \
-        --disable-wc3270 \
-        CC="${CC_STATIC}" \
-        AR="${AR}" \
-        RANLIB="${RANLIB}" \
-        CFLAGS="-Os -march=${ARCH} -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
-        LDFLAGS="-static -L${PREFIX}/lib"
+    if [ -n "$PATCH_FILE" ]; then
+        patch -p1 < "${PATCHES_DIR}/${PATCH_FILE}"
+    fi
+
+    # Compile program
+    echo -e "${GREEN}Compiling $NAME...${RESET}"
+    if $AUTOGEN; then
+        ./autogen.sh
+    fi
+    if $AUTORECONF; then
+        autoreconf -fi
+    fi
+    if [ -x ./configure ] || [ -f ./configure ]; then
+        ./configure \
+            --host=${HOST} \
+            "${CONFIGURE_PREFIX}" \
+            "${CONFIGURE_ARR[@]}" \
+            CC="${CC_STATIC}" \
+            AR="${AR}" \
+            RANLIB="${RANLIB}" \
+            STRIP="${STRIP}" \
+            CFLAGS="-Os -march=${ARCH} -mno-fancy-math-387 -ffunction-sections -fdata-sections -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
+            CPPFLAGS="-I${SYSROOT}/include -I${PREFIX}/include -I${PREFIX}/include/ncursesw -DHAVE_FORKPTY" \
+            LDFLAGS="-static -Wl,--gc-sections -s -L${PREFIX}/lib" \
+            LIBEVENT_CFLAGS="-I${PREFIX}/include" \
+            LIBEVENT_LIBS="-L${PREFIX}/lib -levent" \
+            CURSES_CFLAGS="-I${PREFIX}/include/ncursesw -I${PREFIX}/include" \
+            CURSES_LIBS="-L${PREFIX}/lib -lncursesw"
+    fi
     make -j$(nproc)
     sudo make DESTDIR=$DESTDIR install
 }
 
-# Download and compile CMatrix
-get_cmatrix()
+# Download a program from a tarball source and compile with configure
+get_prog_tar()
 {
     cd "$CURR_DIR/build"
 
+    local BIN_DIR="$1"
+    local TEST_BIN="$2"
+    local NAME="$3"
+    local SRC_DIR="$4"
+    local ARC_EXT="$5"
+    local SRC_URI="$6"
+    local TAR_CMD="$7"
+    local AUTOGEN=$8
+    local AUTORECONF=$9
+    local CONFIGURE_PREFIX="${10}" 
+    local CONFIGURE="${11}"
+
+    if [ -n "$CONFIGURE_PREFIX" ]; then
+        CONFIGURE_PREFIX=("--prefix=${CONFIGURE_PREFIX}")
+    fi
+
+    local CONFIGURE_ARR=()
+    eval "CONFIGURE_ARR=($CONFIGURE)"
+
     # Skip if already compiled
-    if [ -f "$DESTDIR/usr/bin/cmatrix" ]; then
-        echo -e "${LIGHT_RED}CMatrix already compiled, skipping...${RESET}"
+    if [ -f "$DESTDIR/$BIN_DIR/$TEST_BIN" ]; then
+        echo -e "${LIGHT_RED}$NAME already compiled, skipping...${RESET}"
         return
     fi
 
-    # Download source
-    if [ -d cmatrix ]; then
-        echo -e "${YELLOW}CMatrix source already present, resetting...${RESET}"
-        cd cmatrix
-        git config --global --add safe.directory "$CURR_DIR/build/cmatrix"
-        git reset --hard
-    else
-        echo -e "${GREEN}Downloading CMatrix...${RESET}"
-        git clone --branch v${CMATRIX_VER} $CMATRIX_SRC
-        cd cmatrix
-    fi
+    echo -e "${GREEN}Downloading $NAME...${RESET}"
 
-    # Compile and install
-    echo -e "${GREEN}Compiling CMatrix...${RESET}"
-    autoreconf -i
-    ./configure \
-        --host=${HOST} \
-        --prefix=/usr \
-        CC="${CC_STATIC}" \
-        AR="${AR}" \
-        RANLIB="${RANLIB}" \
-        CFLAGS="-Os -march=${ARCH} -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
-        LDFLAGS="-static -L${PREFIX}/lib"
+    ARC="${SRC_DIR}.${ARC_EXT}"
+    URI="${SRC_URI}/${ARC}"
+
+    # Download source
+    [ -f $ARC ] || wget $URI
+
+    # Extract source
+    if [ -d $SRC_DIR ]; then
+        echo -e "${YELLOW}$NAME's source archive is already present, re-extracting before proceeding...${RESET}"
+        sudo rm -rf $SRC_DIR
+    fi
+    tar $TAR_CMD $ARC
+    cd $SRC_DIR
+
+    # Compile program
+    echo -e "${GREEN}Compiling $NAME...${RESET}"
+    if $AUTOGEN; then
+        ./autogen.sh
+    fi
+    if $AUTORECONF; then
+        autoreconf -fi
+    fi
+    if [ -x ./configure ] || [ -f ./configure ]; then
+        ./configure \
+            --host=${HOST} \
+            "${CONFIGURE_PREFIX}" \
+            "${CONFIGURE_ARR[@]}" \
+            CC="${CC_STATIC}" \
+            AR="${AR}" \
+            RANLIB="${RANLIB}" \
+            STRIP="${STRIP}" \
+            CFLAGS="-Os -march=${ARCH} -mno-fancy-math-387 -ffunction-sections -fdata-sections -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
+            CPPFLAGS="-I${SYSROOT}/include -I${PREFIX}/include -I${PREFIX}/include/ncursesw -DHAVE_FORKPTY" \
+            LDFLAGS="-static -Wl,--gc-sections -s -L${PREFIX}/lib" \
+            LIBEVENT_CFLAGS="-I${PREFIX}/include" \
+            LIBEVENT_LIBS="-L${PREFIX}/lib -levent" \
+            CURSES_CFLAGS="-I${PREFIX}/include/ncursesw -I${PREFIX}/include" \
+            CURSES_LIBS="-L${PREFIX}/lib -lncursesw"
+    fi
     make -j$(nproc)
     sudo make DESTDIR=$DESTDIR install
 }
@@ -3948,40 +4047,6 @@ get_htop()
     sudo cp htop $DESTDIR/usr/bin
 }
 
-# Download and compile lapifetch
-get_lapifetch()
-{
-    cd "$CURR_DIR/build"
-
-    # Skip if already compiled
-    if [ -f "$DESTDIR/usr/local/bin/lapifetch" ]; then
-        echo -e "${LIGHT_RED}lapifetch already compiled, skipping...${RESET}"
-        return
-    fi
-
-    # Download source
-    if [ -d lapifetch ]; then
-        echo -e "${YELLOW}lapifetch source already present, resetting...${RESET}"
-        cd lapifetch
-        git config --global --add safe.directory "$CURR_DIR/build/lapifetch"
-        git reset --hard
-    else
-        echo -e "${GREEN}Downloading lapifetch...${RESET}"
-        git clone https://github.com/asunyan-dev/lapifetch.git
-        cd lapifetch
-    fi
-
-    sed -i 's/^install: all$/install:/' Makefile
-    sed -i '1s/^/DESTDIR =\n\n/' Makefile
-    sed -i 's|cp $(TARGET) /usr/local/bin|cp $(TARGET) $(DESTDIR)/usr/local/bin|' Makefile
-    sed -i 's|rm -f /usr/local/bin/$(TARGET)|rm -f $(DESTDIR)/usr/local/bin/$(TARGET)|' Makefile
-
-    # Compile and install
-    echo -e "${GREEN}Compiling lapifetch...${RESET}"
-    make -j$(nproc) CXX="${CXX_STATIC}"
-    sudo make DESTDIR=$DESTDIR install
-}
-
 # Download and compile JOE
 get_joe()
 {
@@ -4021,83 +4086,37 @@ get_joe()
     sudo make DESTDIR=$DESTDIR install
 }
 
-# Download and compile Lynx
-get_lynx()
+# Download and compile lapifetch
+get_lapifetch()
 {
     cd "$CURR_DIR/build"
 
     # Skip if already compiled
-    if [ -f "$DESTDIR/usr/bin/lynx" ]; then
-        echo -e "${LIGHT_RED}Lynx already compiled, skipping...${RESET}"
+    if [ -f "$DESTDIR/usr/local/bin/lapifetch" ]; then
+        echo -e "${LIGHT_RED}lapifetch already compiled, skipping...${RESET}"
         return
     fi
 
     # Download source
-    if [ -d lynx-snapshots ]; then
-        echo -e "${YELLOW}Lynx source already present, resetting...${RESET}"
-        cd lynx-snapshots
-        git config --global --add safe.directory "$CURR_DIR/build/lynx-snapshots"
+    if [ -d lapifetch ]; then
+        echo -e "${YELLOW}lapifetch source already present, resetting...${RESET}"
+        cd lapifetch
+        git config --global --add safe.directory "$CURR_DIR/build/lapifetch"
         git reset --hard
-        git clean -fdx
     else
-        echo -e "${GREEN}Downloading Lynx...${RESET}"
-        git clone --branch "v${LYNX_VER}" $LYNX_SRC
-        cd lynx-snapshots
+        echo -e "${GREEN}Downloading lapifetch...${RESET}"
+        git clone https://github.com/asunyan-dev/lapifetch.git
+        cd lapifetch
     fi
+
+    sed -i 's/^install: all$/install:/' Makefile
+    sed -i '1s/^/DESTDIR =\n\n/' Makefile
+    sed -i 's|cp $(TARGET) /usr/local/bin|cp $(TARGET) $(DESTDIR)/usr/local/bin|' Makefile
+    sed -i 's|rm -f /usr/local/bin/$(TARGET)|rm -f $(DESTDIR)/usr/local/bin/$(TARGET)|' Makefile
 
     # Compile and install
-    echo -e "${GREEN}Compiling Lynx...${RESET}"
-    make configure
-    ./configure \
-        --host=${HOST} \
-        --prefix=/usr \
-        --with-ssl \
-        --with-ssl-dir="$SYSROOT" \
-        --with-openssl \
-        CC="${CC_STATIC}" \
-        AR="${AR}" \
-        RANLIB="${RANLIB}" \
-        CPPFLAGS="-I${SYSROOT}/include -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
-        CFLAGS="-Os -march=${ARCH}" \
-        LDFLAGS="-static -L${SYSROOT}/lib -L${PREFIX}/lib" \
-        LIBS="-lncursesw -ltinfo -latomic"
-    make -j$(nproc)
-    sudo make DESTDIR=$DESTDIR install
-}
-
-# Download and compile musl
-get_musl()
-{
-    cd "$CURR_DIR/build"
-
-    # Skip if already compiled
-    if [ -f "$DESTDIR/usr/local/musl/lib/libc.so" ]; then
-        echo -e "${LIGHT_RED}musl already compile, skipping...${RESET}"
-        return
-    fi
-
-    echo -e "${GREEN}Downloading musl...${RESET}"
-
-    MUSL="musl-${MUSL_VER}"
-    MUSL_ARC="${MUSL}.tar.gz"
-    MUSL_URI="${MUSL_SRC}/${MUSL_ARC}"
-
-    # Download source
-    [ -f $MUSL_ARC ] || wget $MUSL_URI
-
-    # Extract source
-    if [ -d $MUSL ]; then
-        echo -e "${YELLOW}musl's source archive is already present, re-extracting before proceeding...${RESET}"
-        sudo rm -rf $MUSL
-    fi
-    tar xzf $MUSL_ARC
-    cd $MUSL
-
-    # Compile and install
-    echo -e "${GREEN}Compiling musl...${RESET}"
-    make configure
-    ./configure --host=${HOST} CC=$CC_STATIC AR=$AR RANLIB=$RANLIB
-    make -j$(nproc)
+    echo -e "${GREEN}Compiling lapifetch...${RESET}"
+    make -j$(nproc) CXX="${CXX_STATIC}"
     sudo make DESTDIR=$DESTDIR install
 }
 
@@ -4198,14 +4217,13 @@ get_micropython()
     sudo ln -sf micropython "$DESTDIR/usr/bin/python3"
 }
 
-# Download and compile mpg321 (WIP)
-# Once down, uncomment relevant part of get_installed_programs_features
+# Download and compile mpg321
 get_mpg321()
 {
     cd "$CURR_DIR/build"
 
     # Skip if already compiled
-    if [ -f "$DESTDIR/usr/mpg321" ]; then
+    if [ -f "$DESTDIR/usr/bin/mpg321" ]; then
         echo -e "${LIGHT_RED}mpg321 already compiled, skipping...${RESET}"
         return
     fi
@@ -4231,6 +4249,9 @@ get_mpg321()
     # Prevent make from trying to regenerate autotools files
     touch aclocal.m4 configure config.h.in Makefile.in
 
+    # Patch out need for libao
+    patch -p1 < "${PATCHES_DIR}/mpg321/0.3.2-1_libao_bypass.patch"
+
     # Compile and install
     echo -e "${GREEN}Compiling mpg321...${RESET}"
     ./configure \
@@ -4245,40 +4266,17 @@ get_mpg321()
         CPPFLAGS="-nostdinc -I$SYSROOT/usr/include -I$SYSROOT/include -I${PREFIX}/lib/gcc/i486-linux-musl/11.2.1/include" \
         CFLAGS="-static -fcommon -std=gnu89" \
         LDFLAGS="-static -L$SYSROOT/usr/lib" \
+        LIBAO_LIBS="-L$SYSROOT/usr/lib -lao" \
+        LIBAO_CFLAGS="-I$SYSROOT/usr/include" \
         PKG_CONFIG_PATH="$SYSROOT/usr/lib/pkgconfig" \
+        PKG_CONFIG_LIBDIR="$SYSROOT/usr/lib/pkgconfig" \
+        PKG_CONFIG_SYSROOT_DIR="$SYSROOT" \
         ac_cv_func_malloc_0_nonnull=yes \
         ac_cv_func_realloc_0_nonnull=yes
+
+    sed -i "s|-L/usr/lib -lao|-L${SYSROOT}/usr/lib -lao|g" Makefile
+
     make -j$(nproc)
-    sudo make DESTDIR=$DESTDIR install
-}
-
-# Download and compile mt-st
-get_mt_st()
-{
-    cd "$CURR_DIR/build"
-
-    # Skip if already compiled
-    if [ -f "$DESTDIR/bin/mt" ] && [ -f "$DESTDIR/sbin/stinit" ]; then
-        echo -e "${LIGHT_RED}mt-st already compiled, skipping...${RESET}"
-        return
-    fi
-
-    # Download source
-    if [ -d mt-st ]; then
-        echo -e "${YELLOW}mt-st source already present, resetting...${RESET}"
-        cd mt-st
-        git config --global --add safe.directory $CURR_DIR/build/mt-st
-        git reset --hard
-        git clean -fdx
-    else
-        echo -e "${GREEN}Downloading mt-st...${RESET}"
-        git clone --branch "v${MT_ST_VER}" $MT_ST_SRC
-        cd mt-st
-    fi
-
-    # Compile and install
-    echo -e "${GREEN}Compiling mt-st...${RESET}"
-    make -j$(nproc) CC=$CC_STATIC
     sudo make DESTDIR=$DESTDIR install
 }
 
@@ -4329,49 +4327,41 @@ get_nano()
     sudo make DESTDIR=$DESTDIR install
 }
 
-# Download and compile Rover
-get_rover()
+# Download and compile NASM
+get_nasm()
 {
     cd "$CURR_DIR/build"
 
     # Skip if already compiled
-    if [ -f "$DESTDIR/usr/bin/rover" ]; then
-        echo -e "${LIGHT_RED}Rover already compiled, skipping...${RESET}"
+    if [ -f "$DESTDIR/usr/bin/nasm" ]; then
+        echo -e "${LIGHT_RED}NASM already compiled, skipping...${RESET}"
         return
     fi
 
     # Download source
-    if [ -d rover ]; then
-        echo -e "${YELLOW}Rover source already present, resetting...${RESET}"
-        cd rover
-        git config --global --add safe.directory $CURR_DIR/build/rover
+    if [ -d nasm ]; then
+        echo -e "${YELLOW}NASM source already present, resetting...${RESET}"
+        cd nasm
+        git config --global --add safe.directory "$CURR_DIR/build/nasm"
         git reset --hard
-        git clean -fdx
     else
-        echo -e "${GREEN}Downloading Rover...${RESET}"
-        git clone --branch v$ROVER_VER $ROVER_SRC
-        cd rover
+        echo -e "${GREEN}Downloading NASM...${RESET}"
+        git clone --branch "nasm-${NASM_VER}" $NASM_SRC
+        cd nasm
     fi
 
-    # Patch rover to support alternate key assignments
-    echo '// Alternate key binds for ${DIST}' | sudo tee -a config.h > /dev/null
-    echo '#define RVK_DOWN_ALT          "B"' | sudo tee -a config.h > /dev/null
-    echo '#define RVK_UP_ALT            "A"' | sudo tee -a config.h > /dev/null
-    #echo '#define RVK_JUMP_BOTTOM_ALT   "TODO"' | sudo tee -a config.h > /dev/null
-    #echo '#define RVK_JUMP_TOP_ALT      "TODO"' | sudo tee -a config.h > /dev/null
-    echo '#define RVK_CD_DOWN_ALT       "C"' | sudo tee -a config.h > /dev/null
-    echo '#define RVK_CD_UP_ALT         "D"' | sudo tee -a config.h > /dev/null
-    sudo sed -i 's/if (!strcmp(key, RVK_DOWN))/if (!strcmp(key, RVK_DOWN) || !strcmp(key, RVK_DOWN_ALT))/' rover.c
-    sudo sed -i 's/if (!strcmp(key, RVK_UP))/if (!strcmp(key, RVK_UP) || !strcmp(key, RVK_UP_ALT))/' rover.c
-    #sudo sed -i 's/if (!strcmp(key, RVK_JUMP_BOTTOM))/if (!strcmp(key, RVK_JUMP_BOTTOM) || !strcmp(key, RVK_JUMP_BOTTOM_ALT))/' rover.c
-    #sudo sed -i 's/if (!strcmp(key, RVK_JUMP_TOP))/if (!strcmp(key, RVK_JUMP_TOP) || !strcmp(key, RVK_JUMP_TOP_ALT))/' rover.c
-    sudo sed -i 's/if (!strcmp(key, RVK_CD_DOWN))/if (!strcmp(key, RVK_CD_DOWN) || !strcmp(key, RVK_CD_DOWN_ALT))/' rover.c
-    sudo sed -i 's/if (!strcmp(key, RVK_CD_UP))/if (!strcmp(key, RVK_CD_UP) || !strcmp(key, RVK_CD_UP_ALT))/' rover.c
-
     # Compile and install
-    echo -e "${GREEN}Compiling Rover...${RESET}"
-    make -j$(nproc) CC="${CC_STATIC}" CFLAGS="-I${PREFIX}/include -I${PREFIX}/include/ncursesw -D_POSIX_C_SOURCE=200809L" LDFLAGS="-L${PREFIX}/lib -lncursesw -static" rover
-    sudo make PREFIX=/usr DESTDIR=$DESTDIR install
+    echo -e "${GREEN}Compiling NASM...${RESET}"
+    ./autogen.sh
+    ./configure \
+        --host=${HOST} \
+        --prefix=/usr \
+        CC="${CC_STATIC}" \
+        CFLAGS="-I${PREFIX}/include" \
+        LDFLAGS="-L${PREFIX}/lib -static"
+    make -j$(nproc)
+    sudo install -D -m 755 nasm "$DESTDIR/usr/bin/nasm"
+    sudo install -D -m 755 ndisasm "$DESTDIR/usr/bin/ndisasm"
 }
 
 # Download and compile sc-im
@@ -4460,7 +4450,7 @@ get_tcc()
 }
 
 # Download and compile tilde (WIP)
-# Once down, uncomment relevant part of get_installed_programs_features
+# Once done, uncomment relevant part of get_installed_programs_features
 get_tilde()
 {
     cd "$CURR_DIR/build"
@@ -4615,51 +4605,6 @@ get_tilde()
 
         cd "$CURR_DIR/build"
     done
-}
-
-# Download and compile tmux
-get_tmux()
-{
-    cd "$CURR_DIR/build"
-
-    # Skip if already compiled
-    if [ -f "$DESTDIR/usr/bin/tmux" ]; then
-        echo -e "${LIGHT_RED}tmux already compiled, skipping...${RESET}"
-        return
-    fi
-
-    # Download source
-    if [ -d tmux ]; then
-        echo -e "${YELLOW}tmux source already present, resetting...${RESET}"
-        cd tmux
-        git config --global --add safe.directory "$CURR_DIR/build/tmux"
-        git reset --hard
-    else
-        echo -e "${GREEN}Downloading tmux...${RESET}"
-        git clone --branch "${TMUX_VER}" $TMUX_SRC
-        cd tmux
-    fi
-
-    export ac_cv_func_forkpty=yes
-    export ac_cv_search_forkpty=-lutil
-
-    # Compile and install
-    echo -e "${GREEN}Compiling tmux...${RESET}"
-    ./autogen.sh
-    ./configure \
-        --host=${HOST} \
-        --prefix=/usr \
-        CC="${CC}" \
-        CFLAGS="-I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
-        CPPFLAGS="-I${PREFIX}/include -DHAVE_FORKPTY" \
-        LDFLAGS="-L${PREFIX}/lib -static" \
-        LIBEVENT_CFLAGS="-I${PREFIX}/include" \
-        LIBEVENT_LIBS="-L${PREFIX}/lib -levent" \
-        CURSES_CFLAGS="-I${PREFIX}/include/ncursesw -I${PREFIX}/include" \
-        CURSES_LIBS="-L${PREFIX}/lib -lncursesw" \
-        LIBS="-levent -lncursesw -lutil -lrt -lpthread -lm"
-    make -j$(nproc)
-    sudo make DESTDIR=$DESTDIR install
 }
 
 # Download and compile tn5250
@@ -4864,6 +4809,7 @@ get_shorkhelp()
 
     # Compile and install
     echo -e "${GREEN}Compiling shorkhelp...${RESET}"
+    make clean
     make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
     sudo make DESTDIR=$DESTDIR install
 
@@ -5026,11 +4972,42 @@ get_shorkmatrix()
     echo -e "${GREEN}Compiling shorkmatrix...${RESET}"
     make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
     sudo make DESTDIR=$DESTDIR install
+    sudo ln -sf shorkmatrix "$DESTDIR/usr/bin/cmatrix"
+}
 
-    # Symlink shorkmatrix to cmatrix if CMatrix is not installed
-    if ! $INCLUDE_CMATRIX; then
-        sudo ln -sf shorkmatrix "$DESTDIR/usr/bin/cmatrix"
+# Download and compile shorkmines
+get_shorkmines()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ "$SHORKUTILS_RECLONE" != "true" ] && [ -f "$DESTDIR/usr/bin/shorkmines" ]; then
+        echo -e "${LIGHT_RED}shorkmines already compiled, skipping...${RESET}"
+        return
     fi
+
+    # Delete if present
+    if [ -d shorkmines ]; then
+        echo -e "${YELLOW}shorkmines source already present, recloning...${RESET}"
+        sudo rm -r shorkmines
+    fi
+
+    # Download source
+    echo -e "${GREEN}Downloading shorkmines...${RESET}"
+    git clone $SHORKMINES_SRC
+    cd shorkmines
+
+    git submodule update --init
+    sed -i '1i SYSROOT ?=' libminesweeper/makefile
+    sed -i 's|^$(CC) $(C_FLAGS) -c lib/minesweeper.c -Iinclude$|$(CC) $(C_FLAGS) -c lib/minesweeper.c -Iinclude -I$(SYSROOT)/include|' libminesweeper/makefile
+
+    # Compile and install
+    echo -e "${GREEN}Compiling shorkmines...${RESET}"
+    make CC="${CC_STATIC}" EMBEDDED=1 SYSROOT="$PREFIX" -j$(nproc)
+    sudo make DESTDIR="${DESTDIR}" PREFIX="/usr" install
+
+    # Symlink shorkmines to terminal-mines
+    sudo ln -sf shorkmines "$DESTDIR/usr/bin/terminal-mines"
 }
 
 # Download and compile shorksay
@@ -5072,6 +5049,10 @@ trim_fat()
     echo -e "${GREEN}Trimming any possible fat...${RESET}"
 
     sudo rm -rf "$DESTDIR/usr/lib/pkgconfig" "$DESTDIR/usr/man" "$DESTDIR/usr/share/bash-completion" "$DESTDIR/usr/share/doc" "$DESTDIR/usr/share/info" "$DESTDIR/usr/share/man"
+
+    if $INCLUDE_DIALOG; then
+        sudo rm -rf "$DESTDIR/usr/lib/libdialog.a"
+    fi
 
     if $INCLUDE_FILE; then
         sudo rm -rf "$DESTDIR/usr/include/magic.h"
@@ -5121,6 +5102,15 @@ trim_fat()
         sudo rm -rf "$DESTDIR/usr/share/mg"
     fi
 
+    if $INCLUDE_VIM; then
+        KEEP='^(nosyntax|syntax|synload|syncolor|a65|asm.*|avra|fasm|ia64|masm|mmix|nasm|tasm|tiasm|vmasm|z8a|cpp?|cs|csc|sh|bash|make|cmake.*|diff|vim.*|basic|freebasic|ibasic|qb64|vb|awk|git.*|tmux|python2?|pyrex|pymanifest|cfg|conf.*|dosini|change(log)?|debchangelog|cabal.*|fortran|rust|tex|plaintex|texinfo|texmf|initex|context|n?roff|man|x?html.*|css|javascript.*|java|javacc|json.*|modula[23].*|m3build|m3quake|php|phtml|xml|xsd|xslt|xquery|dtd|yaml|sql.*|mysql|plsql|esqlc|n1ql|typescript.*)\.vim$'
+        for d in syntax indent ftplugin; do
+            find "$DESTDIR/usr/share/vim/vim92/$d" -maxdepth 1 -type f -printf '%f\n' 2>/dev/null | grep -Ev "$KEEP" | xargs -I{} sudo rm -f "$DESTDIR/usr/share/vim/vim92/$d/{}"
+        done
+        find "$DESTDIR/usr/share/vim/vim92/syntax" -maxdepth 1 -type d -printf '%f\n' | grep -v '^shared$\|^modula2$' | xargs -I{} sudo rm -rf "$DESTDIR/usr/share/vim/vim92/syntax/{}"
+        find "$DESTDIR/usr/share/vim/vim92/tutor" -maxdepth 1 -type f ! -name 'tutor1' ! -name 'tutor2' ! -name 'tutor.vim' ! -name 'README.txt' -exec sudo rm -f {} +
+    fi
+
     # find . -type f -print -exec file {} \;
     for dir in \
         "$DESTDIR"/bin \
@@ -5138,7 +5128,7 @@ copy_licences()
 {
     cd "$CURR_DIR/build"
 
-    echo -e "${GREEN}Copying all needed licences for included software...${RESET}"
+    echo -e "${GREEN}Gathering & copying all needed licences for included software...${RESET}"
     mkdir -p "$DESTDIR/LICENCES"
     CSV="Name,Type,File"
 
@@ -5163,10 +5153,16 @@ copy_licences()
         CSV+="\nc3270,BSD 3-Clause,c3270.txt"
     fi
 
-    if $INCLUDE_CMATRIX && 
-       [ -f "$CURR_DIR/build/cmatrix/COPYING" ]; then
-        cp "$CURR_DIR/build/cmatrix/COPYING" "$DESTDIR/LICENCES/cmatrix.txt" || true
-        CSV+="\nCMatrix,GNU GPLv3,cmatrix.txt"
+    if $INCLUDE_CSCOPE && 
+       [ -f "$CURR_DIR/build/cscope-cscope/COPYING" ]; then
+        cp "$CURR_DIR/build/cscope-cscope/COPYING" "$DESTDIR/LICENCES/cscope.txt" || true
+        CSV+="\nCscope,BSD 3-Clause,cscope.txt"
+    fi
+
+    if $INCLUDE_DIALOG && 
+       [ -f "$CURR_DIR/build/dialog-${DIALOG_VER}/COPYING" ]; then
+        cp "$CURR_DIR/build/dialog-${DIALOG_VER}/COPYING" "$DESTDIR/LICENCES/dialog.txt" || true
+        CSV+="\ndialog,GNU LGPLv2.1,dialog.txt"
     fi
 
     if $INCLUDE_DROPBEAR && 
@@ -5188,8 +5184,9 @@ copy_licences()
         CSV+="\nfile,BSD 2-Clause,file.txt"
     fi
 
-    if $INCLUDE_GCC; then
-        wget -qO "${DESTDIR}/LICENCES/gcc.txt" "https://www.gnu.org/licenses/gpl-3.0.txt" || true
+    if $INCLUDE_GCC &&
+       [ -f "../../COPYING" ]; then
+        cp "../../COPYING" "$DESTDIR/LICENCES/gcc.txt" || true
         wget -qO "${DESTDIR}/LICENCES/gcc-exception.txt" "https://raw.githubusercontent.com/gcc-mirror/gcc/master/COPYING.RUNTIME" || true
         CSV+="\nGCC,GNU GPLv3,gcc.txt"
         CSV+="\nGCC Runtime,GCC Runtime Library Exception,gcc-exception.txt"
@@ -5220,6 +5217,12 @@ copy_licences()
         CSV+="\nISOLINUX,GNU GPLv2,isolinux.txt"
     fi
 
+    if $INCLUDE_INDENT && 
+       [ -f "$CURR_DIR/build/indent-${INDENT_VER}/COPYING" ]; then
+        cp "$CURR_DIR/build/indent-${INDENT_VER}/COPYING" "$DESTDIR/LICENCES/indent.txt" || true
+        CSV+="\nIndent,GNU GPLv3,indent.txt"
+    fi
+
     if $INCLUDE_JOE && 
        [ -f "$CURR_DIR/build/joe/COPYING" ]; then
         cp "$CURR_DIR/build/joe/COPYING" "$DESTDIR/LICENCES/joe.txt" || true
@@ -5245,6 +5248,12 @@ copy_licences()
     elif $INCLUDE_GCC; then
         wget -qO "${DESTDIR}/LICENCES/musl.txt" "https://git.musl-libc.org/cgit/musl/plain/COPYRIGHT" || true
         CSV+="\nmusl,MIT,musl.txt"
+    fi
+
+    if $INCLUDE_MAKE && 
+       [ -f "$CURR_DIR/build/make-${MAKE_VER}/COPYING" ]; then
+        cp "$CURR_DIR/build/make-${MAKE_VER}/COPYING" "$DESTDIR/LICENCES/make.txt" || true
+        CSV+="\nMake,GNU GPLv3,make.txt"
     fi
 
     if $INCLUDE_MG && 
@@ -5277,6 +5286,12 @@ copy_licences()
         CSV+="\nnano,GNU GPLv3,nano.txt"
     fi
 
+    if $INCLUDE_NASM && 
+       [ -f "$CURR_DIR/build/nasm/LICENSE" ]; then
+        cp "$CURR_DIR/build/nasm/LICENSE" "$DESTDIR/LICENCES/nasm.txt" || true
+        CSV+="\nNASM,BSD 2-Clause,nasm.txt"
+    fi
+
     if [ -f "${PREFIX}/lib/libncursesw.a" ] && 
        [ -f "$CURR_DIR/build/ncurses/COPYING" ]; then
         cp "$CURR_DIR/build/ncurses/COPYING" "$DESTDIR/LICENCES/ncurses.txt" || true
@@ -5303,15 +5318,16 @@ copy_licences()
         CSV+="\npci.ids,GNU GPLv3,pci-ids.txt"
     fi
 
-    if [ -f "$DESTDIR/usr/bin/rover" ]; then
-        echo "Public domain" | sudo tee "$DESTDIR/LICENCES/rover.txt" > /dev/null
-        CSV+="\nRover,public domain,rover.txt"
-    fi
-
     if $INCLUDE_SC_IM && 
        [ -f "$CURR_DIR/build/sc-im/LICENSE" ]; then
         cp "$CURR_DIR/build/sc-im/LICENSE" "$DESTDIR/LICENCES/sc-im.txt" || true
         CSV+="\nsc-im,BSD 4-Clause,sc-im.txt"
+    fi
+
+    if $INCLUDE_SHORKTAINMENT &&
+       [ -f "$CURR_DIR/build/shorkmines/LICENSE" ]; then
+        cp "$CURR_DIR/build/shorkmines/LICENSE" "$DESTDIR/LICENCES/shorkmines.txt" || true
+        CSV+="\nSHORKMINES,MIT,shorkmines.txt"
     fi
 
     if [ -f "$DESTDIR/usr/bin/st" ] && 
@@ -5387,10 +5403,22 @@ copy_licences()
         CSV+="\nTWM,MIT,twm.txt"
     fi
 
+    if $INCLUDE_CTAGS && 
+       [ -f "$CURR_DIR/build/ctags/COPYING" ]; then
+        cp "$CURR_DIR/build/ctags/COPYING" "$DESTDIR/LICENCES/ctags.txt" || true
+        CSV+="\nUniversal Ctags,GPLv2,ctags.txt"
+    fi
+
     if $INCLUDE_UTIL_LINUX && 
        [ -f "$CURR_DIR/build/util-linux/COPYING" ]; then
         cp "$CURR_DIR/build/util-linux/COPYING" "$DESTDIR/LICENCES/util-linux.txt" || true
         CSV+="\nutil-linux,GNU GPLv2,util-linux.txt"
+    fi
+
+    if $INCLUDE_VIM && 
+       [ -f "$CURR_DIR/build/vim/LICENSE" ]; then
+        cp "$CURR_DIR/build/vim/LICENSE" "$DESTDIR/LICENCES/vim.txt" || true
+        CSV+="\nVim,Vim License,vim.txt"
     fi
 
     if [ -f "$DESTDIR/usr/bin/xli" ] && 
@@ -6004,13 +6032,53 @@ build_disk_img()
     sudo fsck.ext4 -f -p "$root_part"
 }
 
+# Copy after-build report to system (SHORK 486)
+copy_report()
+{
+    cd $CURR_DIR/build/
+
+    cleanup()
+    {
+        set +e
+
+        mountpoint="/mnt/${ID}"
+        if mountpoint -q "$mountpoint" 2>/dev/null; then
+            sudo umount -lf "$mountpoint" || true
+        fi
+
+        if [ -n "$loop" ]; then
+            sudo kpartx -dv "$loop" 2>/dev/null || true
+            sudo losetup -d "$loop" 2>/dev/null || true
+        fi
+    }
+    trap cleanup EXIT ERR INT TERM
+
+    echo -e "${GREEN}Copying after-build report to disk image...${RESET}"
+
+    # Expose the partition(s) in the existing image
+    loop=$(sudo losetup -f --show "../images/${ID}.img")
+    sudo kpartx -av "$loop"
+    root_part="/dev/mapper/$(basename "$loop")p1"
+
+    # Mount root partition and copy the report in
+    sudo mkdir -p "/mnt/${ID}"
+    sudo mount "$root_part" "/mnt/${ID}"
+    sudo mkdir -p "/mnt/${ID}/var/log/shork"
+    sudo cp "$CURR_DIR/images/report.txt" "/mnt/${ID}/var/log/shork/build-report.log"
+
+    # Ensure file system is in a clean state
+    echo -e "${GREEN}Unmounting file system...${RESET}"
+    sudo umount "/mnt/${ID}"
+    sudo fsck.ext4 -f -p "$root_part"
+}
+
 # Converts the disk image to VMware virtual machine disk format for testing
 # (SHORK 486)
 convert_disk_img()
 {
     cd $CURR_DIR/images/
 
-    echo -e "${GREEN}Creating VMware virtual machine disk from disk image...${RESET}"
+    echo -e "${GREEN}Creating VMware virtual machine disk from raw disk image...${RESET}"
     qemu-img convert -f raw -O vmdk "${ID}.img" "${ID}.vmdk"
 }
 
@@ -6263,7 +6331,11 @@ get_included_busybox_commands()
     check_bb_config "CONFIG_FDFORMAT" ""
     check_bb_config "CONFIG_FDISK" ""
     check_bb_config "CONFIG_HEXDUMP" ""
-    check_bb_config "CONFIG_XXD" ""
+    if ! $INCLUDE_VIM; then
+        check_bb_config "CONFIG_XXD" ""
+    else
+        EXCLUDED_BB_CMDS+=("xxd")
+    fi
     check_bb_config "CONFIG_LOSETUP" ""
     check_bb_config "CONFIG_LSBLK" ""
     check_bb_config "CONFIG_LSPCI" ""
@@ -6333,6 +6405,64 @@ get_included_busybox_commands()
     check_bb_config "CONFIG_LZOP" ""
     check_bb_config "CONFIG_UNLZOP" ""
     check_bb_config "CONFIG_LZOPCAT" ""
+
+    # Added 2026-07-16
+    check_bb_config "CONFIG_CKSUM" ""
+    check_bb_config "CONFIG_CRC32" ""
+    check_bb_config "CONFIG_COMM" ""
+    check_bb_config "CONFIG_FACTOR" ""
+    check_bb_config "CONFIG_HOSTID" ""
+    check_bb_config "CONFIG_INSTALL" ""
+    check_bb_config "CONFIG_LINK" ""
+    check_bb_config "CONFIG_MD5SUM" ""
+    check_bb_config "CONFIG_SHA1SUM" ""
+    check_bb_config "CONFIG_SHA256SUM" ""
+    check_bb_config "CONFIG_SHA384SUM" ""
+    check_bb_config "CONFIG_SHA512SUM" ""
+    check_bb_config "CONFIG_SHA3SUM" ""
+    check_bb_config "CONFIG_MKFIFO" ""
+    check_bb_config "CONFIG_MKTEMP" ""
+    check_bb_config "CONFIG_NL" ""
+    check_bb_config "CONFIG_OD" ""
+    check_bb_config "CONFIG_REALPATH" ""
+    check_bb_config "CONFIG_SHRED" ""
+    check_bb_config "CONFIG_SHUF" ""
+    check_bb_config "CONFIG_SORT" ""
+    check_bb_config "CONFIG_SPLIT" ""
+    check_bb_config "CONFIG_SUM" ""
+    check_bb_config "CONFIG_TAC" ""
+    check_bb_config "CONFIG_TAIL" ""
+    check_bb_config "CONFIG_TIMEOUT" ""
+    check_bb_config "CONFIG_TSORT" ""
+    check_bb_config "CONFIG_UNIQ" ""
+    check_bb_config "CONFIG_UNLINK" ""
+    check_bb_config "CONFIG_BASE32" ""
+    check_bb_config "CONFIG_BASE64" ""
+    check_bb_config "CONFIG_ID" ""
+    check_bb_config "CONFIG_LOGNAME" ""
+
+    # Added 2026-07-17
+    check_bb_config "CONFIG_FALLOCATE" ""
+
+    # Added 2026-07-18
+    check_bb_config "CONFIG_EGREP" ""
+    check_bb_config "CONFIG_FGREP" ""
+    check_bb_config "CONFIG_XARGS" ""
+    check_bb_config "CONFIG_FDFLUSH" ""
+    check_bb_config "CONFIG_GETOPT" ""
+    check_bb_config "CONFIG_HWCLOCK" ""
+    check_bb_config "CONFIG_MORE" ""
+    check_bb_config "CONFIG_HEXEDIT" ""
+    check_bb_config "CONFIG_LSSCSI" ""
+    check_bb_config "CONFIG_STRINGS" ""
+    check_bb_config "CONFIG_FUSER" ""
+    check_bb_config "CONFIG_IOSTAT" ""
+    check_bb_config "CONFIG_LSOF" ""
+    check_bb_config "CONFIG_PGREP" ""
+    check_bb_config "CONFIG_PIDOF" ""
+    check_bb_config "CONFIG_PWDX" ""
+    check_bb_config "CONFIG_WATCH" ""
+    check_bb_config "CONFIG_NETCAT" ""
 
     readarray -t INCLUDED_BB_CMDS < <(printf '%s\n' "${INCLUDED_BB_CMDS[@]}" | sort)
     readarray -t EXCLUDED_BB_CMDS < <(printf '%s\n' "${EXCLUDED_BB_CMDS[@]}" | sort)
@@ -6524,6 +6654,12 @@ get_installed_programs_features()
             EXCLUDED_FEATURES+="\n * shorkmatrix"
         fi
 
+        if [ -f "$DESTDIR/usr/bin/shorkmines" ]; then
+            INCLUDED_FEATURES+="\n * shorkmines"
+        else
+            EXCLUDED_FEATURES+="\n * shorkmines"
+        fi
+
         if [ -f "$DESTDIR/usr/bin/shorksay" ]; then
             INCLUDED_FEATURES+="\n * shorksay"
         else
@@ -6596,18 +6732,6 @@ get_installed_programs_features()
 
     # SHORKTUI
     if [ "$ID" == "shork-486" ]; then
-        if $ENABLE_MULTIUSER_REAL; then
-            INCLUDED_FEATURES+="\n * BusyBox multi-user utilities"
-        else
-            EXCLUDED_FEATURES+="\n * BusyBox multi-user utilities"
-        fi
-
-        if $ENABLE_NET_ETH; then
-            INCLUDED_FEATURES+="\n * BusyBox networking utilities"
-        else
-            EXCLUDED_FEATURES+="\n * BusyBox networking utilities"
-        fi
-
         if $INCLUDE_GCC; then
             INCLUDED_FEATURES+="\n * as"
             INCLUDED_FEATURES+="\n * g++"
@@ -6620,17 +6744,31 @@ get_installed_programs_features()
             EXCLUDED_FEATURES+="\n * gfortran"
         fi
 
+        # TODO: Add Binutils
+
         if [ -f "$DESTDIR/usr/bin/c3270" ]; then
             INCLUDED_FEATURES+="\n * c3270 ($C3270_VER)"
         else
             EXCLUDED_FEATURES+="\n * c3270"
         fi
 
-        #if [ -f "$DESTDIR/usr/bin/cmatrix" ] && [ "$ENABLE_CMATRIX" = true ]; then
-        #    INCLUDED_FEATURES+="\n * cmatrix ($CMATRIX_VER)"
-        #else
-        #    EXCLUDED_FEATURES+="\n * cmatrix"
-        #fi
+        if [ -f "$DESTDIR/usr/bin/cscope" ]; then
+            INCLUDED_FEATURES+="\n * cscope ($CSCOPE_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * cscope"
+        fi
+
+        if [ -f "$DESTDIR/usr/bin/ctags" ]; then
+            INCLUDED_FEATURES+="\n * ctags (Universal Ctags, $CTAGS_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * ctags"
+        fi
+
+        if [ -f "$DESTDIR/usr/bin/dialog" ]; then
+            INCLUDED_FEATURES+="\n * dialog ($DIALOG_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * dialog"
+        fi
     fi
 
     if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
@@ -6660,6 +6798,12 @@ get_installed_programs_features()
             EXCLUDED_FEATURES+="\n * htop"
         fi
 
+        if [ -f "$DESTDIR/usr/bin/indent" ]; then
+            INCLUDED_FEATURES+="\n * indent ($INDENT_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * indent"
+        fi
+
         if [ -f "$DESTDIR/usr/bin/joe" ]; then
             INCLUDED_FEATURES+="\n * joe ($JOE_VER)"
         else
@@ -6682,6 +6826,12 @@ get_installed_programs_features()
             EXCLUDED_FEATURES+="\n * lynx"
         fi
 
+        if [ -f "$DESTDIR/usr/bin/make" ]; then
+            INCLUDED_FEATURES+="\n * make ($MAKE_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * make"
+        fi
+
         if [ -f "$DESTDIR/usr/bin/mg" ]; then
             INCLUDED_FEATURES+="\n * mg ($MG_VER)"
         else
@@ -6694,11 +6844,11 @@ get_installed_programs_features()
             EXCLUDED_FEATURES+="\n * micropython"
         fi
 
-        #if [ -f "$DESTDIR/usr/bin/mpg321" ]; then
-        #    INCLUDED_FEATURES+="\n * mpg321 ($MPG321_VER)"
-        #else
-        #    EXCLUDED_FEATURES+="\n * mpg321"
-        #fi
+        if [ -f "$DESTDIR/usr/bin/mpg321" ]; then
+            INCLUDED_FEATURES+="\n * mpg321 ($MPG321_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * mpg321"
+        fi
 
         if [ -f "$DESTDIR/bin/mt" ]; then
             INCLUDED_FEATURES+="\n * mt (mt-st, $MT_ST_VER)"
@@ -6711,6 +6861,18 @@ get_installed_programs_features()
         else
             EXCLUDED_FEATURES+="\n * nano"
         fi
+
+        if [ -f "$DESTDIR/usr/bin/nasm" ]; then
+            INCLUDED_FEATURES+="\n * nasm (NASM, $NASM_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * nasm"
+        fi
+
+        if [ -f "$DESTDIR/usr/bin/ndisasm" ]; then
+            INCLUDED_FEATURES+="\n * ndisasm (NASM, $NASM_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * ndisasm"
+        fi
     fi
 
     if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
@@ -6722,6 +6884,12 @@ get_installed_programs_features()
     fi
 
     if [ "$ID" == "shork-486" ]; then
+        if [ -f "$DESTDIR/usr/bin/readtags" ]; then
+            INCLUDED_FEATURES+="\n * readtags (Universal Ctags, $CTAGS_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * readtags"
+        fi
+
         if [ -f "$DESTDIR/usr/bin/scp" ]; then
             INCLUDED_FEATURES+="\n * scp (Dropbear, $DROPBEAR_VER)"
         else
@@ -6795,6 +6963,18 @@ get_installed_programs_features()
         else
             EXCLUDED_FEATURES+="\n * tn5250"
         fi
+
+        if [ -f "$DESTDIR/usr/bin/vim" ]; then
+            INCLUDED_FEATURES+="\n * vim (Vim, $VIM_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * vim (Vim)"
+        fi
+
+        if [ -f "$DESTDIR/usr/bin/vimtutor" ]; then
+            INCLUDED_FEATURES+="\n * vimtutor (Vim, $VIM_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * vimtutor (Vim)"
+        fi
     fi
 
     if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
@@ -6802,6 +6982,14 @@ get_installed_programs_features()
             INCLUDED_FEATURES+="\n * whereis (util-linux, $UTIL_LINUX_VER)"
         else
             EXCLUDED_FEATURES+="\n * whereis (util-linux)"
+        fi
+    fi
+
+    if [ "$ID" == "shork-486" ]; then
+        if $INCLUDE_VIM && [ -f "$DESTDIR/usr/bin/xxd" ]; then
+            INCLUDED_FEATURES+="\n * xxd (Vim, $VIM_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * xxd (Vim)"
         fi
     fi
 }
@@ -7078,10 +7266,60 @@ if $INCLUDE_CON_FONTS; then
 fi
 
 if $INCLUDE_C3270; then
-    get_c3270
+    get_prog_git \
+        "usr/bin" \
+        "c3270" \
+        "c3270" \
+        "x3270" \
+        "$C3270_SRC" \
+        "$C3270_VER" \
+        "" \
+        false \
+        false \
+        "/usr" \
+        "--enable-c3270 --disable-x3270 --disable-s3270 --disable-b3270 --disable-tcl3270 --disable-pr3287 --disable-x3270if --disable-playback  --disable-mitm --disable-wc3270"
 fi
-if $INCLUDE_CMATRIX; then
-    get_cmatrix
+if $INCLUDE_CSCOPE; then
+    get_prog_git \
+        "usr/bin" \
+        "cscope" \
+        "cscope" \
+        "cscope-cscope" \
+        "$CSCOPE_SRC" \
+        "v$CSCOPE_VER" \
+        "" \
+        false \
+        true \
+        "/usr" \
+        ""
+fi
+if $INCLUDE_CTAGS; then
+    get_prog_git \
+        "usr/bin" \
+        "ctags" \
+        "ctags" \
+        "ctags" \
+        "$CTAGS_SRC" \
+        "$CTAGS_VER" \
+        "" \
+        true \
+        false \
+        "/usr" \
+        "--disable-pcre2 --disable-external-sort --disable-yaml --disable-json --disable-iconv --disable-seccomp"
+fi
+if $INCLUDE_DIALOG; then
+    get_prog_tar \
+        "usr/bin" \
+        "dialog" \
+        "dialog" \
+        "dialog-${DIALOG_VER}" \
+        "tgz" \
+        "$DIALOG_SRC" \
+        "xzf" \
+        false \
+        false \
+        "/usr" \
+        ""
 fi
 if $INCLUDE_DROPBEAR; then
     get_dropbear
@@ -7098,11 +7336,50 @@ fi
 if $INCLUDE_HTOP; then
     get_htop
 fi
+if $INCLUDE_INDENT; then
+    get_prog_tar \
+        "usr/bin" \
+        "indent" \
+        "indent" \
+        "indent-${INDENT_VER}" \
+        "tar.xz" \
+        "$INDENT_SRC" \
+        "xf" \
+        false \
+        false \
+        "/usr" \
+        ""
+fi
 if $INCLUDE_JOE; then
     get_joe
 fi
 if $INCLUDE_LYNX; then
-    get_lynx
+    get_prog_git \
+        "usr/bin" \
+        "lynx" \
+        "lynx" \
+        "lynx-snapshots" \
+        "$LYNX_SRC" \
+        "v$LYNX_VER" \
+        "" \
+        false \
+        false \
+        "/usr" \
+        "-with-ssl --with-ssl-dir=\"$SYSROOT\" --with-openssl LIBS=\"-lncursesw -ltinfo -latomic\""
+fi
+if $INCLUDE_MAKE; then
+    get_prog_tar \
+        "usr/bin" \
+        "make" \
+        "make" \
+        "make-${MAKE_VER}" \
+        "tar.gz" \
+        "$MAKE_SRC" \
+        "xzf" \
+        false \
+        false \
+        "/usr" \
+        ""
 fi
 if $INCLUDE_MG; then
     get_mg
@@ -7114,29 +7391,79 @@ if $INCLUDE_MPG321; then
     get_mpg321
 fi
 if $INCLUDE_MT_ST; then
-    get_mt_st
+    get_prog_git \
+        "bin" \
+        "mt" \
+        "mt-st" \
+        "mt-st" \
+        "$MT_ST_SRC" \
+        "v$MT_ST_VER" \
+        "" \
+        false \
+        false \
+        "/usr" \
+        ""
 fi
 if $INCLUDE_NANO; then
     get_nano
+fi
+if $INCLUDE_NASM; then
+    get_nasm
 fi
 if $INCLUDE_SC_IM; then
     get_sc_im
 fi
 if $INCLUDE_TCC; then
-    get_musl
+    get_prog_tar \
+        "usr/local/musl/lib" \
+        "libc.so" \
+        "musl" \
+        "musl-${MUSL_VER}" \
+        "tar.gz" \
+        "$MUSL_SRC" \
+        "xzf" \
+        false \
+        false \
+        "" \
+        ""
     get_tcc
 fi
 if $INCLUDE_TILDE; then
     get_tilde
 fi
 if $INCLUDE_TMUX; then
-    get_tmux
+    get_prog_git \
+        "usr/bin" \
+        "tmux" \
+        "tmux" \
+        "tmux" \
+        "$TMUX_SRC" \
+        "$TMUX_VER" \
+        "" \
+        true \
+        false \
+        "/usr" \
+        "LIBS=\"-levent -lncursesw -lutil -lrt -lpthread -lm\""
 fi
 if $INCLUDE_TN5250; then
     get_tn5250
 fi
 if $INCLUDE_TNFTP; then
     get_tnftp
+fi
+if $INCLUDE_VIM; then
+    get_prog_git \
+        "usr/bin" \
+        "vim" \
+        "vim" \
+        "vim" \
+        "$VIM_SRC" \
+        "v$VIM_VER" \
+        "vim/9.2_ext_feature_culling.patch" \
+        false \
+        false \
+        "/usr" \
+        "--with-features=normal --disable-gui --without-x --disable-nls --disable-channel --disable-netbeans --disable-terminal --disable-python3interp --disable-perlinterp --disable-rubyinterp --disable-luainterp --disable-tclinterp --disable-cscope --disable-acl --disable-gpm --disable-sysmouse --disable-selinux --disable-canberra --without-wayland --disable-libsodium --disable-smack"
 fi
 
 get_shorkhelp
@@ -7158,6 +7485,7 @@ fi
 if $INCLUDE_SHORKTAINMENT; then
     get_shorklocomotive
     get_shorkmatrix
+    get_shorkmines
     get_shorksay
 fi
 
@@ -7172,7 +7500,6 @@ find_mbr_bin
 build_file_system
 if [ "$ID" == "shork-486" ]; then
     build_disk_img
-    convert_disk_img
 elif [ "$ID" == "shork-disc" ]; then
     build_disc_img
 elif [ "$ID" == "shork-diskette" ]; then
@@ -7180,8 +7507,12 @@ elif [ "$ID" == "shork-diskette" ]; then
     build_diskette_img
 fi
 
-fix_perms
-clean_stale_mounts
 get_included_busybox_commands
 get_installed_programs_features
 generate_report
+if [ "$ID" == "shork-486" ]; then
+    copy_report
+    convert_disk_img
+fi
+fix_perms
+clean_stale_mounts

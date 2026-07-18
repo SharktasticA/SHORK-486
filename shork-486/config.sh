@@ -27,13 +27,13 @@ CUSTOM_MIN_DISK=8
 DEFAULT_DEF_SWAP=8
 DEFAULT_MIN_DISK=80
 MAXIMAL_DEF_SWAP=8
-MAXIMAL_MIN_DISK=440
+MAXIMAL_MIN_DISK=480
 MINIMAL_DEF_SWAP=0
 MINIMAL_MIN_DISK=8
 OFFLINE_DEF_SWAP=8
 OFFLINE_MIN_DISK=60
 PLUS_DEF_SWAP=16
-PLUS_MIN_DISK=400
+PLUS_MIN_DISK=440
 
 ALWAYS_BUILD=true
 DIST="SHORK 486"
@@ -55,18 +55,24 @@ SERIAL_CON_PORT="ttyS0"
 ENABLE_NET_ETH=false
 FIX_EXTLINUX=true
 INCLUDE_C3270=false
-INCLUDE_CMATRIX=false
+INCLUDE_CSCOPE=false
+INCLUDE_CTAGS=false
+INCLUDE_DIALOG=false
 INCLUDE_DROPBEAR=false
 INCLUDE_FILE=false
 INCLUDE_GCC=false
 INCLUDE_GIT=false
 INCLUDE_HTOP=false
+INCLUDE_INDENT=false
 INCLUDE_JOE=false
 INCLUDE_LYNX=false
+INCLUDE_MAKE=false
 INCLUDE_MG=false
 INCLUDE_MICROPYTHON=false
+INCLUDE_MPG321=false
 INCLUDE_MT_ST=false
 INCLUDE_NANO=false
+INCLUDE_NASM=false
 INCLUDE_SC_IM=false
 INCLUDE_SHORKSTALL=false
 INCLUDE_SHORKTAINMENT=false
@@ -77,6 +83,7 @@ INCLUDE_TN5250=false
 INCLUDE_TNFTP=false
 INCLUDE_TMUX=false
 INCLUDE_UTIL_LINUX=false
+INCLUDE_VIM=false
 ENABLE_CDROM=false
 INCLUDE_CON_FONTS=false
 USE_GRUB=false
@@ -90,6 +97,7 @@ INCLUDE_PCI_IDS=false
 ENABLE_PCMCIA=false
 ENABLE_SATA=false
 ENABLE_SCSI_EXP=false
+ENABLE_SOUND=false
 ENABLE_SMP=false
 ENABLE_USB=false
 ENABLE_ZSWAP=false
@@ -156,18 +164,24 @@ save_env()
         echo "ENABLE_NET_ETH=$ENABLE_NET_ETH"
         echo "FIX_EXTLINUX=$FIX_EXTLINUX"
         echo "INCLUDE_C3270=$INCLUDE_C3270"
-        echo "INCLUDE_CMATRIX=$INCLUDE_CMATRIX"
+        echo "INCLUDE_CSCOPE=$INCLUDE_CSCOPE"
+        echo "INCLUDE_CTAGS=$INCLUDE_CTAGS"
+        echo "INCLUDE_DIALOG=$INCLUDE_DIALOG"
         echo "INCLUDE_DROPBEAR=$INCLUDE_DROPBEAR"
         echo "INCLUDE_FILE=$INCLUDE_FILE"
         echo "INCLUDE_GCC=$INCLUDE_GCC"
         echo "INCLUDE_GIT=$INCLUDE_GIT"
         echo "INCLUDE_HTOP=$INCLUDE_HTOP"
+        echo "INCLUDE_INDENT=$INCLUDE_INDENT"
         echo "INCLUDE_JOE=$INCLUDE_JOE"
         echo "INCLUDE_LYNX=$INCLUDE_LYNX"
+        echo "INCLUDE_MAKE=$INCLUDE_MAKE"
         echo "INCLUDE_MG=$INCLUDE_MG"
         echo "INCLUDE_MICROPYTHON=$INCLUDE_MICROPYTHON"
+        echo "INCLUDE_MPG321=$INCLUDE_MPG321"
         echo "INCLUDE_MT_ST=$INCLUDE_MT_ST"
         echo "INCLUDE_NANO=$INCLUDE_NANO"
+        echo "INCLUDE_NASM=$INCLUDE_NASM"
         echo "INCLUDE_SC_IM=$INCLUDE_SC_IM"
         echo "INCLUDE_SHORKSTALL=$INCLUDE_SHORKSTALL"
         echo "INCLUDE_SHORKTAINMENT=$INCLUDE_SHORKTAINMENT"
@@ -178,6 +192,7 @@ save_env()
         echo "INCLUDE_TNFTP=$INCLUDE_TNFTP"
         echo "INCLUDE_TMUX=$INCLUDE_TMUX"
         echo "INCLUDE_UTIL_LINUX=$INCLUDE_UTIL_LINUX"
+        echo "INCLUDE_VIM=$INCLUDE_VIM"
         echo "ENABLE_CDROM=$ENABLE_CDROM"
         echo "INCLUDE_CON_FONTS=$INCLUDE_CON_FONTS"
         echo "USE_GRUB=$USE_GRUB"
@@ -191,6 +206,7 @@ save_env()
         echo "ENABLE_PCMCIA=$ENABLE_PCMCIA"
         echo "ENABLE_SATA=$ENABLE_SATA"
         echo "ENABLE_SCSI_EXP=$ENABLE_SCSI_EXP"
+        echo "ENABLE_SOUND=$ENABLE_SOUND"
         echo "ENABLE_SMP=$ENABLE_SMP"
         echo "ENABLE_USB=$ENABLE_USB"
         echo "ENABLE_ZSWAP=$ENABLE_ZSWAP"
@@ -220,18 +236,24 @@ set_minimal_vars()
     ENABLE_MULTIUSER_REAL=false
     ENABLE_NET_ETH=false
     INCLUDE_C3270=false
-    #INCLUDE_CMATRIX=false
+    INCLUDE_CSCOPE=false
+    INCLUDE_CTAGS=false
+    INCLUDE_DIALOG=false
     INCLUDE_DROPBEAR=false
     INCLUDE_FILE=false
     INCLUDE_GCC=false
     INCLUDE_GIT=false
     INCLUDE_HTOP=false
+    INCLUDE_INDENT=false
     INCLUDE_JOE=false
     INCLUDE_LYNX=false
+    INCLUDE_MAKE=false
     INCLUDE_MG=false
     INCLUDE_MICROPYTHON=false
+    INCLUDE_MPG321=false
     INCLUDE_MT_ST=false
     INCLUDE_NANO=false
+    INCLUDE_NASM=false
     INCLUDE_SC_IM=false
     INCLUDE_SHORKSTALL=false
     INCLUDE_SHORKTAINMENT=false
@@ -242,6 +264,7 @@ set_minimal_vars()
     INCLUDE_TNFTP=false
     INCLUDE_TMUX=false
     INCLUDE_UTIL_LINUX=false
+    INCLUDE_VIM=false
     ENABLE_CDROM=false
     INCLUDE_CON_FONTS=false
     USE_GRUB=false
@@ -255,6 +278,7 @@ set_minimal_vars()
     ENABLE_PCMCIA=false
     ENABLE_SATA=false
     ENABLE_SCSI_EXP=false
+    ENABLE_SOUND=false
     ENABLE_SMP=false
     ENABLE_USB=false
     ENABLE_ZSWAP=false
@@ -264,18 +288,24 @@ set_default_vars()
 {
     ENABLE_NET_ETH=true
     INCLUDE_C3270=false
-    #INCLUDE_CMATRIX=true
+    INCLUDE_CSCOPE=false
+    INCLUDE_CTAGS=false
+    INCLUDE_DIALOG=true
     INCLUDE_DROPBEAR=true
     INCLUDE_FILE=true
     INCLUDE_GCC=false
     INCLUDE_GIT=true
     INCLUDE_HTOP=true
+    INCLUDE_INDENT=false
     INCLUDE_JOE=false
     INCLUDE_LYNX=true
+    INCLUDE_MAKE=false
     INCLUDE_MG=true
     INCLUDE_MICROPYTHON=true
+    INCLUDE_MPG321=false
     INCLUDE_MT_ST=true
     INCLUDE_NANO=true
+    INCLUDE_NASM=false
     INCLUDE_SC_IM=true
     INCLUDE_SHORKSTALL=false
     INCLUDE_SHORKTAINMENT=true
@@ -286,6 +316,7 @@ set_default_vars()
     INCLUDE_TNFTP=true
     INCLUDE_TMUX=true
     INCLUDE_UTIL_LINUX=true
+    INCLUDE_VIM=false
     ENABLE_CDROM=true
     INCLUDE_CON_FONTS=true
     USE_GRUB=false
@@ -299,6 +330,7 @@ set_default_vars()
     ENABLE_PCMCIA=true
     ENABLE_SATA=false
     ENABLE_SCSI_EXP=true
+    ENABLE_SOUND=false
     ENABLE_SMP=false
     ENABLE_USB=false
     ENABLE_ZSWAP=true
@@ -319,18 +351,22 @@ set_plus_vars()
 {
     set_default_vars
     INCLUDE_C3270=true
+    INCLUDE_CSCOPE=true
+    INCLUDE_CTAGS=true
     INCLUDE_GCC=true
+    INCLUDE_INDENT=true
     INCLUDE_JOE=true
+    INCLUDE_MAKE=true
+    INCLUDE_MPG321=true
+    INCLUDE_NASM=true
     INCLUDE_TN5250=true
+    INCLUDE_VIM=true
+    ENABLE_SOUND=true
 }
 
 set_maximal_vars()
 {
-    set_default_vars
-    INCLUDE_C3270=true
-    INCLUDE_GCC=true
-    INCLUDE_JOE=true
-    INCLUDE_TN5250=true
+    set_plus_vars
     INCLUDE_GUI=true
     ENABLE_HIGHMEM=true
     ENABLE_SATA=true
@@ -480,8 +516,8 @@ if [ "$ID" == "shork-486" ]; then
         --default-item "$BUILD_TYPE" \
         --menu "Select the build type, presets for SHORK 486 feature levels. The minimum requirements for each are enclosed in brackets. The \"custom\" option will enable further prompts for software and feature selection." 15 $WIDTH 5 \
         "default" "Typical experience (16MiB RAM, 8MiB swap, 80MiB disk)" \
-        "maximal" "Largest configuration (24MiB RAM, 8MiB swap, 440MiB disk)" \
-        "plus"    "Default w/ optional software (16MiB RAM, 16MiB swap, 400MiB disk)" \
+        "maximal" "Largest configuration (24MiB RAM, 8MiB swap, 480MiB disk)" \
+        "plus"    "Default w/ optional software (16MiB RAM, 16MiB swap, 440MiB disk)" \
         "offline" "Default w/o networking (12MiB RAM, 8MiB swap, 60MiB disk)" \
         "minimal" "Smallest configuration (8MiB RAM, 8MiB disk)" \
         "custom"  "Requirements depend on subsequent choices" \
@@ -964,47 +1000,62 @@ BUNDLED_ITEMS=()
 
 if [ "$ENABLE_NET_ETH" == true ]; then
     BUNDLED_ITEMS+=(
-        "c3270"        "3270 terminal emulator (+1.8MiB, EXPERIMENTAL)"         "$(val "$INCLUDE_C3270")"
-        #"cmatrix"       "Scrolling text screensaver (+0.4MiB)"                  "$(val "$INCLUDE_CMATRIX")"
-        "dropbear"      "*SCP & SSH client (+0.4MiB)"                           "$(val "$INCLUDE_DROPBEAR")"
-        "file"          "**File type identification (+10MiB)"                   "$(val "$INCLUDE_FILE")"
-        "gcc"           "**GCC + binutils + musl (+215MiB)"                     "$(val "$INCLUDE_GCC")"
-        "git"           "*Source control client (+19MiB)"                       "$(val "$INCLUDE_GIT")"
-        "htop"          "*Interactive process viewer (+0.6MiB)"                 "$(val "$INCLUDE_HTOP")"
-        "joe"           "WordStar & Emacs-blend text editor (+1.9MiB)"          "$(val "$INCLUDE_JOE")"
-        "lynx"          "*Terminal web browser (+7.3MiB)"                       "$(val "$INCLUDE_LYNX")"
-        "mg"            "*Emacs-style text editor (+0.3MiB)"                    "$(val "$INCLUDE_MG")"
-        "micropython"   "*Python 3.4-syntax intepreter (+0.7MiB)"               "$(val "$INCLUDE_MICROPYTHON")"
-        "mt-st"         "*Tape drive tools (+0.2MiB)"                           "$(val "$INCLUDE_MT_ST")"
-        "nano"          "*Pico-style text editor (+0.8MiB)"                     "$(val "$INCLUDE_NANO")"
-        "sc-im"         "*Terminal spreadsheet editor (+2.8MiB)"                "$(val "$INCLUDE_SC_IM")"
-        "shorktainment" "*shorkmatrix, shorksay & sl (+0.1MiB)"                 "$(val "$INCLUDE_SHORKTAINMENT")"
-        "strace"        "*System calls & signals tracer (+1.1MiB)"              "$(val "$INCLUDE_STRACE")"
-        "tcc"           "*Tiny C Compiler + musl (+4MiB)"                       "$(val "$INCLUDE_TCC")"
-        #"tilde"         "GUI-like text editor (+4.5MiB)"                       "$(val "$INCLUDE_TILDE")"
-        "tn5250"        "TCP/IP 5250 terminal emulator (+6.4MiB, EXPERIMENTAL)" "$(val "$INCLUDE_TN5250")"
-        "tnftp"         "*FTP client (+0.3MiB)"                                 "$(val "$INCLUDE_TNFTP")"
-        "tmux"          "*Terminal multiplexer (+1.7MiB)"                       "$(val "$INCLUDE_TMUX")"
-        "util-linux"    "*lscpu, partx, sfdisk & whereis (+2.2MiB)"             "$(val "$INCLUDE_UTIL_LINUX")"
+        "c3270"             "3270 terminal emulator (+1.8MiB, EXPERIMENTAL)"        "$(val "$INCLUDE_C3270")"
+        "cscope"            "C/C++ code browser (+1MiB)"                            "$(val "$INCLUDE_CSCOPE")"
+        "ctags"             "Source code object indexing (+1.5MiB)"                 "$(val "$INCLUDE_CTAGS")"
+        "dialog"            "*Shell script TUI widgets (+0.5MiB)"                   "$(val "$INCLUDE_DIALOG")"
+        "dropbear"          "*SCP & SSH client (+0.4MiB)"                           "$(val "$INCLUDE_DROPBEAR")"
+        "file"              "**File type identification (+10MiB)"                   "$(val "$INCLUDE_FILE")"
+        "gcc"               "**GCC + binutils + musl (+215MiB)"                     "$(val "$INCLUDE_GCC")"
+        "git"               "*Source control client (+19MiB)"                       "$(val "$INCLUDE_GIT")"
+        "htop"              "*Interactive process viewer (+0.6MiB)"                 "$(val "$INCLUDE_HTOP")"
+        "indent"            "C code formatter (+0.1MiB)"                            "$(val "$INCLUDE_INDENT")"
+        "joe"               "WordStar & Emacs-blend text editor (+1.9MiB)"          "$(val "$INCLUDE_JOE")"
+        "lynx"              "*Terminal web browser (+7.3MiB)"                       "$(val "$INCLUDE_LYNX")"
+        "make"              "Build automation tool (+0.3MiB)"                       "$(val "$INCLUDE_MAKE")"
+        "mg"                "*Emacs-style text editor (+0.3MiB)"                    "$(val "$INCLUDE_MG")"
+        "micropython"       "*Python 3.4-syntax intepreter (+0.7MiB)"               "$(val "$INCLUDE_MICROPYTHON")"
+        "mpg321"            "MP3 player (+0.4MiB)"                                  "$(val "$INCLUDE_MPG321")"
+        "mt-st"             "*Tape drive tools (+0.2MiB)"                           "$(val "$INCLUDE_MT_ST")"
+        "nano"              "*Pico-style text editor (+0.8MiB)"                     "$(val "$INCLUDE_NANO")"
+        "nasm"              "Portable x86 assembler & disassembler (+2.5MiB)"       "$(val "$INCLUDE_NASM")"
+        "sc-im"             "*Terminal spreadsheet editor (+2.8MiB)"                "$(val "$INCLUDE_SC_IM")"
+        "shorktainment"     "*shorkmatrix, shorkmines, shorksay & sl (+0.5MiB)"     "$(val "$INCLUDE_SHORKTAINMENT")"
+        "strace"            "*System calls & signals tracer (+1.1MiB)"              "$(val "$INCLUDE_STRACE")"
+        "tcc"               "*Tiny C Compiler + musl (+4MiB)"                       "$(val "$INCLUDE_TCC")"
+        #"tilde"             "GUI-like text editor (+4.5MiB)"                       "$(val "$INCLUDE_TILDE")"
+        "tn5250"            "TCP/IP 5250 terminal emulator (+6.4MiB, EXPERIMENTAL)" "$(val "$INCLUDE_TN5250")"
+        "tnftp"             "*FTP client (+0.3MiB)"                                 "$(val "$INCLUDE_TNFTP")"
+        "tmux"              "*Terminal multiplexer (+1.7MiB)"                       "$(val "$INCLUDE_TMUX")"
+        "util-linux"        "*lscpu, partx, sfdisk & whereis (+2.2MiB)"             "$(val "$INCLUDE_UTIL_LINUX")"
+        "vim"               "**Vi IMproved text editor (+23MiB)"                    "$(val "$INCLUDE_VIM")"
     )
 else
     BUNDLED_ITEMS+=(
-        "c3270"        "3270 terminal emulator (+1.8MiB, EXPERIMENTAL)"     "$(val "$INCLUDE_C3270")"
-        #"cmatrix"       "Scrolling text screensaver (+0.4MiB)"              "$(val "$INCLUDE_CMATRIX")"
-        "file"          "**File type identification (+10MiB)"               "$(val "$INCLUDE_FILE")"
-        "gcc"           "**GCC + binutils + musl (+215MiB)"                 "$(val "$INCLUDE_GCC")"
-        "htop"          "*Interactive process viewer (+0.6MiB)"             "$(val "$INCLUDE_HTOP")"
-        "joe"           "WordStar & Emacs-blend text editor (+1.9MiB)"      "$(val "$INCLUDE_JOE")"
-        "mg"            "*Emacs-style text editor (+0.3MiB)"                "$(val "$INCLUDE_MG")"
-        "micropython"   "*Python 3.4-syntax intepreter (+0.7MiB)"           "$(val "$INCLUDE_MICROPYTHON")"
-        "mt-st"         "*Tape drive tools (+0.2MiB)"                       "$(val "$INCLUDE_MT_ST")"
-        "nano"          "*Pico-style text editor (+0.8MiB)"                 "$(val "$INCLUDE_NANO")"
-        "sc-im"         "*Terminal spreadsheet editor (+2.8MiB)"            "$(val "$INCLUDE_SC_IM")"
-        "shorktainment" "*shorkmatrix, shorksay & sl (+0.1MiB)"             "$(val "$INCLUDE_SHORKTAINMENT")"
-        "strace"        "*System calls & signals tracer (+1.1MiB)"          "$(val "$INCLUDE_STRACE")"
-        "tcc"           "*Tiny C Compiler + musl (+4MiB)"                   "$(val "$INCLUDE_TCC")"
-        #"tilde"         "GUI-like text editor (+4.5MiB)"                    "$(val "$INCLUDE_TILDE")"
-        "util-linux"    "*lscpu, partx, sfdisk & whereis (+2.2MiB)"         "$(val "$INCLUDE_UTIL_LINUX")"
+        "c3270"             "3270 terminal emulator (+1.8MiB, EXPERIMENTAL)"    "$(val "$INCLUDE_C3270")"
+        "cscope"            "C/C++ code browser (+1MiB)"                        "$(val "$INCLUDE_CSCOPE")"
+        "ctags"             "Source code object indexing (+1.5MiB)"             "$(val "$INCLUDE_CTAGS")"
+        "dialog"            "*Shell script TUI widgets (+0.5MiB)"               "$(val "$INCLUDE_DIALOG")"
+        "file"              "**File type identification (+10MiB)"               "$(val "$INCLUDE_FILE")"
+        "gcc"               "**GCC + binutils + musl (+215MiB)"                 "$(val "$INCLUDE_GCC")"
+        "htop"              "*Interactive process viewer (+0.6MiB)"             "$(val "$INCLUDE_HTOP")"
+        "indent"            "C code formatter (+0.1MiB)"                        "$(val "$INCLUDE_INDENT")"
+        "joe"               "WordStar & Emacs-blend text editor (+1.9MiB)"      "$(val "$INCLUDE_JOE")"
+        "make"              "Build automation tool (+0.3MiB)"                   "$(val "$INCLUDE_MAKE")"
+        "mg"                "*Emacs-style text editor (+0.3MiB)"                "$(val "$INCLUDE_MG")"
+        "micropython"       "*Python 3.4-syntax intepreter (+0.7MiB)"           "$(val "$INCLUDE_MICROPYTHON")"
+        "mpg321"            "MP3 player (+0.4MiB)"                              "$(val "$INCLUDE_MPG321")"
+        "mt-st"             "*Tape drive tools (+0.2MiB)"                       "$(val "$INCLUDE_MT_ST")"
+        "nano"              "*Pico-style text editor (+0.8MiB)"                 "$(val "$INCLUDE_NANO")"
+        "nasm"              "Portable x86 assembler & disassembler (+2.5MiB)"   "$(val "$INCLUDE_NASM")"
+        "sc-im"             "*Terminal spreadsheet editor (+2.8MiB)"            "$(val "$INCLUDE_SC_IM")"
+        "shorktainment"     "*shorkmatrix, shorkmines, shorksay & sl (+0.5MiB)" "$(val "$INCLUDE_SHORKTAINMENT")"
+        "strace"            "*System calls & signals tracer (+1.1MiB)"          "$(val "$INCLUDE_STRACE")"
+        "tcc"               "*Tiny C Compiler + musl (+4MiB)"                   "$(val "$INCLUDE_TCC")"
+        "tmux"              "*Terminal multiplexer (+1.7MiB)"                   "$(val "$INCLUDE_TMUX")"
+        #"tilde"             "GUI-like text editor (+4.5MiB)"                    "$(val "$INCLUDE_TILDE")"
+        "util-linux"        "*lscpu, partx, sfdisk & whereis (+2.2MiB)"         "$(val "$INCLUDE_UTIL_LINUX")"
+        "vim"               "**Vi IMproved text editor (+23MiB)"                "$(val "$INCLUDE_VIM")"
     )
 fi
 
@@ -1023,19 +1074,25 @@ SKIPPED=$?
 if [[ $SKIPPED -eq 1 ]]; then
     :
 else
-    if [[ $BUNDLED =~ "c3270" ]];           then INCLUDE_C3270=true;            else INCLUDE_C3270=false;         fi
-    #if [[ $BUNDLED =~ "cmatrix" ]];         then INCLUDE_CMATRIX=true;          else INCLUDE_CMATRIX=false;         fi
+    if [[ $BUNDLED =~ "c3270" ]];           then INCLUDE_C3270=true;            else INCLUDE_C3270=false;           fi
+    if [[ $BUNDLED =~ "cscope" ]];          then INCLUDE_CSCOPE=true;           else INCLUDE_CSCOPE=false;          fi
+    if [[ $BUNDLED =~ "ctags" ]];           then INCLUDE_CTAGS=true;            else INCLUDE_CTAGS=false;           fi
+    if [[ $BUNDLED =~ "dialog" ]];          then INCLUDE_DIALOG=true;           else INCLUDE_DIALOG=false;          fi
     if [[ $BUNDLED =~ "dropbear" ]];        then INCLUDE_DROPBEAR=true;         else INCLUDE_DROPBEAR=false;        fi
     if [[ $BUNDLED =~ "file" ]];            then INCLUDE_FILE=true;             else INCLUDE_FILE=false;            fi
     if [[ $BUNDLED =~ "gcc" ]];             then INCLUDE_GCC=true;              else INCLUDE_GCC=false;             fi
     if [[ $BUNDLED =~ "git" ]];             then INCLUDE_GIT=true;              else INCLUDE_GIT=false;             fi
     if [[ $BUNDLED =~ "htop" ]];            then INCLUDE_HTOP=true;             else INCLUDE_HTOP=false;            fi
+    if [[ $BUNDLED =~ "indent" ]]           then INCLUDE_INDENT=true;           else INCLUDE_INDENT=false;          fi
     if [[ $BUNDLED =~ "joe" ]];             then INCLUDE_JOE=true;              else INCLUDE_JOE=false;             fi
     if [[ $BUNDLED =~ "lynx" ]];            then INCLUDE_LYNX=true;             else INCLUDE_LYNX=false;            fi
+    if [[ $BUNDLED =~ "make" ]];            then INCLUDE_MAKE=true;             else INCLUDE_MAKE=false;            fi
     if [[ $BUNDLED =~ "mg" ]];              then INCLUDE_MG=true;               else INCLUDE_MG=false;              fi
     if [[ $BUNDLED =~ "micropython" ]];     then INCLUDE_MICROPYTHON=true;      else INCLUDE_MICROPYTHON=false;     fi
+    if [[ $BUNDLED =~ "mpg321" ]];          then INCLUDE_MPG321=true;           else INCLUDE_MPG321=false;          fi
     if [[ $BUNDLED =~ "mt-st" ]];           then INCLUDE_MT_ST=true;            else INCLUDE_MT_ST=false;           fi
     if [[ $BUNDLED =~ "nano" ]];            then INCLUDE_NANO=true;             else INCLUDE_NANO=false;            fi
+    if [[ $BUNDLED =~ "nasm" ]];            then INCLUDE_NASM=true;             else INCLUDE_NASM=false;            fi
     if [[ $BUNDLED =~ "sc-im" ]];           then INCLUDE_SC_IM=true;            else INCLUDE_SC_IM=false;           fi
     if [[ $BUNDLED =~ "shorktainment" ]];   then INCLUDE_SHORKTAINMENT=true;    else INCLUDE_SHORKTAINMENT=false;   fi
     if [[ $BUNDLED =~ "strace" ]];          then INCLUDE_STRACE=true;           else INCLUDE_STRACE=false;          fi
@@ -1045,6 +1102,15 @@ else
     if [[ $BUNDLED =~ "tn5250" ]];          then INCLUDE_TN5250=true;           else INCLUDE_TN5250=false;          fi
     if [[ $BUNDLED =~ "tnftp" ]];           then INCLUDE_TNFTP=true;            else INCLUDE_TNFTP=false;           fi
     if [[ $BUNDLED =~ "util-linux" ]];      then INCLUDE_UTIL_LINUX=true;       else INCLUDE_UTIL_LINUX=false;      fi
+    if [[ $BUNDLED =~ "vim" ]];             then INCLUDE_VIM=true;              else INCLUDE_VIM=false;      fi
+fi
+
+# Enable prerequisites for selected bundled software
+if [ "$INCLUDE_MPG321" = true ]; then
+    ENABLE_SOUND=true
+fi
+if [ "$INCLUDE_MT_ST" = true ]; then
+    ENABLE_SCSI_EXP=true
 fi
 
 
@@ -1066,6 +1132,7 @@ OPTIONS=$(dialog --clear \
     "pcmcia"        "*Kernel-level PCMCIA support"                              $(val $ENABLE_PCMCIA) \
     "sata"          "**Kernel-level SATA support"                               $(val $ENABLE_SATA) \
     "scsi-exp"      "*Kernel-level SCSI media changer & tape drive support"     $(val $ENABLE_SCSI_EXP) \
+    "sound"         "Kernel-level sound support"                                $(val $ENABLE_SOUND) \
     "smp"           "**Kernel-level SMP support"                                $(val $ENABLE_SMP) \
     "usb"           "Kernel-level USB & HID support & lsusb (+0.2MiB)"          $(val $ENABLE_USB) \
     "zswap"         "*Kernel-level zswap support"                               $(val $ENABLE_ZSWAP) \
@@ -1089,6 +1156,7 @@ else
     if [[ $OPTIONS =~ "pcmcia" ]];          then ENABLE_PCMCIA=true;        else ENABLE_PCMCIA=false;           fi
     if [[ $OPTIONS =~ "sata" ]];            then ENABLE_SATA=true;          else ENABLE_SATA=false;             fi
     if [[ $OPTIONS =~ "scsi-exp" ]];        then ENABLE_SCSI_EXP=true;      else ENABLE_SCSI_EXP=false;         fi
+    if [[ $OPTIONS =~ "sound" ]];           then ENABLE_SOUND=true;         else ENABLE_SOUND=false;            fi
     if [[ $OPTIONS =~ "smp" ]];             then ENABLE_SMP=true;           else ENABLE_SMP=false;              fi
     if [[ $OPTIONS =~ "usb" ]];             then ENABLE_USB=true;           else ENABLE_USB=false;              fi
     if [[ $OPTIONS =~ "zswap" ]];           then ENABLE_ZSWAP=true;         else ENABLE_ZSWAP=false;            fi
@@ -1135,14 +1203,33 @@ if [ "$FIX_EXTLINUX" = true ] && [ "$USE_GRUB" = true ]; then
     fi
 fi
 
+# Conflict Resolution - +INCLUDE_MPG321/-ENABLE_SOUND
+if [ "$INCLUDE_MPG321" = true ] && [ "$ENABLE_SOUND" = false ]; then
+    dialog --clear \
+        --backtitle "SHORK 486 Build Configurator" \
+        --title "Conflict Resolution - +INCLUDE_MPG321/-ENABLE_SOUND" \
+        --yes-label "Enable sound" \
+        --no-label "Exclude mpg321" \
+        --yesno "You have chosen to include mpg321 and but not enable kernel-level sound support. Kernel-level sound support is required for mpg321 to produce audio. Do you wish to enable the required support, or exclude mpg321?" \
+        7 "$WIDTH"
+
+    CHOICE=$?
+
+    if [[ $CHOICE -eq 0 ]]; then
+        ENABLE_SOUND=true
+    elif [[ $CHOICE -eq 1 ]]; then
+        INCLUDE_MPG321=false
+    fi
+fi
+
 # Conflict Resolution - +MT_ST/-SCSI_EXP
 if [ "$INCLUDE_MT_ST" = true ] && [ "$ENABLE_SCSI_EXP" = false ]; then
     dialog --clear \
         --backtitle "SHORK 486 Build Configurator" \
         --title "Conflict Resolution - +MT_ST/-SCSI_EXP" \
         --yes-label "Enable support" \
-        --no-label "Disable tools" \
-        --yesno "You have chosen to enable \"tape drive tools\" but disable \"kernel-level SCSI media changer & tape drive support\". Kernel-level support is required for the tape drive tools to work. Do you wish to enable the required support, or disable the tools?" \
+        --no-label "Exclude tools" \
+        --yesno "You have chosen to enable \"tape drive tools\" but disable \"kernel-level SCSI media changer & tape drive support\". Kernel-level support is required for the tape drive tools to work. Do you wish to enable the required support, or exclude the tools?" \
         8 "$WIDTH"
 
     CHOICE=$?
@@ -1151,5 +1238,26 @@ if [ "$INCLUDE_MT_ST" = true ] && [ "$ENABLE_SCSI_EXP" = false ]; then
         ENABLE_SCSI_EXP=true
     elif [[ $CHOICE -eq 1 ]]; then
         INCLUDE_MT_ST=false
+    fi
+fi
+
+
+
+# Advisory - +INCLUDE_NASM/-INCLUDE_GCC
+if [ "$INCLUDE_NASM" = true ] && [ "$INCLUDE_GCC" = false ]; then
+    dialog --clear \
+        --backtitle "SHORK 486 Build Configurator" \
+        --title "Advisory - +INCLUDE_NASM/-INCLUDE_GCC" \
+        --yes-label "Include GCC + binutils + musl" \
+        --no-label "Ignore" \
+        --yesno "You have chosen to include NASM but exclude GCC + binutils + musl. Whilst NASM will work without it, SHORK 486 will lack a linker to produce a final binary from NASM's ELF output. If you only intend to produce flat binaries, use ndisasm or provide your own linker, you may ignore this advisory. Otherwise, including GCC + binutils + musl will provide a linker to use." \
+        9 "$WIDTH"
+
+    CHOICE=$?
+
+    if [[ $CHOICE -eq 0 ]]; then
+        INCLUDE_GCC=true
+    elif [[ $CHOICE -eq 1 ]]; then
+        :
     fi
 fi
