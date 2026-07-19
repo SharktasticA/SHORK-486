@@ -1,6 +1,6 @@
 # SHORK 486 Gallery
 
-* Updated 11th April 2026
+* Updated 18th July 2026
 
 
 
@@ -13,13 +13,13 @@
   </tr>
   <tr>
     <td>First boot on IBM ThinkPad 365ED</td>
-    <td>shorkfetch on IBM ThinkPad 365ED</td>
+    <td>SHORKFETCH on IBM ThinkPad 365ED</td>
   </tr>
 </table>
 
 
 
-## 86Box screenshots
+## Screenshots
 
 <table style="table-layout: fixed; width: 100%;">
   <tr>
@@ -35,11 +35,11 @@
 <table style="table-layout: fixed; width: 100%;">
   <tr>
     <td style="width: 50%; text-align: center;"><img src="https://raw.githubusercontent.com/SharktasticA/shorkfetch/refs/heads/main/screenshots/86box_shork-486.png" style="width: 100%;" /></td>
-    <td style="width: 50%; text-align: center;"><img src="https://raw.githubusercontent.com/SharktasticA/shorkhelp/refs/heads/main/screenshots/86box_commands.png" style="width: 100%;" /></td>
+    <td style="width: 50%; text-align: center;"><img src="https://raw.githubusercontent.com/SharktasticA/shorkhelp/refs/heads/main/screenshots/menu.png" style="width: 100%;" /></td>
   </tr>
   <tr>
-    <td>shorkfetch</td>
-    <td>shorkhelp (--commands)</td>
+    <td>SHORKFETCH</td>
+    <td>SHORKHELP</td>
   </tr>
 </table>
 
@@ -49,41 +49,41 @@
     <td style="width: 50%; text-align: center;"><img src="https://raw.githubusercontent.com/SharktasticA/shorkdir/refs/heads/main/screenshots/86box_inspect_executable_shork-486.png" style="width: 100%;" /></td>
   </tr>
   <tr>
-    <td>shorkdir (1)</td>
-    <td>shorkdir (2)</td>
+    <td>SHORKDIR (1)</td>
+    <td>SHORKDIR (2)</td>
   </tr>
 </table>
 
 <table style="table-layout: fixed; width: 100%;">
   <tr>
-    <td style="width: 50%; text-align: center;"><img src="https://raw.githubusercontent.com/SharktasticA/shorkmatrix/refs/heads/main/screenshot.png" style="width: 100%;" /></td>
-    <td style="width: 50%; text-align: center;"><img src="https://raw.githubusercontent.com/SharktasticA/shorksay/refs/heads/main/screenshot.png" style="width: 100%;" /></td>
-  </tr>
-  <tr>
-    <td>shorkmatrix</td>
-    <td>shorksay</td>
-  </tr>
-</table>
-
-<table style="table-layout: fixed; width: 100%;">
-  <tr>
-    <td style="width: 50%; text-align: center;"><img src="screenshots/86box_shorkfont.png" style="width: 100%;" /></td>
-    <td style="width: 50%; text-align: center;"><img src="screenshots/86box_shorkfont_colour.png" style="width: 100%;" /></td>
-  </tr>
-  <tr>
-    <td>shorkfont (1)</td>
-    <td>shorkfont (2)</td>
-  </tr>
-</table>
-
-<table style="table-layout: fixed; width: 100%;">
-  <tr>
-    <td style="width: 50%; text-align: center;"><img src="screenshots/86box_shorkmap.png" style="width: 100%;" /></td>
+    <td style="width: 50%; text-align: center;"><img src="https://raw.githubusercontent.com/SharktasticA/shorkset/refs/heads/main/screenshots/menu.png" style="width: 100%;" /></td>
     <td style="width: 50%; text-align: center;"><img src="screenshots/86box_shorkoff.png" style="width: 100%;" /></td>
   </tr>
   <tr>
-    <td>shorkmap</td>
-    <td>shorkoff</td>
+    <td>SHORKSET</td>
+    <td>SHORKOFF</td>
+  </tr>
+</table>
+
+<table style="table-layout: fixed; width: 100%;">
+  <tr>
+    <td style="width: 50%; text-align: center;"><img src="https://raw.githubusercontent.com/SharktasticA/shorklocomotive/refs/heads/main/screenshot.png" style="width: 100%;" /></td>
+    <td style="width: 50%; text-align: center;"><img src="https://raw.githubusercontent.com/SharktasticA/shorkmatrix/refs/heads/main/screenshot.png" style="width: 100%;" /></td>
+  </tr>
+  <tr>
+    <td>SHORKLOCOMOTIVE</td>
+    <td>SHORKMATRIX</td>
+  </tr>
+</table>
+
+<table style="table-layout: fixed; width: 100%;">
+  <tr>
+    <td style="width: 50%; text-align: center;"><img src="https://raw.githubusercontent.com/SharktasticA/shorkmines/refs/heads/master/screenshots/vmware_shork-486_in_play.png" style="width: 100%;" /></td>
+    <td style="width: 50%; text-align: center;"><img src="https://raw.githubusercontent.com/SharktasticA/shorksay/refs/heads/main/screenshot.png" style="width: 100%;" /></td>
+  </tr>
+  <tr>
+    <td>SHORKMINES</td>
+    <td>SHORKSAY</td>
   </tr>
 </table>
 
@@ -100,51 +100,45 @@
 
 <table style="table-layout: fixed; width: 100%;">
   <tr>
-    <td style="width: 50%; text-align: center;"><img src="screenshots/86box_mg.png" style="width: 100%;" /></td>
-    <td style="width: 50%; text-align: center;"><img src="screenshots/86box_git_init.png" style="width: 100%;" /></td>
-  </tr>
-  <tr>
-    <td>Mg</td>
-    <td>git init</td>
-  </tr>
-</table>
-
-<table style="table-layout: fixed; width: 100%;">
-  <tr>
     <td style="width: 50%; text-align: center;"><img src="screenshots/86box_ed.png" style="width: 100%;" /></td>
-    <td style="width: 50%; text-align: center;"><img src="screenshots/86box_nano.png" style="width: 100%;" /></td>
+    <td style="width: 50%; text-align: center;"><img src="screenshots/86box_mg.png" style="width: 100%;" /></td>
   </tr>
   <tr>
     <td>ed</td>
+    <td>Mg</td>
+  </tr>
+</table>
+
+<table style="table-layout: fixed; width: 100%;">
+  <tr>
+    <td style="width: 50%; text-align: center;"><img src="screenshots/86box_nano.png" style="width: 100%;" /></td>
+    <td style="width: 50%; text-align: center;"><img src="screenshots/86box_vi.png" style="width: 100%;" /></td>
+  </tr>
+  <tr>
     <td>nano</td>
+    <td>vi</td>
   </tr>
 </table>
 
 <table style="table-layout: fixed; width: 100%;">
   <tr>
-    <td style="width: 50%; text-align: center;"><img src="screenshots/86box_shorkres_svga.png" style="width: 100%;" /></td>
-    <td style="width: 50%; text-align: center;"><img src="screenshots/86box_shorkres_xga.png" style="width: 100%;" /></td>
+    <td style="width: 50%; text-align: center;"><img src="screenshots/86box_git_init.png" style="width: 100%;" /></td>
+    <td style="width: 50%; text-align: center;"><img src="screenshots/86box_tcc.png" style="width: 100%;" /></td>
   </tr>
   <tr>
-    <td>SVGA mode</td>
-    <td>XGA mode</td>
+    <td>git init</td>
+    <td>Tiny C Compiler</td>
   </tr>
 </table>
 
 <table style="table-layout: fixed; width: 100%;">
   <tr>
-    <td style="width: 50%; text-align: center;"><img src="screenshots/86box_shorkgui.png" style="width: 100%;" /></td>
-    <td style="width: 50%; text-align: center;"></td>
+    <td style="width: 100%; text-align: center;"><img src="screenshots/86box_shorkgui.png" style="width: 100%;" /></td>
   </tr>
   <tr>
     <td>SHORKGUI (experimental)</td>
-    <td></td>
   </tr>
 </table>
-
-
-
-## VMware Workstation screenshots
 
 <table style="table-layout: fixed; width: 100%;">
   <tr>
