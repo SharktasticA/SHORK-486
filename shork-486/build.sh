@@ -136,6 +136,8 @@ GIT_SRC="https://github.com/git/git.git"
 GIT_VER="2.55.0"
 HTOP_SRC="https://github.com/htop-dev/htop.git"
 HTOP_VER="3.5.1"
+HWINFO_SRC="https://github.com/opensuse/hwinfo.git"
+HWINFO_VER="25.4"
 INDENT_SRC="https://ftp.gnu.org/gnu/indent"
 INDENT_VER="2.2.13"
 JOE_SRC="https://github.com/joe-editor/joe"
@@ -267,6 +269,7 @@ INCLUDE_GCC=false
 INCLUDE_GIT=true
 INCLUDE_GUI=false
 INCLUDE_HTOP=true
+INCLUDE_HWINFO=false
 INCLUDE_INDENT=false
 INCLUDE_JOE=false
 INCLUDE_KEYMAPS=true
@@ -509,6 +512,7 @@ NEED_LIBAO=false
 NEED_LIBEVENT=false
 NEED_LIBID3TAG=false
 NEED_LIBMAD=false
+NEED_LIBUUID=false
 NEED_LIBXLSXWRITER=false
 NEED_LIBXML2=false
 NEED_LIBZIP=false
@@ -527,6 +531,11 @@ if $INCLUDE_GIT; then
     NEED_CURL=true
     NEED_OPENSSL=true
     NEED_ZLIB=true
+fi
+
+if $INCLUDE_HWINFO; then
+    NEED_LIBUUID=true
+    NEED_X86EMU=true
 fi
 
 if $INCLUDE_LYNX; then
@@ -1082,6 +1091,51 @@ get_libmad()
         CFLAGS="${CFLAGS}" \
         LDFLAGS="-static -L$SYSROOT/usr/lib"
     make CFLAGS="${CFLAGS}" -j$(nproc)
+    make DESTDIR=$SYSROOT install
+}
+
+# Download and compile util-linux for libuuid (required for hwinfo)
+get_libuuid()
+{
+    mkdir -p "$CURR_DIR/build/libuuid"
+    cd "$CURR_DIR/build/libuuid"
+
+    # Skip if already compiled
+    if [ -f "$DESTDIR/usr/bin/lscpu" ] &&
+       [ -f "$DESTDIR/usr/bin/partx" ] &&
+       [ -f "$DESTDIR/usr/sbin/sfdisk" ] &&
+       [ -f "$DESTDIR/usr/bin/whereis" ]; then
+        echo -e "${LIGHT_RED}util-linux for libuuid already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d util-linux ]; then
+        echo -e "${YELLOW}util-linux for libuuid source already present, resetting...${RESET}"
+        cd util-linux
+        git config --global --add safe.directory $CURR_DIR/build/libuuid/util-linux
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading util-linux for libuuid...${RESET}"
+        git clone --depth=1 --branch v$UTIL_LINUX_VER $UTIL_LINUX_SRC
+        cd util-linux
+    fi
+
+    # Compile and install
+    echo -e "${GREEN}Compiling util-linux for libuuid...${RESET}"
+    ./autogen.sh
+    ./configure \
+        --host=${HOST} \
+        --prefix=/usr \
+        --disable-all-programs \
+        --enable-libuuid \
+        CC="${CC_STATIC}" \
+        CFLAGS="-Os -march=${ARCH} -I${PREFIX}/include" \
+        CPPFLAGS="-I${PREFIX}/include" \
+        LDFLAGS="-L${PREFIX}/lib -static" \
+        PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig"
+    make TINFO_LIBS="" -j$(nproc)
     make DESTDIR=$SYSROOT install
 }
 
@@ -4087,6 +4141,46 @@ get_htop()
     ./configure --host=${HOST} --prefix=/usr CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" CFLAGS="-Os -march=${ARCH} -I${PREFIX}/include -I${PREFIX}/include/ncursesw" LDFLAGS="-static -L${PREFIX}/lib"
     make -j$(nproc)
     sudo cp htop $DESTDIR/usr/bin
+}
+
+# Download and compile hwinfo
+get_hwinfo()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$DESTDIR/usr/bin/hwinfo" ]; then
+        echo -e "${LIGHT_RED}hwinfo already compiled, skipping...${RESET}"
+        #return
+    fi
+
+    # Download source
+    if [ -d hwinfo ]; then
+        echo -e "${YELLOW}hwinfo source already present, resetting...${RESET}"
+        cd hwinfo
+        git config --global --add safe.directory "$CURR_DIR/build/hwinfo"
+        git reset --hard
+    else
+        echo -e "${GREEN}Downloading hwinfo...${RESET}"
+        git clone --branch "${HWINFO_VER}" $HWINFO_SRC
+        cd hwinfo
+    fi
+
+    # Compile and install
+    echo -e "${GREEN}Compiling hwinfo...${RESET}"
+    make \
+        CC="${CC_STATIC}" \
+        AR="${AR}" \
+        RANLIB="${RANLIB}" \
+        STRIP="${STRIP}" \
+        SYSROOT="${SYSROOT}" \
+        ENABLE_ISDN=0 \
+        ENABLE_HAL=1 \
+        ENABLE_SYSFS=1 \
+        ENABLE_UDEV=1 \
+        ENABLE_X86EMU=1
+        -j$(nproc)
+    sudo make DESTDIR=$DESTDIR install
 }
 
 # Download and compile JOE
@@ -7286,6 +7380,9 @@ fi
 if $NEED_LIBZIP; then
     get_libzip
 fi
+if $NEED_LIBUUID; then
+    get_libuuid
+fi
 if $NEED_X86EMU; then
     get_x86emu
 fi
@@ -7380,6 +7477,9 @@ if $INCLUDE_GIT; then
 fi
 if $INCLUDE_HTOP; then
     get_htop
+fi
+if $INCLUDE_HWINFO; then
+    get_hwinfo
 fi
 if $INCLUDE_INDENT; then
     get_prog_tar \
