@@ -923,7 +923,7 @@ get_tic()
     sudo install -D progs/tic "$DESTDIR/usr/bin/tic"
 }
 
-# Download and compile curl (required for Git/HTTPS remote)
+# Download and compile curl (required for Git)
 get_curl()
 {
     cd "$CURR_DIR/build"
@@ -1305,8 +1305,7 @@ get_libzip()
     cp lib/zip.h "${PREFIX}/include/"
 }
 
-# Download and compile OpenSSL (required for curl, Lynx, Git/HTTPS remote and
-# tn5250)
+# Download and compile OpenSSL (required for curl, Git, Lynx and tn5250)
 get_openssl()
 {
     cd "$CURR_DIR/build"
@@ -5295,6 +5294,12 @@ copy_licences()
         CSV+="\nCscope,BSD 3-Clause,cscope.txt"
     fi
 
+    if $NEED_CURL && 
+       [ -f "$CURR_DIR/build/curl-${CURL_VER}/COPYING" ]; then
+        cp "$CURR_DIR/build/curl-${CURL_VER}/COPYING" "$DESTDIR/LICENCES/curl.txt" || true
+        CSV+="\ncurl,MIT,curl.txt"
+    fi
+
     if $INCLUDE_DIALOG && 
        [ -f "$CURR_DIR/build/dialog-${DIALOG_VER}/COPYING" ]; then
         cp "$CURR_DIR/build/dialog-${DIALOG_VER}/COPYING" "$DESTDIR/LICENCES/dialog.txt" || true
@@ -5371,6 +5376,50 @@ copy_licences()
         CSV+="\nlapitfetch,MIT,lapifetch.txt"
     fi
 
+    if $NEED_LIBAO && 
+       [ -f "$CURR_DIR/build/libao/COPYING" ]; then
+        cp "$CURR_DIR/build/libao/COPYING" "$DESTDIR/LICENCES/libao.txt" || true
+        CSV+="\nlibao,GNU GPLv2,libao.txt"
+    fi
+
+    if $NEED_LIBEVENT && 
+       [ -f "$CURR_DIR/build/libevent/LICENSE" ]; then
+        cp "$CURR_DIR/build/libevent/LICENSE" "$DESTDIR/LICENCES/libevent.txt" || true
+        CSV+="\nlibevent,BSD 3-Clause,libevent.txt"
+    fi
+
+    if $NEED_LIBID3TAG && 
+       [ -f "$CURR_DIR/build/libid3tag/COPYING" ]; then
+        cp "$CURR_DIR/build/libid3tag/COPYING" "$DESTDIR/LICENCES/libid3tag.txt" || true
+        CSV+="\nlibid3tag,GNU GPLv2,libid3tag.txt"
+    fi
+
+    if $NEED_LIBMAD && 
+       [ -f "$CURR_DIR/build/libmad/COPYING" ]; then
+        cp "$CURR_DIR/build/libmad/COPYING" "$DESTDIR/LICENCES/libmad.txt" || true
+        CSV+="\nlibmad,GNU GPLv2,libmad.txt"
+    fi
+
+    # TODO: $NEED_LIBUUID
+
+    if $NEED_LIBXLSXWRITER && 
+       [ -f "$CURR_DIR/build/libxlsxwriter/License.txt" ]; then
+        cp "$CURR_DIR/build/libxlsxwriter/License.txt" "$DESTDIR/LICENCES/libxlsxwriter.txt" || true
+        CSV+="\nlibxlsxwriter,BSD 2-Clause,libxlsxwriter.txt"
+    fi
+
+    if $NEED_LIBXML2 && 
+       [ -f "$CURR_DIR/build/libxml2/Copyright" ]; then
+        cp "$CURR_DIR/build/libxml2/Copyright" "$DESTDIR/LICENCES/libxml2.txt" || true
+        CSV+="\nlibxml2,MIT,libxml2.txt"
+    fi
+
+    if $NEED_LIBZIP && 
+       [ -f "$CURR_DIR/build/libzip/LICENSE" ]; then
+        cp "$CURR_DIR/build/libzip/LICENSE" "$DESTDIR/LICENCES/libzip.txt" || true
+        CSV+="\nlibzip,BSD 3-Clause,libzip.txt"
+    fi
+
     if $INCLUDE_LYNX && 
        [ -f "$CURR_DIR/build/lynx-snapshots/COPYING" ]; then
         cp "$CURR_DIR/build/lynx-snapshots/COPYING" "$DESTDIR/LICENCES/lynx.txt" || true
@@ -5443,6 +5492,12 @@ copy_licences()
     if [ -f "$DESTDIR/usr/bin/oneko" ]; then
         echo "Public domain" | sudo tee "$DESTDIR/LICENCES/oneko.txt" > /dev/null
         CSV+="\noneko,public domain,oneko.txt"
+    fi
+
+    if $NEED_OPENSSL && 
+       [ -f "$CURR_DIR/build/openssl/LICENSE.txt" ]; then
+        cp "$CURR_DIR/build/openssl/LICENSE.txt" "$DESTDIR/LICENCES/openssl.txt" || true
+        CSV+="\nOpenSSL,Apache 2.0,openssl.txt"
     fi
 
     if $INCLUDE_PCI_IDS && 
@@ -5557,6 +5612,8 @@ copy_licences()
         CSV+="\nVim,Vim License,vim.txt"
     fi
 
+    # TODO: $NEED_X86EMU
+
     if [ -f "$DESTDIR/usr/bin/xli" ] && 
        [ -f "$CURR_DIR/build/xli/LICENSE" ]; then
         cp "$CURR_DIR/build/xli/LICENSE" "$DESTDIR/LICENCES/xli.txt" || true
@@ -5573,6 +5630,12 @@ copy_licences()
        [ -f "$CURR_DIR/build/xset-1.2.5/COPYING" ]; then
         cp "$CURR_DIR/build/xset-1.2.5/COPYING" "$DESTDIR/LICENCES/xset.txt" || true
         CSV+="\nxset,MIT,xset.txt"
+    fi
+
+    if $NEED_ZLIB && 
+       [ -f "$CURR_DIR/build/zlib/LICENSE" ]; then
+        cp "$CURR_DIR/build/zlib/LICENSE" "$DESTDIR/LICENCES/zlib.txt" || true
+        CSV+="\nzlib,zlib,zlib.txt"
     fi
 
     echo -e "$CSV" > "$DESTDIR/LICENCES/manifest.csv"
