@@ -553,6 +553,7 @@ if $INCLUDE_SC_IM; then
     NEED_LIBXLSXWRITER=true
     NEED_LIBXML2=true
     NEED_LIBZIP=true
+    NEED_ZLIB=true
 fi
 
 if $INCLUDE_TMUX; then
@@ -1179,7 +1180,6 @@ get_libid3tag()
         RANLIB=$RANLIB \
         CFLAGS="-static -I$SYSROOT/usr/include" \
         LDFLAGS="-static -L$SYSROOT/usr/lib"
-
     make -j$(nproc)
     make DESTDIR=$SYSROOT install
 }
