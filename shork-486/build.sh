@@ -209,6 +209,8 @@ UTIL_LINUX_SRC="https://github.com/util-linux/util-linux.git"
 UTIL_LINUX_VER="2.42.2"
 VIM_SRC="https://github.com/vim/vim.git"
 VIM_VER="9.2.0785"
+X86EMU_SRC="https://github.com/wfeldt/libx86emu.git"
+X86EMU_VER="3.7"
 ZLIB_SRC="https://github.com/madler/zlib.git"
 ZLIB_VER="1.3.2"
 
@@ -510,10 +512,11 @@ NEED_LIBMAD=false
 NEED_LIBXLSXWRITER=false
 NEED_LIBXML2=false
 NEED_LIBZIP=false
+NEED_X86EMU=false
 NEED_ZLIB=false
 
-if [ -n "$USED_WM" ]; then
-    NEED_ZLIB=true
+if $ENABLE_FB; then
+    NEED_X86EMU=true
 fi
 
 if $INCLUDE_CTAGS; then
@@ -545,6 +548,10 @@ fi
 
 if $INCLUDE_TMUX; then
     NEED_LIBEVENT=true
+fi
+
+if [ -n "$USED_WM" ]; then
+    NEED_ZLIB=true
 fi
 
 
@@ -1309,6 +1316,40 @@ get_zlib()
     ./configure  --static --prefix=/usr
     make -j$(nproc)
     make DESTDIR="$SYSROOT" install
+}
+
+# Download and compile x86emu (required for SHORKSET's VBE resolution detection)
+get_x86emu()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/libx86emu.a" ]; then
+        echo -e "${LIGHT_RED}x86emu already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d libx86emu ]; then
+        echo -e "${YELLOW}x86emu source already present, resetting...${RESET}"
+        git config --global --add safe.directory $CURR_DIR/build/libx86emu
+        cd libx86emu
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading x86emu...${RESET}"
+        git clone --branch $X86EMU_VER $X86EMU_SRC
+        cd libx86emu
+    fi
+
+    echo -e "${GREEN}Compiling x86emu...${RESET}"
+    for f in *.c; do
+        "$CC_STATIC" -c -Os -march=${ARCH} -static --sysroot=$SYSROOT -I include -o "${f%.c}.o" "$f"
+    done
+    "$AR" rcs libx86emu.a *.o
+    "$RANLIB" libx86emu.a
+    install -D -m644 libx86emu.a "$SYSROOT/usr/lib/libx86emu.a"
+    install -D -m644 include/x86emu.h "$SYSROOT/usr/include/x86emu.h"
 }
 
 # Download and build our forked ISOLINUX/EXTLINUX/SYSLINUX (required if "Fix
@@ -7244,6 +7285,9 @@ if $NEED_LIBXML2; then
 fi
 if $NEED_LIBZIP; then
     get_libzip
+fi
+if $NEED_X86EMU; then
+    get_x86emu
 fi
 
 if $INCLUDE_GUI; then
