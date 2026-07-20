@@ -103,7 +103,24 @@ addgroup, adduser, ar, arch, ascii, ash, awk, base32, base64, basename, bc, beep
 * \* _This replaces a BusyBox version of the same utility_
 * _† Their inclusion is experimental - expect bugs_
 * _‡ GCC and GNU Binutils are separate projects but are bundled together as one complete toolchain_
-* _§ [musl 1.2.6](https://musl.libc.org/) (MIT licensed) is automatically included with these_
+* _§ These include musl for their libc_
+
+#### Libraries & prerequisites
+
+| Name | Version | For | Licence(s) |
+|------|---------|-----|------------|
+| [curl](https://curl.se/) | 8.21.0 | Git | MIT |
+| [libao](https://github.com/xiph/libao) | 1.2.2 | mpg321 | GNU GPLv2 |
+| [libevent](https://github.com/libevent/libevent) | 2.1.13 | tmux | BSD 3-Clause |
+| [libid3tag](https://github.com/markjeee/libid3tag) | 0.15.1b | mpg321 | GNU GPLv2 |
+| [libmad](https://github.com/markjeee/libmad) | 0.15.1b | mpg321 | GNU GPLv2 |
+| [libxlsxwriter](https://github.com/jmcnamara/libxlsxwriter) | 1.2.4 | sc-im | BSD 2-Clause |
+| [libxml2](https://github.com/gnome/libxml2) | 2.15.3 | sc-im, Universal Ctags | MIT |
+| [libzip](https://github.com/nih-at/libzip) | 1.11.4 | sc-im | BSD 3-Clause |
+| [musl](somethhttps://musl.libc.org/) | 1.2.6 | GCC, Tiny C Compiler | MIT |
+| [ncurses](https://github.com/mirror/ncurses) | 6.4 | htop, Lynx, nano, sc-im, tic, tmux, tn5250, util-linux, x3270 | MIT |
+| [OpenSSL](https://github.com/openssl/openssl) | 3.6.3 | curl, Git, Lynx, tn5250 | Apache 2.0 |
+| [zlib](https://github.com/madler/zlib) | 1.3.2 | Git, libzip | zlib |
 
 ### SHORK Utilities (shorkutils)
 
