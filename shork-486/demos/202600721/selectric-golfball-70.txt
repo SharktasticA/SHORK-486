@@ -1,0 +1,195 @@
+# The 70-year anniversary of two important IBM Selectric patents
+
+Today, Admiral Shark's Keyboards is celebrating the 70th anniversary of two
+important patents being filed pertaining to the iconic IBM Selectric electric
+typewriter! On the 17th November 1955, engineers at IBM Poughkeepsie submitted
+two patent applications for the future Selectric's type element and most of its
+supporting assembly that would largely define what the then-future Selectric
+was to become. The Selectric is known for its "golfball" type element that
+moves across the typewriter instead of having the entire carriage move, and
+of course for outwardly typical IBM industrial design and class. Selectrics
+would go on to dominate offices for the following two decades, and serve
+as a major influence for the many IBM keyboard designs that came after and
+feature throughout this website.
+
+## Some background
+
+A big part of what made Selectric so special is that it is a single type
+element typewriter. Most typewriters before it - including the Electromatic/IBM
+Electric family - use typebars, a system comprising a semicircle of arms,
+each with a character and aimed towards a central printing position. Pressing
+a key actuates the arm towards the paper. Typewriters with such a mechanism
+are susceptible to jamming if more than one key is pressed at once, which
+potentially causes the typebars to become entangled.
+
+Most typebar typewriters are not designed to have their font routinely
+changed. Typewriters that can do it, such as the Imperial A through D
+downstrike typewriters, may require changing their entire type basket
+(a combination of the keyboard assembly and typebars). Some typewriters
+supported individual typebar removal, but typically for a servicability
+context rather than for changing font.
+
+Having a single type element as the typewriter's print head can directly
+address those two issues. Having just a single type element means there are
+no others that can interfere and jam it, and there is a single, smaller
+'thing' that needs to be changed to switch fonts. Selectric was not the
+first single-element design, though. The Crandall 1 (introduced in 1883)
+is considered the earliest known commercial single-element typewriter,
+and even featured proportional spacing when most Selectrics did not. Other
+examples include the Hammond typewriter family (and its Vari-Typer successors)
+that entered production in 1884 with its "typeshuttle" element and impression
+hammer that pushes the paper and ink ribbon towards the element rather than
+the element moves towards the paper, and the Blickensderfer typewriter family
+and its type cylinder that was patented on 12th April 1892.
+
+I think what the Selectric got right was a combination of the single type
+element, the fact that the carrier with the element moves instead of the entire
+carriage, and the ingenious design of its internals and electromechanical
+speed it can achieve. Selectrics also got heavily augmented for various
+phototypesetting (Selectric Composer family) and neo-word-processing (e.g.,
+Magnetic Tape and Mag Card) roles. Not to mention that Selectric technology
+or simply the use of spherical elements empowered by electromagnets/solenoids
+found its way into printers such as the IBM 1053 Console Printer and terminal
+I/O devices such as the 1052 I/O Printer-Keyboard, 2740 and 2741 Communications
+Terminals and 3210 Console Printer-Keyboard.
+
+Of interest to this website is, of course, the keyboard, which had a
+significant reputation behind it and is what IBM tried to recapture with
+various clicky keyswitch technologies in the following two decades after the
+Selectric's release. Even in the '90s, when IBM was developing laptops and
+notebooks such as the IBM PS/2 Model L40 SX and ThinkPad family with Model
+M3 and M6/M6-1 keyboards (respectively), the people behind those projects
+looked back fondly on their IBM Selectric keyboard heritage:
+
+    We started with certain advantages. One was that our keyboards were
+    descendants of the old IBM Selectric electronic [sic] typewriter,
+    another piece of technology that many young people today have never
+    seen. Keyboards were designed by the keyboard manufacturing division
+    in Lexington, Kentucky, which is where the Selectric used to be made.
+    - How the ThinkPad Changed the World-and Is Shaping the Future, 2017
+
+## The birthday patents
+
+### The element
+
+The first patent of interest that is having its "birthday" today is the
+"single element printing head" (US2895584A), filed 70 years ago. As explained
+in the background section, the idea of a single type element is not novel by
+this point. Whilst the "prior art" had mostly been fairly solid cylinders,
+this design is a spherical-shaped element with a separable hollow "top
+shell". This is the iconic 'typeball' part of a Selectric we now love to
+call a "golfball" today.
+
+The top shell has a grid of characters around its surface that can be moved
+into a printing position to be struck, requiring a rotation and tilt force
+to do so (but what generates those forces is not within the scope of this
+patent). However, both forces are intended to be 'governed' via detents to
+ensure the character is struck "squarely" without sliding or smudging the
+print. The top shell can be removed and swapped to allow different typefaces
+without replacing the entire mechanism.
+
+The invention also intends the sphere to be a relatively small one, which
+is advantageous compared to a potentially larger design:
+
+ * On a small sphere, characters get naturally angled further apart and cannot
+   inadvertently touch/smudge on the paper.
+ * To achieve the same effect on a larger sphere, the spacing of characters
+   would need to be larger, and thus more rotation and tilt force is required to
+   access them.
+
+The main difference compared to the production Selectric element design is
+that the top shell is screwed into place rather than clipped on, an innovation
+for a future patent.
+
+### The machine
+
+The second patent turning 70 today is the "single element printing machine"
+(US2879876A). Whilst this patent was filed before the element's, I wanted
+to talk about that before the whole machine. This patent explains how a
+spherical single type element machine can be constructed and work in principle.
+
+The whiffletree mechanism that Selectrics are famous for is not yet present;
+it uses direct wire-and-cam control of both required forces, but it establishes
+the general selection process from key levers to actually manipulating the
+element, and that the element carrier is what moves rather than the entire
+carriage. But the patent does provide an example code chart showing how each
+key and character can have a specific rotation and tilt code that needs to be
+achieved. It also claims that during testing, it was found that the machine
+could "satisfactorily" print at 19 characters per second, versus the general
+14.8 to 15.5 characters per second upper limit for production Selectrics.
+
+An interesting observation of the depiction is that the Selectric keyboard
+at this point uses keycaps akin to that of IBM Models A through C Electric
+Typewriters, rather than the spherical-style keycaps Selectrics popularised
+for IBM keyboard designs until the early 1980s.
+
+### The names involved
+
+Both patents refer to John E. Hickerson and Ralph E. Page as inventors, with
+Leon E. Palmer being unique to the machine patent and James A. Weidenhammer
+to the element patent. All four are said to be of Poughkeepsie, New York,
+in one of the two patents, with Hickerson being of Wappingers Falls, New
+York, specifically in the machine patent. Poughkeepsie was the location of
+a major IBM factory (plant number 2), which indeed produced typewriters.
+
+Hickerson is considered the "lead inventor" of the element patent, whereas
+Palmer is such for the machine patent. IBM considers both men amongst those
+pivotal to the Selectric, with Hickerson specifically credited as transforming
+IBM's single type element design from a mushroom shape (shown later) into the
+iconic spherical shape, and Palmer later pioneered its character selection
+system. Whilst not referenced in either patent, Horace S. "Bud" Beattie is
+credited with coining the "golfball" element concept, while noting the shape
+of a ligthbulb as he changed it in his Lexington home."
+
+### Other notable patents
+
+The two patents celebrating their anniversary today do not make a complete
+Selectric on their own, and there are several other patents before and after
+worth noting.
+
+The "high speed printing mechanism" (US2661683A) filed on the 17th April 1948
+is the most notable pre-Selectric IBM design that is on the path towards
+our beloved Selectric. The final figure in the filing shows the "mushroom"
+design that Beattie had been working on until the "spherical" idea came to
+be. The element is in turn inspired by an even earlier, non-IBM patent for a
+"type-writing machine" (US393259A) filed by Charles H. Perry on 23rd May 1887.
+
+The aforementioned character selection system is the next big step, the
+"selection mechanism for a single printing element typewriter" (US2919002A)
+applied on 19th April 1957 and credited solely to Palmer. The character
+selection system is what processes a pressed key into a certain amount of
+rotation or tilt force. It most notably describes its whiffletree, used as
+a linkage-style binary-to-analogue converter.
+
+On 27th October 1960, the "printing mechanism" (US3001628A) patent by Russel
+W. Rice, Jr. was filed that refined the element itself. It shows an element
+design much closer to that of the final production version, which compared
+to the earlier element, uses a clip for securing the shell rather than a screw.
+
+The actual ornamental exterior design is credited to Eliot F. Noyes, an
+architect and industrial designer who worked with IBM for 21 years. Before
+Selectric, he had worked on the IBM Model A electric typewriter
+(USD160139S). The earliest two Selectric design patents were of the
+Selectric I (obviously, USD192829S) and the Selectric I/O Keyboard Printer
+(USD194856S). They are utterly fantastic; even without any fill or colour,
+Noyes' brilliance is apparent. I think the original Selectric is one of IBM's
+most beautiful products. When I was compiling my Keyboard Patents database
+earlier this year, I would often be mesmerised by some of the illustrations
+I was seeing, and Noyes' were the main culprits!
+
+### A word from me
+
+This is the first article I have attempted to write solely about typewriter
+technology rather than just keyboards. Whilst I hope I got most things right,
+I am still learning. If you believe there are any mistakes and corrections
+to be made, I welcome any polite feedback via email as I wish to not only
+improve but also cover more typewriter topics in the future.
+
+I also want to give my thanks to Mr. Haelscheir and shoggot of Discord
+for answering my queries about typebar-based typewriters that could change
+font and pre-Selectric single-element typewriters. I didn't want to make a
+sweeping statement that either was entirely Selectric innovation, and they
+helped me do just that!
+
+From: https://sharktastica.co.uk/articles/selectric-golfball-70
+Licence: CC BY-NC-SA 4.0
