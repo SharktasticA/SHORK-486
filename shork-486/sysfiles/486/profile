@@ -100,8 +100,6 @@ _swap_wrap()
         SWAP_OK=1
     fi
 
-    free -h
-
     _swap_cleanup()
     {
         if [ "$SWAP_OK" = "1" ]; then
@@ -116,7 +114,6 @@ _swap_wrap()
     local RET=$?
 
     _swap_cleanup
-    free -h
     return $RET
 }
 
