@@ -79,11 +79,11 @@ _swap_wrap()
         TARGET_B=$((RAM_B * 2))
     fi
 
-    # Make sure target is less than half root partition size
-    local ROOT_B=$(df -B1 --output=size / 2>/dev/null | tail -n1 | tr -d ' ')
-    if [ -n "$ROOT_B" ] && [ "$ROOT_B" -gt 0 ]; then
-        if [ "$ROOT_B" -lt $((TARGET_B * 2)) ]; then
-            TARGET_B=$((ROOT_B / 2))
+    # Make sure target is less than half root partition free space
+    local ROOT_AVAIL_B=$(df -B1 / 2>/dev/null | awk 'NR==2 {print $4}')
+    if [ -n "$ROOT_AVAIL_B" ] && [ "$ROOT_AVAIL_B" -gt 0 ]; then
+        if [ "$ROOT_AVAIL_B" -lt $((TARGET_B * 2)) ]; then
+            TARGET_B=$((ROOT_AVAIL_B / 2))
             [ "$TARGET_B" -gt "$SWAP_MAX" ] && TARGET_B=$SWAP_MAX
         fi
     fi
@@ -118,26 +118,6 @@ _swap_wrap()
     _swap_cleanup
     free -h
     return $RET
-}
-
-g++()
-{
-    _swap_wrap /opt/i486-linux-musl-native/bin/g++ "$@"
-}
-
-gcc()
-{
-    _swap_wrap /opt/i486-linux-musl-native/bin/gcc "$@"
-}
-
-gfortran()
-{
-    _swap_wrap /opt/i486-linux-musl-native/bin/gfortran "$@"
-}
-
-vim()
-{
-    _swap_wrap /usr/bin/vim "$@"
 }
 
 

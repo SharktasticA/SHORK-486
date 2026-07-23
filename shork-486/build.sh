@@ -254,6 +254,7 @@ ENABLE_SCSI_EXP=true
 ENABLE_SERIAL_CON=false
 ENABLE_SMP=false
 ENABLE_SOUND=false
+ENABLE_SWAP_WRAP=true
 ENABLE_TASKSTATS=false
 ENABLE_USB=false
 ENABLE_ZSWAP=true
@@ -3968,6 +3969,27 @@ get_prog_tar()
     sudo make DESTDIR=$DESTDIR install
 }
 
+# Creates a shell script that takes the place of the given binary and calls for
+# /etc/profile's _swap_wrap feature when run
+make_swap_wrap()
+{
+    if $ENABLE_SWAP_WRAP; then
+        local BIN_FULLPATH="$1"
+        local BIN_REALPATH="${BIN_FULLPATH#$DESTDIR}"
+
+        if [ -f "$BIN_FULLPATH" ] && [ ! -f "$BIN_FULLPATH.real" ]; then
+            echo -e "${GREEN}Configure swap wrap for $BIN_FULLPATH...${RESET}"
+            sudo mv "$BIN_FULLPATH" "$BIN_FULLPATH.real"
+            printf '%s\n' \
+                '#!/bin/sh' \
+                '. /etc/profile' \
+                "_swap_wrap ${BIN_REALPATH}.real \"\$@\"" \
+                > "$BIN_FULLPATH"
+            chmod 755 "$BIN_FULLPATH"
+        fi
+    fi
+}
+
 # Download and compile Dropbear
 get_dropbear()
 {
@@ -4081,36 +4103,6 @@ get_gcc()
             ln -sf "$target" "$DESTDIR/lib/"
         done
         ln -sf /opt/i486-linux-musl-native/lib/libc.so "${DESTDIR}/lib/ld-musl-i386.so.1"
-
-        # Create wrappers for main compilers so they use /etc/profile's
-        # _swap_wrap()
-        if [ -f "$DESTDIR/opt/${ARCH}-linux-musl-native/bin/gcc" ]; then
-            sudo mv "$DESTDIR/opt/${ARCH}-linux-musl-native/bin/gcc" "$DESTDIR/opt/${ARCH}-linux-musl-native/bin/gcc.real"
-            printf '%s\n' \
-                '#!/bin/sh' \
-                '. /etc/profile' \
-                '_swap_wrap /opt/i486-linux-musl-native/bin/gcc.real "$@"' \
-                > "$DESTDIR/opt/${ARCH}-linux-musl-native/bin/gcc"
-            chmod 755 "$DESTDIR/opt/${ARCH}-linux-musl-native/bin/gcc"
-        fi
-        if [ -f "$DESTDIR/opt/${ARCH}-linux-musl-native/bin/g++" ]; then
-            sudo mv "$DESTDIR/opt/${ARCH}-linux-musl-native/bin/g++" "$DESTDIR/opt/${ARCH}-linux-musl-native/bin/g++.real"
-            printf '%s\n' \
-                '#!/bin/sh' \
-                '. /etc/profile' \
-                '_swap_wrap /opt/i486-linux-musl-native/bin/g++.real "$@"' \
-                > "$DESTDIR/opt/${ARCH}-linux-musl-native/bin/g++"
-            chmod 755 "$DESTDIR/opt/${ARCH}-linux-musl-native/bin/g++"
-        fi
-        if [ -f "$DESTDIR/opt/${ARCH}-linux-musl-native/bin/gfortran" ]; then
-            sudo mv "$DESTDIR/opt/${ARCH}-linux-musl-native/bin/gfortran" "$DESTDIR/opt/${ARCH}-linux-musl-native/bin/gfortran.real"
-            printf '%s\n' \
-                '#!/bin/sh' \
-                '. /etc/profile' \
-                '_swap_wrap /opt/i486-linux-musl-native/bin/gfortran.real "$@"' \
-                > "$DESTDIR/opt/${ARCH}-linux-musl-native/bin/gfortran"
-            chmod 755 "$DESTDIR/opt/${ARCH}-linux-musl-native/bin/gfortran"
-        fi
     else
         echo -e "${LIGHT_RED}${ARCH}-linux-musl-native already extracted, skipping...${RESET}"
     fi
@@ -7608,9 +7600,13 @@ if $INCLUDE_FILE; then
 fi
 if $INCLUDE_GCC; then
     get_gcc
+    make_swap_wrap "$DESTDIR/opt/${ARCH}-linux-musl-native/bin/gcc"
+    make_swap_wrap "$DESTDIR/opt/${ARCH}-linux-musl-native/bin/g++"
+    make_swap_wrap "$DESTDIR/opt/${ARCH}-linux-musl-native/bin/gfortran"
 fi
 if $INCLUDE_GIT; then
     get_git
+    make_swap_wrap "$DESTDIR/usr/bin/git"
 fi
 if $INCLUDE_HTOP; then
     get_htop
@@ -7746,6 +7742,7 @@ if $INCLUDE_VIM; then
         false \
         "/usr" \
         "--with-features=normal --disable-gui --without-x --disable-nls --disable-channel --disable-netbeans --disable-terminal --disable-python3interp --disable-perlinterp --disable-rubyinterp --disable-luainterp --disable-tclinterp --disable-cscope --disable-acl --disable-gpm --disable-sysmouse --disable-selinux --disable-canberra --without-wayland --disable-libsodium --disable-smack"
+    make_swap_wrap "$DESTDIR/usr/bin/vim"
 fi
 
 get_shorkhelp
