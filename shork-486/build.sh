@@ -262,6 +262,7 @@ INCLUDE_C3270=false
 INCLUDE_CON_FONTS=true
 INCLUDE_CSCOPE=false
 INCLUDE_CTAGS=false
+INCLUDE_CURL=false
 INCLUDE_DIALOG=true
 INCLUDE_DROPBEAR=true
 INCLUDE_FILE=true
@@ -527,7 +528,7 @@ if $INCLUDE_CTAGS; then
     NEED_LIBXML2=true
 fi
 
-if $INCLUDE_GIT; then
+if $INCLUDE_CURL || $INCLUDE_GIT; then
     NEED_CURL=true
     NEED_OPENSSL=true
     NEED_ZLIB=true
@@ -924,44 +925,58 @@ get_tic()
     sudo install -D progs/tic "$DESTDIR/usr/bin/tic"
 }
 
-# Download and compile curl (required for Git)
+# Download and compile cURL (required for cURL itself or Git)
 get_curl()
 {
     cd "$CURR_DIR/build"
 
     # Skip if already compiled
-    if [ -f "$SYSROOT/lib/libcurl.a" ]; then
-        echo -e "${LIGHT_RED}curl already compiled, skipping...${RESET}"
-        return
+    if [ ! -f "$SYSROOT/lib/libcurl.a" ]; then
+        echo -e "${GREEN}Downloading cURL...${RESET}"
+        
+        CURL="curl-${CURL_VER}"
+        CURL_ARC="${CURL}.tar.xz"
+        CURL_URI="${CURL_SRC}/${CURL_ARC}"
+
+        # Download source
+        [ -f $CURL_ARC ] || wget $CURL_URI
+
+        # Extract source
+        if [ -d $CURL ]; then
+            echo -e "${YELLOW}cURL's source archive is already present, re-extracting before proceeding...${RESET}"
+            sudo rm -rf $CURL
+        fi
+        tar xf $CURL_ARC
+        cd $CURL
+
+        LIBATOMIC_A="$($CC_STATIC -print-file-name=libatomic.a)"
+
+        # Compile and install
+        echo -e "${GREEN}Compiling cURL...${RESET}"
+        CPPFLAGS="-I$SYSROOT/include" \
+        LDFLAGS="-L$SYSROOT/lib -static" \
+        LIBS="-lssl -lcrypto -lpthread -ldl ${LIBATOMIC_A}" \
+        CC="${CC_STATIC}" \
+        CFLAGS="-Os -march=${ARCH} -static" \
+        ./configure \
+            --build="$(gcc -dumpmachine)" \
+            --host="${HOST}" \
+            --prefix="$SYSROOT" \
+            --with-openssl="$SYSROOT" \
+            --with-ca-bundle=/etc/ssl/cert.pem \
+            --without-libpsl \
+            --disable-shared
+        make -j$(nproc)
+        echo -e "${GREEN}Installing cURL for toolchain...${RESET}"
+        make install
+    else
+        echo -e "${LIGHT_RED}cURL already compiled, skipping...${RESET}"
     fi
 
-    echo -e "${GREEN}Downloading curl...${RESET}"
-    
-    CURL="curl-${CURL_VER}"
-    CURL_ARC="${CURL}.tar.xz"
-    CURL_URI="${CURL_SRC}/${CURL_ARC}"
-
-    # Download source
-    [ -f $CURL_ARC ] || wget $CURL_URI
-
-    # Extract source
-    if [ -d $CURL ]; then
-        echo -e "${YELLOW}curl's source archive is already present, re-extracting before proceeding...${RESET}"
-        sudo rm -rf $CURL
+    if $INCLUDE_CURL && [ ! -f "$DESTDIR/usr/bin/curl" ]; then
+        echo -e "${GREEN}Installing cURL for system...${RESET}"
+        sudo install -D -m 755 "$SYSROOT/bin/curl" "$DESTDIR/usr/bin/curl"
     fi
-    tar xf $CURL_ARC
-    cd $CURL
-
-    # Compile and install
-    echo -e "${GREEN}Compiling curl...${RESET}"
-    CPPFLAGS="-I$SYSROOT/include" \
-    LDFLAGS="-L$SYSROOT/lib -static" \
-    LIBS="-lssl -lcrypto -lpthread -ldl -latomic" \
-    CC="${CC}" \
-    CFLAGS="-Os -march=${ARCH} -static" \
-    ./configure --build="$(gcc -dumpmachine)" --host="${HOST}" --prefix="$SYSROOT" --with-openssl="$SYSROOT" --without-libpsl --disable-shared
-    make -j$(nproc)
-    make install
 }
 
 # Download and compile libao (required for mpg321) 
@@ -4039,37 +4054,90 @@ get_gcc()
     cd "$CURR_DIR/build"
 
     # Skip if already extracted
-    if [ -d "$DESTDIR/opt/${ARCH}-linux-musl-native" ]; then
+    if [ ! -d "$DESTDIR/opt/${ARCH}-linux-musl-native" ]; then
+        echo -e "${GREEN}Downloading ${ARCH}-linux-musl-native...${RESET}"
+
+        DIR="${ARCH}-linux-musl-native"
+        ARC="${DIR}.tgz"
+        URI="${GCC_SRC}/${ARC}"
+
+        # Download
+        [ -f $ARC ] || wget $URI
+
+        # Extract
+        if [ -d "$DESTDIR/opt/$DIR" ]; then
+            echo -e "${YELLOW}${ARCH}-linux-musl-native's archive is already present, re-extracting...${RESET}"
+            sudo rm -rf "$DESTDIR/opt/$DIR"
+        fi
+        mkdir -p $DESTDIR/opt
+        tar xzf $ARC -C $DESTDIR/opt
+
+        # Symlink all shared libraries so they're discoverable without needing a
+        # custom library path
+        mkdir -p $DESTDIR/lib
+        for f in $DESTDIR/opt/${ARCH}-linux-musl-native/lib/*.so*; do
+            [ -e "$f" ] || continue
+            target="${f#$DESTDIR}"
+            ln -sf "$target" "$DESTDIR/lib/"
+        done
+        ln -sf /opt/i486-linux-musl-native/lib/libc.so "${DESTDIR}/lib/ld-musl-i386.so.1"
+
+        # Create wrappers for main compilers so they use /etc/profile's
+        # _swap_wrap()
+        if [ -f "$DESTDIR/opt/${ARCH}-linux-musl-native/bin/gcc" ]; then
+            sudo mv "$DESTDIR/opt/${ARCH}-linux-musl-native/bin/gcc" "$DESTDIR/opt/${ARCH}-linux-musl-native/bin/gcc.real"
+            printf '%s\n' \
+                '#!/bin/sh' \
+                '. /etc/profile' \
+                '_swap_wrap /opt/i486-linux-musl-native/bin/gcc.real "$@"' \
+                > "$DESTDIR/opt/${ARCH}-linux-musl-native/bin/gcc"
+            chmod 755 "$DESTDIR/opt/${ARCH}-linux-musl-native/bin/gcc"
+        fi
+        if [ -f "$DESTDIR/opt/${ARCH}-linux-musl-native/bin/g++" ]; then
+            sudo mv "$DESTDIR/opt/${ARCH}-linux-musl-native/bin/g++" "$DESTDIR/opt/${ARCH}-linux-musl-native/bin/g++.real"
+            printf '%s\n' \
+                '#!/bin/sh' \
+                '. /etc/profile' \
+                '_swap_wrap /opt/i486-linux-musl-native/bin/g++.real "$@"' \
+                > "$DESTDIR/opt/${ARCH}-linux-musl-native/bin/g++"
+            chmod 755 "$DESTDIR/opt/${ARCH}-linux-musl-native/bin/g++"
+        fi
+        if [ -f "$DESTDIR/opt/${ARCH}-linux-musl-native/bin/gfortran" ]; then
+            sudo mv "$DESTDIR/opt/${ARCH}-linux-musl-native/bin/gfortran" "$DESTDIR/opt/${ARCH}-linux-musl-native/bin/gfortran.real"
+            printf '%s\n' \
+                '#!/bin/sh' \
+                '. /etc/profile' \
+                '_swap_wrap /opt/i486-linux-musl-native/bin/gfortran.real "$@"' \
+                > "$DESTDIR/opt/${ARCH}-linux-musl-native/bin/gfortran"
+            chmod 755 "$DESTDIR/opt/${ARCH}-linux-musl-native/bin/gfortran"
+        fi
+    else
         echo -e "${LIGHT_RED}${ARCH}-linux-musl-native already extracted, skipping...${RESET}"
-        return
     fi
 
-    echo -e "${GREEN}Downloading ${ARCH}-linux-musl-native...${RESET}"
+    GCC_SYSROOT="$DESTDIR/opt/i486-linux-musl-native"
 
-    DIR="${ARCH}-linux-musl-native"
-    ARC="${DIR}.tgz"
-    URI="${GCC_SRC}/${ARC}"
-
-    # Download
-    [ -f $ARC ] || wget $URI
-
-    # Extract
-    if [ -d "$DESTDIR/opt/$DIR" ]; then
-        echo -e "${YELLOW}${ARCH}-linux-musl-native's archive is already present, re-extracting...${RESET}"
-        sudo rm -rf "$DESTDIR/opt/$DIR"
+    if $NEED_CURL; then
+        echo -e "${GREEN}Installing libcurl and related headers...${RESET}"
+        sudo mkdir -p "$GCC_SYSROOT/include/curl"
+        sudo cp "$SYSROOT/include/curl/"*.h "$GCC_SYSROOT/include/curl/"
+        sudo install -D -m 644 "$SYSROOT/lib/libcurl.a" "$GCC_SYSROOT/lib/libcurl.a"
     fi
-    mkdir -p $DESTDIR/opt
-    tar xzf $ARC -C $DESTDIR/opt
 
-    # Symlink all shared libraries so they're discoverable without needing a
-    # custom library path
-    mkdir -p $DESTDIR/lib
-    for f in $DESTDIR/opt/${ARCH}-linux-musl-native/lib/*.so*; do
-        [ -e "$f" ] || continue
-        target="${f#$DESTDIR}"
-        ln -sf "$target" "$DESTDIR/lib/"
-    done
-    ln -sf /opt/i486-linux-musl-native/lib/libc.so "${DESTDIR}/lib/ld-musl-i386.so.1"
+    if $NEED_OPENSSL; then
+        echo -e "${GREEN}Installing OpenSSL and related headers...${RESET}"
+        sudo mkdir -p "$GCC_SYSROOT/include/openssl"
+        sudo cp "$SYSROOT/include/openssl/"*.h "$GCC_SYSROOT/include/openssl/"
+        sudo install -D -m 644 "$SYSROOT/lib/libssl.a" "$GCC_SYSROOT/lib/libssl.a"
+        sudo install -D -m 644 "$SYSROOT/lib/libcrypto.a" "$GCC_SYSROOT/lib/libcrypto.a"
+    fi
+
+    if $NEED_ZLIB; then
+        echo -e "${GREEN}Installing zlib and related headers...${RESET}"
+        sudo install -D -m 644 "$SYSROOT/usr/include/zlib.h" "$GCC_SYSROOT/include/zlib.h"
+        sudo install -D -m 644 "$SYSROOT/usr/include/zconf.h" "$GCC_SYSROOT/include/zconf.h"
+        sudo install -D -m 644 "$SYSROOT/usr/lib/libz.a" "$GCC_SYSROOT/lib/libz.a"
+    fi
 }
 
 # Download and compile Git
@@ -5494,7 +5562,7 @@ copy_licences()
         CSV+="\noneko,public domain,oneko.txt"
     fi
 
-    if $NEED_OPENSSL && 
+    if $NEED_CURL || $NEED_OPENSSL && 
        [ -f "$CURR_DIR/build/openssl/LICENSE.txt" ]; then
         cp "$CURR_DIR/build/openssl/LICENSE.txt" "$DESTDIR/LICENCES/openssl.txt" || true
         CSV+="\nOpenSSL,Apache 2.0,openssl.txt"
@@ -5833,9 +5901,9 @@ build_file_system()
         copy_tests
     fi
 
-    if $NEED_OPENSSL; then
-        # Use host's CA certifications to get OpenSSL working
-        echo -e "${GREEN}Installing CA certificates for OpenSSL...${RESET}"
+    if $NEED_CURL || $NEED_OPENSSL; then
+        # Use host's CA certifications to get cURL or OpenSSL working
+        echo -e "${GREEN}Installing CA certificates for cURL or OpenSSL...${RESET}"
         sudo mkdir -p $DESTDIR/etc/ssl
         copy_sysfile /etc/ssl/certs/ca-certificates.crt $DESTDIR/etc/ssl/cert.pem
     fi
@@ -6131,7 +6199,7 @@ build_disk_img()
         OVERHEAD_BYTES=$((16 * 1024 * 1024))
         if [ "$INCLUDE_GCC" = true ] || [ "$INCLUDE_GUI" = true ]; then
             # We can assume these features demand more
-            OVERHEAD_BYTES=$((32 * 1024 * 1024))
+            OVERHEAD_BYTES=$((48 * 1024 * 1024))
         fi
         OVERHEAD_MIB=$(((OVERHEAD_BYTES + 1048575) / 1048576))
 
@@ -6961,6 +7029,12 @@ get_installed_programs_features()
             INCLUDED_FEATURES+="\n * ctags (Universal Ctags, $CTAGS_VER)"
         else
             EXCLUDED_FEATURES+="\n * ctags"
+        fi
+
+        if [ -f "$DESTDIR/usr/bin/curl" ]; then
+            INCLUDED_FEATURES+="\n * curl ($CURL_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * curl"
         fi
 
         if [ -f "$DESTDIR/usr/bin/dialog" ]; then

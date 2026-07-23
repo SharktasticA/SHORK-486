@@ -35,32 +35,48 @@ shorkset()
     exit
 }
 
-# Wraps launching Vim with creating a 16-128MiB swapfile for it to help prevent
-# the kernel killing Vim when the system runs out of RAM
-vim()
+# Wraps launching a program with creating a 8-64MiB swapfile for it to help
+# prevent the kernel from OOM-killing it when the system runs out of RAM
+_swap_wrap()
 {
-    if [ ! -x /usr/bin/vim ]; then
-        printf "${SHELL}: vim: not found\n"
+    local BIN_PATH="$1"
+    shift
+
+    if [ ! -x "$BIN_PATH" ]; then
+        printf "${SHELL}: %s: not found\n" "$(basename "$BIN_PATH")"
         return 127
     fi
 
-    local VIMSWAP_DIR="/var/tmp"
-    local VIMSWAP_PATH="${VIMSWAP_DIR}/.vim_ramswap.$$"
-    local VIMSWAP_MIN=$((16 * 1024 * 1024))
-    local VIMSWAP_MAX=$((128 * 1024 * 1024))
-    local TARGET_B=$VIMSWAP_MIN
+    # Make sure we don't create swap if something simple like help or version
+    # is requested
+    local ARG
+    for ARG in "$@"; do
+        case "$ARG" in
+            --help|-h|--version|-v|-V|-\?)
+                "$BIN_PATH" "$@"
+                return $?
+                ;;
+        esac
+    done
 
-    # Clamp target swap between MIN and MAX, else match RAM if within range
-    local TARGET_B=$VIMSWAP_MIN
+    local SWAP_DIR="/var/tmp"
+    local SWAP_PATH="${SWAP_DIR}/.$(basename "$BIN_PATH")_ramswap.$$"
+    local SWAP_MIN=$((8 * 1024 * 1024))
+    local SWAP_MAX=$((64 * 1024 * 1024))
+    local TARGET_B=$SWAP_MIN
+
+    # Clamp target swap between MIN and MAX, else 2x RAM if in range
     local RAM_B=$(awk '/MemTotal/ {print $2 * 1024}' /proc/meminfo)
     if [ -z "$RAM_B" ] || [ "$RAM_B" -le 0 ]; then
-        TARGET_B=$VIMSWAP_MIN
-    elif [ "$RAM_B" -lt "$VIMSWAP_MIN" ]; then
-        TARGET_B=$VIMSWAP_MIN
-    elif [ "$RAM_B" -gt "$VIMSWAP_MAX" ]; then
-        TARGET_B=$VIMSWAP_MAX
+        TARGET_B=$SWAP_MIN
+    elif [ "$RAM_B" -lt 16777216 ]; then
+        TARGET_B=$((RAM_B * 4))
+    elif [ "$RAM_B" -lt 25165824 ]; then
+        TARGET_B=$((RAM_B * 3))
+    elif [ "$RAM_B" -gt "$SWAP_MAX" ]; then
+        TARGET_B=$SWAP_MAX
     else
-        TARGET_B=$RAM_B
+        TARGET_B=$((RAM_B * 2))
     fi
 
     # Make sure target is less than half root partition size
@@ -68,37 +84,60 @@ vim()
     if [ -n "$ROOT_B" ] && [ "$ROOT_B" -gt 0 ]; then
         if [ "$ROOT_B" -lt $((TARGET_B * 2)) ]; then
             TARGET_B=$((ROOT_B / 2))
-            [ "$TARGET_B" -gt "$VIMSWAP_MAX" ] && TARGET_B=$VIMSWAP_MAX
+            [ "$TARGET_B" -gt "$SWAP_MAX" ] && TARGET_B=$SWAP_MAX
         fi
     fi
 
     local TARGET_MB=$((TARGET_B / 1048576))
     [ "$TARGET_MB" -lt 1 ] && TARGET_MB=1
 
-    local VIMSWAP_OK=0
-    mkdir -p "${VIMSWAP_DIR}"
-    if fallocate -l "${TARGET_MB}M" "$VIMSWAP_PATH" 2>/dev/null \
-        && chmod 600 "$VIMSWAP_PATH" \
-        && mkswap "$VIMSWAP_PATH" >/dev/null 2>&1 \
-        && swapon "$VIMSWAP_PATH" 2>/dev/null; then
-        VIMSWAP_OK=1
+    local SWAP_OK=0
+    mkdir -p "${SWAP_DIR}"
+    if fallocate -l "${TARGET_MB}M" "$SWAP_PATH" 2>/dev/null \
+        && chmod 600 "$SWAP_PATH" \
+        && mkswap "$SWAP_PATH" >/dev/null 2>&1 \
+        && swapon "$SWAP_PATH" 2>/dev/null; then
+        SWAP_OK=1
     fi
 
-    vimswap_cleanup()
+    free -h
+
+    _swap_cleanup()
     {
-        if [ "$VIMSWAP_OK" = "1" ]; then
-            swapoff "$VIMSWAP_PATH" 2>/dev/null
+        if [ "$SWAP_OK" = "1" ]; then
+            swapoff "$SWAP_PATH" 2>/dev/null
         fi
-        rm -f "$VIMSWAP_PATH"
+        rm -f "$SWAP_PATH"
         trap - EXIT INT TERM
     }
-    trap vimswap_cleanup EXIT INT TERM
+    trap _swap_cleanup EXIT INT TERM
 
-    /usr/bin/vim "$@"
+    "$BIN_PATH" "$@"
     local RET=$?
 
-    vimswap_cleanup
+    _swap_cleanup
+    free -h
     return $RET
+}
+
+g++()
+{
+    _swap_wrap /opt/i486-linux-musl-native/bin/g++ "$@"
+}
+
+gcc()
+{
+    _swap_wrap /opt/i486-linux-musl-native/bin/gcc "$@"
+}
+
+gfortran()
+{
+    _swap_wrap /opt/i486-linux-musl-native/bin/gfortran "$@"
+}
+
+vim()
+{
+    _swap_wrap /usr/bin/vim "$@"
 }
 
 

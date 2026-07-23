@@ -88,6 +88,7 @@ addgroup, adduser, ar, arch, ascii, ash, awk, base32, base64, basename, bc, beep
 | Name | Command(s) | Version | Purpose | Licence(s) |
 |------|------------|---------|---------|------------|
 | [Cscope](https://cscope.sourceforge.net/) | `cscope` | 15.9 | C/C++ code browser | BSD 3-Clause |
+| [cURL](https://curl.se/) | `curl` | 8.21.0 | HTTP client & transfer utility | MIT |
 | [GCC](https://musl.cc/)‡§ | `gcc`, `g++`, `gfortran` | 11.2.1 | C, C++ and Fortran compilers | GPLv3 + GCC RLE |
 | [GNU Binutils](https://musl.cc/)‡ | e.g. `ar`\*, `as`, `gprof`, `ld`, `nm`, `objdump`, `ranlib`,`readelf`, `strings`\*, `strip` | 2.37 | Binary tools to compliment GCC | GPLv3 |
 | [GNU Indent](https://www.gnu.org/software/indent/) | `indent` | 2.2.13 | C code formatter | GPLv3 |
@@ -109,7 +110,6 @@ addgroup, adduser, ar, arch, ascii, ash, awk, base32, base64, basename, bc, beep
 
 | Name | Version | For | Licence(s) |
 |------|---------|-----|------------|
-| [curl](https://curl.se/) | 8.21.0 | Git | MIT |
 | [libao](https://github.com/xiph/libao) | 1.2.2 | mpg321 | GNU GPLv2 |
 | [libevent](https://github.com/libevent/libevent) | 2.1.13 | tmux | BSD 3-Clause |
 | [libid3tag](https://github.com/markjeee/libid3tag) | 0.15.1b | mpg321 | GNU GPLv2 |
@@ -155,7 +155,6 @@ addgroup, adduser, ar, arch, ascii, ash, awk, base32, base64, basename, bc, beep
 * bison
 * cmake
 * cfdisk
-* cURL
 * flex
 * GDB
 * IRC client (exact one TBD)
