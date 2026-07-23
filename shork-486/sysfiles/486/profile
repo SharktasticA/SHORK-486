@@ -66,7 +66,7 @@ _swap_wrap()
     local TARGET_B=$SWAP_MIN
 
     # Clamp target swap between MIN and MAX, else 2x RAM if in range
-    local RAM_B=$(awk '/MemTotal/ {print $2 * 1024}' /proc/meminfo)
+    local RAM_B=$(free -b | awk '/^Mem:/ {print $2}')
     if [ -z "$RAM_B" ] || [ "$RAM_B" -le 0 ]; then
         TARGET_B=$SWAP_MIN
     elif [ "$RAM_B" -lt 16777216 ]; then

@@ -59,7 +59,7 @@ echo -e "${BLUE}========================${RESET}"
 # General global vars
 BUILD_TYPE="default"
 BOOTLDR_USED=""
-DEFAULT_TARGET_DISK=80
+DEFAULT_TARGET_DISK=100
 DEFAULT_TARGET_SWAP=8
 DISK_CYLINDERS=0
 DISK_HEADS=16
@@ -6192,7 +6192,7 @@ build_disk_img()
         OVERHEAD_BYTES=$((16 * 1024 * 1024))
         if [ "$INCLUDE_GCC" = true ] || [ "$INCLUDE_GUI" = true ]; then
             # We can assume these features demand more
-            OVERHEAD_BYTES=$((48 * 1024 * 1024))
+            OVERHEAD_BYTES=$((32 * 1024 * 1024))
         fi
         OVERHEAD_MIB=$(((OVERHEAD_BYTES + 1048575) / 1048576))
 
@@ -6256,7 +6256,7 @@ build_disk_img()
 
     # Create and populate root partition
     echo -e "${GREEN}Creating root partition...${RESET}"
-    sudo mkfs.ext4 -F "$root_part"
+    sudo mkfs.ext4 -F -m 1 "$root_part"
     sudo mkdir -p "/mnt/${ID}"
     sudo mount "$root_part" "/mnt/${ID}"
     sudo cp -a root//. "/mnt/${ID}"

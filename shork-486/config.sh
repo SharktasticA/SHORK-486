@@ -25,15 +25,15 @@ HEIGHT=20
 CUSTOM_DEF_SWAP=0
 CUSTOM_MIN_DISK=8
 DEFAULT_DEF_SWAP=8
-DEFAULT_MIN_DISK=80
+DEFAULT_MIN_DISK=100
 MAXIMAL_DEF_SWAP=8
-MAXIMAL_MIN_DISK=480
+MAXIMAL_MIN_DISK=500
 MINIMAL_DEF_SWAP=0
 MINIMAL_MIN_DISK=8
 OFFLINE_DEF_SWAP=8
 OFFLINE_MIN_DISK=60
 PLUS_DEF_SWAP=16
-PLUS_MIN_DISK=440
+PLUS_MIN_DISK=480
 
 ALWAYS_BUILD=true
 DIST="SHORK 486"
@@ -43,7 +43,7 @@ IS_FEDORA=false
 IS_DEBIAN=true
 BUILD_TYPE="default"
 LINUX_VER="7.1.4"
-TARGET_DISK=80
+TARGET_DISK=100
 TARGET_SWAP=8
 SCANCODE_SET=-1
 SET_KEYMAP="en_us"
@@ -466,8 +466,8 @@ else
             HOSTNAME="$CHOICE"
             set_default_vars
             BUILD_TYPE="default"
-            TARGET_DISK=80
-            TARGET_SWAP=8
+            TARGET_DISK=$DEFAULT_MIN_DISK
+            TARGET_SWAP=$DEFAULT_DEF_SWAP
         fi
     elif [ "$CHOICE" == "shork-disc" ]; then
         DIST="SHORK DISC"
@@ -520,9 +520,9 @@ if [ "$ID" == "shork-486" ]; then
         --cancel-label "Quit" \
         --default-item "$BUILD_TYPE" \
         --menu "Select the build type, presets for SHORK 486 feature levels. The minimum requirements for each are enclosed in brackets. The \"custom\" option will enable further prompts for software and feature selection." 15 $WIDTH 5 \
-        "default" "Typical experience (16MiB RAM, 8MiB swap, 80MiB disk)" \
-        "maximal" "Largest configuration (24MiB RAM, 8MiB swap, 480MiB disk)" \
-        "plus"    "Default w/ optional software (16MiB RAM, 16MiB swap, 440MiB disk)" \
+        "default" "Typical experience (16MiB RAM, 8MiB swap, 100MiB disk)" \
+        "maximal" "Largest configuration (24MiB RAM, 8MiB swap, 500MiB disk)" \
+        "plus"    "Default w/ optional software (16MiB RAM, 16MiB swap, 480MiB disk)" \
         "offline" "Default w/o networking (12MiB RAM, 8MiB swap, 60MiB disk)" \
         "minimal" "Smallest configuration (8MiB RAM, 8MiB disk)" \
         "custom"  "Requirements depend on subsequent choices" \
