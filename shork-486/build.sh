@@ -59,7 +59,7 @@ echo -e "${BLUE}========================${RESET}"
 # General global vars
 BUILD_TYPE="default"
 BOOTLDR_USED=""
-DEFAULT_TARGET_DISK=80
+DEFAULT_TARGET_DISK=100
 DEFAULT_TARGET_SWAP=8
 DISK_CYLINDERS=0
 DISK_HEADS=16
@@ -254,6 +254,7 @@ ENABLE_SCSI_EXP=true
 ENABLE_SERIAL_CON=false
 ENABLE_SMP=false
 ENABLE_SOUND=false
+ENABLE_SWAP_WRAP=true
 ENABLE_TASKSTATS=false
 ENABLE_USB=false
 ENABLE_ZSWAP=true
@@ -262,6 +263,7 @@ INCLUDE_C3270=false
 INCLUDE_CON_FONTS=true
 INCLUDE_CSCOPE=false
 INCLUDE_CTAGS=false
+INCLUDE_CURL=false
 INCLUDE_DIALOG=true
 INCLUDE_DROPBEAR=true
 INCLUDE_FILE=true
@@ -527,7 +529,7 @@ if $INCLUDE_CTAGS; then
     NEED_LIBXML2=true
 fi
 
-if $INCLUDE_GIT; then
+if $INCLUDE_CURL || $INCLUDE_GIT; then
     NEED_CURL=true
     NEED_OPENSSL=true
     NEED_ZLIB=true
@@ -924,44 +926,58 @@ get_tic()
     sudo install -D progs/tic "$DESTDIR/usr/bin/tic"
 }
 
-# Download and compile curl (required for Git)
+# Download and compile cURL (required for cURL itself or Git)
 get_curl()
 {
     cd "$CURR_DIR/build"
 
     # Skip if already compiled
-    if [ -f "$SYSROOT/lib/libcurl.a" ]; then
-        echo -e "${LIGHT_RED}curl already compiled, skipping...${RESET}"
-        return
+    if [ ! -f "$SYSROOT/lib/libcurl.a" ]; then
+        echo -e "${GREEN}Downloading cURL...${RESET}"
+        
+        CURL="curl-${CURL_VER}"
+        CURL_ARC="${CURL}.tar.xz"
+        CURL_URI="${CURL_SRC}/${CURL_ARC}"
+
+        # Download source
+        [ -f $CURL_ARC ] || wget $CURL_URI
+
+        # Extract source
+        if [ -d $CURL ]; then
+            echo -e "${YELLOW}cURL's source archive is already present, re-extracting before proceeding...${RESET}"
+            sudo rm -rf $CURL
+        fi
+        tar xf $CURL_ARC
+        cd $CURL
+
+        LIBATOMIC_A="$($CC_STATIC -print-file-name=libatomic.a)"
+
+        # Compile and install
+        echo -e "${GREEN}Compiling cURL...${RESET}"
+        CPPFLAGS="-I$SYSROOT/include" \
+        LDFLAGS="-L$SYSROOT/lib -static" \
+        LIBS="-lssl -lcrypto -lpthread -ldl ${LIBATOMIC_A}" \
+        CC="${CC_STATIC}" \
+        CFLAGS="-Os -march=${ARCH} -static" \
+        ./configure \
+            --build="$(gcc -dumpmachine)" \
+            --host="${HOST}" \
+            --prefix="$SYSROOT" \
+            --with-openssl="$SYSROOT" \
+            --with-ca-bundle=/etc/ssl/cert.pem \
+            --without-libpsl \
+            --disable-shared
+        make -j$(nproc)
+        echo -e "${GREEN}Installing cURL for toolchain...${RESET}"
+        make install
+    else
+        echo -e "${LIGHT_RED}cURL already compiled, skipping...${RESET}"
     fi
 
-    echo -e "${GREEN}Downloading curl...${RESET}"
-    
-    CURL="curl-${CURL_VER}"
-    CURL_ARC="${CURL}.tar.xz"
-    CURL_URI="${CURL_SRC}/${CURL_ARC}"
-
-    # Download source
-    [ -f $CURL_ARC ] || wget $CURL_URI
-
-    # Extract source
-    if [ -d $CURL ]; then
-        echo -e "${YELLOW}curl's source archive is already present, re-extracting before proceeding...${RESET}"
-        sudo rm -rf $CURL
+    if $INCLUDE_CURL && [ ! -f "$DESTDIR/usr/bin/curl" ]; then
+        echo -e "${GREEN}Installing cURL for system...${RESET}"
+        sudo install -D -m 755 "$SYSROOT/bin/curl" "$DESTDIR/usr/bin/curl"
     fi
-    tar xf $CURL_ARC
-    cd $CURL
-
-    # Compile and install
-    echo -e "${GREEN}Compiling curl...${RESET}"
-    CPPFLAGS="-I$SYSROOT/include" \
-    LDFLAGS="-L$SYSROOT/lib -static" \
-    LIBS="-lssl -lcrypto -lpthread -ldl -latomic" \
-    CC="${CC}" \
-    CFLAGS="-Os -march=${ARCH} -static" \
-    ./configure --build="$(gcc -dumpmachine)" --host="${HOST}" --prefix="$SYSROOT" --with-openssl="$SYSROOT" --without-libpsl --disable-shared
-    make -j$(nproc)
-    make install
 }
 
 # Download and compile libao (required for mpg321) 
@@ -1331,7 +1347,8 @@ get_openssl()
 
     # Compile and install
     echo -e "${GREEN}Compiling OpenSSL...${RESET}"
-    ./Configure linux-generic32 no-shared no-tests no-dso no-engine \
+    ./Configure \
+        linux-generic32 no-shared no-tests no-dso no-engine no-comp no-idea no-mdc2 no-rc5 no-camellia no-cast no-seed no-whirlpool no-ssl3 no-weak-ssl-ciphers no-srp no-psk no-nextprotoneg no-docs no-apps no-quic no-sctp no-srtp no-dtls no-dtls1 no-dtls1-method no-dtls1_2 no-dtls1_2-method no-ktls no-gost no-sm2 no-sm3 no-sm4 \
         --prefix="$SYSROOT" --openssldir=/etc/ssl \
         CC="${CC} -latomic" \
         AR="${AR}" \
@@ -3953,6 +3970,27 @@ get_prog_tar()
     sudo make DESTDIR=$DESTDIR install
 }
 
+# Creates a shell script that takes the place of the given binary and calls for
+# /etc/profile's _swap_wrap feature when run
+make_swap_wrap()
+{
+    if $ENABLE_SWAP_WRAP; then
+        local BIN_FULLPATH="$1"
+        local BIN_REALPATH="${BIN_FULLPATH#$DESTDIR}"
+
+        if [ -f "$BIN_FULLPATH" ] && [ ! -f "$BIN_FULLPATH.real" ]; then
+            echo -e "${GREEN}Configure swap wrap for $BIN_FULLPATH...${RESET}"
+            sudo mv "$BIN_FULLPATH" "$BIN_FULLPATH.real"
+            printf '%s\n' \
+                '#!/bin/sh' \
+                '. /etc/profile' \
+                "_swap_wrap ${BIN_REALPATH}.real \"\$@\"" \
+                > "$BIN_FULLPATH"
+            chmod 755 "$BIN_FULLPATH"
+        fi
+    fi
+}
+
 # Download and compile Dropbear
 get_dropbear()
 {
@@ -4039,37 +4077,60 @@ get_gcc()
     cd "$CURR_DIR/build"
 
     # Skip if already extracted
-    if [ -d "$DESTDIR/opt/${ARCH}-linux-musl-native" ]; then
+    if [ ! -d "$DESTDIR/opt/${ARCH}-linux-musl-native" ]; then
+        echo -e "${GREEN}Downloading ${ARCH}-linux-musl-native...${RESET}"
+
+        DIR="${ARCH}-linux-musl-native"
+        ARC="${DIR}.tgz"
+        URI="${GCC_SRC}/${ARC}"
+
+        # Download
+        [ -f $ARC ] || wget $URI
+
+        # Extract
+        if [ -d "$DESTDIR/opt/$DIR" ]; then
+            echo -e "${YELLOW}${ARCH}-linux-musl-native's archive is already present, re-extracting...${RESET}"
+            sudo rm -rf "$DESTDIR/opt/$DIR"
+        fi
+        mkdir -p $DESTDIR/opt
+        tar xzf $ARC -C $DESTDIR/opt
+
+        # Symlink all shared libraries so they're discoverable without needing a
+        # custom library path
+        mkdir -p $DESTDIR/lib
+        for f in $DESTDIR/opt/${ARCH}-linux-musl-native/lib/*.so*; do
+            [ -e "$f" ] || continue
+            target="${f#$DESTDIR}"
+            ln -sf "$target" "$DESTDIR/lib/"
+        done
+        ln -sf /opt/i486-linux-musl-native/lib/libc.so "${DESTDIR}/lib/ld-musl-i386.so.1"
+    else
         echo -e "${LIGHT_RED}${ARCH}-linux-musl-native already extracted, skipping...${RESET}"
-        return
     fi
 
-    echo -e "${GREEN}Downloading ${ARCH}-linux-musl-native...${RESET}"
+    GCC_SYSROOT="$DESTDIR/opt/i486-linux-musl-native"
 
-    DIR="${ARCH}-linux-musl-native"
-    ARC="${DIR}.tgz"
-    URI="${GCC_SRC}/${ARC}"
-
-    # Download
-    [ -f $ARC ] || wget $URI
-
-    # Extract
-    if [ -d "$DESTDIR/opt/$DIR" ]; then
-        echo -e "${YELLOW}${ARCH}-linux-musl-native's archive is already present, re-extracting...${RESET}"
-        sudo rm -rf "$DESTDIR/opt/$DIR"
+    if $NEED_CURL; then
+        echo -e "${GREEN}Installing libcurl and related headers...${RESET}"
+        sudo mkdir -p "$GCC_SYSROOT/include/curl"
+        sudo cp "$SYSROOT/include/curl/"*.h "$GCC_SYSROOT/include/curl/"
+        sudo install -D -m 644 "$SYSROOT/lib/libcurl.a" "$GCC_SYSROOT/lib/libcurl.a"
     fi
-    mkdir -p $DESTDIR/opt
-    tar xzf $ARC -C $DESTDIR/opt
 
-    # Symlink all shared libraries so they're discoverable without needing a
-    # custom library path
-    mkdir -p $DESTDIR/lib
-    for f in $DESTDIR/opt/${ARCH}-linux-musl-native/lib/*.so*; do
-        [ -e "$f" ] || continue
-        target="${f#$DESTDIR}"
-        ln -sf "$target" "$DESTDIR/lib/"
-    done
-    ln -sf /opt/i486-linux-musl-native/lib/libc.so "${DESTDIR}/lib/ld-musl-i386.so.1"
+    if $NEED_OPENSSL; then
+        echo -e "${GREEN}Installing OpenSSL and related headers...${RESET}"
+        sudo mkdir -p "$GCC_SYSROOT/include/openssl"
+        sudo cp "$SYSROOT/include/openssl/"*.h "$GCC_SYSROOT/include/openssl/"
+        sudo install -D -m 644 "$SYSROOT/lib/libssl.a" "$GCC_SYSROOT/lib/libssl.a"
+        sudo install -D -m 644 "$SYSROOT/lib/libcrypto.a" "$GCC_SYSROOT/lib/libcrypto.a"
+    fi
+
+    if $NEED_ZLIB; then
+        echo -e "${GREEN}Installing zlib and related headers...${RESET}"
+        sudo install -D -m 644 "$SYSROOT/usr/include/zlib.h" "$GCC_SYSROOT/include/zlib.h"
+        sudo install -D -m 644 "$SYSROOT/usr/include/zconf.h" "$GCC_SYSROOT/include/zconf.h"
+        sudo install -D -m 644 "$SYSROOT/usr/lib/libz.a" "$GCC_SYSROOT/lib/libz.a"
+    fi
 }
 
 # Download and compile Git
@@ -4101,7 +4162,7 @@ get_git()
     ./configure \
         --host=${HOST} \
         --prefix=/usr \
-        CC="${CC}" \
+        CC="${CC_STATIC}" \
         AR="${AR}" \
         RANLIB="${RANLIB}" \
         CFLAGS="-Os -march=${ARCH} -static -I${PREFIX}/include" \
@@ -5494,7 +5555,7 @@ copy_licences()
         CSV+="\noneko,public domain,oneko.txt"
     fi
 
-    if $NEED_OPENSSL && 
+    if $NEED_CURL || $NEED_OPENSSL && 
        [ -f "$CURR_DIR/build/openssl/LICENSE.txt" ]; then
         cp "$CURR_DIR/build/openssl/LICENSE.txt" "$DESTDIR/LICENCES/openssl.txt" || true
         CSV+="\nOpenSSL,Apache 2.0,openssl.txt"
@@ -5834,8 +5895,8 @@ build_file_system()
     fi
 
     if $NEED_OPENSSL; then
-        # Use host's CA certifications to get OpenSSL working
-        echo -e "${GREEN}Installing CA certificates for OpenSSL...${RESET}"
+        # Use host's CA certifications for OpenSSL HTTPS support
+        echo -e "${GREEN}Installing CA certificates for OpenSSL HTTPS support...${RESET}"
         sudo mkdir -p $DESTDIR/etc/ssl
         copy_sysfile /etc/ssl/certs/ca-certificates.crt $DESTDIR/etc/ssl/cert.pem
     fi
@@ -6195,7 +6256,7 @@ build_disk_img()
 
     # Create and populate root partition
     echo -e "${GREEN}Creating root partition...${RESET}"
-    sudo mkfs.ext4 -F "$root_part"
+    sudo mkfs.ext4 -F -m 1 "$root_part"
     sudo mkdir -p "/mnt/${ID}"
     sudo mount "$root_part" "/mnt/${ID}"
     sudo cp -a root//. "/mnt/${ID}"
@@ -6963,6 +7024,12 @@ get_installed_programs_features()
             EXCLUDED_FEATURES+="\n * ctags"
         fi
 
+        if [ -f "$DESTDIR/usr/bin/curl" ]; then
+            INCLUDED_FEATURES+="\n * curl ($CURL_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * curl"
+        fi
+
         if [ -f "$DESTDIR/usr/bin/dialog" ]; then
             INCLUDED_FEATURES+="\n * dialog ($DIALOG_VER)"
         else
@@ -7534,9 +7601,13 @@ if $INCLUDE_FILE; then
 fi
 if $INCLUDE_GCC; then
     get_gcc
+    make_swap_wrap "$DESTDIR/opt/${ARCH}-linux-musl-native/bin/gcc"
+    make_swap_wrap "$DESTDIR/opt/${ARCH}-linux-musl-native/bin/g++"
+    make_swap_wrap "$DESTDIR/opt/${ARCH}-linux-musl-native/bin/gfortran"
 fi
 if $INCLUDE_GIT; then
     get_git
+    make_swap_wrap "$DESTDIR/usr/bin/git"
 fi
 if $INCLUDE_HTOP; then
     get_htop
@@ -7672,6 +7743,7 @@ if $INCLUDE_VIM; then
         false \
         "/usr" \
         "--with-features=normal --disable-gui --without-x --disable-nls --disable-channel --disable-netbeans --disable-terminal --disable-python3interp --disable-perlinterp --disable-rubyinterp --disable-luainterp --disable-tclinterp --disable-cscope --disable-acl --disable-gpm --disable-sysmouse --disable-selinux --disable-canberra --without-wayland --disable-libsodium --disable-smack"
+    make_swap_wrap "$DESTDIR/usr/bin/vim"
 fi
 
 get_shorkhelp

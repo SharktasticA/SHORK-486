@@ -25,15 +25,15 @@ HEIGHT=20
 CUSTOM_DEF_SWAP=0
 CUSTOM_MIN_DISK=8
 DEFAULT_DEF_SWAP=8
-DEFAULT_MIN_DISK=80
+DEFAULT_MIN_DISK=100
 MAXIMAL_DEF_SWAP=8
-MAXIMAL_MIN_DISK=480
+MAXIMAL_MIN_DISK=500
 MINIMAL_DEF_SWAP=0
 MINIMAL_MIN_DISK=8
 OFFLINE_DEF_SWAP=8
 OFFLINE_MIN_DISK=60
 PLUS_DEF_SWAP=16
-PLUS_MIN_DISK=440
+PLUS_MIN_DISK=480
 
 ALWAYS_BUILD=true
 DIST="SHORK 486"
@@ -43,7 +43,7 @@ IS_FEDORA=false
 IS_DEBIAN=true
 BUILD_TYPE="default"
 LINUX_VER="7.1.4"
-TARGET_DISK=80
+TARGET_DISK=100
 TARGET_SWAP=8
 SCANCODE_SET=-1
 SET_KEYMAP="en_us"
@@ -57,6 +57,7 @@ FIX_EXTLINUX=true
 INCLUDE_C3270=false
 INCLUDE_CSCOPE=false
 INCLUDE_CTAGS=false
+INCLUDE_CURL=false
 INCLUDE_DIALOG=false
 INCLUDE_DROPBEAR=false
 INCLUDE_FILE=false
@@ -166,6 +167,7 @@ save_env()
         echo "INCLUDE_C3270=$INCLUDE_C3270"
         echo "INCLUDE_CSCOPE=$INCLUDE_CSCOPE"
         echo "INCLUDE_CTAGS=$INCLUDE_CTAGS"
+        echo "INCLUDE_CURL=$INCLUDE_CURL"
         echo "INCLUDE_DIALOG=$INCLUDE_DIALOG"
         echo "INCLUDE_DROPBEAR=$INCLUDE_DROPBEAR"
         echo "INCLUDE_FILE=$INCLUDE_FILE"
@@ -238,6 +240,7 @@ set_minimal_vars()
     INCLUDE_C3270=false
     INCLUDE_CSCOPE=false
     INCLUDE_CTAGS=false
+    INCLUDE_CURL=false
     INCLUDE_DIALOG=false
     INCLUDE_DROPBEAR=false
     INCLUDE_FILE=false
@@ -290,6 +293,7 @@ set_default_vars()
     INCLUDE_C3270=false
     INCLUDE_CSCOPE=false
     INCLUDE_CTAGS=false
+    INCLUDE_CURL=false
     INCLUDE_DIALOG=true
     INCLUDE_DROPBEAR=true
     INCLUDE_FILE=true
@@ -353,6 +357,7 @@ set_plus_vars()
     INCLUDE_C3270=true
     INCLUDE_CSCOPE=true
     INCLUDE_CTAGS=true
+    INCLUDE_CURL=true
     INCLUDE_GCC=true
     INCLUDE_INDENT=true
     INCLUDE_JOE=true
@@ -461,8 +466,8 @@ else
             HOSTNAME="$CHOICE"
             set_default_vars
             BUILD_TYPE="default"
-            TARGET_DISK=80
-            TARGET_SWAP=8
+            TARGET_DISK=$DEFAULT_MIN_DISK
+            TARGET_SWAP=$DEFAULT_DEF_SWAP
         fi
     elif [ "$CHOICE" == "shork-disc" ]; then
         DIST="SHORK DISC"
@@ -515,9 +520,9 @@ if [ "$ID" == "shork-486" ]; then
         --cancel-label "Quit" \
         --default-item "$BUILD_TYPE" \
         --menu "Select the build type, presets for SHORK 486 feature levels. The minimum requirements for each are enclosed in brackets. The \"custom\" option will enable further prompts for software and feature selection." 15 $WIDTH 5 \
-        "default" "Typical experience (16MiB RAM, 8MiB swap, 80MiB disk)" \
-        "maximal" "Largest configuration (24MiB RAM, 8MiB swap, 480MiB disk)" \
-        "plus"    "Default w/ optional software (16MiB RAM, 16MiB swap, 440MiB disk)" \
+        "default" "Typical experience (16MiB RAM, 8MiB swap, 100MiB disk)" \
+        "maximal" "Largest configuration (24MiB RAM, 8MiB swap, 500MiB disk)" \
+        "plus"    "Default w/ optional software (16MiB RAM, 16MiB swap, 480MiB disk)" \
         "offline" "Default w/o networking (12MiB RAM, 8MiB swap, 60MiB disk)" \
         "minimal" "Smallest configuration (8MiB RAM, 8MiB disk)" \
         "custom"  "Requirements depend on subsequent choices" \
@@ -945,6 +950,7 @@ if [ "$ID" == "shork-486" ]; then
             ENABLE_NET_ETH=true
         elif [[ $CHOICE -eq 1 ]]; then
             ENABLE_NET_ETH=false
+            INCLUDE_CURL=false
             INCLUDE_DROPBEAR=false
             INCLUDE_GIT=false
             INCLUDE_LYNX=false
@@ -1003,6 +1009,7 @@ if [ "$ENABLE_NET_ETH" == true ]; then
         "c3270"             "3270 terminal emulator (+1.8MiB, EXPERIMENTAL)"        "$(val "$INCLUDE_C3270")"
         "cscope"            "C/C++ code browser (+1MiB)"                            "$(val "$INCLUDE_CSCOPE")"
         "ctags"             "Source code object indexing (+1.5MiB)"                 "$(val "$INCLUDE_CTAGS")"
+        "curl"              "HTTP client & transfer utility (+8MiB)"                "$(val "$INCLUDE_CURL")"
         "dialog"            "*Shell script TUI widgets (+0.5MiB)"                   "$(val "$INCLUDE_DIALOG")"
         "dropbear"          "*SCP & SSH client (+0.4MiB)"                           "$(val "$INCLUDE_DROPBEAR")"
         "file"              "**File type identification (+10MiB)"                   "$(val "$INCLUDE_FILE")"
@@ -1077,6 +1084,7 @@ else
     if [[ $BUNDLED =~ "c3270" ]];           then INCLUDE_C3270=true;            else INCLUDE_C3270=false;           fi
     if [[ $BUNDLED =~ "cscope" ]];          then INCLUDE_CSCOPE=true;           else INCLUDE_CSCOPE=false;          fi
     if [[ $BUNDLED =~ "ctags" ]];           then INCLUDE_CTAGS=true;            else INCLUDE_CTAGS=false;           fi
+    if [[ $BUNDLED =~ "curl" ]];            then INCLUDE_CURL=true;             else INCLUDE_CURL=false;            fi
     if [[ $BUNDLED =~ "dialog" ]];          then INCLUDE_DIALOG=true;           else INCLUDE_DIALOG=false;          fi
     if [[ $BUNDLED =~ "dropbear" ]];        then INCLUDE_DROPBEAR=true;         else INCLUDE_DROPBEAR=false;        fi
     if [[ $BUNDLED =~ "file" ]];            then INCLUDE_FILE=true;             else INCLUDE_FILE=false;            fi
