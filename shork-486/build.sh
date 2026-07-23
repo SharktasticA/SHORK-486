@@ -4169,7 +4169,7 @@ get_git()
     ./configure \
         --host=${HOST} \
         --prefix=/usr \
-        CC="${CC}" \
+        CC="${CC_STATIC}" \
         AR="${AR}" \
         RANLIB="${RANLIB}" \
         CFLAGS="-Os -march=${ARCH} -static -I${PREFIX}/include" \
@@ -5901,9 +5901,9 @@ build_file_system()
         copy_tests
     fi
 
-    if $NEED_CURL || $NEED_OPENSSL; then
-        # Use host's CA certifications to get cURL or OpenSSL working
-        echo -e "${GREEN}Installing CA certificates for cURL or OpenSSL...${RESET}"
+    if $NEED_OPENSSL; then
+        # Use host's CA certifications for OpenSSL HTTPS support
+        echo -e "${GREEN}Installing CA certificates for OpenSSL HTTPS support...${RESET}"
         sudo mkdir -p $DESTDIR/etc/ssl
         copy_sysfile /etc/ssl/certs/ca-certificates.crt $DESTDIR/etc/ssl/cert.pem
     fi
