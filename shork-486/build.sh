@@ -1347,7 +1347,8 @@ get_openssl()
 
     # Compile and install
     echo -e "${GREEN}Compiling OpenSSL...${RESET}"
-    ./Configure linux-generic32 no-shared no-tests no-dso no-engine \
+    ./Configure \
+        linux-generic32 no-shared no-tests no-dso no-engine no-comp no-idea no-mdc2 no-rc5 no-camellia no-cast no-seed no-whirlpool no-ssl3 no-weak-ssl-ciphers no-srp no-psk no-nextprotoneg no-docs no-apps no-quic no-sctp no-srtp no-dtls no-dtls1 no-dtls1-method no-dtls1_2 no-dtls1_2-method no-ktls no-gost no-sm2 no-sm3 no-sm4 \
         --prefix="$SYSROOT" --openssldir=/etc/ssl \
         CC="${CC} -latomic" \
         AR="${AR}" \
