@@ -28,6 +28,20 @@ Besides being something fun to try on old PCs, SHORK 486 was founded on the beli
 
 SHORK 486 is a modern and maintained Linux distribution that can run on a processor architecture from 1989. Depending on configuration, it only requires between 8 and 24MiB system memory whilst still packing a lot of functionality for its size. Due to various factors, making such a distribution is increasingly difficult in the 2020s. System requirements are ever-increasing, with even the otherwise excellent Micro Core and Tiny Core requiring at least 26-46MB RAM, putting them out of range of many early 486 systems. As of Linux kernel 7.1 and beyond, support for 486 processors and various ISA and PCMCIA networking hardware has been dropped, and 32-bit x86 support in general is currently dropped by most mainstream distributions. Given this situation, SHORK 486 will try to fill this niche of a ready-to-go Linux distribution for such PCs by sticking with a minimal-where-possible philosophy, customisability and restoring support for older hardware with newer Linux kernels!
 
+### Editions
+
+In the temporary lieu of a package manager, SHORK 486 can be made as one of several build types to better match your system configuration and what you want to do with said system.
+
+* **Default:** SHORK 486 in its recommended configuration that tries to balance features and software variety with system requirements. It's what was described at the start of this README.
+
+* **Plus:** Like default but _with_ all the optional bundled software included. It includes a lot more development-focused software, additional editors (most notably Vim), IBM terminal emulation software, and (for 586) an MP3 player. It _can_ be used with the same minimum 16MiB system memory as default, but it will lean into slower swap memory a lot more if you don't have more (ideally at least 24MiB).
+
+* **Offline:** Like default but _without_ full networking support and software that would require it. If you don't need the internet or want to force yourself into a less distracting system, you can save some system memory (~4MiB) and disk space (~40MiB) with this.
+
+* **Minimal:** SHORK 486 in its smallest configuration. All bundled software and additional features are excluded, and multi-user, networking and non-US keyboard layout support are disabled. That said, a robust BusyBox configuration is still provided, so comparatively few general and system utilities are lost, and you still have the ed and vi editors. It's a very lightweight Linux, but one may still find it quite usable.
+
+* **Maximal:** SHORK 486 with every possible option enabled, including support for more modern hardware. It is not intended or recommended for 486/586/P5 Pentium systems per se, more a shortcut to those who like SHORK 486's design but want to use it on late '90s to early '10s systems as well, in lieu of future SHORK 686.
+
 ### Licences
 
 SHORK 486 is a free and open-source operating system. Its core is made up of [GPLv3](COPYING) (SHORK, SHORK Utilities, most of SHORK Entertainment), [GPLv2](https://docs.kernel.org/process/license-rules.html) (Linux kernel, BusyBox, SYSLINUX), and [MIT](https://github.com/SharktasticA/shorkmines?tab=MIT-1-ov-file) (SHORKMINES) components. The contents of the `shork-486/patches` directory are also licensed under GPLv2 as they are derived from Linux kernel and BusyBox source code. SHORK 486 can also contain bundled software licensed under various permissive, copyleft, and even public-domain-equivalent licences. You can look at the bundled software list later in this README, or at the "Licences" portal in `shorkhelp` when running SHORK 486, to see their licences.
@@ -314,18 +328,6 @@ When running the SHORK 486 Build Configurator, you will be prompted to select th
         * Options (all other configuration) (multiple choice)
 
 Below are further explanations for options that could not fit into the configurator itself.
-
-
-
-#### Build Type
-
-* **Default**: Builds SHORK 486 to the author's recommended configuration, trying to balance features and bundled software variety with system requirements.
-* **Maximal**: Builds SHORK 486 with every bundled software or additional feature option enabled. It is provided as a curiosity for more modern hardware; it is not recommended for 486 and Pentium (P5)-era hardware.
-* **Plus**: The same as a default but but _with_ all optional bundled software included.
-* **Offline**: The same as a default build but _without_ full networking support or software that requires an internet connection.
-    * The after-build report will still report that "kernel-level networking support (base)" is included. This is a technicality required to satisfy htop's or tmux's kernel requirements, but the kernel is still incapable of supporting real network connections.
-* **Minimal**: Builds SHORK 486 to its most minimal configuration. All bundled software and additional features are excluded, and multi-user system, networking and non-US keyboard layout support are disabled.
-* **Custom**: You will later be asked to pick and choose bundled software and additional features.
 
 
 
