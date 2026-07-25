@@ -90,8 +90,10 @@ INCLUDE_CON_FONTS=false
 USE_GRUB=false
 ENABLE_FB=false
 INCLUDE_GUI=false
+ENABLE_HELP_VERBOSE=false
 ENABLE_HIGHMEM=false
 INCLUDE_KEYMAPS=false
+ENABLE_LOOP=false
 ENABLE_MENU=false
 ENABLE_NO_VDS032=true
 INCLUDE_PCI_IDS=false
@@ -200,8 +202,10 @@ save_env()
         echo "USE_GRUB=$USE_GRUB"
         echo "ENABLE_FB=$ENABLE_FB"
         echo "INCLUDE_GUI=$INCLUDE_GUI"
+        echo "ENABLE_HELP_VERBOSE=$ENABLE_HELP_VERBOSE"
         echo "ENABLE_HIGHMEM=$ENABLE_HIGHMEM"
         echo "INCLUDE_KEYMAPS=$INCLUDE_KEYMAPS"
+        echo "ENABLE_LOOP=$ENABLE_LOOP"
         echo "ENABLE_MENU=$ENABLE_MENU"
         echo "ENABLE_NO_VDS032=$ENABLE_NO_VDS032"
         echo "INCLUDE_PCI_IDS=$INCLUDE_PCI_IDS"
@@ -273,8 +277,10 @@ set_minimal_vars()
     USE_GRUB=false
     ENABLE_FB=false
     INCLUDE_GUI=false
+    ENABLE_HELP_VERBOSE=false
     ENABLE_HIGHMEM=false
     INCLUDE_KEYMAPS=false
+    ENABLE_LOOP=false
     ENABLE_MENU=false
     ENABLE_NO_VDS032=true
     INCLUDE_PCI_IDS=false
@@ -326,8 +332,10 @@ set_default_vars()
     USE_GRUB=false
     ENABLE_FB=true
     INCLUDE_GUI=false
+    ENABLE_HELP_VERBOSE=true
     ENABLE_HIGHMEM=false
     INCLUDE_KEYMAPS=true
+    ENABLE_LOOP=true
     ENABLE_MENU=true
     ENABLE_NO_VDS032=true
     INCLUDE_PCI_IDS=true
@@ -1133,7 +1141,9 @@ OPTIONS=$(dialog --clear \
     "con-fonts"     "*Console fonts pack (+0.1MiB)"                             $(val $INCLUDE_CON_FONTS) \
     "grub"          "GRUB 2.x instead of EXTLINUX (+4MiB)"                      $(val $USE_GRUB) \
     "gui"           "**SHORKGUI (+46MiB, EXPERIMENTAL)"                         $(val $INCLUDE_GUI) \
+    "help-verbose"  "*BusyBox verbose --help"                                   $(val $ENABLE_HELP_VERBOSE) \
     "highmem"       "**Kernel-level high memory support"                        $(val $ENABLE_HIGHMEM) \
+    "loop"          "*Kernel-level loopback device support & losetup"           $(val $ENABLE_LOOP) \
     "menu"          "*Menu-based bootloader (+0.5MiB)"                          $(val $ENABLE_MENU) \
     "no-vdso32"     "*Disable 32-bit vDSO & SEP usage"                          $(val $ENABLE_NO_VDS032) \
     "pci.ids"       "*PCI IDs database (+0.1MiB)"                               $(val $INCLUDE_PCI_IDS) \
@@ -1153,10 +1163,12 @@ if [[ $SKIPPED -eq 1 ]]; then
     :
 else
     if [[ $OPTIONS =~ "cdrom" ]];           then ENABLE_CDROM=true;         else ENABLE_CDROM=false;            fi
-    if [[ $OPTIONS =~ "con-fonts" ]];       then INCLUDE_CON_FONTS=true;    else INCLUDE_CON_FONTS=false;   fi
+    if [[ $OPTIONS =~ "con-fonts" ]];       then INCLUDE_CON_FONTS=true;    else INCLUDE_CON_FONTS=false;       fi
     if [[ $OPTIONS =~ "grub" ]];            then USE_GRUB=true;             else USE_GRUB=false;                fi
     if [[ $OPTIONS =~ "gui" ]];             then INCLUDE_GUI=true;          else INCLUDE_GUI=false;             fi
+    if [[ $OPTIONS =~ "help-verbose" ]];    then ENABLE_HELP_VERBOSE=true;  else ENABLE_HELP_VERBOSE=false;     fi
     if [[ $OPTIONS =~ "highmem" ]];         then ENABLE_HIGHMEM=true;       else ENABLE_HIGHMEM=false;          fi
+    if [[ $OPTIONS =~ "loop" ]];            then ENABLE_LOOP=true;          else ENABLE_LOOP=false;             fi
     #if [[ $OPTIONS =~ "keymaps" ]];         then $INCLUDE_KEYMAPS=true;     else $INCLUDE_KEYMAPS=false;        fi
     if [[ $OPTIONS =~ "menu" ]];            then ENABLE_MENU=true;          else ENABLE_MENU=false;             fi
     if [[ $OPTIONS =~ "no-vdso32" ]];       then ENABLE_NO_VDS032=true;     else ENABLE_NO_VDS032=false;        fi

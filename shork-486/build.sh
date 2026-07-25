@@ -240,7 +240,9 @@ TINY_KRN=false
 
 ENABLE_CDROM=true
 ENABLE_FB=true
+ENABLE_HELP_VERBOSE=true
 ENABLE_HIGHMEM=false
+ENABLE_LOOP=true
 ENABLE_MENU=true
 ENABLE_NO_VDS032=true
 ENABLE_MULTIUSER_KRN=false
@@ -255,8 +257,10 @@ ENABLE_SERIAL_CON=false
 ENABLE_SMP=false
 ENABLE_SOUND=false
 ENABLE_SWAP_WRAP=true
+ENABLE_SYSVIPC=false
 ENABLE_TASKSTATS=false
 ENABLE_USB=false
+ENABLE_VM86=false
 ENABLE_ZSWAP=true
 
 INCLUDE_C3270=false
@@ -404,6 +408,11 @@ else
     fi
 fi
 
+# Ensure VM86 is enabled with FB
+if [ "$ENABLE_FB" = true ]; then
+    ENABLE_VM86=true
+fi
+
 # Networking-related overrides
 if [ "$ENABLE_NET_ETH" = true ]; then
     # Ensure PCMCIA networking support is enabled if general PCMCIA support is also enabled
@@ -439,9 +448,10 @@ if [ "$INCLUDE_HTOP" = true ] || [ "$INCLUDE_TMUX" = true ] || [ "$ENABLE_NET_ET
     ENABLE_NET_BASE=true
 fi
 
-# Ensure SOUND is enabled with MPG321
+# Ensure SOUND and SYSVIPC are enabled with MPG321
 if [ "$INCLUDE_MPG321" = true ]; then
     ENABLE_SOUND=true
+    ENABLE_SYSVIPC=true
 fi
 
 # Ensure SCSI_EXT is enabled with MT_ST
@@ -1470,21 +1480,27 @@ get_patched_xlinux()
 # Used to merge a BusyBox config fragment into .config
 merge_busybox_frag()
 {
-    frag="$1"
+    local FRAG="$1"
     while IFS= read -r line; do
         case "$line" in
-            CONFIG_*=y)
-                # Replace "# ... is not set"
-                name="${line%%=*}"
-                sed -i "s/^# $name is not set/$name=y/" .config
+            CONFIG_*=*)
+                local NAME="${line%%=*}"
+                local VAL="${line#*=}"
+                local ESC_VAL=$(printf '%s' "$VAL" | sed -e 's/[\&|]/\\&/g')
 
-                # If doesn't exist, let's append it
-                if ! grep -q "^$name=" .config && ! grep -q "^# $name is not set" .config; then
-                    echo "$name=y" >> .config
+                if grep -q "^# $NAME is not set" .config; then
+                    # Currently disabled: turn into a value
+                    sed -i "s|^# $NAME is not set|$NAME=$ESC_VAL|" .config
+                elif grep -q "^$NAME=" .config; then
+                    # Already has a value: overwrite the value
+                    sed -i "s|^$NAME=.*|$NAME=$ESC_VAL|" .config
+                else
+                    # Not present: append
+                    echo "$NAME=$value" >> .config
                 fi
                 ;;
         esac
-    done < "$frag"
+    done < "$FRAG"
 }
 
 # Download and compile BusyBox
@@ -1536,6 +1552,16 @@ get_busybox()
     # Patch in swap partition identification in lsblk implementation
     echo -e "${GREEN}Applying 1.38.0_lsblk_swap patch...${RESET}"
     patch -p1 < "${PATCHES_DIR}/busybox/1.38.0_lsblk_swap.patch"
+
+    if $ENABLE_HELP_VERBOSE; then
+        echo -e "${GREEN}Enabling BusyBox's verbose --help...${RESET}"
+        merge_busybox_frag "$CONFIGS_DIR/busybox/busybox.config.help.frag"
+    fi
+    
+    if $ENABLE_LOOP; then
+        echo -e "${GREEN}Enabling BusyBox's losetup utility...${RESET}"
+        merge_busybox_frag "$CONFIGS_DIR/busybox/busybox.config.loop.frag"
+    fi
 
     if $ENABLE_MULTIUSER_REAL; then
         echo -e "${GREEN}Enabling BusyBox's multi-user utilities...${RESET}"
@@ -1756,6 +1782,11 @@ configure_kernel()
         FRAGS+="$CONFIGS_DIR/linux/linux.config.highmem.frag "
     fi
 
+    if $ENABLE_LOOP; then
+        echo -e "${GREEN}Enabling kernel-level loopback device support...${RESET}"
+        FRAGS+="$CONFIGS_DIR/linux/linux.config.loop.frag "
+    fi
+
     if $ENABLE_MULTIUSER_KRN; then
         echo -e "${GREEN}Enabling kernel-level multi-user support...${RESET}"
         FRAGS+="$CONFIGS_DIR/linux/linux.config.multiuser.frag "
@@ -1801,6 +1832,11 @@ configure_kernel()
         FRAGS+="$CONFIGS_DIR/linux/linux.config.sound.frag "
     fi
 
+    if $ENABLE_SYSVIPC; then
+        echo -e "${GREEN}Enabling kernel-level System V IPC support...${RESET}"
+        FRAGS+="$CONFIGS_DIR/linux/linux.config.sysvipc.frag "
+    fi
+
     if $ENABLE_TASKSTATS; then
         echo -e "${GREEN}Enabling kernel-level taskstats support...${RESET}"
         FRAGS+="$CONFIGS_DIR/linux/linux.config.taskstats.frag "
@@ -1809,6 +1845,11 @@ configure_kernel()
     if $ENABLE_USB; then
         echo -e "${GREEN}Enabling kernel-level USB & HID support...${RESET}"
         FRAGS+="$CONFIGS_DIR/linux/linux.config.usb.frag "
+    fi
+
+    if $ENABLE_VM86; then
+        echo -e "${GREEN}Enabling kernel-level VM86 support...${RESET}"
+        FRAGS+="$CONFIGS_DIR/linux/linux.config.vm86.frag "
     fi
 
     if $ENABLE_ZSWAP; then
@@ -6763,6 +6804,12 @@ get_installed_programs_features()
             EXCLUDED_FEATURES+="\n * kernel-level high memory support"
         fi
 
+        if $ENABLE_LOOP; then
+            INCLUDED_FEATURES+="\n * kernel-level loopback device support"
+        else
+            EXCLUDED_FEATURES+="\n * kernel-level loopback device support"
+        fi
+
         if $ENABLE_MULTIUSER_KRN; then
             INCLUDED_FEATURES+="\n * kernel-level multi-user support"
         else
@@ -6811,6 +6858,12 @@ get_installed_programs_features()
             EXCLUDED_FEATURES+="\n * kernel-level sound support"
         fi
 
+        if $ENABLE_SYSVIPC; then
+            INCLUDED_FEATURES+="\n * kernel-level System V IPC support"
+        else
+            EXCLUDED_FEATURES+="\n * kernel-level System V IPC support"
+        fi
+
         if $ENABLE_TASKSTATS; then
             INCLUDED_FEATURES+="\n * kernel-level taskstats support"
         else
@@ -6823,10 +6876,25 @@ get_installed_programs_features()
             EXCLUDED_FEATURES+="\n * kernel-level USB & HID support"
         fi
 
+        if $ENABLE_VM86; then
+            INCLUDED_FEATURES+="\n * kernel-level VM86 support"
+        else
+            EXCLUDED_FEATURES+="\n * kernel-level VM86 support"
+        fi
+
         if $ENABLE_ZSWAP; then
             INCLUDED_FEATURES+="\n * kernel-level zswap support"
         else
             EXCLUDED_FEATURES+="\n * kernel-level zswap support"
+        fi
+    fi
+
+    # BusyBox features
+    if [ "$ID" == "shork-486" ]; then
+        if $ENABLE_HELP_VERBOSE; then
+            INCLUDED_FEATURES+="\n * BusyBox verbose --help"
+        else
+            EXCLUDED_FEATURES+="\n * BusyBox verbose --help"
         fi
     fi
 
