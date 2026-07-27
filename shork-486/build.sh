@@ -165,6 +165,8 @@ LIBXML2_SRC="https://github.com/gnome/libxml2.git"
 LIBXML2_VER="2.15.3"
 LIBZIP_SRC="https://github.com/nih-at/libzip.git"
 LIBZIP_VER="1.11.4"
+LUA_SRC="https://github.com/lua/lua"
+LUA_VER="5.5.0"
 LYNX_SRC="https://github.com/ThomasDickey/lynx-snapshots.git"
 LYNX_VER="2-9-3a"
 MAKE_SRC="https://ftp.gnu.org/gnu/make"
@@ -279,6 +281,7 @@ INCLUDE_HWINFO=false
 INCLUDE_INDENT=false
 INCLUDE_JOE=false
 INCLUDE_KEYMAPS=true
+INCLUDE_LUA=true
 INCLUDE_LYNX=true
 INCLUDE_MAKE=false
 INCLUDE_MG=true
@@ -4151,6 +4154,15 @@ get_gcc()
 
     GCC_SYSROOT="$DESTDIR/opt/i486-linux-musl-native"
 
+    if $INCLUDE_LUA; then
+        echo -e "${GREEN}Installing Lua headers and library...${RESET}"
+        sudo install -D -m 644 "$CURR_DIR/build/lua/liblua.a" "$GCC_SYSROOT/lib/liblua.a"
+        sudo install -D -m 644 "$CURR_DIR/build/lua/lua.h" "$GCC_SYSROOT/include/lua.h"
+        sudo install -D -m 644 "$CURR_DIR/build/lua/luaconf.h" "$GCC_SYSROOT/include/luaconf.h"
+        sudo install -D -m 644 "$CURR_DIR/build/lua/lualib.h" "$GCC_SYSROOT/include/lualib.h"
+        sudo install -D -m 644 "$CURR_DIR/build/lua/lauxlib.h" "$GCC_SYSROOT/include/lauxlib.h"
+    fi
+
     if $NEED_CURL; then
         echo -e "${GREEN}Installing libcurl and related headers...${RESET}"
         sudo mkdir -p "$GCC_SYSROOT/include/curl"
@@ -4355,6 +4367,36 @@ get_lapifetch()
     echo -e "${GREEN}Compiling lapifetch...${RESET}"
     make -j$(nproc) CXX="${CXX_STATIC}"
     sudo make DESTDIR=$DESTDIR install
+}
+
+# Download and compile Lua
+get_lua()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$DESTDIR/usr/bin/lua" ]; then
+        echo -e "${LIGHT_RED}Lua already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d lua ]; then
+        echo -e "${YELLOW}Lua source already present, resetting & cleaning...${RESET}"
+        cd lua
+        git config --global --add safe.directory "$CURR_DIR/build/lua"
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading Lua...${RESET}"
+        git clone --branch "v${LUA_VER}" $LUA_SRC
+        cd lua
+    fi
+
+    # Compile and install
+    echo -e "${GREEN}Compiling Lua...${RESET}"
+    make -j$(nproc) CC="${CC_STATIC}" AR="${AR} rcu" RANLIB="${RANLIB}" STRIP="${STRIP}"
+    install -m755 lua "$DESTDIR/usr/bin/lua"
 }
 
 # Download and compile Mg
@@ -5520,6 +5562,12 @@ copy_licences()
        [ -f "$CURR_DIR/build/libzip/LICENSE" ]; then
         cp "$CURR_DIR/build/libzip/LICENSE" "$DESTDIR/LICENCES/libzip.txt" || true
         CSV+="\nlibzip,BSD 3-Clause,libzip.txt"
+    fi
+
+    if $INCLUDE_LUA && 
+       [ -f "$CURR_DIR/build/lua/lua.h" ]; then
+        sed -n '/^\* Copyright/,/^\* SOFTWARE/p' "$CURR_DIR/build/lua/lua.h" | sed 's/^\* \{0,1\}//' > "$DESTDIR/LICENCES/lua.txt"
+        CSV+="\nLua,MIT,lua.txt"
     fi
 
     if $INCLUDE_LYNX && 
@@ -7154,6 +7202,12 @@ get_installed_programs_features()
     fi
 
     if [ "$ID" == "shork-486" ]; then
+        if [ -f "$DESTDIR/usr/bin/lua" ]; then
+            INCLUDED_FEATURES+="\n * lua ($LUA_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * lua"
+        fi
+
         if [ -f "$DESTDIR/usr/bin/lynx" ]; then
             INCLUDED_FEATURES+="\n * lynx ($LYNX_VER)"
         else
@@ -7667,12 +7721,6 @@ fi
 if $INCLUDE_FILE; then
     get_file
 fi
-if $INCLUDE_GCC; then
-    get_gcc
-    make_swap_wrap "$DESTDIR/opt/${ARCH}-linux-musl-native/bin/gcc"
-    make_swap_wrap "$DESTDIR/opt/${ARCH}-linux-musl-native/bin/g++"
-    make_swap_wrap "$DESTDIR/opt/${ARCH}-linux-musl-native/bin/gfortran"
-fi
 if $INCLUDE_GIT; then
     get_git
     make_swap_wrap "$DESTDIR/usr/bin/git"
@@ -7699,6 +7747,9 @@ if $INCLUDE_INDENT; then
 fi
 if $INCLUDE_JOE; then
     get_joe
+fi
+if $INCLUDE_LUA; then
+    get_lua
 fi
 if $INCLUDE_LYNX; then
     get_prog_git \
@@ -7812,6 +7863,12 @@ if $INCLUDE_VIM; then
         "/usr" \
         "--with-features=normal --disable-gui --without-x --disable-nls --disable-channel --disable-netbeans --disable-terminal --disable-python3interp --disable-perlinterp --disable-rubyinterp --disable-luainterp --disable-tclinterp --disable-cscope --disable-acl --disable-gpm --disable-sysmouse --disable-selinux --disable-canberra --without-wayland --disable-libsodium --disable-smack"
     make_swap_wrap "$DESTDIR/usr/bin/vim"
+fi
+if $INCLUDE_GCC; then
+    get_gcc
+    make_swap_wrap "$DESTDIR/opt/${ARCH}-linux-musl-native/bin/gcc"
+    make_swap_wrap "$DESTDIR/opt/${ARCH}-linux-musl-native/bin/g++"
+    make_swap_wrap "$DESTDIR/opt/${ARCH}-linux-musl-native/bin/gfortran"
 fi
 
 get_shorkhelp
