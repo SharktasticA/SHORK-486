@@ -376,6 +376,7 @@ set_plus_vars()
     INCLUDE_MAKE=true
     INCLUDE_MPG321=true
     INCLUDE_NASM=true
+    INCLUDE_TILDE=true
     INCLUDE_TN5250=true
     INCLUDE_VIM=true
     ENABLE_SOUND=true
@@ -1043,10 +1044,10 @@ if [ "$ENABLE_NET_ETH" == true ]; then
         "shorktainment"     "*shorkmatrix, shorkmines, shorksay & sl (+0.5MiB)"     "$(val "$INCLUDE_SHORKTAINMENT")"
         "strace"            "*System calls & signals tracer (+1.1MiB)"              "$(val "$INCLUDE_STRACE")"
         "tcc"               "*Tiny C Compiler + musl (+4MiB)"                       "$(val "$INCLUDE_TCC")"
-        #"tilde"             "GUI-like text editor (+4.5MiB)"                       "$(val "$INCLUDE_TILDE")"
+        "tilde"             "GUI-like text editor (+3.6MiB)"                        "$(val "$INCLUDE_TILDE")"
+        "tmux"              "*Terminal multiplexer (+1.7MiB)"                       "$(val "$INCLUDE_TMUX")"
         "tn5250"            "TCP/IP 5250 terminal emulator (+6.4MiB, EXPERIMENTAL)" "$(val "$INCLUDE_TN5250")"
         "tnftp"             "*FTP client (+0.3MiB)"                                 "$(val "$INCLUDE_TNFTP")"
-        "tmux"              "*Terminal multiplexer (+1.7MiB)"                       "$(val "$INCLUDE_TMUX")"
         "util-linux"        "*lscpu, partx, sfdisk & whereis (+2.2MiB)"             "$(val "$INCLUDE_UTIL_LINUX")"
         "vim"               "†Vi IMproved text editor (+23MiB)"                     "$(val "$INCLUDE_VIM")"
     )
@@ -1073,8 +1074,8 @@ else
         "shorktainment"     "*shorkmatrix, shorkmines, shorksay & sl (+0.5MiB)"     "$(val "$INCLUDE_SHORKTAINMENT")"
         "strace"            "*System calls & signals tracer (+1.1MiB)"              "$(val "$INCLUDE_STRACE")"
         "tcc"               "*Tiny C Compiler + musl (+4MiB)"                       "$(val "$INCLUDE_TCC")"
+        "tilde"             "GUI-like text editor (+3.6MiB)"                        "$(val "$INCLUDE_TILDE")"
         "tmux"              "*Terminal multiplexer (+1.7MiB)"                       "$(val "$INCLUDE_TMUX")"
-        #"tilde"             "GUI-like text editor (+4.5MiB)"                        "$(val "$INCLUDE_TILDE")"
         "util-linux"        "*lscpu, partx, sfdisk & whereis (+2.2MiB)"             "$(val "$INCLUDE_UTIL_LINUX")"
         "vim"               "†Vi IMproved text editor (+23MiB)"                     "$(val "$INCLUDE_VIM")"
     )
@@ -1120,7 +1121,7 @@ else
     if [[ $BUNDLED =~ "shorktainment" ]];   then INCLUDE_SHORKTAINMENT=true;    else INCLUDE_SHORKTAINMENT=false;   fi
     if [[ $BUNDLED =~ "strace" ]];          then INCLUDE_STRACE=true;           else INCLUDE_STRACE=false;          fi
     if [[ $BUNDLED =~ "tcc" ]];             then INCLUDE_TCC=true;              else INCLUDE_TCC=false;             fi
-    #if [[ $BUNDLED =~ "tilde" ]];           then INCLUDE_TILDE=true;            else INCLUDE_TILDE=false;           fi
+    if [[ $BUNDLED =~ "tilde" ]];           then INCLUDE_TILDE=true;            else INCLUDE_TILDE=false;           fi
     if [[ $BUNDLED =~ "tmux" ]];            then INCLUDE_TMUX=true;             else INCLUDE_TMUX=false;            fi
     if [[ $BUNDLED =~ "tn5250" ]];          then INCLUDE_TN5250=true;           else INCLUDE_TN5250=false;          fi
     if [[ $BUNDLED =~ "tnftp" ]];           then INCLUDE_TNFTP=true;            else INCLUDE_TNFTP=false;           fi
