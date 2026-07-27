@@ -115,7 +115,6 @@ BUSYBOX_VER="1.38.0"
 SHORKFETCH_SRC="https://github.com/SharktasticA/shorkfetch.git"
 SHORKFETCH_VER="0.4.4"
 SHORKMINES_SRC="https://github.com/SharktasticA/shorkmines.git"
-SHORKMINES_VER=""
 
 C3270_SRC="https://github.com/pmattes/x3270.git"
 C3270_VER="4.5ga5"
@@ -156,6 +155,8 @@ LIBT3HIGHLIGHT_VER="0.5.0"
 LIBT3KEY_VER="0.2.11"
 LIBT3WIDGET_VER="1.2.2"
 LIBT3WINDOW_VER="0.4.2"
+LIBTOOL_SRC="https://ftp.gnu.org/gnu/libtool"
+LIBTOOL_VER="2.6.2"
 LIBTRANSCRIPT_VER="0.3.4"
 LIBUNISTRING_SRC="https://ftp.gnu.org/gnu/libunistring"
 LIBUNISTRING_VER="1.4.2"
@@ -527,10 +528,19 @@ NEED_LIBAO=false
 NEED_LIBEVENT=false
 NEED_LIBID3TAG=false
 NEED_LIBMAD=false
+NEED_LIBT3CONFIG=false
+NEED_LIBT3HIGHLIGHT=false
+NEED_LIBT3KEY=false
+NEED_LIBT3WIDGET=false
+NEED_LIBT3WINDOW=false
+NEED_LIBTOOL=false
+NEED_LIBTRANSCRIPT=false
+NEED_LIBUNISTRING=false
 NEED_LIBUUID=false
 NEED_LIBXLSXWRITER=false
 NEED_LIBXML2=false
 NEED_LIBZIP=false
+NEED_PCRE2=false
 NEED_X86EMU=false
 NEED_ZLIB=false
 
@@ -569,6 +579,18 @@ if $INCLUDE_SC_IM; then
     NEED_LIBXML2=true
     NEED_LIBZIP=true
     NEED_ZLIB=true
+fi
+
+if $INCLUDE_TILDE; then
+    NEED_LIBT3CONFIG=true
+    NEED_LIBT3HIGHLIGHT=true
+    NEED_LIBT3KEY=true
+    NEED_LIBT3WIDGET=true
+    NEED_LIBT3WINDOW=true
+    NEED_LIBTOOL=true
+    NEED_LIBTRANSCRIPT=true
+    NEED_LIBUNISTRING=true
+    NEED_PCRE2=true
 fi
 
 if $INCLUDE_TMUX; then
@@ -615,11 +637,15 @@ fix_perms()
     HOST_GID=${HOST_GID:-1000}
     HOST_UID=${HOST_UID:-1000}
 
-    sudo chown -R "$HOST_UID:$HOST_GID" $CURR_DIR/build || true
-    sudo chmod 755 $CURR_DIR/build || true
+    if [ -d "$CURR_DIR/build" ]; then
+        sudo chown -R "$HOST_UID:$HOST_GID" $CURR_DIR/build || true
+        sudo chmod 755 $CURR_DIR/build || true
+    fi
 
-    sudo chown -R "$HOST_UID:$HOST_GID" $CURR_DIR/images || true
-    sudo chmod 755 $CURR_DIR/images || true
+    if [ -d "$CURR_DIR/images" ]; then
+        sudo chown -R "$HOST_UID:$HOST_GID" $CURR_DIR/images || true
+        sudo chmod 755 $CURR_DIR/images || true
+    fi
 
     for f in "$CURR_DIR/images/"*; do
         [ -f "$f" ] || continue
@@ -627,8 +653,10 @@ fix_perms()
         sudo chmod 644 "$f"
     done
 
-    sudo chown -R "$HOST_UID:$HOST_GID" $CURR_DIR/__pycache__ || true
-    sudo chmod 755 $CURR_DIR/__pycache__ || true
+    if [ -d "$CURR_DIR/__pycache__" ]; then
+        sudo chown -R "$HOST_UID:$HOST_GID" "$CURR_DIR/__pycache__" || true
+        sudo chmod 755 "$CURR_DIR/__pycache__" || true
+    fi
 }
 
 # Cleans up any stale mounts and block-device mappings left by image builds
@@ -859,8 +887,8 @@ get_musl_cross()
     [ -d "${CROSS}" ] || tar xvf "${CROSS}.tgz"
 }
 
-# Download and compile ncurses (required for c3270, htop, Lynx, nano, sc-im, tic,
-# tmux, tn5250 and util-linux)
+# Download and compile ncurses (required for c3270, htop, Lynx, nano, sc-im,
+# T3* stack, tic, Tilde, tmux, tn5250 and util-linux)
 get_ncurses()
 {
     cd "$CURR_DIR/build"
@@ -894,6 +922,8 @@ get_ncurses()
         --without-debug \
         --without-cxx \
         --enable-widec \
+        --enable-pc-files \
+        --with-pkg-config-libdir="${SYSROOT}/lib/pkgconfig" \
         CC="${CC_STATIC}" \
         CFLAGS="-fPIC" \
         CPPFLAGS="-D_XOPEN_SOURCE=600"
@@ -912,7 +942,7 @@ get_ncurses()
     ln -sf "${PREFIX}/lib/libncursesw.a" "${PREFIX}/lib/libcurses.a"
 }
 
-# Download and compile tic (required for shorkset)
+# Compile tic (required for shorkset)
 get_tic()
 {
     cd "$CURR_DIR/build/ncurses"
@@ -1213,6 +1243,509 @@ get_libid3tag()
     make DESTDIR=$SYSROOT install
 }
 
+# Download and compile libt3config (required for Tilde)
+get_libt3config()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/libt3config.a" ]; then
+        echo -e "${LIGHT_RED}libt3config already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading libt3config...${RESET}"
+    DIR="libt3config-${LIBT3CONFIG_VER}"
+    ARC="${DIR}.tar.bz2"
+    URI="${LIBT3_SRC}/${ARC}"
+
+    # Download source
+    [ -f $ARC ] || wget $URI
+
+    # Extract source
+    if [ -d $DIR ]; then
+        echo -e "${YELLOW}libt3config's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -rf $DIR
+    fi
+    tar xjf $ARC
+    cd $DIR
+
+    # Compile and install native version
+    if [ ! -f "$CURR_DIR/build/native-tools/lib/libt3config.la" ]; then
+        NATIVE_DIR="$CURR_DIR/build/libt3config-${LIBT3CONFIG_VER}-native"
+        cp -r "$CURR_DIR/build/$DIR" "$NATIVE_DIR"
+        (
+            cd "$NATIVE_DIR"
+            echo -e "${GREEN}Compiling libt3config (native)...${RESET}"
+            ./configure \
+                --prefix="$CURR_DIR/build/native-tools"
+            make -j$(nproc)
+            make install
+        )
+    fi
+
+    # Compile and install $ARCH version
+    echo -e "${GREEN}Compiling libt3config ($ARCH)...${RESET}"
+    ./configure \
+        --prefix=/usr \
+        CC="${CC}" \
+        CXX="${CXX}" \
+        AR="${AR}" \
+        LD="${LD}" \
+        RANLIB="${RANLIB}" \
+        LIBTOOL="${PREFIX}/bin/i486-linux-musl-libtool" \
+        CFLAGS="--sysroot=${SYSROOT} -I${SYSROOT}/usr/include" \
+        LDFLAGS="--sysroot=${SYSROOT} -L${SYSROOT}/usr/lib"
+    make -j$(nproc)
+    make DESTDIR="${SYSROOT}" install
+
+    # Modify libtool archive's libdir to target the cross-compiler's, and not
+    # the host's
+    sed -i "s|^libdir='/usr/lib'|libdir='${SYSROOT}/usr/lib'|" "$SYSROOT/usr/lib/libt3config.la"
+
+    # Need to assemble our own archive to produce a usable static library
+    OBJS=$(find ./src/.libs -maxdepth 1 -name '*.o')
+    "${AR}" rcs "$SYSROOT/usr/lib/libt3config.a" $OBJS
+    "${RANLIB}" "$SYSROOT/usr/lib/libt3config.a"
+}
+
+# Download and compile libt3highlight (required for Tilde)
+get_libt3highlight()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/libt3highlight.a" ]; then
+        echo -e "${LIGHT_RED}libt3highlight already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading libt3highlight...${RESET}"
+    DIR="libt3highlight-${LIBT3HIGHLIGHT_VER}"
+    ARC="${DIR}.tar.bz2"
+    URI="${LIBT3_SRC}/${ARC}"
+
+    # Download source
+    [ -f $ARC ] || wget $URI
+
+    # Extract source
+    if [ -d $DIR ]; then
+        echo -e "${YELLOW}libt3highlight's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -rf $DIR
+    fi
+    tar xjf $ARC
+    cd $DIR
+
+    export PKG_CONFIG_PATH="$SYSROOT/usr/lib/pkgconfig"
+    export PKG_CONFIG_LIBDIR="$SYSROOT/usr/lib/pkgconfig"
+    export PKG_CONFIG_SYSROOT_DIR="$SYSROOT"
+
+    # Compile and install
+    echo -e "${GREEN}Compiling libt3highlight...${RESET}"
+    ./configure \
+        --prefix=/usr \
+        CC="${CC}" \
+        CXX="${CXX}" \
+        AR="${AR}" \
+        LD="${LD}" \
+        RANLIB="${RANLIB}" \
+        LIBTOOL="${PREFIX}/bin/i486-linux-musl-libtool" \
+        CFLAGS="--sysroot=${SYSROOT} -I${SYSROOT}/usr/include -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
+        LDFLAGS="--sysroot=${SYSROOT} -L${SYSROOT}/usr/lib -L${PREFIX}/lib"
+    make -j$(nproc)
+    make DESTDIR="${SYSROOT}" install
+
+    # Modify libtool archive's libdir to target the cross-compiler's, and not
+    # the host's
+    sed -i "s|^libdir='/usr/lib'|libdir='${SYSROOT}/usr/lib'|" "$SYSROOT/usr/lib/libt3highlight.la"
+
+    # Need to assemble our own archive to produce a usable static library
+    OBJS=$(find ./src/.libs -maxdepth 1 -name '*.o')
+    "${AR}" rcs "$SYSROOT/usr/lib/libt3highlight.a" $OBJS
+    "${RANLIB}" "$SYSROOT/usr/lib/libt3highlight.a"
+}
+
+# Download and compile libt3key (required for Tilde)
+get_libt3key()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/libt3key.a" ]; then
+        echo -e "${LIGHT_RED}libt3key already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading libt3key...${RESET}"
+    DIR="libt3key-${LIBT3KEY_VER}"
+    ARC="${DIR}.tar.bz2"
+    URI="${LIBT3_SRC}/${ARC}"
+
+    # Download source
+    [ -f $ARC ] || wget $URI
+
+    # Extract source
+    if [ -d $DIR ]; then
+        echo -e "${YELLOW}libt3key's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -rf $DIR
+    fi
+    tar xjf $ARC
+    cd $DIR
+
+    # Compile and install native t3keyc
+    if [ ! -x "$CURR_DIR/build/native-tools/bin/t3keyc" ]; then
+        NATIVE_DIR="$CURR_DIR/build/libt3key-${LIBT3KEY_VER}-native"
+        cp -r "$CURR_DIR/build/$DIR" "$NATIVE_DIR"
+        (
+            export PKG_CONFIG_PATH="$CURR_DIR/build/native-tools/lib/pkgconfig"
+            export PKG_CONFIG_LIBDIR="$CURR_DIR/build/native-tools/lib/pkgconfig"
+            export LD_LIBRARY_PATH="$CURR_DIR/build/native-tools/lib:$LD_LIBRARY_PATH"
+            cd "$NATIVE_DIR"
+            unset PKG_CONFIG_SYSROOT_DIR
+            echo -e "${GREEN}Compiling t3keyc...${RESET}"
+            ./configure \
+                --prefix="$CURR_DIR/build/native-tools"
+            make -j$(nproc)
+            make install
+        )
+    fi
+
+    export PATH="$CURR_DIR/build/native-tools/bin:$PATH"
+    export PKG_CONFIG_PATH="$SYSROOT/usr/lib/pkgconfig"
+    export PKG_CONFIG_LIBDIR="$SYSROOT/usr/lib/pkgconfig"
+    export PKG_CONFIG_SYSROOT_DIR="$SYSROOT"
+
+    # Compile and install libt3key
+    echo -e "${GREEN}Compiling libt3key...${RESET}"
+    ./configure \
+        --prefix=/usr \
+        CC="${CC}" \
+        CXX="${CXX}" \
+        AR="${AR}" \
+        LD="${LD}" \
+        RANLIB="${RANLIB}" \
+        LIBTOOL="${PREFIX}/bin/i486-linux-musl-libtool" \
+        CFLAGS="--sysroot=${SYSROOT} -I${SYSROOT}/usr/include -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
+        LDFLAGS="--sysroot=${SYSROOT} -L${SYSROOT}/usr/lib -L${PREFIX}/lib"
+    make -j$(nproc)
+    make DESTDIR="${SYSROOT}" install || true
+
+    # Modify libtool archive's libdir to target the cross-compiler's, and not
+    # the host's
+    sed -i "s|^libdir='/usr/lib'|libdir='${SYSROOT}/usr/lib'|" "$SYSROOT/usr/lib/libt3key.la"
+
+    # We need to use the native t3keyc, not the cross-compiled one, to process
+    # the keymap files
+    CROSS_T3KEYC="$SYSROOT/usr/bin/t3keyc"
+    if [ -f "$CROSS_T3KEYC" ]; then
+        cp "$CROSS_T3KEYC" "${CROSS_T3KEYC}.cross-backup"
+        cp "$CURR_DIR/build/native-tools/bin/t3keyc" "$CROSS_T3KEYC"
+
+        mkdir -p "$SYSROOT/usr/share/libt3key1"
+        export LD_LIBRARY_PATH="$CURR_DIR/build/native-tools/lib:$LD_LIBRARY_PATH"
+        find src/database -type f | while read KEYMAP; do
+            install -m0644 "$KEYMAP" "$SYSROOT/usr/share/libt3key1"
+            "$CROSS_T3KEYC" -l "$SYSROOT/usr/share/libt3key1/${KEYMAP##*/}"
+        done
+
+        mv "${CROSS_T3KEYC}.cross-backup" "$CROSS_T3KEYC"
+    fi
+
+    # Need to assemble our own archive to produce a usable static library
+    OBJS=$(find ./src/.libs -maxdepth 1 -name '*.o')
+    "${AR}" rcs "$SYSROOT/usr/lib/libt3key.a" $OBJS
+    "${RANLIB}" "$SYSROOT/usr/lib/libt3key.a"
+}
+
+# Download and compile libt3widget (required for Tilde)
+get_libt3widget()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/libt3widget.a" ]; then
+        echo -e "${LIGHT_RED}libt3widget already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading libt3widget...${RESET}"
+    DIR="libt3widget-${LIBT3WIDGET_VER}"
+    ARC="${DIR}.tar.bz2"
+    URI="${LIBT3_SRC}/${ARC}"
+
+    # Download source
+    [ -f $ARC ] || wget $URI
+
+    # Extract source
+    if [ -d $DIR ]; then
+        echo -e "${YELLOW}libt3widget's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -rf $DIR
+    fi
+    tar xjf $ARC
+    cd $DIR
+
+    export PKG_CONFIG_PATH="$SYSROOT/usr/lib/pkgconfig"
+    export PKG_CONFIG_LIBDIR="$SYSROOT/usr/lib/pkgconfig"
+    export PKG_CONFIG_SYSROOT_DIR="$SYSROOT"
+
+    # Compile and install
+    echo -e "${GREEN}Compiling libt3widget...${RESET}"
+    ./configure \
+        --prefix=/usr \
+        CC="${CC}" \
+        CXX="${CXX}" \
+        AR="${AR}" \
+        LD="${LD}" \
+        RANLIB="${RANLIB}" \
+        LIBTOOL="${PREFIX}/bin/i486-linux-musl-libtool" \
+        CFLAGS="--sysroot=${SYSROOT} -I${SYSROOT}/usr/include -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
+        LDFLAGS="--sysroot=${SYSROOT} -L${SYSROOT}/usr/lib -L${PREFIX}/lib"
+    make -j$(nproc)
+    make DESTDIR="${SYSROOT}" install
+
+    # Modify libtool archive's libdir to target the cross-compiler's, and not
+    # the host's
+    sed -i "s|^libdir='/usr/lib'|libdir='${SYSROOT}/usr/lib'|" "$SYSROOT/usr/lib/libt3widget.la"
+
+    # Need to assemble our own archive to produce a usable static library
+    OBJS=$(find ./src -path '*/.libs/*.o')
+    "${AR}" rcs "$SYSROOT/usr/lib/libt3widget.a" $OBJS
+    "${RANLIB}" "$SYSROOT/usr/lib/libt3widget.a"
+}
+
+# Download and compile libt3window (required for Tilde)
+get_libt3window()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/libt3window.a" ]; then
+        echo -e "${LIGHT_RED}libt3window already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading libt3window...${RESET}"
+    DIR="libt3window-${LIBT3WINDOW_VER}"
+    ARC="${DIR}.tar.bz2"
+    URI="${LIBT3_SRC}/${ARC}"
+
+    # Download source
+    [ -f $ARC ] || wget $URI
+
+    # Extract source
+    if [ -d $DIR ]; then
+        echo -e "${YELLOW}libt3window's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -rf $DIR
+    fi
+    tar xjf $ARC
+    cd $DIR
+
+    # Quick patch libt3window to not crash when smso is missing from terminfo
+    sed -i  -e 's/if (streq(smso, _t3_rev)) {/if (smso != NULL \&\& streq(smso, _t3_rev)) {/' -e 's/if (streq(rmso, "\\033\[27m")) {/if (rmso != NULL \&\& streq(rmso, "\\033[27m")) {/' src/terminal_init.c
+
+    export PKG_CONFIG_PATH="$SYSROOT/usr/lib/pkgconfig"
+    export PKG_CONFIG_LIBDIR="$SYSROOT/usr/lib/pkgconfig"
+    export PKG_CONFIG_SYSROOT_DIR="$SYSROOT"
+
+    # Compile and install
+    echo -e "${GREEN}Compiling libt3window...${RESET}"
+    ./configure \
+        --prefix=/usr \
+        CC="${CC}" \
+        CXX="${CXX}" \
+        AR="${AR}" \
+        LD="${LD}" \
+        RANLIB="${RANLIB}" \
+        LIBTOOL="${PREFIX}/bin/i486-linux-musl-libtool" \
+        CFLAGS="--sysroot=${SYSROOT} -I${SYSROOT}/usr/include -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
+        LDFLAGS="--sysroot=${SYSROOT} -L${SYSROOT}/usr/lib -L${PREFIX}/lib"
+    make -j$(nproc)
+    make DESTDIR="${SYSROOT}" install
+
+    # Modify libtool archive's libdir to target the cross-compiler's, and not
+    # the host's
+    sed -i "s|^libdir='/usr/lib'|libdir='${SYSROOT}/usr/lib'|" "$SYSROOT/usr/lib/libt3window.la"
+
+    # Need to assemble our own archive to produce a usable static library
+    OBJS=$(find ./src -path '*/.libs/*.o')
+    "${AR}" rcs "$SYSROOT/usr/lib/libt3window.a" $OBJS
+    "${RANLIB}" "$SYSROOT/usr/lib/libt3window.a"
+}
+
+# Download and compile libtool and libltdl (required for T3* stack and Tilde)
+get_libtool()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/libltdl.a" ]  && [ -f "${PREFIX}/bin/i486-linux-musl-libtool" ]; then
+        echo -e "${LIGHT_RED}libtool already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading libtool...${RESET}"
+    DIR="libtool-${LIBTOOL_VER}"
+    ARC="${DIR}.tar.gz"
+    URI="${LIBTOOL_SRC}/${ARC}"
+
+    # Download source
+    [ -f $ARC ] || wget $URI
+
+    # Extract source
+    if [ -d $DIR ]; then
+        rm -rf $DIR
+    fi
+    tar xzf $ARC
+    cd "$DIR"
+
+    # Compile and install libtool
+    echo -e "${GREEN}Compiling libtool...${RESET}"
+    ./configure \
+        --host=${ARCH}-linux-musl \
+        --prefix=/usr \
+        CC="${CC}" \
+        AR="${AR}" \
+        LD="${LD}" \
+        RANLIB="${RANLIB}"
+    mkdir -p "${PREFIX}/bin"
+    cp ./libtool "${PREFIX}/bin/i486-linux-musl-libtool"
+    chmod +x "${PREFIX}/bin/i486-linux-musl-libtool"
+
+    # Compile and install libltdl
+    cd "libltdl"
+    echo -e "${GREEN}Compiling libltdl...${RESET}"
+    ./configure \
+        --host=${ARCH}-linux-musl \
+        --prefix=/usr \
+        --enable-static \
+        --disable-shared \
+        --enable-ltdl-install \
+        CC="${CC}" \
+        AR="${AR}" \
+        LD="${LD}" \
+        RANLIB="${RANLIB}" \
+        CFLAGS="--sysroot=${SYSROOT}" \
+        LDFLAGS="--sysroot=${SYSROOT} -L${SYSROOT}/lib"
+    make -j$(nproc)
+    make DESTDIR="${SYSROOT}" install
+}
+
+# Download and compile libtranscript (required for Tilde)
+get_libtranscript()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ ! -f "$SYSROOT/usr/lib/libtranscript.a" ]; then
+        echo -e "${GREEN}Downloading libtranscript...${RESET}"
+        DIR="libtranscript-${LIBTRANSCRIPT_VER}"
+        ARC="${DIR}.tar.bz2"
+        URI="${LIBT3_SRC}/${ARC}"
+
+        # Download source
+        [ -f $ARC ] || wget $URI
+
+        # Extract source
+        if [ -d $DIR ]; then
+            echo -e "${YELLOW}libtranscript's source archive is already present, re-extracting before proceeding...${RESET}"
+            rm -rf $DIR
+        fi
+        tar xjf $ARC
+        cd $DIR
+
+        # Force real libltdl usage instead of the raw-dlfcn shim
+        sed -i 's/#ifdef HAS_DLFCN/#if 0/' src/transcript_dlfcn.h
+
+        unset LTSHARED
+
+        # Compile and install libtranscript library
+        echo -e "${GREEN}Compiling libtranscript library...${RESET}"
+        ./configure \
+            --host=${ARCH}-linux-musl \
+            --prefix=/usr \
+            CC="${CC}" \
+            CXX="${CXX}" \
+            AR="${AR}" \
+            LD="${LD}" \
+            RANLIB="${RANLIB}" \
+            CFLAGS="--sysroot=${SYSROOT} -I${SYSROOT}/usr/include" \
+            LDFLAGS="--sysroot=${SYSROOT} -L${SYSROOT}/usr/lib -lltdl"
+        make -j$(nproc)
+        make DESTDIR="${SYSROOT}" install
+
+        # Modify libtool archive's libdir to target the cross-compiler's, and not
+        # the host's
+        sed -i "s|^libdir='/usr/lib'|libdir='${SYSROOT}/usr/lib'|" "$SYSROOT/usr/lib/libtranscript.la"
+        # Add -lltdl to Libs.private since libtranscript now links against real
+        # libltdl
+        sed -i '/^Libs.private:/s/$/ -lltdl/' "$SYSROOT/usr/lib/pkgconfig/libtranscript.pc"
+
+        # Need to assemble our own archive to produce a usable static library
+        OBJS=$(find src/.libs -maxdepth 1 -name '*.o')
+        "${AR}" rcs "$SYSROOT/usr/lib/libtranscript.a" $OBJS
+        "${RANLIB}" "$SYSROOT/usr/lib/libtranscript.a"
+        
+        # Compile and install libtranscript codec modules
+        echo -e "${GREEN}Compiling libtranscript codec modules...${RESET}"
+        make -f mk/libtranscript -j$(nproc) modules tables
+        mkdir -p "$SYSROOT/usr/lib/transcript1"
+        find src/modules src/tables -maxdepth 1 -name '*.ltc' -exec cp {} "$SYSROOT/usr/lib/transcript1/" \;
+    else
+        echo -e "${LIGHT_RED}libtranscript already compiled, skipping...${RESET}"
+    fi
+
+    # Copy needed .ltc codec plugins
+    mkdir -p "$DESTDIR/usr/lib/transcript1"
+    for codec in ascii.ltc iso88591.ltc utf8.ltc iso885921999.ltc iso8859131998.ltc iso8859151999.ltc; do
+        cp "$SYSROOT/usr/lib/transcript1/$codec" "$DESTDIR/usr/lib/transcript1/"
+    done
+}
+
+# Download and compile libunistring (required for T3* stack)
+get_libunistring()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/libunistring.a" ]; then
+        echo -e "${LIGHT_RED}libunistring already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading libunistring...${RESET}"
+    DIR="libunistring-${LIBUNISTRING_VER}"
+    ARC="${DIR}.tar.xz"
+    URI="${LIBUNISTRING_SRC}/${ARC}"
+
+    # Download source
+    [ -f $ARC ] || wget $URI
+
+    # Extract source
+    if [ -d $DIR ]; then
+        echo -e "${YELLOW}libunistring's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -rf $DIR
+    fi
+    tar xf $ARC
+    cd $DIR
+
+    # Compile and install
+    echo -e "${GREEN}Compiling libunistring...${RESET}"
+    ./configure \
+        --host=${ARCH}-linux-musl \
+        --prefix=/usr \
+        --enable-static \
+        --disable-shared \
+        CC="${CC_STATIC}" \
+        CXX="${CXX_STATIC}" \
+        AR="${AR}" \
+        LD="${LD}" \
+        RANLIB="${RANLIB}" \
+        CFLAGS="-static -fno-pie -fno-pic -D__gnuc_va_list=va_list" \
+        LDFLAGS="-static -static-libgcc -no-pie -Wl,-static -L${PREFIX}/lib -L${SYSROOT}/lib"
+    make -j$(nproc)
+    make DESTDIR="${SYSROOT}" install
+}
+
 # Download and compile libxlsxwriter (required for sc-im)
 get_libxlsxwriter()
 {
@@ -1368,6 +1901,51 @@ get_openssl()
         RANLIB="${RANLIB}"
     make -j$(nproc)
     make install_sw
+}
+
+# Download and compile pcre2 (required for T3* stack)
+get_pcre2()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/include/pcre2.h" ]; then
+        echo -e "${LIGHT_RED}pcre2 already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading pcre2...${RESET}"
+    DIR="pcre2-${PCRE2_VER}"
+    ARC="${DIR}.tar.gz"
+    URI="${PCRE2_SRC}/${DIR}/${ARC}"
+
+    # Download source
+    [ -f $ARC ] || wget $URI
+
+    # Extract source
+    if [ -d $DIR ]; then
+        echo -e "${YELLOW}pcre2's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -rf $DIR
+    fi
+    tar xf $ARC
+    cd $DIR
+
+    # Compile and install
+    echo -e "${GREEN}Compiling pcre2...${RESET}"
+    ./configure \
+        --host=${ARCH}-linux-musl \
+        --prefix=/usr \
+        --enable-static \
+        --disable-shared \
+        CC="${CC_STATIC}" \
+        CXX="${CXX_STATIC}" \
+        AR="${AR}" \
+        LD="${LD}" \
+        RANLIB="${RANLIB}" \
+        CFLAGS="-static -fno-pie -fno-pic -D__gnuc_va_list=va_list" \
+        LDFLAGS="-static -static-libgcc -no-pie -Wl,-static -L${PREFIX}/lib -L${SYSROOT}/lib"
+    make -j$(nproc)
+    make DESTDIR="${SYSROOT}" install
 }
 
 # Download and compile zlib (required for Git, libzip and TWM)
@@ -4142,10 +4720,10 @@ get_gcc()
         # Symlink all shared libraries so they're discoverable without needing a
         # custom library path
         mkdir -p $DESTDIR/lib
-        for f in $DESTDIR/opt/${ARCH}-linux-musl-native/lib/*.so*; do
-            [ -e "$f" ] || continue
-            target="${f#$DESTDIR}"
-            ln -sf "$target" "$DESTDIR/lib/"
+        for LIB in $DESTDIR/opt/${ARCH}-linux-musl-native/lib/*.so*; do
+            [ -e "$LIB" ] || continue
+            TARGET="${LIB#$DESTDIR}"
+            sudo ln -sf "$TARGET" "$DESTDIR/lib/"
         done
         ln -sf /opt/i486-linux-musl-native/lib/libc.so "${DESTDIR}/lib/ld-musl-i386.so.1"
     else
@@ -4728,8 +5306,7 @@ get_tcc()
     ln -sf /usr/local/bin/i386-tcc $DESTDIR/usr/bin/tcc || true
 }
 
-# Download and compile tilde (WIP)
-# Once done, uncomment relevant part of get_installed_programs_features
+# Download and compile tilde
 get_tilde()
 {
     cd "$CURR_DIR/build"
@@ -4737,153 +5314,76 @@ get_tilde()
     # Skip if already compiled
     if [ -f "$DESTDIR/usr/bin/tilde" ]; then
         echo -e "${LIGHT_RED}tilde already compiled, skipping...${RESET}"
-        #return
+        return
     fi
 
-    # The components we need to download and compile for tilde - the order
-    # matters!
-    TILDE_CMPS=(
-        "libunistring       ${LIBUNISTRING_VER}"
-        "libtranscript      ${LIBTRANSCRIPT_VER}"
-        "libt3config        ${LIBT3CONFIG_VER}"
-        "libt3key           ${LIBT3KEY_VER}"
-        "libt3window        ${LIBT3WINDOW_VER}"
-        "pcre2              ${PCRE2_VER}"
-        "libt3widget        ${LIBT3WIDGET_VER}"
-        "libt3highlight     ${LIBT3HIGHLIGHT_VER}"
-        "tilde              ${TILDE_VER}"
-    )
+    echo -e "${GREEN}Downloading tilde...${RESET}"
+    DIR="tilde-${TILDE_VER}"
+    ARC="${DIR}.tar.bz2"
+    URI="${LIBT3_SRC}/${ARC}"
 
-    # We symlinked various cross-compiler components under generic names
-    # because tilde/tilde component's build system looks for these
-    # specifically; without them, it tries to use the host's versions
-    mkdir -p "$CURR_DIR/build/fake-tools"
-    ln -sf "$CC"  "$CURR_DIR/build/fake-tools/gcc"
-    ln -sf "$CXX" "$CURR_DIR/build/fake-tools/g++"
-    ln -sf "$LD"  "$CURR_DIR/build/fake-tools/ld"
-    cp "$CURR_DIR/compilation/i486-linux-musl-pkg-config" "$CURR_DIR/build/fake-tools/"
-    sudo ln -sf $(which libtool) /usr/local/bin/i486-linux-musl-libtool
+    # Download source
+    [ -f $ARC ] || wget $URI
 
-    export PATH="$CURR_DIR/build/fake-tools:$PATH"
-    mkdir -p staging/usr/lib/pkgconfig
-    mkdir -p staging/usr/include
+    # Extract source
+    if [ -d $DIR ]; then
+        echo -e "${YELLOW}tilde's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -rf $DIR
+    fi
+    tar xjf $ARC
+    cd $DIR
 
-    # Try telling pkg-config to only search our staging sysroot. We had issue
-    # using our usual sysroot.
-    export PKG_CONFIG_PATH="${DESTDIR}/usr/lib/pkgconfig:${CURR_DIR}/build/staging/usr/lib/pkgconfig"
-    export PKG_CONFIG_LIBDIR="${DESTDIR}/usr/lib/pkgconfig:${CURR_DIR}/build/staging/usr/lib/pkgconfig"
-    export PKG_CONFIG_SYSROOT_DIR="${CURR_DIR}/build/staging"
+    # Copy our hand-written libltdl preload table
+    cp "$PATCHES_DIR/tilde/transcript_preload.c" src/transcript_preload.c
 
-    CFLAGS="--sysroot=${SYSROOT} -I${DESTDIR}/usr/include -I${CURR_DIR}/build/staging/usr/include -I${PREFIX}/include -I${PREFIX}/include/ncursesw --static"
-    LDFLAGS="--sysroot=${SYSROOT} -L${DESTDIR}/usr/lib -L${CURR_DIR}/build/staging/usr/lib -L${PREFIX}/lib --static"
+    # Patch main.cc to register the aforementioned table before init() runs
+    sed -i \
+        -e '/#include "tilde\/string_util.h"/a\
+    \
+    extern "C" {\
+    #include <ltdl.h>\
+    extern const lt_dlsymlist lt_preloaded_symbols[];\
+    }' \
+        -e 's/^int main(int argc, char \*argv\[\]) {$/int main(int argc, char *argv[]) {\n  LTDL_SET_PRELOADED_SYMBOLS();/' \
+        src/main.cc
 
-    # Download and compile each component
-    for CMP in "${TILDE_CMPS[@]}"; do
-        CMP_NAME=""
-        CMP_VER=""
-        read -r CMP_NAME CMP_VER <<< "$CMP"
+    # Copy in the codec object files the aforementioned table points to
+    cp "$CURR_DIR/build/libtranscript-${LIBTRANSCRIPT_VER}/src/modules/.libs/ascii.o" src/preload_ascii.o
+    cp "$CURR_DIR/build/libtranscript-${LIBTRANSCRIPT_VER}/src/modules/.libs/unicode.o" src/preload_unicode.o
+    cp "$CURR_DIR/build/libtranscript-${LIBTRANSCRIPT_VER}/src/modules/.libs/unicode_gb18030.o" src/preload_unicode_gb18030.o
+    cp "$CURR_DIR/build/libtranscript-${LIBTRANSCRIPT_VER}/src/modules/.libs/unicode_utf7.o" src/preload_unicode_utf7.o
+    cp "$CURR_DIR/build/libtranscript-${LIBTRANSCRIPT_VER}/src/tables/.libs/iso8859.o" src/preload_iso8859.o
 
-        echo -e "${GREEN}Downloading ${CMP_NAME}...${RESET}"
-        CMP_DIR="$CMP_NAME-$CMP_VER"
+    export PKG_CONFIG_PATH="$SYSROOT/usr/lib/pkgconfig"
+    export PKG_CONFIG_LIBDIR="$SYSROOT/usr/lib/pkgconfig"
+    export PKG_CONFIG_SYSROOT_DIR="$SYSROOT"
+    export PKG_CONFIG="pkg-config --static"
 
-        # The components come from different sources
-        if [ "$CMP_NAME" = "libunistring" ]; then
-            CMP_ARC="$CMP_NAME-$CMP_VER.tar.gz"
-            CMP_URI="${LIBUNISTRING_SRC}/${CMP_ARC}"
-        elif [ "$CMP_NAME" = "pcre2" ]; then
-            CMP_ARC="$CMP_NAME-$CMP_VER.tar.gz"
-            CMP_URI="${PCRE2_SRC}/${CMP_NAME}-${CMP_VER}/${CMP_ARC}"
-        else
-            CMP_ARC="$CMP_NAME-$CMP_VER.tar.bz2"
-            CMP_URI="${LIBT3_SRC}/${CMP_ARC}"
-        fi
+    # Compile and install
+    echo -e "${GREEN}Compiling tilde...${RESET}"
+    ./configure \
+        --prefix=/usr \
+        CC="${CC}" \
+        CXX="${CXX}" \
+        AR="${AR}" \
+        LD="${LD}" \
+        RANLIB="${RANLIB}" \
+        LIBTOOL="${PREFIX}/bin/i486-linux-musl-libtool" \
+        CFLAGS="--sysroot=${SYSROOT} -g -fno-pie -I${SYSROOT}/usr/include -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
+        CXXFLAGS="--sysroot=${SYSROOT} -g -fno-pie -I${SYSROOT}/usr/include -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
+        LDFLAGS="--sysroot=${SYSROOT} -static -static-libgcc -static-libstdc++ -no-pie -L${SYSROOT}/usr/lib -L${PREFIX}/lib"
 
-        # Download source
-        [ -f $CMP_ARC ] || wget $CMP_URI
+    # Add our extra object files to the OBJECTS list and transcript_preload.o an
+    # explicit compile rule since it's C not C++
+    sed -i 's|^OBJECTS=|OBJECTS=src/transcript_preload.o src/preload_ascii.o src/preload_unicode.o src/preload_unicode_gb18030.o src/preload_unicode_utf7.o src/preload_iso8859.o |' Makefile
+    {
+        echo ""
+        echo "src/transcript_preload.o: src/transcript_preload.c"
+        printf '\t%s $(CFLAGS) -c -o $@ $<\n' "${CC}"
+    } >> Makefile
 
-        # Extract source
-        if [ -d $CMP_DIR ]; then
-            echo -e "${YELLOW}${CMP_NAME}'s source archive is already present, re-extracting before proceeding...${RESET}"
-            sudo rm -rf $CMP_DIR
-        fi
-        if [ "$CMP_NAME" = "libunistring" ] || [ "$CMP_NAME" = "pcre2" ]; then
-            tar xzf $CMP_ARC
-        else
-            tar xjf $CMP_ARC
-        fi
-
-        cd $CMP_DIR
-
-        # Compile and install
-        echo -e "${GREEN}Compiling ${CMP_NAME}...${RESET}"
-        ./configure \
-            --host=i486-linux-musl \
-            --prefix=/usr \
-            --enable-static \
-            --disable-shared \
-            CC="${CC}" \
-            CXX="${CXX}" \
-            AR="${AR}" \
-            LD="${LD}" \
-            RANLIB="${RANLIB}" \
-            CFLAGS="$CFLAGS" \
-            CXXFLAGS="$CFLAGS" \
-            LDFLAGS="$LDFLAGS"
-
-        if [ "$CMP_NAME" = "tilde" ]; then
-            make -j$(nproc)
-            sudo make DESTDIR="${DESTDIR}" install
-        elif [ "$CMP_NAME" = "libtranscript" ]; then
-            # If we tried compiling and installing this normally, the linkltc
-            # utility would also be attempted and would fail in a static
-            # cross-compile. Thus, we just compile the lib target and install
-            # what we need manually.
-            make -j$(nproc) lib
-            mkdir -p "${CURR_DIR}/build/staging/usr/include/transcript"
-            cp src/*.h "${CURR_DIR}/build/staging/usr/include/transcript/"
-            install -D "${CURR_DIR}/build/${CMP_DIR}/libtranscript.pc" "${CURR_DIR}/build/staging/usr/lib/pkgconfig/libtranscript.pc"
-            sed -i "s|prefix=/usr|prefix=${CURR_DIR}/build/staging/usr|" "${CURR_DIR}/build/staging/usr/lib/pkgconfig/libtranscript.pc"
-        elif [ "$CMP_NAME" = "libt3highlight" ]; then
-            # Similar to libtranscript...
-            make -j$(nproc) lib
-            mkdir -p "${CURR_DIR}/build/staging/usr/include/t3highlight"
-            cp src/*.h "${CURR_DIR}/build/staging/usr/include/t3highlight/" 2>/dev/null || true
-
-            # Install language definition files tilde needs at runtime
-            sudo mkdir -p "${DESTDIR}/usr/share/libt3highlight0"
-            find "${CURR_DIR}/build/${CMP_DIR}/src/data" -type f | while read F; do
-                sudo install -m0644 "$F" "${DESTDIR}/usr/share/libt3highlight0/"
-            done
-
-            install -D "${CURR_DIR}/build/${CMP_DIR}/libt3highlight.pc" "${CURR_DIR}/build/staging/usr/lib/pkgconfig/libt3highlight.pc"
-            sed -i "s|prefix=/usr|prefix=${CURR_DIR}/build/staging/usr|" "${CURR_DIR}/build/staging/usr/lib/pkgconfig/libt3highlight.pc"
-        else
-            make -j$(nproc)
-            make DESTDIR="${CURR_DIR}/build/staging" install
-            # Rewrite our libtool archives' libdir to our staging location so
-            # libtool can resolve them properly when we compile the next
-            # component
-            find "${CURR_DIR}/build/staging/usr/lib" -name "${CMP_NAME}*.la" | while read LA; do
-                sed -i "s|libdir='/usr/lib'|libdir='${CURR_DIR}/build/staging/usr/lib'|g" "$LA"
-                sed -i "s|libdir=\"/usr/lib\"|libdir=\"${CURR_DIR}/build/staging/usr/lib\"|g" "$LA"
-            done
-        fi
-
-        # Install install/lack of install results in now static archive of
-        # libtool *.o being made, we'll do it outselves
-        OBJS=$(find "${CURR_DIR}/build/${CMP_DIR}" -path "*/.libs/*.o" | tr '\n' ' ')
-        $AR rcs "${CURR_DIR}/build/staging/usr/lib/${CMP_NAME}.a" $OBJS
-        $RANLIB "${CURR_DIR}/build/staging/usr/lib/${CMP_NAME}.a"
-
-        # In case a compilation only generated its .pc file in the build
-        # directory install of installing it...
-        if [ -f "${CURR_DIR}/build/${CMP_DIR}/${CMP_NAME}.pc" ]; then
-            cp "${CURR_DIR}/build/${CMP_DIR}/${CMP_NAME}.pc" "${CURR_DIR}/build/staging/usr/lib/pkgconfig/"
-            sed -i "s|prefix=/usr|prefix=${CURR_DIR}/build/staging/usr|" "${CURR_DIR}/build/staging/usr/lib/pkgconfig/${CMP_NAME}.pc"
-        fi
-
-        cd "$CURR_DIR/build"
-    done
+    make -j$(nproc)
+    sudo make DESTDIR="${DESTDIR}" install
 }
 
 # Download and compile tn5250
@@ -7334,11 +7834,11 @@ get_installed_programs_features()
             EXCLUDED_FEATURES+="\n * tic"
         fi
 
-        #if [ -f "$DESTDIR/usr/bin/tilde" ]; then
-        #    INCLUDED_FEATURES+="\n * tilde ($TILDE_VER)"
-        #else
-        #    EXCLUDED_FEATURES+="\n * tilde"
-        #fi
+        if [ -f "$DESTDIR/usr/bin/tilde" ]; then
+            INCLUDED_FEATURES+="\n * tilde ($TILDE_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * tilde"
+        fi
 
         if [ -f "$DESTDIR/usr/bin/tmux" ]; then
             INCLUDED_FEATURES+="\n * tmux ($TMUX_VER)"
@@ -7582,6 +8082,12 @@ get_prerequisites
 get_musl_cross
 chmod +x "${CURR_DIR}/compilation/"*
 
+case ":$PATH:" in
+  *:"$PREFIX/bin":*) ;;
+  *) PATH="$PREFIX/bin:$PATH" ;;
+esac
+export PATH
+
 if ! $SKIP_BB; then
     get_busybox
 fi
@@ -7637,6 +8143,33 @@ if $NEED_LIBUUID; then
 fi
 if $NEED_X86EMU; then
     get_x86emu
+fi
+if $NEED_LIBUNISTRING; then
+    get_libunistring
+fi
+if $NEED_LIBTOOL; then
+    get_libtool
+fi
+if $NEED_LIBTRANSCRIPT; then
+    get_libtranscript
+fi
+if $NEED_LIBT3CONFIG; then
+    get_libt3config
+fi
+if $NEED_LIBT3KEY; then
+    get_libt3key
+fi
+if $NEED_LIBT3WINDOW; then
+    get_libt3window
+fi
+if $NEED_PCRE2; then
+    get_pcre2
+fi
+if $NEED_LIBT3WIDGET; then
+    get_libt3widget
+fi
+if $NEED_LIBT3HIGHLIGHT; then
+    get_libt3highlight
 fi
 
 if $INCLUDE_GUI; then
