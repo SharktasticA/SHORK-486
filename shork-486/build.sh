@@ -722,6 +722,10 @@ install_arch_prerequisites()
 
     PACKAGES="autoconf bc base-devel bison bzip2 ca-certificates cdrtools cpio dosfstools e2fsprogs flex gettext git libtool make multipath-tools ncurses pciutils python qemu-img systemd texinfo util-linux wget xz"
 
+    if $FIX_EXTLINUX; then
+        PACKAGES+=" nasm"
+    fi
+
     if $INCLUDE_GUI; then
         PACKAGES+=" fontconfig gperf unzip xorg-bdftopcf xorg-font-util xorg-mkfontscale"
     fi
@@ -738,17 +742,13 @@ install_arch_prerequisites()
         PACKAGES+=" pkgconf"
     fi
 
-    if $FIX_EXTLINUX; then
-        PACKAGES+=" nasm"
-    fi
-
     if $USE_GRUB; then
         PACKAGES+=" grub"
     else
         PACKAGES+=" syslinux"
     fi
 
-    sudo pacman -Syu --noconfirm --needed $PACKAGES
+    sudo pacman -Sy --noconfirm --needed $PACKAGES
 }
 
 install_debian_prerequisites()
@@ -758,6 +758,10 @@ install_debian_prerequisites()
     sudo apt-get update
 
     PACKAGES="autopoint bc bison bzip2 e2fsprogs extlinux fdisk flex genisoimage git kpartx libtool libtool-bin make pkg-config python3 python-is-python3 qemu-utils wget xz-utils"
+
+    if $FIX_EXTLINUX; then
+        PACKAGES+=" nasm uuid-dev"
+    fi
 
     if $INCLUDE_GUI; then
         PACKAGES+=" fontconfig gettext gperf unzip xfonts-utils"
@@ -783,10 +787,6 @@ install_debian_prerequisites()
         PACKAGES+=" cmake"
     fi
 
-    if $FIX_EXTLINUX; then
-        PACKAGES+=" nasm uuid-dev"
-    fi
-
     if $USE_GRUB; then
         PACKAGES+=" grub-common grub-pc"
     else
@@ -801,9 +801,12 @@ install_debian_prerequisites()
 install_fedora_prerequisites()
 {
     echo -e "${GREEN}Installing prerequisite packages for a Fedora-based system...${RESET}"
-    sudo dnf -y update
 
     PACKAGES="autoconf automake bison dialog docbook2pdf docbook2X flex gcc genisoimage gettext git libtool make patch perl python3 qemu-img"
+
+    if $FIX_EXTLINUX; then
+        PACKAGES+=" libuuid-devel nasm"
+    fi
 
     if $INCLUDE_GUI; then
         PACKAGES+=" bdftopcf fontconfig gperf mkfontscale xorg-x11-font-utils"
@@ -825,8 +828,8 @@ install_fedora_prerequisites()
         PACKAGES+=" byacc cmake"
     fi
 
-    if $FIX_EXTLINUX; then
-        PACKAGES+=" libuuid-devel nasm"
+    if $NEED_LIBT3KEY; then
+        PACKAGES+=" ncurses-devel"
     fi
 
     if $USE_GRUB; then
