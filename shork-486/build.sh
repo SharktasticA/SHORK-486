@@ -4725,7 +4725,7 @@ get_gcc()
             TARGET="${LIB#$DESTDIR}"
             sudo ln -sf "$TARGET" "$DESTDIR/lib/"
         done
-        ln -sf /opt/i486-linux-musl-native/lib/libc.so "${DESTDIR}/lib/ld-musl-i386.so.1"
+        sudo ln -sf /opt/i486-linux-musl-native/lib/libc.so "${DESTDIR}/lib/ld-musl-i386.so.1"
     else
         echo -e "${LIGHT_RED}${ARCH}-linux-musl-native already extracted, skipping...${RESET}"
     fi
