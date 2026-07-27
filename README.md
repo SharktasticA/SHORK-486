@@ -1,6 +1,6 @@
 # SHORK 486, DISC & DISKETTE
 
-SHORK 486 is a free and open-source operating system for 486 and Pentium (P5) era vintage personal computers. The aim is to produce a 32-bit Linux distribution that is lean and functional, but still capable on such PCs, often with my '90s IBM ThinkPads in mind. A default SHORK 486 system aims to work with at least 16MiB system memory and take up no more than ~100MiB on your disk. Despite those constraints, the default SHORK 486 experience includes [Linux kernel 7.1.5](KERNEL.md), many typical Linux commands, custom SHORK Utilities such as shorkdir (TUI file browser) and shorkfetch (*fetch clone), a terminal multiplexer, a C compiler, Python 3.4-syntax interpreter and dialog for shell script TUI widgets, a text web browser, an FTP, SCP and SSH client, a Git source control client, the ed, Mg (Emacs-style), nano and vi editors, a spreadsheet editor, a minesweeper game, IDE CD-ROM and DVD-ROM support, SCSI tape drive support, ISA, PCI and PCMCIA ethernet support, support for most major national keyboard layouts, and a cute ASCII shark welcome screen!
+SHORK 486 is a free and open-source operating system for 486 and Pentium (P5) era vintage personal computers. The aim is to produce a 32-bit Linux distribution that is lean and functional, but still capable on such PCs, often with my '90s IBM ThinkPads in mind. A default SHORK 486 system aims to work with at least 16MiB system memory and take up no more than ~100MiB on your disk. Despite those constraints, the default SHORK 486 experience includes [Linux kernel 7.1.5](KERNEL.md), many typical Linux commands, custom SHORK Utilities such as shorkdir (TUI file browser) and shorkfetch (*fetch clone), a terminal multiplexer, a C compiler, Lua intepreter, Python 3.4-syntax interpreter and dialog for shell script TUI widgets, a text web browser, an FTP, SCP and SSH client, a Git source control client, the ed, Mg (Emacs-style), nano and vi editors, a spreadsheet editor, a minesweeper game, IDE CD-ROM and DVD-ROM support, SCSI tape drive support, ISA, PCI and PCMCIA ethernet support, support for most major national keyboard layouts, and a cute ASCII shark welcome screen!
 
 A build configurator is available to alter SHORK 486 to your liking. For example, you can select the "minimal" build type that requires just 8MiB RAM and ~8MiB disk space, whilst still including most typical commands as before, some custom SHORK Utilities, and the ed and vi editors. You can also configure SHORK 486 for serial console use, multi-user support (if not "minimal" build), and pick and choose specific software and features (if "custom" build). Versions of SHORK 486 that can be burned to a CD (SHORK DISC) or small enough to fit on a 1.44MB floppy diskette (SHORK DISKETTE) are also available.
 
@@ -86,6 +86,7 @@ addgroup, adduser, ar, arch, ascii, ash, awk, base32, base64, basename, bc, beep
 | [Git](https://github.com/git/git) | `git` | 2.55.0 | Source control client | GPLv2 |
 | [GNU nano](https://www.nano-editor.org/) | `nano` | 9.1 | Pico-style text editor | GPLv3 |
 | [htop](https://github.com/htop-dev/htop) | `htop` | 3.5.1 | Interactive process viewer | GPLv2 |
+| [Lua](https://www.lua.org/) | `lua` | 5.5.0 | Embedded scripting & extensions language | MIT |
 | [Lynx](https://github.com/ThomasDickey/lynx-snapshots) | `lynx` | 2-9-3a | Terminal web browser | GPLv2 |
 | [Mg](https://github.com/troglobit/mg) | `mg` | 4.0 | Emacs-style text editor | Unlicense |
 | [MicroPython](https://github.com/micropython/micropython) | `micropython` | 1.28.0 | Python 3.4-syntax intepreter | MIT |
@@ -301,7 +302,7 @@ When running the SHORK 486 Build Configurator, you will be prompted to select th
 
 * Build environment (Arch native, Debian native/Dockerised or Fedora native)
 * Target distribution (SHORK 486, SHORK DISC or SHORK DISKETTE)
-* Linux kernel version (7.2-rc4, 7.1.5 or 7.0.14)
+* Linux kernel version (7.2-rc5, 7.1.5 or 7.0.14)
 * _If SHORK 486:_
     * Build type (default, maximal, plus, offline, minimal or custom)
     * Target disk size (size in MiB)
