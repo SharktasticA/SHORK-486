@@ -174,6 +174,8 @@ MAKE_SRC="https://ftp.gnu.org/gnu/make"
 MAKE_VER="4.4.1"
 MG_SRC="https://github.com/troglobit/mg.git"
 MG_VER="4.0"
+MICRO_SRC="https://github.com/micro-editor/MICRO.git"
+MICRO_VER="2.0.15"
 MICROPYTHON_SRC="https://github.com/micropython/micropython.git"
 MICROPYTHON_VER="1.28.0"
 MPG321_SRC="https://github.com/GiterMirror/mpg321.git"
@@ -242,6 +244,7 @@ TARGET_SWAP=$DEFAULT_TARGET_SWAP
 TINY_KRN=false
 
 ENABLE_CDROM=true
+ENABLE_EPOLL=false
 ENABLE_FB=true
 ENABLE_HELP_VERBOSE=true
 ENABLE_HIGHMEM=false
@@ -286,6 +289,7 @@ INCLUDE_LUA=true
 INCLUDE_LYNX=true
 INCLUDE_MAKE=false
 INCLUDE_MG=true
+INCLUDE_MICRO=false
 INCLUDE_MICROPYTHON=true
 INCLUDE_MPG321=false
 INCLUDE_MT_ST=true
@@ -453,6 +457,11 @@ fi
 # Ensure NET_BASE is enabled with HTOP, TMUX or NET_ETH
 if [ "$INCLUDE_HTOP" = true ] || [ "$INCLUDE_TMUX" = true ] || [ "$ENABLE_NET_ETH" = true ]; then
     ENABLE_NET_BASE=true
+fi
+
+# Ensure EPOLL is enabled with MICRO
+if [ "$INCLUDE_MICRO" = true ]; then
+    ENABLE_EPOLL=true
 fi
 
 # Ensure SOUND and SYSVIPC are enabled with MPG321
@@ -733,6 +742,10 @@ install_arch_prerequisites()
         PACKAGES+=" fontconfig gperf unzip xorg-bdftopcf xorg-font-util xorg-mkfontscale"
     fi
 
+    if $INCLUDE_MICRO; then
+        PACKAGES+=" go"
+    fi
+
     if $INCLUDE_MICROPYTHON; then
         PACKAGES+=" libffi"
     fi
@@ -774,6 +787,10 @@ install_debian_prerequisites()
         PACKAGES+=" autoconf"
     fi
 
+    if $INCLUDE_MICRO; then
+        PACKAGES+=" golang-go"
+    fi
+
     if $INCLUDE_MICROPYTHON; then
         PACKAGES+=" libffi-dev"
     fi
@@ -813,6 +830,10 @@ install_fedora_prerequisites()
 
     if $INCLUDE_GUI; then
         PACKAGES+=" bdftopcf fontconfig gperf mkfontscale xorg-x11-font-utils"
+    fi
+
+    if $INCLUDE_MICRO; then
+        PACKAGES+=" golang"
     fi
 
     if $INCLUDE_MICROPYTHON; then
@@ -2358,6 +2379,11 @@ configure_kernel()
         elif [ "$ID" == "shork-diskette" ]; then
             FRAGS+="$CONFIGS_DIR/linux/linux.config.cdrom.diskette.frag "
         fi
+    fi
+
+    if $ENABLE_EPOLL; then
+        echo -e "${GREEN}Enabling kernel-level eventpoll support...${RESET}"
+        FRAGS+="$CONFIGS_DIR/linux/linux.config.epoll.frag "
     fi
     
     if $ENABLE_FB; then
@@ -5034,6 +5060,47 @@ get_mg()
     ln -sf mg "$DESTDIR/usr/bin/emacs"
 }
 
+# Download and compile micro
+get_micro()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$DESTDIR/usr/bin/micro" ]; then
+        echo -e "${LIGHT_RED}micro already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d MICRO ]; then
+        echo -e "${YELLOW}micro source already present, resetting...${RESET}"
+        cd MICRO
+        git config --global --add safe.directory $CURR_DIR/build/MICRO
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading micro...${RESET}"
+        git clone --branch "v${MICRO_VER}" $MICRO_SRC
+        cd MICRO
+    fi
+    
+    # Generate runtime assets
+    echo -e "${GREEN}Generating micro's runtime assets...${RESET}"
+    make generate
+
+    export CGO_ENABLED=0
+    export GOOS=linux
+    export GOARCH=386
+    export GO386=softfloat
+
+    # Compile and install
+    echo -e "${GREEN}Compiling micro...${RESET}"
+    make build-quick
+    sudo install -d "$DESTDIR/usr/bin"
+    sudo install -m755 micro "$DESTDIR/usr/bin/micro"
+    unset GOOS GOARCH GO386 CGO_ENABLED
+}
+
 # Download and compile MicroPython
 get_micropython()
 {
@@ -7356,6 +7423,12 @@ get_installed_programs_features()
     fi
 
     if [ "$ID" == "shork-486" ]; then
+        if $ENABLE_EPOLL; then
+            INCLUDED_FEATURES+="\n * kernel-level eventpoll support"
+        else
+            EXCLUDED_FEATURES+="\n * kernel-level eventpoll support"
+        fi
+
         if $ENABLE_FB; then
             INCLUDED_FEATURES+="\n * kernel-level framebuffer, VESA & enhanced VGA support"
         else
@@ -8330,6 +8403,9 @@ if $INCLUDE_MAKE; then
 fi
 if $INCLUDE_MG; then
     get_mg
+fi
+if $INCLUDE_MICRO; then
+    get_micro
 fi
 if $INCLUDE_MICROPYTHON; then
     get_micropython
