@@ -26,7 +26,7 @@ CUSTOM_DEF_SWAP=0
 CUSTOM_MIN_DISK=8
 DEFAULT_DEF_SWAP=8
 DEFAULT_MIN_DISK=100
-MAXIMAL_DEF_SWAP=8
+MAXIMAL_DEF_SWAP=16
 MAXIMAL_MIN_DISK=500
 MINIMAL_DEF_SWAP=0
 MINIMAL_MIN_DISK=8
@@ -34,6 +34,8 @@ OFFLINE_DEF_SWAP=8
 OFFLINE_MIN_DISK=60
 PLUS_DEF_SWAP=16
 PLUS_MIN_DISK=480
+WRITER_DEF_SWAP=16
+WRITER_MIN_DISK=100
 
 ALWAYS_BUILD=true
 DIST="SHORK 486"
@@ -240,7 +242,10 @@ val_str()
 
 set_minimal_vars()
 {
-    SET_KEYMAP="en_us"
+    local SKIP_KEYMAP_RESET="$1"
+    if [ "$SKIP_KEYMAP_RESET" = false ]; then
+        SET_KEYMAP="en_us"
+    fi
     ENABLE_MULTIUSER_REAL=false
     ENABLE_NET_ETH=false
     INCLUDE_C3270=false
@@ -298,69 +303,72 @@ set_minimal_vars()
 
 set_default_vars()
 {
+    set_minimal_vars true
     ENABLE_NET_ETH=true
-    INCLUDE_C3270=false
-    INCLUDE_CSCOPE=false
-    INCLUDE_CTAGS=false
-    INCLUDE_CURL=false
     INCLUDE_DIALOG=true
     INCLUDE_DROPBEAR=true
     INCLUDE_FILE=true
-    INCLUDE_GCC=false
     INCLUDE_GIT=true
     INCLUDE_HTOP=true
-    INCLUDE_INDENT=false
     INCLUDE_JOE=false
     INCLUDE_LUA=true
     INCLUDE_LYNX=true
-    INCLUDE_MAKE=false
     INCLUDE_MG=true
     INCLUDE_MICROPYTHON=true
-    INCLUDE_MPG321=false
     INCLUDE_MT_ST=true
     INCLUDE_NANO=true
     INCLUDE_NASM=false
     INCLUDE_SC_IM=true
-    INCLUDE_SHORKSTALL=false
     INCLUDE_SHORKTAINMENT=true
     INCLUDE_STRACE=true
     INCLUDE_TCC=true
-    INCLUDE_TILDE=false
-    INCLUDE_TN5250=false
     INCLUDE_TNFTP=true
     INCLUDE_TMUX=true
     INCLUDE_UTIL_LINUX=true
-    INCLUDE_VIM=false
     ENABLE_CDROM=true
     INCLUDE_CON_FONTS=true
-    USE_GRUB=false
     ENABLE_FB=true
-    INCLUDE_GUI=false
     ENABLE_HELP_VERBOSE=true
-    ENABLE_HIGHMEM=false
     INCLUDE_KEYMAPS=true
     ENABLE_LOOP=true
     ENABLE_MENU=true
-    ENABLE_NO_VDS032=true
     INCLUDE_PCI_IDS=true
     ENABLE_PCMCIA=true
-    ENABLE_SATA=false
     ENABLE_SCSI_EXP=true
-    ENABLE_SOUND=false
-    ENABLE_SMP=false
-    ENABLE_USB=false
     ENABLE_ZSWAP=true
 }
 
 set_offline_vars()
 {
-    set_default_vars
+    set_minimal_vars true
     ENABLE_NET_ETH=false
     INCLUDE_DROPBEAR=false
     INCLUDE_GIT=false
     INCLUDE_LYNX=false
     INCLUDE_TN5250=false
     INCLUDE_TNFTP=false
+}
+
+set_writer_vars()
+{
+    set_minimal_vars
+    INCLUDE_HTOP=true
+    INCLUDE_JOE=true
+    INCLUDE_MG=true
+    INCLUDE_NANO=true
+    INCLUDE_SC_IM=true
+    INCLUDE_SHORKTAINMENT=true
+    INCLUDE_TILDE=true
+    INCLUDE_TMUX=true
+    INCLUDE_VIM=true
+    ENABLE_CDROM=true
+    INCLUDE_CON_FONTS=true
+    ENABLE_FB=true
+    ENABLE_HELP_VERBOSE=true
+    INCLUDE_KEYMAPS=true
+    ENABLE_MENU=true
+    INCLUDE_PCI_IDS=true
+    ENABLE_ZSWAP=true
 }
 
 set_plus_vars()
@@ -532,10 +540,11 @@ if [ "$ID" == "shork-486" ]; then
         --title "Build Type" \
         --cancel-label "Quit" \
         --default-item "$BUILD_TYPE" \
-        --menu "Select the build type, presets for SHORK 486 feature levels. The minimum requirements for each are enclosed in brackets. The \"custom\" option will enable further prompts for software and feature selection." 15 $WIDTH 5 \
+        --menu "Select the build type, presets for SHORK 486 feature levels. The minimum requirements for each are enclosed in brackets. The \"custom\" option will enable further prompts for software and feature selection." 16 $WIDTH 7 \
         "default" "Typical experience (16MiB RAM, 8MiB swap, 100MiB disk)" \
-        "maximal" "Largest configuration (24MiB RAM, 8MiB swap, 500MiB disk)" \
+        "maximal" "Largest configuration (24MiB RAM, 16MiB swap, 500MiB disk)" \
         "plus"    "Default w/ optional software (16MiB RAM, 16MiB swap, 480MiB disk)" \
+        "writer"  "Writing focused (16MiB RAM, 16MiB swap, 100MiB disk)" \
         "offline" "Default w/o networking (12MiB RAM, 8MiB swap, 60MiB disk)" \
         "minimal" "Smallest configuration (8MiB RAM, 8MiB disk)" \
         "custom"  "Requirements depend on subsequent choices" \
@@ -545,14 +554,16 @@ if [ "$ID" == "shork-486" ]; then
         exit 0
     elif [ "$BUILD_TYPE" == "default" ]; then
         set_default_vars
-    elif [ "$BUILD_TYPE" == "offline" ]; then
-        set_offline_vars
-    elif [ "$BUILD_TYPE" == "plus" ]; then
-        set_plus_vars
-    elif [ "$BUILD_TYPE" == "minimal" ]; then
-        set_minimal_vars
     elif [ "$BUILD_TYPE" == "maximal" ]; then
         set_maximal_vars
+    elif [ "$BUILD_TYPE" == "plus" ]; then
+        set_plus_vars
+    elif [ "$BUILD_TYPE" == "writer" ]; then
+        set_writer_vars
+    elif [ "$BUILD_TYPE" == "offline" ]; then
+        set_offline_vars
+    elif [ "$BUILD_TYPE" == "minimal" ]; then
+        set_minimal_vars
     elif [ "$BUILD_TYPE" == "custom" ]; then
         set_custom_vars
     fi
@@ -567,11 +578,11 @@ if [ "$ID" == "shork-486" ]; then
             TARGET_DISK=$DEFAULT_MIN_DISK
             TARGET_SWAP=$DEFAULT_DEF_SWAP
         fi
-    elif [ "$BUILD_TYPE" == "offline" ]; then
-        CURR_MIN_DISK=$OFFLINE_MIN_DISK
+    elif [ "$BUILD_TYPE" == "maximal" ]; then
+        CURR_MIN_DISK=$MAXIMAL_MIN_DISK
         if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
-            TARGET_DISK=$OFFLINE_MIN_DISK
-            TARGET_SWAP=$OFFLINE_DEF_SWAP
+            TARGET_DISK=$MAXIMAL_MIN_DISK
+            TARGET_SWAP=$MAXIMAL_DEF_SWAP
         fi
     elif [ "$BUILD_TYPE" == "plus" ]; then
         CURR_MIN_DISK=$PLUS_MIN_DISK
@@ -579,17 +590,23 @@ if [ "$ID" == "shork-486" ]; then
             TARGET_DISK=$PLUS_MIN_DISK
             TARGET_SWAP=$PLUS_DEF_SWAP
         fi
+    elif [ "$BUILD_TYPE" == "writer" ]; then
+        CURR_MIN_DISK=$WRITER_MIN_DISK
+        if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
+            TARGET_DISK=$WRITER_MIN_DISK
+            TARGET_SWAP=$WRITER_DEF_SWAP
+        fi
+    elif [ "$BUILD_TYPE" == "offline" ]; then
+        CURR_MIN_DISK=$OFFLINE_MIN_DISK
+        if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
+            TARGET_DISK=$OFFLINE_MIN_DISK
+            TARGET_SWAP=$OFFLINE_DEF_SWAP
+        fi
     elif [ "$BUILD_TYPE" == "minimal" ]; then
         CURR_MIN_DISK=$MINIMAL_MIN_DISK
         if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
             TARGET_DISK=$MINIMAL_MIN_DISK
             TARGET_SWAP=$MINIMAL_DEF_SWAP
-        fi
-    elif [ "$BUILD_TYPE" == "maximal" ]; then
-        CURR_MIN_DISK=$MAXIMAL_MIN_DISK
-        if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
-            TARGET_DISK=$MAXIMAL_MIN_DISK
-            TARGET_SWAP=$MAXIMAL_DEF_SWAP
         fi
     elif [ "$BUILD_TYPE" == "custom" ]; then
         CURR_MIN_DISK=$CUSTOM_MIN_DISK

@@ -371,7 +371,7 @@ fi
 # Overrides to ensure the correct estimated RAM requirement is shown in the after-build report
 if [ "$ID" == "shork-486" ]; then
     if [ "$BUILD_TYPE" = "custom" ]; then
-        echo -e "${GREEN}Noting minimum RAM requirement for a SHORK 486 custom build...${RESET}"
+        echo -e "${GREEN}Noting minimum memory requirements for a SHORK 486 custom build...${RESET}"
         if [ "$INCLUDE_GCC" = true ]; then
             EST_MIN_RAM="24MiB + 8MiB swap/16MiB + 16MiB swap"
         elif [ "$INCLUDE_GUI" = true ] || [ "$ENABLE_HIGHMEM" = true ] || [ "$ENABLE_SATA" = true ]; then
@@ -382,23 +382,26 @@ if [ "$ID" == "shork-486" ]; then
             EST_MIN_RAM="12MiB"
         fi
     elif [ "$BUILD_TYPE" = "maximal" ]; then
-        echo -e "${GREEN}Noting minimum RAM requirement for a SHORK 486 maximal build...${RESET}"
+        echo -e "${GREEN}Noting minimum memory requirements for a SHORK 486 maximal build...${RESET}"
         EST_MIN_RAM="32MiB/24MiB + 8MiB swap"
     elif [ "$BUILD_TYPE" = "plus" ]; then
-        echo -e "${GREEN}Noting minimum RAM requirement for a SHORK 486 plus build...${RESET}"
+        echo -e "${GREEN}Noting minimum memory requirements for a SHORK 486 plus build...${RESET}"
+        EST_MIN_RAM="24MiB + 8MiB swap/16MiB + 16MiB swap"
+    elif [ "$BUILD_TYPE" = "writer" ]; then
+        echo -e "${GREEN}Noting minimum memory requirements for a SHORK 486 writer build...${RESET}"
         EST_MIN_RAM="24MiB + 8MiB swap/16MiB + 16MiB swap"
     elif [ "$BUILD_TYPE" = "offline" ]; then
-        echo -e "${GREEN}Noting minimum RAM requirement for a SHORK 486 offline build...${RESET}"
+        echo -e "${GREEN}Noting minimum memory requirements for a SHORK 486 offline build...${RESET}"
         EST_MIN_RAM="12MiB"
     elif [ "$BUILD_TYPE" = "minimal" ]; then
-        echo -e "${GREEN}Noting minimum RAM requirement for a SHORK 486 minimal build...${RESET}"
+        echo -e "${GREEN}Noting minimum memory requirements for a SHORK 486 minimal build...${RESET}"
         EST_MIN_RAM="8MiB"
     fi
 elif [ "$ID" == "shork-disc" ]; then
-    echo -e "${GREEN}Noting minimum RAM requirement for a SHORK DISC build...${RESET}"
+    echo -e "${GREEN}Noting minimum memory requirements for a SHORK DISC build...${RESET}"
     EST_MIN_RAM="8MiB"
 elif [ "$ID" == "shork-diskette" ]; then
-    echo -e "${GREEN}Noting minimum RAM requirement for a SHORK DISKETTE build...${RESET}"
+    echo -e "${GREEN}Noting minimum memory requirements for a SHORK DISKETTE build...${RESET}"
     EST_MIN_RAM="16MiB"
 fi
 
