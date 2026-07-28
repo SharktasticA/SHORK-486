@@ -128,6 +128,8 @@ DIALOG_SRC="https://invisible-mirror.net/archives/dialog"
 DIALOG_VER="1.3-20260107"
 DROPBEAR_SRC="https://github.com/mkj/dropbear.git"
 DROPBEAR_VER="2026.92"
+EMACS_SRC="https://ftp.gnu.org/gnu/emacs"
+EMACS_VER="30.2"
 FILE_SRC="https://github.com/file/file.git"
 FILE_VER="5_48"
 GCC_SRC="https://more.musl.cc/11/i686-linux-musl"
@@ -276,6 +278,7 @@ INCLUDE_CTAGS=false
 INCLUDE_CURL=false
 INCLUDE_DIALOG=true
 INCLUDE_DROPBEAR=true
+INCLUDE_EMACS=false
 INCLUDE_FILE=true
 INCLUDE_GCC=false
 INCLUDE_GIT=true
@@ -568,6 +571,10 @@ if $INCLUDE_CURL || $INCLUDE_GIT; then
     NEED_CURL=true
     NEED_OPENSSL=true
     NEED_ZLIB=true
+fi
+
+if $INCLUDE_EMACS; then
+    NEED_LIBXML2=true
 fi
 
 if $INCLUDE_HWINFO; then
@@ -5056,8 +5063,10 @@ get_mg()
     make -j$(nproc)
     sudo make DESTDIR=$DESTDIR install
 
-    # Symlink emacs to mg
-    ln -sf mg "$DESTDIR/usr/bin/emacs"
+    # Symlink emacs to mg if GNU Emacs isn't included
+    if [ "$INCLUDE_EMACS" = false ]; then
+        ln -sf mg "$DESTDIR/usr/bin/emacs"
+    fi
 }
 
 # Download and compile micro
@@ -5914,6 +5923,62 @@ trim_fat()
 
     if $INCLUDE_DIALOG; then
         sudo rm -rf "$DESTDIR/usr/lib/libdialog.a"
+    fi
+
+    if $INCLUDE_EMACS; then
+        sudo rm -rf "$DESTDIR/usr/lib/systemd"
+        sudo rm -rf "$DESTDIR/usr/share/applications"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/AUTHORS"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/COPYING"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/copyright-assign.txt"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/HISTORY"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/NEWS"*
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/CALC-NEWS"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/EGLOT-NEWS"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/NXML-NEWS"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/NEXTSTEP"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/MACHINES"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/TODO"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/PROBLEMS"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/README"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/JOKES"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/DEVEL.HUMOR"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/spook.lines"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/yow.lines"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/w32-feature.el"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/emacs.icon"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/emacs.metainfo.xml"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/emacs.service"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/ps-prin0.ps"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/ps-prin1.ps"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/gnus"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/gnus-tut.txt"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/nxml"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/schema"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/publicsuffix.txt.gz"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/emacs-buffer.gdb"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/emacs_lldb.py"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/DEBUG"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/images"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/lisp/pgtk-dnd.elc"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/lisp/x-dnd.elc"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/lisp/xwidget.elc"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/lisp/xt-mouse.elc"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/lisp/touch-screen.elc"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/lisp/w32-fns.elc"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/lisp/w32-vars.elc"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/lisp/image"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/lisp/image-mode.elc"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/lisp/image-file.elc"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/lisp/svg.elc"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/lisp/scroll-bar.elc"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/lisp/tool-bar.elc"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/lisp/tooltip.elc"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/lisp/pixel-scroll.elc"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/lisp/mwheel.elc"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/lisp/soundex.elc"
+        sudo rm -rf "$DESTDIR/usr/share/icons"
+        sudo rm -rf "$DESTDIR/usr/share/metainfo"
     fi
 
     if $INCLUDE_FILE; then
@@ -8339,6 +8404,20 @@ if $INCLUDE_DIALOG; then
 fi
 if $INCLUDE_DROPBEAR; then
     get_dropbear
+fi
+if $INCLUDE_EMACS; then
+    get_prog_tar \
+        "usr/bin" \
+        "emacs" \
+        "emacs" \
+        "emacs-${EMACS_VER}" \
+        "tar.xz" \
+        "$EMACS_SRC" \
+        "xf" \
+        false \
+        false \
+        "/usr" \
+        "--without-x --without-ns --without-gsettings --without-gconf --without-imagemagick --without-json --without-modules --without-dbus --without-gpm --without-gtk --without-toolkit-scroll-bars --without-xwidgets --without-libsystemd --without-selinux --with-xml2 --without-harfbuzz --with-gnutls=no --without-sound ac_cv_func_malloc_0_nonnull=yes ac_cv_func_realloc_0_nonnull=yes"
 fi
 if $INCLUDE_FILE; then
     get_file
