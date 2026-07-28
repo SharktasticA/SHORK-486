@@ -371,7 +371,7 @@ fi
 # Overrides to ensure the correct estimated RAM requirement is shown in the after-build report
 if [ "$ID" == "shork-486" ]; then
     if [ "$BUILD_TYPE" = "custom" ]; then
-        echo -e "${GREEN}Noting minimum RAM requirement for a SHORK 486 custom build...${RESET}"
+        echo -e "${GREEN}Noting minimum memory requirements for a SHORK 486 custom build...${RESET}"
         if [ "$INCLUDE_GCC" = true ]; then
             EST_MIN_RAM="24MiB + 8MiB swap/16MiB + 16MiB swap"
         elif [ "$INCLUDE_GUI" = true ] || [ "$ENABLE_HIGHMEM" = true ] || [ "$ENABLE_SATA" = true ]; then
@@ -382,23 +382,26 @@ if [ "$ID" == "shork-486" ]; then
             EST_MIN_RAM="12MiB"
         fi
     elif [ "$BUILD_TYPE" = "maximal" ]; then
-        echo -e "${GREEN}Noting minimum RAM requirement for a SHORK 486 maximal build...${RESET}"
+        echo -e "${GREEN}Noting minimum memory requirements for a SHORK 486 maximal build...${RESET}"
         EST_MIN_RAM="32MiB/24MiB + 8MiB swap"
     elif [ "$BUILD_TYPE" = "plus" ]; then
-        echo -e "${GREEN}Noting minimum RAM requirement for a SHORK 486 plus build...${RESET}"
+        echo -e "${GREEN}Noting minimum memory requirements for a SHORK 486 plus build...${RESET}"
+        EST_MIN_RAM="24MiB + 8MiB swap/16MiB + 16MiB swap"
+    elif [ "$BUILD_TYPE" = "writer" ]; then
+        echo -e "${GREEN}Noting minimum memory requirements for a SHORK 486 writer build...${RESET}"
         EST_MIN_RAM="24MiB + 8MiB swap/16MiB + 16MiB swap"
     elif [ "$BUILD_TYPE" = "offline" ]; then
-        echo -e "${GREEN}Noting minimum RAM requirement for a SHORK 486 offline build...${RESET}"
+        echo -e "${GREEN}Noting minimum memory requirements for a SHORK 486 offline build...${RESET}"
         EST_MIN_RAM="12MiB"
     elif [ "$BUILD_TYPE" = "minimal" ]; then
-        echo -e "${GREEN}Noting minimum RAM requirement for a SHORK 486 minimal build...${RESET}"
+        echo -e "${GREEN}Noting minimum memory requirements for a SHORK 486 minimal build...${RESET}"
         EST_MIN_RAM="8MiB"
     fi
 elif [ "$ID" == "shork-disc" ]; then
-    echo -e "${GREEN}Noting minimum RAM requirement for a SHORK DISC build...${RESET}"
+    echo -e "${GREEN}Noting minimum memory requirements for a SHORK DISC build...${RESET}"
     EST_MIN_RAM="8MiB"
 elif [ "$ID" == "shork-diskette" ]; then
-    echo -e "${GREEN}Noting minimum RAM requirement for a SHORK DISKETTE build...${RESET}"
+    echo -e "${GREEN}Noting minimum memory requirements for a SHORK DISKETTE build...${RESET}"
     EST_MIN_RAM="16MiB"
 fi
 
@@ -722,6 +725,10 @@ install_arch_prerequisites()
 
     PACKAGES="autoconf bc base-devel bison bzip2 ca-certificates cdrtools cpio dosfstools e2fsprogs flex gettext git libtool make multipath-tools ncurses pciutils python qemu-img systemd texinfo util-linux wget xz"
 
+    if $FIX_EXTLINUX; then
+        PACKAGES+=" nasm"
+    fi
+
     if $INCLUDE_GUI; then
         PACKAGES+=" fontconfig gperf unzip xorg-bdftopcf xorg-font-util xorg-mkfontscale"
     fi
@@ -738,17 +745,13 @@ install_arch_prerequisites()
         PACKAGES+=" pkgconf"
     fi
 
-    if $FIX_EXTLINUX; then
-        PACKAGES+=" nasm"
-    fi
-
     if $USE_GRUB; then
         PACKAGES+=" grub"
     else
         PACKAGES+=" syslinux"
     fi
 
-    sudo pacman -Syu --noconfirm --needed $PACKAGES
+    sudo pacman -Sy --noconfirm --needed $PACKAGES || true
 }
 
 install_debian_prerequisites()
@@ -758,6 +761,10 @@ install_debian_prerequisites()
     sudo apt-get update
 
     PACKAGES="autopoint bc bison bzip2 e2fsprogs extlinux fdisk flex genisoimage git kpartx libtool libtool-bin make pkg-config python3 python-is-python3 qemu-utils wget xz-utils"
+
+    if $FIX_EXTLINUX; then
+        PACKAGES+=" nasm uuid-dev"
+    fi
 
     if $INCLUDE_GUI; then
         PACKAGES+=" fontconfig gettext gperf unzip xfonts-utils"
@@ -783,10 +790,6 @@ install_debian_prerequisites()
         PACKAGES+=" cmake"
     fi
 
-    if $FIX_EXTLINUX; then
-        PACKAGES+=" nasm uuid-dev"
-    fi
-
     if $USE_GRUB; then
         PACKAGES+=" grub-common grub-pc"
     else
@@ -801,9 +804,12 @@ install_debian_prerequisites()
 install_fedora_prerequisites()
 {
     echo -e "${GREEN}Installing prerequisite packages for a Fedora-based system...${RESET}"
-    sudo dnf -y update
 
     PACKAGES="autoconf automake bison dialog docbook2pdf docbook2X flex gcc genisoimage gettext git libtool make patch perl python3 qemu-img"
+
+    if $FIX_EXTLINUX; then
+        PACKAGES+=" libuuid-devel nasm"
+    fi
 
     if $INCLUDE_GUI; then
         PACKAGES+=" bdftopcf fontconfig gperf mkfontscale xorg-x11-font-utils"
@@ -825,8 +831,8 @@ install_fedora_prerequisites()
         PACKAGES+=" byacc cmake"
     fi
 
-    if $FIX_EXTLINUX; then
-        PACKAGES+=" libuuid-devel nasm"
+    if $NEED_LIBT3KEY; then
+        PACKAGES+=" ncurses-devel"
     fi
 
     if $USE_GRUB; then
@@ -1500,6 +1506,12 @@ get_libt3widget()
         LIBTOOL="${PREFIX}/bin/i486-linux-musl-libtool" \
         CFLAGS="--sysroot=${SYSROOT} -I${SYSROOT}/usr/include -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
         LDFLAGS="--sysroot=${SYSROOT} -L${SYSROOT}/usr/lib -L${PREFIX}/lib"
+
+    # Fix "library was moved" error on Arch
+    if $IS_ARCH; then
+        find "$SYSROOT/usr/lib" -name "*.la" -exec sed -i "s|^libdir=.*|libdir='${SYSROOT}/usr/lib'|" {} \;
+    fi
+
     make -j$(nproc)
     make DESTDIR="${SYSROOT}" install
 
@@ -4501,6 +4513,8 @@ get_prog_git()
             --host=${HOST} \
             "${CONFIGURE_PREFIX}" \
             "${CONFIGURE_ARR[@]}" \
+            --with-curses-dir="${PREFIX}" \
+            --with-ncursesw \
             CC="${CC_STATIC}" \
             AR="${AR}" \
             RANLIB="${RANLIB}" \
@@ -4576,6 +4590,8 @@ get_prog_tar()
             --host=${HOST} \
             "${CONFIGURE_PREFIX}" \
             "${CONFIGURE_ARR[@]}" \
+            --with-curses-dir="${PREFIX}" \
+            --with-ncursesw \
             CC="${CC_STATIC}" \
             AR="${AR}" \
             RANLIB="${RANLIB}" \
@@ -4725,7 +4741,7 @@ get_gcc()
             TARGET="${LIB#$DESTDIR}"
             sudo ln -sf "$TARGET" "$DESTDIR/lib/"
         done
-        ln -sf /opt/i486-linux-musl-native/lib/libc.so "${DESTDIR}/lib/ld-musl-i386.so.1"
+        sudo ln -sf /opt/i486-linux-musl-native/lib/libc.so "${DESTDIR}/lib/ld-musl-i386.so.1"
     else
         echo -e "${LIGHT_RED}${ARCH}-linux-musl-native already extracted, skipping...${RESET}"
     fi

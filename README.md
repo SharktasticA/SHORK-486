@@ -34,9 +34,11 @@ In the temporary lieu of a package manager, SHORK 486 can be made as one of seve
 
 * **Default:** SHORK 486 in its recommended configuration that tries to balance features and software variety with system requirements. It's what was described at the start of this README.
 
-* **Plus:** Like default but _with_ all the optional bundled software included. It includes a lot more development-focused software, additional editors (most notably Vim), IBM terminal emulation software, and (for 586) an MP3 player. It _can_ be used with the same minimum 16MiB system memory as default, but it will lean into slower swap memory a lot more if you don't have more (ideally at least 24MiB).
+* **Plus:** Like default but _with_ all the optional bundled software included. It includes a lot more development-focused software, additional editors (most notably Vim), IBM terminal emulation software, and (for 586) an MP3 player. It _can_ be used with the same minimum 16MiB system memory as default, but it will lean into slower swap memory a lot more if you don't have more physical memory (ideally at least 24MiB).
 
-* **Offline:** Like default but _without_ full networking support and software that would require it. If you don't need the internet or want to force yourself into a less distracting system, you can save some system memory (~4MiB) and disk space (~40MiB) with this.
+* **Writer:** SHORK 486 with all text editors enabled, no full networking support, and fewer distractions. It sacrifices the generalist system to get all the editors bundled in the same footprint as a default build. This may be interesting for a writing-oriented system such as a writerdeck. It _can_ be used with the same minimum 16MiB system memory as default, but Vim's inclusion means it will lean into slower swap memory a lot more if you don't have more physical memory (ideally at least 24MiB).
+
+* **Offline:** Like default but _without_ full networking support and software that would require it. If you don't need the internet but still want a generalist system, you can save some system memory (~4MiB) and disk space (~40MiB) with this.
 
 * **Minimal:** SHORK 486 in its smallest configuration. All bundled software and additional features are excluded, and multi-user, networking and non-US keyboard layout support are disabled. That said, a robust BusyBox configuration is still provided, so comparatively few general and system utilities are lost, and you still have the ed and vi editors. It's a very lightweight Linux, but one may still find it quite usable.
 
@@ -59,12 +61,14 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
     * **Default: 16MiB RAM (8MiB swap recommended)**
     * Maximal: 32MiB RAM (recommended), 24MiB RAM + 8MiB swap (acceptable)
     * Plus: 24MiB RAM + 8MiB swap (recommended), 16MiB RAM + 16MiB swap (acceptable)
+    * Writer: 24MiB RAM + 8MiB swap (recommended), 16MiB RAM + 16MiB swap (acceptable)
     * Offline: 12MiB RAM (8MiB swap recommended)
     * Minimal: 8MiB RAM
 * IDE or SCSI disk: 
     * **Default: 100MiB**
     * Maximal: 500MiB
     * Plus: 480MiB
+    * Writer: 100MiB
     * Offline: 60MiB
     * Minimal: 8MiB
 * Graphics: IBM VGA or compatible (for most programs); VBE 2.0-compatible (for `shorkgui` and VBE resolutions in `shorkset`)
@@ -76,46 +80,42 @@ addgroup, adduser, ar, arch, ascii, ash, awk, base32, base64, basename, bc, beep
 
 ### Bundled software
 
-#### Default
+* **P:** plus/maximal - **D:** default - **W:** writer - **O:** offline
+* **\*** indicates the software is included for the given edition
 
-| Name | Command(s) | Version | Purpose | Licence(s) |
-|------|------------|---------|---------|------------|
-| [dialog](https://invisible-mirror.net/dialog/dialog.html) | `dialog` | 1.3 | Shell script TUI widgets | LGPLv2.1 |
-| [Dropbear](https://github.com/mkj/dropbear) | `scp`, `ssh` | 2026.92 | SCP and SSH clients | MIT + BSD 2-Clause |
-| [file](https://github.com/file/file)| `file` | 5_48 | File identification | BSD 2-Clause |
-| [Git](https://github.com/git/git) | `git` | 2.55.0 | Source control client | GPLv2 |
-| [GNU nano](https://www.nano-editor.org/) | `nano` | 9.1 | Pico-style text editor | GPLv3 |
-| [htop](https://github.com/htop-dev/htop) | `htop` | 3.5.1 | Interactive process viewer | GPLv2 |
-| [Lua](https://www.lua.org/) | `lua` | 5.5.0 | Embedded scripting & extensions language | MIT |
-| [Lynx](https://github.com/ThomasDickey/lynx-snapshots) | `lynx` | 2-9-3a | Terminal web browser | GPLv2 |
-| [Mg](https://github.com/troglobit/mg) | `mg` | 4.0 | Emacs-style text editor | Unlicense |
-| [MicroPython](https://github.com/micropython/micropython) | `micropython` | 1.28.0 | Python 3.4-syntax intepreter | MIT |
-| [mt-st](https://github.com/iustin/mt-st) | `mt`, `stinit` | 1.8 | Tape drive tools | GPLv2 |
-| [sc-im](https://github.com/andmarti1424/sc-im) | `sc-im` | 0.8.5 | Terminal spreadsheet editor | BSD 4-Clause |
-| [strace](https://github.com/strace/strace) | `strace` | 7.1 | System calls & signals tracer | LGPLv2.1 |
-| [Tiny C Compiler](https://bellard.org/tcc/)§ | `tcc` | `e5eedc0` | C compiler | LGPLv2.1 |
-| [tmux](https://github.com/tmux/tmux) | `tmux` | 3.7b | Terminal multiplexer | ISC |
-| [tnftp](https://ftp.netbsd.org/pub/NetBSD/misc/tnftp/) | `ftp` | 20260211 | FTP client | BSD 2-Clause |
-| [util-linux](https://github.com/util-linux/util-linux) | `partx`, `sfdisk`, `whereis` | 2.42.2 | Extra Linux utilities | GPLv2 |
-
-#### Plus & maximal/optional with custom
-
-| Name | Command(s) | Version | Purpose | Licence(s) |
-|------|------------|---------|---------|------------|
-| [Cscope](https://cscope.sourceforge.net/) | `cscope` | 15.9 | C/C++ code browser | BSD 3-Clause |
-| [cURL](https://curl.se/) | `curl` | 8.21.0 | HTTP client & transfer utility | MIT |
-| [GCC](https://musl.cc/)‡§ | `gcc`, `g++`, `gfortran` | 11.2.1 | C, C++ and Fortran compilers | GPLv3 + GCC RLE |
-| [GNU Binutils](https://musl.cc/)‡ | e.g. `ar`\*, `as`, `gprof`, `ld`, `nm`, `objdump`, `ranlib`,`readelf`, `strings`\*, `strip` | 2.37 | Binary tools to compliment GCC | GPLv3 |
-| [GNU Indent](https://www.gnu.org/software/indent/) | `indent` | 2.2.13 | C code formatter | GPLv3 |
-| [GNU Make](https://www.gnu.org/software/make/) | `make` | 4.4.1 | Build automation tool | GPLv3 |
-| [Joe's Own Editor](https://github.com/joe-editor/joe) | `joe` | 4.8 | WordStar & Emacs-blend text editor | GPLv2 |
-| [mpg321](https://mpg321.sourceforge.net/)† | `mpg321` | 0.3.2-1 | MP3 player | GPLv2 |
-| [NASM](https://www.nasm.us/) | `nasm`, `ndisasm` | 3.02 | Portable x86 assembler & disassembler | BSD 2-Clause |
-| [Tilde](https://os.ghalkes.nl/tilde/) | `tilde` | 1.1.3 | GUI-like text editor | GPLv3 |
-| [tn5250](https://github.com/tn5250/tn5250)† | `tn5250` | 0.18.0 | TCP/IP 5250 terminal emulator | LGPLv2.1 |
-| [Universal Ctags](https://ctags.io/) | `ctags`, `readtags` | 6.2.0 | Source code object indexing | GPLv2 |
-| [x3270](https://github.com/pmattes/x3270)† | `c3270` | 4.5ga5 | 3270 terminal emulator | BSD 3-Clause |
-| [Vim](https://www.vim.org/)† | `ex`, `view`, `rvim`, `rview`, `vim`, `vimdiff`, `vimtutor`, `xxd`\* | 9.2 | Vi IMproved text editor | Vim |
+| Name | Command(s) | Version | Purpose | Licence(s) |P|D|W|O|
+|------|------------|---------|---------|------------|-|-|-|-|
+| [Cscope](https://cscope.sourceforge.net/) | `cscope` | 15.9 | C/C++ code browser | BSD 3-Clause |*||||
+| [cURL](https://curl.se/) | `curl` | 8.21.0 | HTTP client & transfer utility | MIT |*||||
+| [dialog](https://invisible-mirror.net/dialog/dialog.html) | `dialog` | 1.3 | Shell script TUI widgets | LGPLv2.1 |*|**\***||*|
+| [Dropbear](https://github.com/mkj/dropbear) | `scp`, `ssh` | 2026.92 | SCP and SSH clients | MIT + BSD 2-Clause |*|**\***|||
+| [file](https://github.com/file/file)| `file` | 5_48 | File identification | BSD 2-Clause |*|**\***||*|
+| [GCC](https://musl.cc/)‡§ | `gcc`, `g++`, `gfortran` | 11.2.1 | C, C++ and Fortran compilers | GPLv3 + GCC RLE |*||||
+| [Git](https://github.com/git/git) | `git` | 2.55.0 | Source control client | GPLv2 |*|**\***|||
+| [GNU Binutils](https://musl.cc/)‡ | e.g. `ar`\*, `as`, `gprof`, `ld`, `nm`, `objdump`, `ranlib`,`readelf`, `strings`\*, `strip` | 2.37 | Binary tools to compliment GCC | GPLv3 |*||||
+| [GNU Indent](https://www.gnu.org/software/indent/) | `indent` | 2.2.13 | C code formatter | GPLv3 |*||||
+| [GNU Make](https://www.gnu.org/software/make/) | `make` | 4.4.1 | Build automation tool | GPLv3 |*||||
+| [GNU nano](https://www.nano-editor.org/) | `nano` | 9.1 | Pico-style text editor | GPLv3 |*|**\***|*|*|
+| [htop](https://github.com/htop-dev/htop) | `htop` | 3.5.1 | Interactive process viewer | GPLv2 |*|**\***|*|*|
+| [Joe's Own Editor](https://github.com/joe-editor/joe) | `joe` | 4.8 | WordStar & Emacs-blend text editor | GPLv2 |*||*||
+| [Lua](https://www.lua.org/) | `lua` | 5.5.0 | Embedded scripting & extensions language | MIT |*|**\***||*|
+| [Lynx](https://github.com/ThomasDickey/lynx-snapshots) | `lynx` | 2-9-3a | Terminal web browser | GPLv2 |*|**\***|||
+| [Mg](https://github.com/troglobit/mg) | `mg` | 4.0 | Emacs-style text editor | Unlicense |*|**\***|*|*|
+| [MicroPython](https://github.com/micropython/micropython) | `micropython` | 1.28.0 | Python 3.4-syntax intepreter | MIT |*|**\***||*|
+| [mpg321](https://mpg321.sourceforge.net/)† | `mpg321` | 0.3.2-1 | MP3 player | GPLv2 |*||||
+| [mt-st](https://github.com/iustin/mt-st) | `mt`, `stinit` | 1.8 | Tape drive tools | GPLv2 |*|**\***||*|
+| [NASM](https://www.nasm.us/) | `nasm`, `ndisasm` | 3.02 | Portable x86 assembler & disassembler | BSD 2-Clause |*||||
+| [sc-im](https://github.com/andmarti1424/sc-im) | `sc-im` | 0.8.5 | Terminal spreadsheet editor | BSD 4-Clause |*|**\***|*|*|
+| [strace](https://github.com/strace/strace) | `strace` | 7.1 | System calls & signals tracer | LGPLv2.1 |*|**\***||*|
+| [Tilde](https://os.ghalkes.nl/tilde/) | `tilde` | 1.1.3 | GUI-like text editor | GPLv3 |*||*||
+| [Tiny C Compiler](https://bellard.org/tcc/)§ | `tcc` | `e5eedc0` | C compiler | LGPLv2.1 |*|**\***||*|
+| [tmux](https://github.com/tmux/tmux) | `tmux` | 3.7b | Terminal multiplexer | ISC |*|**\***|*|*|
+| [tn5250](https://github.com/tn5250/tn5250)† | `tn5250` | 0.18.0 | TCP/IP 5250 terminal emulator | LGPLv2.1 |*||||
+| [tnftp](https://ftp.netbsd.org/pub/NetBSD/misc/tnftp/) | `ftp` | 20260211 | FTP client | BSD 2-Clause |*|**\***|||
+| [Universal Ctags](https://ctags.io/) | `ctags`, `readtags` | 6.2.0 | Source code object indexing | GPLv2 |*||||
+| [util-linux](https://github.com/util-linux/util-linux) | `partx`, `sfdisk`, `whereis` | 2.42.2 | Extra Linux utilities | GPLv2 |*|**\***||*|
+| [Vim](https://www.vim.org/)† | `ex`, `view`, `rvim`, `rview`, `vim`, `vimdiff`, `vimtutor`, `xxd`\* | 9.2 | Vi IMproved text editor | Vim |*||*||
+| [x3270](https://github.com/pmattes/x3270)† | `c3270` | 4.5ga5 | 3270 terminal emulator | BSD 3-Clause |*||||
 
 * \* _This replaces a BusyBox version of the same utility_
 * _† Their inclusion is experimental - expect bugs_
@@ -305,7 +305,7 @@ When running the SHORK 486 Build Configurator, you will be prompted to select th
 * Target distribution (SHORK 486, SHORK DISC or SHORK DISKETTE)
 * Linux kernel version (7.2-rc5, 7.1.5 or 7.0.14)
 * _If SHORK 486:_
-    * Build type (default, maximal, plus, offline, minimal or custom)
+    * Build type (default, maximal, plus, writer, offline, minimal or custom)
     * Target disk size (size in MiB)
     * Swap partition size (size in MiB)
 * _If SHORK DISKETTE:_
