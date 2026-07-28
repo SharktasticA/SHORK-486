@@ -4510,6 +4510,8 @@ get_prog_git()
             --host=${HOST} \
             "${CONFIGURE_PREFIX}" \
             "${CONFIGURE_ARR[@]}" \
+            --with-curses-dir="${PREFIX}" \
+            --with-ncursesw \
             CC="${CC_STATIC}" \
             AR="${AR}" \
             RANLIB="${RANLIB}" \
@@ -4585,6 +4587,8 @@ get_prog_tar()
             --host=${HOST} \
             "${CONFIGURE_PREFIX}" \
             "${CONFIGURE_ARR[@]}" \
+            --with-curses-dir="${PREFIX}" \
+            --with-ncursesw \
             CC="${CC_STATIC}" \
             AR="${AR}" \
             RANLIB="${RANLIB}" \
