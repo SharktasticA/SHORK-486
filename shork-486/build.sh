@@ -748,7 +748,7 @@ install_arch_prerequisites()
         PACKAGES+=" syslinux"
     fi
 
-    sudo pacman -Sy --noconfirm --needed $PACKAGES
+    sudo pacman -Sy --noconfirm --needed $PACKAGES || true
 }
 
 install_debian_prerequisites()
@@ -1503,6 +1503,12 @@ get_libt3widget()
         LIBTOOL="${PREFIX}/bin/i486-linux-musl-libtool" \
         CFLAGS="--sysroot=${SYSROOT} -I${SYSROOT}/usr/include -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
         LDFLAGS="--sysroot=${SYSROOT} -L${SYSROOT}/usr/lib -L${PREFIX}/lib"
+
+    # Fix "library was moved" error on Arch
+    if $IS_ARCH; then
+        find "$SYSROOT/usr/lib" -name "*.la" -exec sed -i "s|^libdir=.*|libdir='${SYSROOT}/usr/lib'|" {} \;
+    fi
+
     make -j$(nproc)
     make DESTDIR="${SYSROOT}" install
 
