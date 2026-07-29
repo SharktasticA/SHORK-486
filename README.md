@@ -256,7 +256,7 @@ ash, awk, basename, cat, clear, cp, date, dd, df, echo, expr, free, grep, hostna
 
 ## Building
 
-SHORK 486, DISC and DISKETTE do not presently have released compilations or media, so it must be compiled. The result are raw disk, disc or diskette images you can write to real hardware or use as-is in emulation or virtualisation software. Building may require up to 5GiB of disk space. Please read "Notice & disclaimers" at the end of this readme before proceeding. 
+SHORK 486, DISC and DISKETTE do not presently have released compilations or media, so it must be compiled. The result are raw disk, disc or diskette images you can write to real hardware or use as-is in emulation or virtualisation software. Building may require up to ~7GiB of disk space. Please read "Notice & disclaimers" at the end of this readme before proceeding. 
 
 ### Configuration
 
