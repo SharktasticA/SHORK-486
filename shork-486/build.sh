@@ -795,7 +795,7 @@ install_debian_prerequisites()
     fi
 
     if $INCLUDE_MICRO; then
-        PACKAGES+=" golang-go"
+        PACKAGES+=" golang-go gccgo gccgo-multilib"
     fi
 
     if $INCLUDE_MICROPYTHON; then
@@ -5070,6 +5070,7 @@ get_mg()
 }
 
 # Download and compile micro
+# FIX: micro version 0-unknown
 get_micro()
 {
     cd "$CURR_DIR/build"
@@ -5097,17 +5098,28 @@ get_micro()
     echo -e "${GREEN}Generating micro's runtime assets...${RESET}"
     make generate
 
-    export CGO_ENABLED=0
+    # gccgo doesn't use fmt.Append from Go 1.19+, so replace with Sprintf
+    sed -i -e 's/return fmt\.Append(nil, s\.FindOpt(string(option)))/return []byte(fmt.Sprintf("%v", s.FindOpt(string(option))))/' internal/display/statusline.go
+
+    # Make sure we also use a golang.org/x/sys that plays nicely with < Go 1.19
+    go mod edit -replace golang.org/x/sys=golang.org/x/sys@v0.15.0
+    go mod download golang.org/x/sys
+
+    export CGO_ENABLED=1
     export GOOS=linux
     export GOARCH=386
-    export GO386=softfloat
 
     # Compile and install
     echo -e "${GREEN}Compiling micro...${RESET}"
-    make build-quick
+    go build \
+        -compiler=gccgo \
+        -tags osusergo,netgo \
+        -gccgoflags="-m32 -march=i486 -mtune=i486 -static -fno-if-conversion -fno-if-conversion2 -fno-tree-loop-if-convert" \
+        -o micro \
+        ./cmd/micro
     sudo install -d "$DESTDIR/usr/bin"
     sudo install -m755 micro "$DESTDIR/usr/bin/micro"
-    unset GOOS GOARCH GO386 CGO_ENABLED
+    unset GOOS GOARCH CGO_ENABLED CC CGO_CFLAGS CGO_LDFLAGS
 }
 
 # Download and compile MicroPython
