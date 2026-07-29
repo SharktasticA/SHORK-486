@@ -381,9 +381,11 @@ EXTLINUX (SHORK 486), ISOLINUX (SHORK DISC) and SYSLINUX (SHORK DISKETTE) are th
 
 #### Options
 
+* **fb-vbe**: Adds kernel-level framebuffer and VESA BIOS Extensions (VBE) support. This allows `shorkhelp` to list and select VBE-style resolutions, which when used also creates a framebuffer device an X server can use.
+
 * **grub**: Uses a GRUB 2.x bootloader instead of EXTLINUX. The build script overrides this if you said "Yes" to using SHORK's patched fork of EXTLINUX.
 
-* **gui**: Includes SHORK 486's graphical environment ("SHORKGUI"). This includes kernel-level framebuffer, VESA and enhanced VGA support, TinyX display server, TWM window manager, various supporting X11 utilities, st terminal emulator, and the `shorkgui` utility.
+* **gui**: Includes SHORK 486's graphical environment ("SHORKGUI"). This includes the TinyX display server, TWM window manager, various supporting X11 utilities, st terminal emulator, and the `shorkgui` utility.
     * **SHORKGUI is an experimental feature - expect quirks and incompleteness!**
     * As it is subject to big changes, the system requirements are not set in stone. But the following should provide a usable experience for now:
         * IntelDX4 (ideally; 486SX, 486DX, etc. works but are very slow)

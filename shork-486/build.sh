@@ -247,7 +247,7 @@ TINY_KRN=false
 
 ENABLE_CDROM=true
 ENABLE_EPOLL=false
-ENABLE_FB=true
+ENABLE_FB_VBE=true
 ENABLE_HELP_VERBOSE=true
 ENABLE_HIGHMEM=false
 ENABLE_LOOP=true
@@ -422,10 +422,11 @@ else
     fi
 fi
 
-# Ensure VM86 is enabled with FB
-if [ "$ENABLE_FB" = true ]; then
-    ENABLE_VM86=true
-fi
+# Ensure VM86 is enabled with FB_VBE
+# NOT NEEDED YET
+#if [ "$ENABLE_FB_VBE" = true ]; then
+#    ENABLE_VM86=true
+#fi
 
 # Networking-related overrides
 if [ "$ENABLE_NET_ETH" = true ]; then
@@ -449,6 +450,11 @@ fi
 # Ensure USE_GRUB is disabled with FIX_EXTLINUX
 if [ "$FIX_EXTLINUX" = true ]; then
     USE_GRUB=false
+fi
+
+# Ensure FB_VBE is enabled with GUI
+if [ "$INCLUDE_GUI" = true ]; then
+    ENABLE_FB_VBE=true
 fi
 
 # Ensure MULTIUSER_KRN and TASKSTATS are enabled with HTOP
@@ -559,9 +565,10 @@ NEED_PCRE2=false
 NEED_X86EMU=false
 NEED_ZLIB=false
 
-if $ENABLE_FB; then
-    NEED_X86EMU=true
-fi
+# NOT NEEDED YET
+#if $ENABLE_FB_VBE; then
+#    NEED_X86EMU=true
+#fi
 
 if $INCLUDE_CTAGS; then
     NEED_LIBXML2=true
@@ -2393,8 +2400,8 @@ configure_kernel()
         FRAGS+="$CONFIGS_DIR/linux/linux.config.epoll.frag "
     fi
     
-    if $ENABLE_FB; then
-        echo -e "${GREEN}Enabling kernel-level framebuffer, VESA & enhanced VGA support...${RESET}"
+    if $ENABLE_FB_VBE; then
+        echo -e "${GREEN}Enabling kernel-level framebuffer & VBE support...${RESET}"
         FRAGS+="$CONFIGS_DIR/linux/linux.config.fb.frag "
     fi
 
@@ -5755,7 +5762,7 @@ get_shorkset()
     # Compile and install
     make clean
     echo -e "${GREEN}Compiling shorkset...${RESET}"
-    if $ENABLE_FB; then
+    if $ENABLE_FB_VBE; then
         make FB=1 -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
     else
         make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
@@ -6521,7 +6528,7 @@ build_file_system()
         copy_sysfile $CURR_DIR/sysfiles/diskette/welcome $DESTDIR/banners/welcome
     fi
 
-    if $ENABLE_FB; then
+    if $ENABLE_FB_VBE; then
         echo -e "${GREEN}Copying and compiling terminfo database...${RESET}"
         sudo mkdir -p $DESTDIR/usr/share/terminfo/src/
         sudo cp $CURR_DIR/sysfiles/terminfo.src $DESTDIR/usr/share/terminfo/src/
@@ -7506,10 +7513,10 @@ get_installed_programs_features()
             EXCLUDED_FEATURES+="\n * kernel-level eventpoll support"
         fi
 
-        if $ENABLE_FB; then
-            INCLUDED_FEATURES+="\n * kernel-level framebuffer, VESA & enhanced VGA support"
+        if $ENABLE_FB_VBE; then
+            INCLUDED_FEATURES+="\n * kernel-level framebuffer & VBE support"
         else
-            EXCLUDED_FEATURES+="\n * kernel-level framebuffer, VESA & enhanced VGA support"
+            EXCLUDED_FEATURES+="\n * kernel-level framebuffer & VBE support"
         fi
 
         if $ENABLE_HIGHMEM; then
@@ -8259,7 +8266,7 @@ if ! $SKIP_BB; then
 fi
 
 get_ncurses
-if $ENABLE_FB; then
+if $ENABLE_FB_VBE; then
     get_tic
 fi
 
