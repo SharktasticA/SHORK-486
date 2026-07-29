@@ -128,6 +128,8 @@ DIALOG_SRC="https://invisible-mirror.net/archives/dialog"
 DIALOG_VER="1.3-20260107"
 DROPBEAR_SRC="https://github.com/mkj/dropbear.git"
 DROPBEAR_VER="2026.92"
+EMACS_SRC="https://ftp.gnu.org/gnu/emacs"
+EMACS_VER="30.2"
 FILE_SRC="https://github.com/file/file.git"
 FILE_VER="5_48"
 GCC_SRC="https://more.musl.cc/11/i686-linux-musl"
@@ -174,6 +176,8 @@ MAKE_SRC="https://ftp.gnu.org/gnu/make"
 MAKE_VER="4.4.1"
 MG_SRC="https://github.com/troglobit/mg.git"
 MG_VER="4.0"
+MICRO_SRC="https://github.com/micro-editor/MICRO.git"
+MICRO_VER="2.0.15"
 MICROPYTHON_SRC="https://github.com/micropython/micropython.git"
 MICROPYTHON_VER="1.28.0"
 MPG321_SRC="https://github.com/GiterMirror/mpg321.git"
@@ -242,7 +246,8 @@ TARGET_SWAP=$DEFAULT_TARGET_SWAP
 TINY_KRN=false
 
 ENABLE_CDROM=true
-ENABLE_FB=true
+ENABLE_EPOLL=false
+ENABLE_FB_VBE=true
 ENABLE_HELP_VERBOSE=true
 ENABLE_HIGHMEM=false
 ENABLE_LOOP=true
@@ -273,6 +278,7 @@ INCLUDE_CTAGS=false
 INCLUDE_CURL=false
 INCLUDE_DIALOG=true
 INCLUDE_DROPBEAR=true
+INCLUDE_EMACS=false
 INCLUDE_FILE=true
 INCLUDE_GCC=false
 INCLUDE_GIT=true
@@ -286,6 +292,7 @@ INCLUDE_LUA=true
 INCLUDE_LYNX=true
 INCLUDE_MAKE=false
 INCLUDE_MG=true
+INCLUDE_MICRO=false
 INCLUDE_MICROPYTHON=true
 INCLUDE_MPG321=false
 INCLUDE_MT_ST=true
@@ -415,10 +422,11 @@ else
     fi
 fi
 
-# Ensure VM86 is enabled with FB
-if [ "$ENABLE_FB" = true ]; then
-    ENABLE_VM86=true
-fi
+# Ensure VM86 is enabled with FB_VBE
+# NOT NEEDED YET
+#if [ "$ENABLE_FB_VBE" = true ]; then
+#    ENABLE_VM86=true
+#fi
 
 # Networking-related overrides
 if [ "$ENABLE_NET_ETH" = true ]; then
@@ -444,6 +452,11 @@ if [ "$FIX_EXTLINUX" = true ]; then
     USE_GRUB=false
 fi
 
+# Ensure FB_VBE is enabled with GUI
+if [ "$INCLUDE_GUI" = true ]; then
+    ENABLE_FB_VBE=true
+fi
+
 # Ensure MULTIUSER_KRN and TASKSTATS are enabled with HTOP
 if [ "$INCLUDE_HTOP" = true ]; then
     ENABLE_MULTIUSER_KRN=true
@@ -453,6 +466,11 @@ fi
 # Ensure NET_BASE is enabled with HTOP, TMUX or NET_ETH
 if [ "$INCLUDE_HTOP" = true ] || [ "$INCLUDE_TMUX" = true ] || [ "$ENABLE_NET_ETH" = true ]; then
     ENABLE_NET_BASE=true
+fi
+
+# Ensure EPOLL is enabled with MICRO
+if [ "$INCLUDE_MICRO" = true ]; then
+    ENABLE_EPOLL=true
 fi
 
 # Ensure SOUND and SYSVIPC are enabled with MPG321
@@ -547,9 +565,10 @@ NEED_PCRE2=false
 NEED_X86EMU=false
 NEED_ZLIB=false
 
-if $ENABLE_FB; then
-    NEED_X86EMU=true
-fi
+# NOT NEEDED YET
+#if $ENABLE_FB_VBE; then
+#    NEED_X86EMU=true
+#fi
 
 if $INCLUDE_CTAGS; then
     NEED_LIBXML2=true
@@ -559,6 +578,10 @@ if $INCLUDE_CURL || $INCLUDE_GIT; then
     NEED_CURL=true
     NEED_OPENSSL=true
     NEED_ZLIB=true
+fi
+
+if $INCLUDE_EMACS; then
+    NEED_LIBXML2=true
 fi
 
 if $INCLUDE_HWINFO; then
@@ -733,6 +756,10 @@ install_arch_prerequisites()
         PACKAGES+=" fontconfig gperf unzip xorg-bdftopcf xorg-font-util xorg-mkfontscale"
     fi
 
+    if $INCLUDE_MICRO; then
+        PACKAGES+=" go"
+    fi
+
     if $INCLUDE_MICROPYTHON; then
         PACKAGES+=" libffi"
     fi
@@ -774,6 +801,10 @@ install_debian_prerequisites()
         PACKAGES+=" autoconf"
     fi
 
+    if $INCLUDE_MICRO; then
+        PACKAGES+=" golang-go gccgo gccgo-multilib"
+    fi
+
     if $INCLUDE_MICROPYTHON; then
         PACKAGES+=" libffi-dev"
     fi
@@ -813,6 +844,10 @@ install_fedora_prerequisites()
 
     if $INCLUDE_GUI; then
         PACKAGES+=" bdftopcf fontconfig gperf mkfontscale xorg-x11-font-utils"
+    fi
+
+    if $INCLUDE_MICRO; then
+        PACKAGES+=" golang"
     fi
 
     if $INCLUDE_MICROPYTHON; then
@@ -2359,9 +2394,14 @@ configure_kernel()
             FRAGS+="$CONFIGS_DIR/linux/linux.config.cdrom.diskette.frag "
         fi
     fi
+
+    if $ENABLE_EPOLL; then
+        echo -e "${GREEN}Enabling kernel-level eventpoll support...${RESET}"
+        FRAGS+="$CONFIGS_DIR/linux/linux.config.epoll.frag "
+    fi
     
-    if $ENABLE_FB; then
-        echo -e "${GREEN}Enabling kernel-level framebuffer, VESA & enhanced VGA support...${RESET}"
+    if $ENABLE_FB_VBE; then
+        echo -e "${GREEN}Enabling kernel-level framebuffer & VBE support...${RESET}"
         FRAGS+="$CONFIGS_DIR/linux/linux.config.fb.frag "
     fi
 
@@ -5030,8 +5070,63 @@ get_mg()
     make -j$(nproc)
     sudo make DESTDIR=$DESTDIR install
 
-    # Symlink emacs to mg
-    ln -sf mg "$DESTDIR/usr/bin/emacs"
+    # Symlink emacs to mg if GNU Emacs isn't included
+    if [ "$INCLUDE_EMACS" = false ]; then
+        ln -sf mg "$DESTDIR/usr/bin/emacs"
+    fi
+}
+
+# Download and compile micro
+# FIX: micro version 0-unknown
+get_micro()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$DESTDIR/usr/bin/micro" ]; then
+        echo -e "${LIGHT_RED}micro already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d MICRO ]; then
+        echo -e "${YELLOW}micro source already present, resetting...${RESET}"
+        cd MICRO
+        git config --global --add safe.directory $CURR_DIR/build/MICRO
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading micro...${RESET}"
+        git clone --branch "v${MICRO_VER}" $MICRO_SRC
+        cd MICRO
+    fi
+    
+    # Generate runtime assets
+    echo -e "${GREEN}Generating micro's runtime assets...${RESET}"
+    make generate
+
+    # gccgo doesn't use fmt.Append from Go 1.19+, so replace with Sprintf
+    sed -i -e 's/return fmt\.Append(nil, s\.FindOpt(string(option)))/return []byte(fmt.Sprintf("%v", s.FindOpt(string(option))))/' internal/display/statusline.go
+
+    # Make sure we also use a golang.org/x/sys that plays nicely with < Go 1.19
+    go mod edit -replace golang.org/x/sys=golang.org/x/sys@v0.15.0
+    go mod download golang.org/x/sys
+
+    export CGO_ENABLED=1
+    export GOOS=linux
+    export GOARCH=386
+
+    # Compile and install
+    echo -e "${GREEN}Compiling micro...${RESET}"
+    go build \
+        -compiler=gccgo \
+        -tags osusergo,netgo \
+        -gccgoflags="-m32 -march=i486 -mtune=i486 -static -fno-if-conversion -fno-if-conversion2 -fno-tree-loop-if-convert" \
+        -o micro \
+        ./cmd/micro
+    sudo install -d "$DESTDIR/usr/bin"
+    sudo install -m755 micro "$DESTDIR/usr/bin/micro"
+    unset GOOS GOARCH CGO_ENABLED CC CGO_CFLAGS CGO_LDFLAGS
 }
 
 # Download and compile MicroPython
@@ -5667,7 +5762,7 @@ get_shorkset()
     # Compile and install
     make clean
     echo -e "${GREEN}Compiling shorkset...${RESET}"
-    if $ENABLE_FB; then
+    if $ENABLE_FB_VBE; then
         make FB=1 -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
     else
         make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
@@ -5847,6 +5942,62 @@ trim_fat()
 
     if $INCLUDE_DIALOG; then
         sudo rm -rf "$DESTDIR/usr/lib/libdialog.a"
+    fi
+
+    if $INCLUDE_EMACS; then
+        sudo rm -rf "$DESTDIR/usr/lib/systemd"
+        sudo rm -rf "$DESTDIR/usr/share/applications"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/AUTHORS"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/COPYING"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/copyright-assign.txt"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/HISTORY"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/NEWS"*
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/CALC-NEWS"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/EGLOT-NEWS"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/NXML-NEWS"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/NEXTSTEP"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/MACHINES"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/TODO"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/PROBLEMS"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/README"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/JOKES"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/DEVEL.HUMOR"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/spook.lines"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/yow.lines"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/w32-feature.el"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/emacs.icon"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/emacs.metainfo.xml"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/emacs.service"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/ps-prin0.ps"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/ps-prin1.ps"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/gnus"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/gnus-tut.txt"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/nxml"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/schema"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/publicsuffix.txt.gz"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/emacs-buffer.gdb"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/emacs_lldb.py"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/DEBUG"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/images"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/lisp/pgtk-dnd.elc"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/lisp/x-dnd.elc"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/lisp/xwidget.elc"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/lisp/xt-mouse.elc"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/lisp/touch-screen.elc"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/lisp/w32-fns.elc"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/lisp/w32-vars.elc"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/lisp/image"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/lisp/image-mode.elc"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/lisp/image-file.elc"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/lisp/svg.elc"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/lisp/scroll-bar.elc"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/lisp/tool-bar.elc"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/lisp/tooltip.elc"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/lisp/pixel-scroll.elc"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/lisp/mwheel.elc"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/lisp/soundex.elc"
+        sudo rm -rf "$DESTDIR/usr/share/icons"
+        sudo rm -rf "$DESTDIR/usr/share/metainfo"
     fi
 
     if $INCLUDE_FILE; then
@@ -6377,7 +6528,7 @@ build_file_system()
         copy_sysfile $CURR_DIR/sysfiles/diskette/welcome $DESTDIR/banners/welcome
     fi
 
-    if $ENABLE_FB; then
+    if $ENABLE_FB_VBE; then
         echo -e "${GREEN}Copying and compiling terminfo database...${RESET}"
         sudo mkdir -p $DESTDIR/usr/share/terminfo/src/
         sudo cp $CURR_DIR/sysfiles/terminfo.src $DESTDIR/usr/share/terminfo/src/
@@ -7356,10 +7507,16 @@ get_installed_programs_features()
     fi
 
     if [ "$ID" == "shork-486" ]; then
-        if $ENABLE_FB; then
-            INCLUDED_FEATURES+="\n * kernel-level framebuffer, VESA & enhanced VGA support"
+        if $ENABLE_EPOLL; then
+            INCLUDED_FEATURES+="\n * kernel-level eventpoll support"
         else
-            EXCLUDED_FEATURES+="\n * kernel-level framebuffer, VESA & enhanced VGA support"
+            EXCLUDED_FEATURES+="\n * kernel-level eventpoll support"
+        fi
+
+        if $ENABLE_FB_VBE; then
+            INCLUDED_FEATURES+="\n * kernel-level framebuffer & VBE support"
+        else
+            EXCLUDED_FEATURES+="\n * kernel-level framebuffer & VBE support"
         fi
 
         if $ENABLE_HIGHMEM; then
@@ -8109,7 +8266,7 @@ if ! $SKIP_BB; then
 fi
 
 get_ncurses
-if $ENABLE_FB; then
+if $ENABLE_FB_VBE; then
     get_tic
 fi
 
@@ -8267,6 +8424,20 @@ fi
 if $INCLUDE_DROPBEAR; then
     get_dropbear
 fi
+if $INCLUDE_EMACS; then
+    get_prog_tar \
+        "usr/bin" \
+        "emacs" \
+        "emacs" \
+        "emacs-${EMACS_VER}" \
+        "tar.xz" \
+        "$EMACS_SRC" \
+        "xf" \
+        false \
+        false \
+        "/usr" \
+        "--without-x --without-ns --without-gsettings --without-gconf --without-imagemagick --without-json --without-modules --without-dbus --without-gpm --without-gtk --without-toolkit-scroll-bars --without-xwidgets --without-libsystemd --without-selinux --with-xml2 --without-harfbuzz --with-gnutls=no --without-sound ac_cv_func_malloc_0_nonnull=yes ac_cv_func_realloc_0_nonnull=yes"
+fi
 if $INCLUDE_FILE; then
     get_file
 fi
@@ -8330,6 +8501,9 @@ if $INCLUDE_MAKE; then
 fi
 if $INCLUDE_MG; then
     get_mg
+fi
+if $INCLUDE_MICRO; then
+    get_micro
 fi
 if $INCLUDE_MICROPYTHON; then
     get_micropython

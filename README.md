@@ -36,7 +36,7 @@ In the temporary lieu of a package manager, SHORK 486 can be made as one of seve
 
 * **Plus:** Like default but _with_ all the optional bundled software included. It includes a lot more development-focused software, additional editors (most notably Vim), IBM terminal emulation software, and (for 586) an MP3 player. It _can_ be used with the same minimum 16MiB system memory as default, but it will lean into slower swap memory a lot more if you don't have more physical memory (ideally at least 24MiB).
 
-* **Writer:** SHORK 486 with all text editors enabled, no full networking support, and fewer distractions. It sacrifices the generalist system to get all the editors bundled in the same footprint as a default build. This may be interesting for a writing-oriented system such as a writerdeck. It _can_ be used with the same minimum 16MiB system memory as default, but Vim's inclusion means it will lean into slower swap memory a lot more if you don't have more physical memory (ideally at least 24MiB).
+* **Writer:** SHORK 486 with all text editors enabled, no full networking support, and fewer distractions. It sacrifices the generalist system configuration of default to get all the editors bundled in the same footprint as said default. This may be interesting for a writing-oriented system such as a writerdeck. It _can_ be used with the same minimum 16MiB system memory as default, but in particular whilst using Vim, it can lean into slower swap memory a lot more if you don't have more physical memory (ideally at least 24MiB).
 
 * **Offline:** Like default but _without_ full networking support and software that would require it. If you don't need the internet but still want a generalist system, you can save some system memory (~4MiB) and disk space (~40MiB) with this.
 
@@ -256,7 +256,7 @@ ash, awk, basename, cat, clear, cp, date, dd, df, echo, expr, free, grep, hostna
 
 ## Building
 
-SHORK 486, DISC and DISKETTE do not presently have released compilations or media, so it must be compiled. The result are raw disk, disc or diskette images you can write to real hardware or use as-is in emulation or virtualisation software. Building may require up to 5GiB of disk space. Please read "Notice & disclaimers" at the end of this readme before proceeding. 
+SHORK 486, DISC and DISKETTE do not presently have released compilations or media, so it must be compiled. The result are raw disk, disc or diskette images you can write to real hardware or use as-is in emulation or virtualisation software. Building may require up to ~7GiB of disk space. Please read "Notice & disclaimers" at the end of this readme before proceeding. 
 
 ### Configuration
 
@@ -381,9 +381,11 @@ EXTLINUX (SHORK 486), ISOLINUX (SHORK DISC) and SYSLINUX (SHORK DISKETTE) are th
 
 #### Options
 
+* **fb-vbe**: Adds kernel-level framebuffer and VESA BIOS Extensions (VBE) support. This allows `shorkhelp` to list and select VBE-style resolutions, which when used also creates a framebuffer device an X server can use.
+
 * **grub**: Uses a GRUB 2.x bootloader instead of EXTLINUX. The build script overrides this if you said "Yes" to using SHORK's patched fork of EXTLINUX.
 
-* **gui**: Includes SHORK 486's graphical environment ("SHORKGUI"). This includes kernel-level framebuffer, VESA and enhanced VGA support, TinyX display server, TWM window manager, various supporting X11 utilities, st terminal emulator, and the `shorkgui` utility.
+* **gui**: Includes SHORK 486's graphical environment ("SHORKGUI"). This includes the TinyX display server, TWM window manager, various supporting X11 utilities, st terminal emulator, and the `shorkgui` utility.
     * **SHORKGUI is an experimental feature - expect quirks and incompleteness!**
     * As it is subject to big changes, the system requirements are not set in stone. But the following should provide a usable experience for now:
         * IntelDX4 (ideally; 486SX, 486DX, etc. works but are very slow)
