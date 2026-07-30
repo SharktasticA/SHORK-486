@@ -124,6 +124,8 @@ CTAGS_SRC="https://github.com/universal-ctags/ctags.git"
 CTAGS_VER="p6.2.20260705.0"
 CURL_SRC="https://curl.se/download"
 CURL_VER="8.21.0"
+BINUTILS_SRC="https://ftp.gnu.org/gnu/binutils"
+BINUTILS_VER="2.47"
 DIALOG_SRC="https://invisible-mirror.net/archives/dialog"
 DIALOG_VER="1.3-20260107"
 DROPBEAR_SRC="https://github.com/mkj/dropbear.git"
@@ -133,8 +135,12 @@ EMACS_VER="30.2"
 FILE_SRC="https://github.com/file/file.git"
 FILE_VER="5_48"
 GCC_SRC="https://more.musl.cc/11/i686-linux-musl"
+GCCGO_SRC="https://ftp.gnu.org/gnu/gcc"
+GCCGO_VER="16.1.0"
 GIT_SRC="https://github.com/git/git.git"
 GIT_VER="2.55.0"
+GLIBC_SRC="https://ftp.gnu.org/gnu/glibc"
+GLIBC_VER="2.44"
 HTOP_SRC="https://github.com/htop-dev/htop.git"
 HTOP_VER="3.5.1"
 HWINFO_SRC="https://github.com/opensuse/hwinfo.git"
@@ -544,7 +550,7 @@ fi
 
 # Check what other prerequisites we need
 NEED_CURL=false
-NEED_OPENSSL=false
+NEED_GCCGO=false
 NEED_LIBAO=false
 NEED_LIBEVENT=false
 NEED_LIBID3TAG=false
@@ -562,6 +568,7 @@ NEED_LIBXLSXWRITER=false
 NEED_LIBXML2=false
 NEED_LIBZIP=false
 NEED_PCRE2=false
+NEED_OPENSSL=false
 NEED_X86EMU=false
 NEED_ZLIB=false
 
@@ -591,6 +598,10 @@ fi
 
 if $INCLUDE_LYNX; then
     NEED_OPENSSL=true
+fi
+
+if $INCLUDE_MICRO; then
+    NEED_GCCGO=true
 fi
 
 if $INCLUDE_MPG321; then
@@ -802,7 +813,7 @@ install_debian_prerequisites()
     fi
 
     if $INCLUDE_MICRO; then
-        PACKAGES+=" golang-go gccgo gccgo-multilib"
+        PACKAGES+=" golang-go"
     fi
 
     if $INCLUDE_MICROPYTHON; then
@@ -1062,6 +1073,170 @@ get_curl()
         echo -e "${GREEN}Installing cURL for system...${RESET}"
         sudo install -D -m 755 "$SYSROOT/bin/curl" "$DESTDIR/usr/bin/curl"
     fi
+}
+
+# Download and compile GNU Binutils and GCC for Go (required for micro)
+get_gccgo()
+{
+    cd "$CURR_DIR/build"
+
+    TARGET=i486-linux-gnu
+    GCCGO_PREFIX="$CURR_DIR/build/i486-gccgo"
+    GCCGO_SYSROOT="$GCCGO_PREFIX/$TARGET"
+
+    if [ -f "$GCCGO_PREFIX/bin/${TARGET}-gccgo" ]; then
+        echo -e "${LIGHT_RED}i486 gccgo toolchain already built, skipping...${RESET}"
+        return
+    fi
+
+    mkdir -p "$GCCGO_PREFIX"
+    export PATH="$GCCGO_PREFIX/bin:$PATH"
+
+
+
+    # Download GNU Binutils source
+    echo -e "${GREEN}Downloading GNU Binutils...${RESET}"
+    BINUTILS_DIR="binutils-${BINUTILS_VER}"
+    ARC="${BINUTILS_DIR}.tar.xz"
+    URI="${BINUTILS_SRC}/${ARC}"
+    [ -f $ARC ] || wget $URI
+
+    # Extract GNU Binutils source
+    if [ -d $BINUTILS_DIR ]; then
+        echo -e "${YELLOW}GNU Binutils' source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -rf $BINUTILS_DIR
+    fi
+    tar xf $ARC
+    cd $BINUTILS_DIR
+
+    # Compile and install GNU Binutils
+    echo -e "${GREEN}Compiling GNU Binutils...${RESET}"
+    CFLAGS="-m32 -march=i486 -mtune=i486 -mno-sse -mno-mmx -mno-sse2 -O2" \
+    CXXFLAGS="-m32 -march=i486 -mtune=i486 -mno-sse -mno-mmx -mno-sse2 -O2" \
+    ./configure \
+        --target=$TARGET \
+        --prefix=$GCCGO_PREFIX \
+        --with-sysroot=$GCCGO_SYSROOT \
+        --disable-multilib
+    make -j$(nproc)
+    make install
+    cd "$CURR_DIR/build"
+
+
+
+    # Install Linux kernel headers
+    echo -e "${GREEN}Installing Linux kernel headers...${RESET}"
+    if [ ! -d "$CURR_DIR/build/linux" ]; then
+        echo -e "${RED}ERROR: Linux kernel source not found - compile the kernel first${RESET}"
+        return 1
+    fi
+    cd "$CURR_DIR/build/linux"
+    make ARCH=x86 INSTALL_HDR_PATH=$GCCGO_SYSROOT/usr headers_install
+    cd "$CURR_DIR/build"
+
+
+
+    # Download GCC source
+    echo -e "${GREEN}Downloading GCC...${RESET}"
+    GCC_DIR="gcc-${GCCGO_VER}"
+    ARC="${GCC_DIR}.tar.xz"
+    URI="${GCCGO_SRC}/${GCC_DIR}/${ARC}"
+    [ -f $ARC ] || wget $URI
+
+    # Extract GCC source
+    if [ -d $GCC_DIR ]; then
+        echo -e "${YELLOW}GCC's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -rf $GCC_DIR
+    fi
+    tar xf $ARC
+    cd $GCC_DIR
+
+    # Download GCC prerequisites
+    echo -e "${GREEN}Downloading GCC prerequisites...${RESET}"
+    ./contrib/download_prerequisites
+    cd "$CURR_DIR/build"
+
+
+
+    # Compile GCC for C
+    echo -e "${GREEN}Compiling GCC for C...${RESET}"
+    mkdir -p $GCC_DIR/build-c
+    cd $GCC_DIR/build-c
+    CFLAGS="-m32 -march=i486 -mtune=i486 -mno-sse -mno-mmx -mno-sse2 -O2" \
+    CXXFLAGS="-m32 -march=i486 -mtune=i486 -mno-sse -mno-mmx -mno-sse2 -O2" \
+    ../configure \
+        --target=$TARGET \
+        --prefix=$GCCGO_PREFIX \
+        --with-sysroot=$GCCGO_SYSROOT \
+        --with-arch=i486 \
+        --with-tune=i486 \
+        --disable-multilib \
+        --enable-languages=c \
+        --without-headers \
+        --disable-shared \
+        --disable-threads \
+        --disable-libgcov
+    make -j$(nproc) all-gcc
+    make install-gcc
+    cd "$CURR_DIR/build"
+
+
+
+    # Install glibc source
+    echo -e "${GREEN}Downloading glibc...${RESET}"
+    GLIBC_DIR="glibc-${GLIBC_VER}"
+    ARC="${GLIBC_DIR}.tar.xz"
+    URI="${GLIBC_SRC}/${ARC}"
+    [ -f $ARC ] || wget $URI
+
+    # Extract glibc source
+    if [ -d $GLIBC_DIR ]; then
+        echo -e "${YELLOW}glibc's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -rf $GLIBC_DIR
+    fi
+    tar xf $ARC
+
+    # Install glibc headers
+    echo -e "${GREEN}Installing glibc headers...${RESET}"
+    mkdir -p $GLIBC_DIR/build
+    cd $GLIBC_DIR/build
+    CC="$GCCGO_PREFIX/bin/$TARGET-gcc" \
+    AR="$GCCGO_PREFIX/bin/$TARGET-ar" \
+    RANLIB="$GCCGO_PREFIX/bin/$TARGET-ranlib" \
+    CFLAGS="-m32 -march=i486 -mtune=i486 -mno-sse -mno-mmx -mno-sse2 -O2" \
+    CXXFLAGS="-m32 -march=i486 -mtune=i486 -mno-sse -mno-mmx -mno-sse2 -O2" \
+    ../configure \
+        --prefix=/usr \
+        --host=$TARGET \
+        --target=$TARGET \
+        --with-headers=$GCCGO_SYSROOT/usr/include \
+        --disable-multilib \
+        --disable-shared
+    make install-headers install_root=$GCCGO_SYSROOT
+    mkdir -p $GCCGO_SYSROOT/usr/lib
+    touch $GCCGO_SYSROOT/usr/include/gnu/stubs.h
+    cd "$CURR_DIR/build"
+
+
+
+    # Compile GCC for C, C++ and Go
+    echo -e "${GREEN}Compiling GCC for C, C++ and Go...${RESET}"
+    mkdir -p $GCC_DIR/build-go
+    cd $GCC_DIR/build-go
+    CFLAGS="-m32 -march=i486 -mtune=i486 -mno-sse -mno-mmx -mno-sse2 -O2" \
+    CXXFLAGS="-m32 -march=i486 -mtune=i486 -mno-sse -mno-mmx -mno-sse2 -O2" \
+    ../configure \
+        --target=$TARGET \
+        --prefix=$GCCGO_PREFIX \
+        --with-sysroot=$GCCGO_SYSROOT \
+        --with-arch=i486 \
+        --with-tune=i486 \
+        --disable-multilib \
+        --enable-languages=go \
+        --disable-bootstrap
+    make -j$(nproc) all-gcc
+    make install-gcc
+    cd "$CURR_DIR/build"
 }
 
 # Download and compile libao (required for mpg321) 
@@ -5112,9 +5287,16 @@ get_micro()
     go mod edit -replace golang.org/x/sys=golang.org/x/sys@v0.15.0
     go mod download golang.org/x/sys
 
+    TARGET=i486-linux-gnu
+    GCCGO_PREFIX="$CURR_DIR/build/i486-gccgo"
+    GCCGO_SYSROOT="$GCCGO_PREFIX/$TARGET"
+
     export CGO_ENABLED=1
     export GOOS=linux
     export GOARCH=386
+    export CC="$GCCGO_PREFIX/bin/$TARGET-gcc"
+    export CGO_CFLAGS="-I$GCCGO_SYSROOT/usr/include"
+    export CGO_LDFLAGS="-L$GCCGO_SYSROOT/usr/lib -Wl,-rpath,$GCCGO_SYSROOT/usr/lib"
 
     # Compile and install
     echo -e "${GREEN}Compiling micro...${RESET}"
@@ -8343,6 +8525,9 @@ if $NEED_LIBT3WIDGET; then
 fi
 if $NEED_LIBT3HIGHLIGHT; then
     get_libt3highlight
+fi
+if $NEED_GCCGO; then
+    get_gccgo
 fi
 
 if $INCLUDE_GUI; then
