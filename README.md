@@ -94,8 +94,9 @@ addgroup, adduser, chgrp, chown, chpasswd, chroot, cryptpw, delgroup, deluser, f
 | [Cscope](https://cscope.sourceforge.net/) | `cscope` | 15.9 | C/C++ code browser | BSD 3-Clause |*||||
 | [cURL](https://curl.se/) | `curl` | 8.21.0 | HTTP client & transfer utility | MIT |*||||
 | [dialog](https://invisible-mirror.net/dialog/dialog.html) | `dialog` | 1.3 | Shell script TUI widgets | LGPLv2.1 |*|**\***||*|
+| [dosfstools](https://github.com/dosfstools/dosfstools/) | e.g. `dosfsck`, `mkdosfs`\* | 4.2 | FAT family filesystem utilities | GPLv3 |*|**\***||*|
 | [Dropbear](https://github.com/mkj/dropbear) | `scp`, `ssh` | 2026.92 | SCP and SSH clients | MIT + BSD 2-Clause |*|**\***|||
-| [e2fsprogs](https://e2fsprogs.sourceforge.net/)| e.g. `blkid`\*, `fsck`, `mke2fs`\*, `resize2fs`, `tune2fs`, `uuidgen`\* | 1.47.4 | ext2/3/4 file system utilities | GPLv2 + LGPLv2 |*|**\***||*|
+| [e2fsprogs](https://e2fsprogs.sourceforge.net/)| e.g. `blkid`\*, `fsck`, `mke2fs`\*, `resize2fs`, `tune2fs`, `uuidgen`\* | 1.47.4 | ext2/3/4 filesystem utilities | GPLv2 + LGPLv2 |*|**\***||*|
 | [file](https://github.com/file/file)| `file` | 5_48 | File identification | BSD 2-Clause |*|**\***||*|
 | [GCC](https://musl.cc/)‡§ | `gcc`, `g++`, `gfortran` | 11.2.1 | C, C++ and Fortran compilers | GPLv3 + GCC RLE |*||||
 | [Git](https://github.com/git/git) | `git` | 2.55.0 | Source control client | GPLv2 |*|**\***|||
@@ -381,7 +382,10 @@ EXTLINUX (SHORK 486), ISOLINUX (SHORK DISC) and SYSLINUX (SHORK DISKETTE) are th
 
 #### Bundled Software
 
-* **e2fsprogs**: Adds utilities for creating, inspecting and maintaining ext2, ext3 and ext4 file systems.
+* **dosfstools**: Adds utilities for creating, inspecting and maintaining FAT12, FAT16 and FAT32 filesystems.
+    * **Note:** If included, BusyBox's `mkdosfs`/`mkfs.vfat` implementation will be disabled in favour of dosfstools'.
+
+* **e2fsprogs**: Adds utilities for creating, inspecting and maintaining ext2, ext3 and ext4 filesystems.
     * **Note:** If included, BusyBox's `blkid`, `mke2fs`/`mkfs.ext2` and `uuidgen` implementations will be disabled in favour of e2fsprogs'.
 
 * **file**: Adds the `file` command, which can identify a file's type by checking its contents against a database of possible magic signatures. Due to the size of said database, 16MiB RAM is required for it to work correctly.

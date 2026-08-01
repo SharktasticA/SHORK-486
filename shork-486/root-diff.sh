@@ -41,7 +41,7 @@ get_file_count()
 
 get_file_list()
 {
-    (cd "$TARGET_DIR" && find . -type f | sort)
+    (cd "$TARGET_DIR" && find . \( -type f -o -type l \) | sort)
 }
 
 

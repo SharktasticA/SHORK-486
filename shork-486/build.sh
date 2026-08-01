@@ -128,6 +128,8 @@ BINUTILS_SRC="https://ftp.gnu.org/gnu/binutils"
 BINUTILS_VER="2.47"
 DIALOG_SRC="https://invisible-mirror.net/archives/dialog"
 DIALOG_VER="1.3-20260107"
+DOSFSTOOLS_SRC="https://github.com/dosfstools/dosfstools.git"
+DOSFSTOOLS_VER="4.2"
 DROPBEAR_SRC="https://github.com/mkj/dropbear.git"
 DROPBEAR_VER="2026.92"
 E2FSPROGS_SRC="https://mirrors.edge.kernel.org/pub/linux/kernel/people/tytso/e2fsprogs"
@@ -285,6 +287,7 @@ INCLUDE_CSCOPE=false
 INCLUDE_CTAGS=false
 INCLUDE_CURL=false
 INCLUDE_DIALOG=true
+INCLUDE_DOSFSTOOLS=true
 INCLUDE_DROPBEAR=true
 INCLUDE_E2FSPROGS=true
 INCLUDE_EMACS=false
@@ -2400,8 +2403,14 @@ get_busybox()
         yes | make oldconfig
     fi
 
+    if $INCLUDE_DOSFSTOOLS; then
+        echo -e "${GREEN}Disabling BusyBox's mkdosfs/mkfs.vfat implementation in favour of dosfstools'...${RESET}"
+        disable_bb_feat "CONFIG_MKDOSFS"
+        disable_bb_feat "CONFIG_MKFS_VFAT"
+    fi
+
     if $INCLUDE_E2FSPROGS; then
-        echo -e "${GREEN}Disabling BusyBox's blkid and mke2fs/mkfs.ext2 implementations in favour of e2fsprogs'...${RESET}"
+        echo -e "${GREEN}Disabling BusyBox's blkid, mke2fs/mkfs.ext2 and uuidgen implementations in favour of e2fsprogs'...${RESET}"
         disable_bb_feat "CONFIG_BLKID"
         disable_bb_feat "CONFIG_FEATURE_BLKID_TYPE"
         disable_bb_feat "CONFIG_MKE2FS"
@@ -4905,73 +4914,6 @@ get_dropbear()
     sudo mv "$DESTDIR/usr/bin/dbclient" "$DESTDIR/usr/bin/ssh"
 }
 
-# Download and compile e2fsprogs
-get_e2fsprogs()
-{
-    cd "$CURR_DIR/build"
-
-    # Skip if already compiled
-    if [ -f "$DESTDIR/usr/bin/chattr" ] && \
-       [ -f "$DESTDIR/usr/bin/lsattr" ] && \
-       [ -f "$DESTDIR/usr/bin/uuidgen" ] && \
-       [ -f "$DESTDIR/usr/sbin/badblocks" ] && \
-       [ -f "$DESTDIR/usr/sbin/blkid" ] && \
-       [ -f "$DESTDIR/usr/sbin/debugfs" ] && \
-       [ -f "$DESTDIR/usr/sbin/dumpe2fs" ] && \
-       [ -f "$DESTDIR/usr/sbin/e2freefrag" ] && \
-       [ -f "$DESTDIR/usr/sbin/e2fsck" ] && \
-       [ -f "$DESTDIR/usr/sbin/e2image" ] && \
-       [ -f "$DESTDIR/usr/sbin/e2label" ] && \
-       [ -f "$DESTDIR/usr/sbin/e2mmpstatus" ] && \
-       [ -f "$DESTDIR/usr/sbin/e2scrub" ] && \
-       [ -f "$DESTDIR/usr/sbin/e2undo" ] && \
-       [ -f "$DESTDIR/usr/sbin/e4crypt" ] && \
-       [ -f "$DESTDIR/usr/sbin/e4defrag" ] && \
-       [ -f "$DESTDIR/usr/sbin/filefrag" ] && \
-       [ -f "$DESTDIR/usr/sbin/findfs" ] && \
-       [ -f "$DESTDIR/usr/sbin/fsck" ] && \
-       [ -f "$DESTDIR/usr/sbin/logsave" ] && \
-       [ -f "$DESTDIR/usr/sbin/mke2fs" ] && \
-       [ -f "$DESTDIR/usr/sbin/mklost+found" ] && \
-       [ -f "$DESTDIR/usr/sbin/resize2fs" ] && \
-       [ -f "$DESTDIR/usr/sbin/tune2fs" ] && \
-       [ -f "$DESTDIR/usr/libexec/e2fsprogs/e2scrub_all_cron" ]; then
-        echo -e "${LIGHT_RED}e2fsprogs already compiled, skipping...${RESET}"
-        return
-    fi
-
-    echo -e "${GREEN}Downloading e2fsprogs...${RESET}"
-    DIR="e2fsprogs-${E2FSPROGS_VER}"
-    ARC="${DIR}.tar.xz"
-    URI="${E2FSPROGS_SRC}/v${E2FSPROGS_VER}/${ARC}"
-
-    # Download source
-    [ -f $ARC ] || wget $URI
-
-    # Extract source
-    if [ -d $DIR ]; then
-        echo -e "${YELLOW}e2fsprogs' source archive is already present, re-extracting before proceeding...${RESET}"
-        rm -rf $DIR
-    fi
-    tar xf $ARC
-    cd $DIR
-
-    # Compile and install
-    echo -e "${GREEN}Compiling e2fsprogs...${RESET}"
-    ./configure \
-        --host=${HOST} \
-        --prefix=/usr \
-        CC="${CC_STATIC}" \
-        AR="${AR}" \
-        RANLIB="${RANLIB}" \
-        STRIP="${STRIP}" \
-        CFLAGS="-Os -march=${ARCH} -mno-fancy-math-387 -ffunction-sections -fdata-sections" \
-        CPPFLAGS="-I${SYSROOT}/include -I${PREFIX}/include" \
-        LDFLAGS="-static -Wl,--gc-sections -s -L${PREFIX}/lib"
-    make -j$(nproc)
-    sudo make DESTDIR=$DESTDIR install
-}
-
 # Download and compile file
 get_file()
 {
@@ -6216,11 +6158,15 @@ trim_fat()
 {
     echo -e "${GREEN}Trimming any possible fat...${RESET}"
 
-    sudo rm -rf "$DESTDIR/usr/lib/pkgconfig" "$DESTDIR/usr/man" "$DESTDIR/usr/share/bash-completion" "$DESTDIR/usr/share/doc" "$DESTDIR/usr/share/info" "$DESTDIR/usr/share/man"
+    sudo rm -rf "$DESTDIR/usr/lib/pkgconfig" "$DESTDIR/usr/man" "$DESTDIR/usr/local/share/man" "$DESTDIR/usr/share/bash-completion" "$DESTDIR/usr/share/doc" "$DESTDIR/usr/share/info" "$DESTDIR/usr/share/man"
 
     if $INCLUDE_DIALOG; then
         # TODO: consider skipping if GCC is included
         sudo rm -rf "$DESTDIR/usr/lib/libdialog.a"
+    fi
+
+    if $INCLUDE_DOSFSTOOLS; then
+        sudo rm -rf "$DESTDIR/usr/local/share/doc/dosfstools"
     fi
 
     if $INCLUDE_E2FSPROGS; then
@@ -6424,6 +6370,12 @@ copy_licences()
        [ -f "$CURR_DIR/build/dialog-${DIALOG_VER}/COPYING" ]; then
         cp "$CURR_DIR/build/dialog-${DIALOG_VER}/COPYING" "$DESTDIR/LICENCES/dialog.txt" || true
         CSV+="\ndialog,GNU LGPLv2.1,dialog.txt"
+    fi
+
+    if $INCLUDE_DOSFSTOOLS && 
+       [ -f "$CURR_DIR/build/dosfstools/COPYING" ]; then
+        cp "$CURR_DIR/build/dosfstools/COPYING" "$DESTDIR/LICENCES/dosfstools.txt" || true
+        CSV+="\ndosfstools,GNU GPLv3,dosfstools.txt"
     fi
 
     if $INCLUDE_DROPBEAR && 
@@ -7815,7 +7767,7 @@ get_included_busybox_commands()
 # Checks what kernel-level support, programs and features are enabled and
 # puts them in either an EXCLUDED or INCLUDED list for the after-build report
 # to display
-get_installed_programs_features()
+get_installed_progs_feats()
 {
     # Kernel features
     if [ "$ID" == "shork-486" ]; then
@@ -8380,6 +8332,156 @@ get_installed_programs_features()
         else
             EXCLUDED_FEATURES+="\n * xxd (Vim)"
         fi
+
+        if [ -f "$DESTDIR/sbin/fatlabel" ]; then
+            INCLUDED_FEATURES+="\n * fatlabel (dosfstools, $DOSFSTOOLS_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * fatlabel (dosfstools)"
+        fi
+
+        if [ -f "$DESTDIR/sbin/fsck.fat" ]; then
+            INCLUDED_FEATURES+="\n * fsck.fat (dosfstools, $DOSFSTOOLS_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * fsck.fat (dosfstools)"
+        fi
+
+        if [ -f "$DESTDIR/sbin/mkfs.fat" ]; then
+            INCLUDED_FEATURES+="\n * mkfs.fat (dosfstools, $DOSFSTOOLS_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * mkfs.fat (dosfstools)"
+        fi
+
+        if [ -f "$DESTDIR/usr/bin/chattr" ]; then
+            INCLUDED_FEATURES+="\n * chattr (e2fsprogs, $E2FSPROGS_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * chattr (e2fsprogs)"
+        fi
+
+        if [ -f "$DESTDIR/usr/bin/lsattr" ]; then
+            INCLUDED_FEATURES+="\n * lsattr (e2fsprogs, $E2FSPROGS_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * lsattr (e2fsprogs)"
+        fi
+
+        if [ -f "$DESTDIR/usr/bin/uuidgen" ]; then
+            INCLUDED_FEATURES+="\n * uuidgen (e2fsprogs, $E2FSPROGS_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * uuidgen (e2fsprogs)"
+        fi
+
+        if [ -f "$DESTDIR/usr/sbin/badblocks" ]; then
+            INCLUDED_FEATURES+="\n * badblocks (e2fsprogs, $E2FSPROGS_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * badblocks (e2fsprogs)"
+        fi
+
+        if [ -f "$DESTDIR/usr/sbin/blkid" ]; then
+            INCLUDED_FEATURES+="\n * blkid (e2fsprogs, $E2FSPROGS_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * blkid (e2fsprogs)"
+        fi
+
+        if [ -f "$DESTDIR/usr/sbin/debugfs" ]; then
+            INCLUDED_FEATURES+="\n * debugfs (e2fsprogs, $E2FSPROGS_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * debugfs (e2fsprogs)"
+        fi
+
+        if [ -f "$DESTDIR/usr/sbin/dumpe2fs" ]; then
+            INCLUDED_FEATURES+="\n * dumpe2fs (e2fsprogs, $E2FSPROGS_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * dumpe2fs (e2fsprogs)"
+        fi
+
+        if [ -f "$DESTDIR/usr/sbin/e2freefrag" ]; then
+            INCLUDED_FEATURES+="\n * e2freefrag (e2fsprogs, $E2FSPROGS_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * e2freefrag (e2fsprogs)"
+        fi
+
+        if [ -f "$DESTDIR/usr/sbin/e2fsck" ]; then
+            INCLUDED_FEATURES+="\n * e2fsck (e2fsprogs, $E2FSPROGS_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * e2fsck (e2fsprogs)"
+        fi
+
+        if [ -f "$DESTDIR/usr/sbin/e2image" ]; then
+            INCLUDED_FEATURES+="\n * e2image (e2fsprogs, $E2FSPROGS_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * e2image (e2fsprogs)"
+        fi
+
+        if [ -f "$DESTDIR/usr/sbin/e2label" ]; then
+            INCLUDED_FEATURES+="\n * e2label (e2fsprogs, $E2FSPROGS_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * e2label (e2fsprogs)"
+        fi
+
+        if [ -f "$DESTDIR/usr/sbin/e2scrub" ]; then
+            INCLUDED_FEATURES+="\n * e2scrub (e2fsprogs, $E2FSPROGS_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * e2scrub (e2fsprogs)"
+        fi
+
+        if [ -f "$DESTDIR/usr/sbin/e2scrub_all" ]; then
+            INCLUDED_FEATURES+="\n * e2scrub_all (e2fsprogs, $E2FSPROGS_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * e2scrub_all (e2fsprogs)"
+        fi
+
+        if [ -f "$DESTDIR/usr/sbin/e2undo" ]; then
+            INCLUDED_FEATURES+="\n * e2undo (e2fsprogs, $E2FSPROGS_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * e2undo (e2fsprogs)"
+        fi
+
+        if [ -f "$DESTDIR/usr/sbin/e4crypt" ]; then
+            INCLUDED_FEATURES+="\n * e4crypt (e2fsprogs, $E2FSPROGS_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * e4crypt (e2fsprogs)"
+        fi
+
+        if [ -f "$DESTDIR/usr/sbin/e4defrag" ]; then
+            INCLUDED_FEATURES+="\n * e4defrag (e2fsprogs, $E2FSPROGS_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * e4defrag (e2fsprogs)"
+        fi
+
+        if [ -f "$DESTDIR/usr/sbin/filefrag" ]; then
+            INCLUDED_FEATURES+="\n * filefrag (e2fsprogs, $E2FSPROGS_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * filefrag (e2fsprogs)"
+        fi
+
+        if [ -f "$DESTDIR/usr/sbin/fsck" ]; then
+            INCLUDED_FEATURES+="\n * fsck (e2fsprogs, $E2FSPROGS_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * fsck (e2fsprogs)"
+        fi
+
+        if [ -f "$DESTDIR/usr/sbin/logsave" ]; then
+            INCLUDED_FEATURES+="\n * logsave (e2fsprogs, $E2FSPROGS_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * logsave (e2fsprogs)"
+        fi
+
+        if [ -f "$DESTDIR/usr/sbin/mke2fs" ]; then
+            INCLUDED_FEATURES+="\n * mke2fs (e2fsprogs, $E2FSPROGS_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * mke2fs (e2fsprogs)"
+        fi
+
+        if [ -f "$DESTDIR/usr/sbin/mklost+found" ]; then
+            INCLUDED_FEATURES+="\n * mklost+found (e2fsprogs, $E2FSPROGS_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * mklost+found (e2fsprogs)"
+        fi
+
+        if [ -f "$DESTDIR/usr/sbin/resize2fs" ]; then
+            INCLUDED_FEATURES+="\n * resize2fs (e2fsprogs, $E2FSPROGS_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * resize2fs (e2fsprogs)"
+        fi
     fi
 }
 
@@ -8752,11 +8854,36 @@ if $INCLUDE_DIALOG; then
         "/usr" \
         ""
 fi
+if $INCLUDE_DOSFSTOOLS; then
+    get_prog_git \
+        "sbin" \
+        "fatlabel" \
+        "dosfstools" \
+        "dosfstools" \
+        "$DOSFSTOOLS_SRC" \
+        "v$DOSFSTOOLS_VER" \
+        "" \
+        true \
+        false \
+        "" \
+        "--enable-compat-symlinks --sbindir=/sbin"
+fi
 if $INCLUDE_DROPBEAR; then
     get_dropbear
 fi
 if $INCLUDE_E2FSPROGS; then
-    get_e2fsprogs
+    get_prog_tar \
+        "usr/sbin" \
+        "e2image" \
+        "e2fsprogs" \
+        "e2fsprogs-${E2FSPROGS_VER}" \
+        "tar.xz" \
+        "${E2FSPROGS_SRC}/v${E2FSPROGS_VER}" \
+        "xf" \
+        false \
+        false \
+        "/usr" \
+        ""
 fi
 if $INCLUDE_EMACS; then
     get_prog_tar \
@@ -8970,7 +9097,7 @@ elif [ "$ID" == "shork-diskette" ]; then
 fi
 
 get_included_busybox_commands
-get_installed_programs_features
+get_installed_progs_feats
 generate_report
 if [ "$ID" == "shork-486" ]; then
     copy_report
