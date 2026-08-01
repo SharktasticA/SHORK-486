@@ -61,6 +61,7 @@ INCLUDE_CSCOPE=false
 INCLUDE_CTAGS=false
 INCLUDE_CURL=false
 INCLUDE_DIALOG=false
+INCLUDE_DOSFSTOOLS=false
 INCLUDE_DROPBEAR=false
 INCLUDE_E2FSPROGS=false
 INCLUDE_FILE=false
@@ -175,6 +176,7 @@ save_env()
         echo "INCLUDE_CTAGS=$INCLUDE_CTAGS"
         echo "INCLUDE_CURL=$INCLUDE_CURL"
         echo "INCLUDE_DIALOG=$INCLUDE_DIALOG"
+        echo "INCLUDE_DOSFSTOOLS=$INCLUDE_DOSFSTOOLS"
         echo "INCLUDE_DROPBEAR=$INCLUDE_DROPBEAR"
         echo "INCLUDE_E2FSPROGS=$INCLUDE_E2FSPROGS"
         echo "INCLUDE_FILE=$INCLUDE_FILE"
@@ -258,6 +260,7 @@ set_mini_vars()
     INCLUDE_CTAGS=false
     INCLUDE_CURL=false
     INCLUDE_DIALOG=false
+    INCLUDE_DOSFSTOOLS=false
     INCLUDE_DROPBEAR=false
     INCLUDE_E2FSPROGS=false
     INCLUDE_FILE=false
@@ -312,6 +315,7 @@ set_default_vars()
     set_mini_vars true true
     ENABLE_NET_ETH=true
     INCLUDE_DIALOG=true
+    INCLUDE_DOSFSTOOLS=true
     INCLUDE_DROPBEAR=true
     INCLUDE_E2FSPROGS=true
     INCLUDE_FILE=true
@@ -1052,8 +1056,9 @@ if [ "$ENABLE_NET_ETH" == true ]; then
         "ctags"             "Source code object indexing (+1.5MiB)"                 "$(val "$INCLUDE_CTAGS")"
         "curl"              "HTTP client & transfer utility (+8MiB)"                "$(val "$INCLUDE_CURL")"
         "dialog"            "*Shell script TUI widgets (+0.5MiB)"                   "$(val "$INCLUDE_DIALOG")"
+        "dosfstools"        "*FAT12/16/32 filesystem utilities (+0.8MiB)"           "$(val "$INCLUDE_DOSFSTOOLS")"
         "dropbear"          "*SCP & SSH client (+0.4MiB)"                           "$(val "$INCLUDE_DROPBEAR")"
-        "e2fsprogs"         "*ext2/3/4 file system utilities (+4MiB)"               "$(val "$INCLUDE_E2FSPROGS")"
+        "e2fsprogs"         "*ext2/3/4 filesystem utilities (+4MiB)"                "$(val "$INCLUDE_E2FSPROGS")"
         "file"              "*†File type identification (+10MiB)"                   "$(val "$INCLUDE_FILE")"
         "gcc"               "†GCC + binutils + musl (+215MiB)"                      "$(val "$INCLUDE_GCC")"
         "git"               "*Source control client (+19MiB)"                       "$(val "$INCLUDE_GIT")"
@@ -1086,6 +1091,7 @@ else
         "cscope"            "C/C++ code browser (+1MiB)"                            "$(val "$INCLUDE_CSCOPE")"
         "ctags"             "Source code object indexing (+1.5MiB)"                 "$(val "$INCLUDE_CTAGS")"
         "dialog"            "*Shell script TUI widgets (+0.5MiB)"                   "$(val "$INCLUDE_DIALOG")"
+        "dosfstools"        "*FAT12/16/32 filesystem utilities (+0.8MiB)"           "$(val "$INCLUDE_DOSFSTOOLS")"
         "e2fsprogs"         "*ext2/3/4 file system utilities (+4MiB)"               "$(val "$INCLUDE_E2FSPROGS")"
         "file"              "*†File type identification (+10MiB)"                   "$(val "$INCLUDE_FILE")"
         "gcc"               "†GCC + binutils + musl (+215MiB)"                      "$(val "$INCLUDE_GCC")"
@@ -1131,6 +1137,7 @@ else
     if [[ $BUNDLED =~ "ctags" ]];           then INCLUDE_CTAGS=true;            else INCLUDE_CTAGS=false;           fi
     if [[ $BUNDLED =~ "curl" ]];            then INCLUDE_CURL=true;             else INCLUDE_CURL=false;            fi
     if [[ $BUNDLED =~ "dialog" ]];          then INCLUDE_DIALOG=true;           else INCLUDE_DIALOG=false;          fi
+    if [[ $BUNDLED =~ "dosfstools" ]]       then INCLUDE_DOSFSTOOLS=true;       else INCLUDE_DOSFSTOOLS=false       fi
     if [[ $BUNDLED =~ "dropbear" ]];        then INCLUDE_DROPBEAR=true;         else INCLUDE_DROPBEAR=false;        fi
     if [[ $BUNDLED =~ "e2fsprogs" ]];       then INCLUDE_E2FSPROGS=true;        else INCLUDE_E2FSPROGS=false;       fi
     if [[ $BUNDLED =~ "file" ]];            then INCLUDE_FILE=true;             else INCLUDE_FILE=false;            fi
