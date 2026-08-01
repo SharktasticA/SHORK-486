@@ -1137,7 +1137,7 @@ else
     if [[ $BUNDLED =~ "ctags" ]];           then INCLUDE_CTAGS=true;            else INCLUDE_CTAGS=false;           fi
     if [[ $BUNDLED =~ "curl" ]];            then INCLUDE_CURL=true;             else INCLUDE_CURL=false;            fi
     if [[ $BUNDLED =~ "dialog" ]];          then INCLUDE_DIALOG=true;           else INCLUDE_DIALOG=false;          fi
-    if [[ $BUNDLED =~ "dosfstools" ]]       then INCLUDE_DOSFSTOOLS=true;       else INCLUDE_DOSFSTOOLS=false       fi
+    if [[ $BUNDLED =~ "dosfstools" ]]       then INCLUDE_DOSFSTOOLS=true;       else INCLUDE_DOSFSTOOLS=false;      fi
     if [[ $BUNDLED =~ "dropbear" ]];        then INCLUDE_DROPBEAR=true;         else INCLUDE_DROPBEAR=false;        fi
     if [[ $BUNDLED =~ "e2fsprogs" ]];       then INCLUDE_E2FSPROGS=true;        else INCLUDE_E2FSPROGS=false;       fi
     if [[ $BUNDLED =~ "file" ]];            then INCLUDE_FILE=true;             else INCLUDE_FILE=false;            fi
