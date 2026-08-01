@@ -26,14 +26,14 @@ CUSTOM_DEF_SWAP=0
 CUSTOM_MIN_DISK=8
 DEFAULT_DEF_SWAP=8
 DEFAULT_MIN_DISK=100
-MAXIMAL_DEF_SWAP=16
-MAXIMAL_MIN_DISK=500
-MINIMAL_DEF_SWAP=0
-MINIMAL_MIN_DISK=8
+MAX_DEF_SWAP=16
+MAX_MIN_DISK=540
+MINI_DEF_SWAP=0
+MINI_MIN_DISK=8
 OFFLINE_DEF_SWAP=8
 OFFLINE_MIN_DISK=60
 PLUS_DEF_SWAP=16
-PLUS_MIN_DISK=480
+PLUS_MIN_DISK=500
 WRITER_DEF_SWAP=16
 WRITER_MIN_DISK=100
 
@@ -62,6 +62,7 @@ INCLUDE_CTAGS=false
 INCLUDE_CURL=false
 INCLUDE_DIALOG=false
 INCLUDE_DROPBEAR=false
+INCLUDE_E2FSPROGS=false
 INCLUDE_FILE=false
 INCLUDE_GCC=false
 INCLUDE_GIT=false
@@ -175,6 +176,7 @@ save_env()
         echo "INCLUDE_CURL=$INCLUDE_CURL"
         echo "INCLUDE_DIALOG=$INCLUDE_DIALOG"
         echo "INCLUDE_DROPBEAR=$INCLUDE_DROPBEAR"
+        echo "INCLUDE_E2FSPROGS=$INCLUDE_E2FSPROGS"
         echo "INCLUDE_FILE=$INCLUDE_FILE"
         echo "INCLUDE_GCC=$INCLUDE_GCC"
         echo "INCLUDE_GIT=$INCLUDE_GIT"
@@ -240,7 +242,7 @@ val_str()
     [[ "$1" == "$2" ]] && echo on || echo off
 }
 
-set_minimal_vars()
+set_mini_vars()
 {
     local SKIP_KEYMAP_RESET="$1"
     if [ "$SKIP_KEYMAP_RESET" = false ]; then
@@ -254,6 +256,7 @@ set_minimal_vars()
     INCLUDE_CURL=false
     INCLUDE_DIALOG=false
     INCLUDE_DROPBEAR=false
+    INCLUDE_E2FSPROGS=false
     INCLUDE_FILE=false
     INCLUDE_GCC=false
     INCLUDE_GIT=false
@@ -303,10 +306,11 @@ set_minimal_vars()
 
 set_default_vars()
 {
-    set_minimal_vars true
+    set_mini_vars true
     ENABLE_NET_ETH=true
     INCLUDE_DIALOG=true
     INCLUDE_DROPBEAR=true
+    INCLUDE_E2FSPROGS=true
     INCLUDE_FILE=true
     INCLUDE_GIT=true
     INCLUDE_HTOP=true
@@ -340,7 +344,7 @@ set_default_vars()
 
 set_offline_vars()
 {
-    set_minimal_vars true
+    set_default_vars
     ENABLE_NET_ETH=false
     INCLUDE_DROPBEAR=false
     INCLUDE_GIT=false
@@ -351,7 +355,7 @@ set_offline_vars()
 
 set_writer_vars()
 {
-    set_minimal_vars
+    set_mini_vars
     INCLUDE_HTOP=true
     INCLUDE_JOE=true
     INCLUDE_MG=true
@@ -390,7 +394,7 @@ set_plus_vars()
     ENABLE_SOUND=true
 }
 
-set_maximal_vars()
+set_max_vars()
 {
     set_plus_vars
     INCLUDE_GUI=true
@@ -407,7 +411,7 @@ set_custom_vars()
 
 set_disc_vars()
 {
-    set_minimal_vars
+    set_mini_vars
     ENABLE_CDROM=true
     INCLUDE_FILE=true
     INCLUDE_SHORKTAINMENT=true
@@ -418,7 +422,7 @@ set_disc_vars()
 
 set_diskette_vars()
 {
-    set_minimal_vars
+    set_mini_vars
 }
 
 
@@ -494,7 +498,7 @@ else
         if [ "$CHOICE" != "$ID" ]; then
             HOSTNAME="$CHOICE"
             set_disc_vars
-            BUILD_TYPE="minimal"
+            BUILD_TYPE="mini"
             TARGET_DISK=0
             TARGET_SWAP=0
         fi
@@ -503,7 +507,7 @@ else
         if [ "$CHOICE" != "$ID" ]; then
             HOSTNAME="$CHOICE"
             set_diskette_vars
-            BUILD_TYPE="minimal"
+            BUILD_TYPE="mini"
             TARGET_DISK=1
             TARGET_SWAP=0
         fi
@@ -540,29 +544,34 @@ if [ "$ID" == "shork-486" ]; then
         --cancel-label "Quit" \
         --default-item "$BUILD_TYPE" \
         --menu "Select the build type, presets for SHORK 486 feature levels. The minimum requirements for each are enclosed in brackets. The \"custom\" option will enable further prompts for software and feature selection." 16 $WIDTH 7 \
-        "default" "Typical experience (16MiB RAM, 8MiB swap, 100MiB disk)" \
-        "maximal" "Largest configuration (24MiB RAM, 16MiB swap, 500MiB disk)" \
-        "plus"    "Default w/ optional software (16MiB RAM, 16MiB swap, 480MiB disk)" \
-        "writer"  "Writing focused (16MiB RAM, 16MiB swap, 100MiB disk)" \
-        "offline" "Default w/o networking (12MiB RAM, 8MiB swap, 60MiB disk)" \
-        "minimal" "Smallest configuration (8MiB RAM, 8MiB disk)" \
-        "custom"  "Requirements depend on subsequent choices" \
+        "default"   "Typical experience (16MiB RAM, 8MiB swap, 100MiB disk)" \
+        "max"       "Largest configuration (24MiB RAM, 16MiB swap, 540MiB disk)" \
+        "plus"      "Default w/ optional software (16MiB RAM, 16MiB swap, 500MiB disk)" \
+        "writer"    "Writing focused (16MiB RAM, 16MiB swap, 100MiB disk)" \
+        "offline"   "Default w/o networking (12MiB RAM, 8MiB swap, 60MiB disk)" \
+        "mini"      "Smallest configuration (8MiB RAM, 8MiB disk)" \
+        "custom"    "Requirements depend on subsequent choices" \
         3>&1 1>&2 2>&3)
 
     if [[ ! -n "$BUILD_TYPE" ]]; then
         exit 0
     elif [ "$BUILD_TYPE" == "default" ]; then
         set_default_vars
-    elif [ "$BUILD_TYPE" == "maximal" ]; then
-        set_maximal_vars
+    elif [ "$BUILD_TYPE" == "max" ]; then
+        set_max_vars
+        DIST="$DIST Max"
     elif [ "$BUILD_TYPE" == "plus" ]; then
         set_plus_vars
+        DIST="$DIST Plus"
     elif [ "$BUILD_TYPE" == "writer" ]; then
         set_writer_vars
+        DIST="$DIST Writer"
     elif [ "$BUILD_TYPE" == "offline" ]; then
         set_offline_vars
-    elif [ "$BUILD_TYPE" == "minimal" ]; then
-        set_minimal_vars
+        DIST="$DIST Offline"
+    elif [ "$BUILD_TYPE" == "mini" ]; then
+        set_mini_vars
+        DIST="$DIST Mini"
     elif [ "$BUILD_TYPE" == "custom" ]; then
         set_custom_vars
     fi
@@ -577,11 +586,11 @@ if [ "$ID" == "shork-486" ]; then
             TARGET_DISK=$DEFAULT_MIN_DISK
             TARGET_SWAP=$DEFAULT_DEF_SWAP
         fi
-    elif [ "$BUILD_TYPE" == "maximal" ]; then
-        CURR_MIN_DISK=$MAXIMAL_MIN_DISK
+    elif [ "$BUILD_TYPE" == "max" ]; then
+        CURR_MIN_DISK=$MAX_MIN_DISK
         if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
-            TARGET_DISK=$MAXIMAL_MIN_DISK
-            TARGET_SWAP=$MAXIMAL_DEF_SWAP
+            TARGET_DISK=$MAX_MIN_DISK
+            TARGET_SWAP=$MAX_DEF_SWAP
         fi
     elif [ "$BUILD_TYPE" == "plus" ]; then
         CURR_MIN_DISK=$PLUS_MIN_DISK
@@ -601,11 +610,11 @@ if [ "$ID" == "shork-486" ]; then
             TARGET_DISK=$OFFLINE_MIN_DISK
             TARGET_SWAP=$OFFLINE_DEF_SWAP
         fi
-    elif [ "$BUILD_TYPE" == "minimal" ]; then
-        CURR_MIN_DISK=$MINIMAL_MIN_DISK
+    elif [ "$BUILD_TYPE" == "mini" ]; then
+        CURR_MIN_DISK=$MINI_MIN_DISK
         if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
-            TARGET_DISK=$MINIMAL_MIN_DISK
-            TARGET_SWAP=$MINIMAL_DEF_SWAP
+            TARGET_DISK=$MINI_MIN_DISK
+            TARGET_SWAP=$MINI_DEF_SWAP
         fi
     elif [ "$BUILD_TYPE" == "custom" ]; then
         CURR_MIN_DISK=$CUSTOM_MIN_DISK
@@ -743,7 +752,7 @@ esac
 
 
 # Get desired keymap (486)
-if [ "$BUILD_TYPE" != "minimal" ] && [ "$ID" == "shork-486" ]; then
+if [ "$BUILD_TYPE" != "mini" ] && [ "$ID" == "shork-486" ]; then
     KEYMAP_ITEMS=()
     for f in "$CURR_DIR/sysfiles/keymaps/"*.kmap.bin; do
         name=$(basename "$f" .kmap.bin)
@@ -799,7 +808,7 @@ HOSTNAME=$(dialog --clear \
 
 
 # Get multi-user support choice (486)
-if [ "$BUILD_TYPE" != "minimal" ] && [ "$ID" == "shork-486" ]; then
+if [ "$BUILD_TYPE" != "mini" ] && [ "$ID" == "shork-486" ]; then
     DEFAULT_FLAG="--defaultno"
     if $ENABLE_MULTIUSER_REAL; then
         DEFAULT_FLAG=""
@@ -1041,6 +1050,7 @@ if [ "$ENABLE_NET_ETH" == true ]; then
         "curl"              "HTTP client & transfer utility (+8MiB)"                "$(val "$INCLUDE_CURL")"
         "dialog"            "*Shell script TUI widgets (+0.5MiB)"                   "$(val "$INCLUDE_DIALOG")"
         "dropbear"          "*SCP & SSH client (+0.4MiB)"                           "$(val "$INCLUDE_DROPBEAR")"
+        "e2fsprogs"         "*ext2/3/4 file system utilities (+4MiB)"               "$(val "$INCLUDE_E2FSPROGS")"
         "file"              "*†File type identification (+10MiB)"                   "$(val "$INCLUDE_FILE")"
         "gcc"               "†GCC + binutils + musl (+215MiB)"                      "$(val "$INCLUDE_GCC")"
         "git"               "*Source control client (+19MiB)"                       "$(val "$INCLUDE_GIT")"
@@ -1073,6 +1083,7 @@ else
         "cscope"            "C/C++ code browser (+1MiB)"                            "$(val "$INCLUDE_CSCOPE")"
         "ctags"             "Source code object indexing (+1.5MiB)"                 "$(val "$INCLUDE_CTAGS")"
         "dialog"            "*Shell script TUI widgets (+0.5MiB)"                   "$(val "$INCLUDE_DIALOG")"
+        "e2fsprogs"         "*ext2/3/4 file system utilities (+4MiB)"               "$(val "$INCLUDE_E2FSPROGS")"
         "file"              "*†File type identification (+10MiB)"                   "$(val "$INCLUDE_FILE")"
         "gcc"               "†GCC + binutils + musl (+215MiB)"                      "$(val "$INCLUDE_GCC")"
         "htop"              "*Interactive process viewer (+0.6MiB)"                 "$(val "$INCLUDE_HTOP")"
@@ -1118,6 +1129,7 @@ else
     if [[ $BUNDLED =~ "curl" ]];            then INCLUDE_CURL=true;             else INCLUDE_CURL=false;            fi
     if [[ $BUNDLED =~ "dialog" ]];          then INCLUDE_DIALOG=true;           else INCLUDE_DIALOG=false;          fi
     if [[ $BUNDLED =~ "dropbear" ]];        then INCLUDE_DROPBEAR=true;         else INCLUDE_DROPBEAR=false;        fi
+    if [[ $BUNDLED =~ "e2fsprogs" ]];       then INCLUDE_E2FSPROGS=true;        else INCLUDE_E2FSPROGS=false;       fi
     if [[ $BUNDLED =~ "file" ]];            then INCLUDE_FILE=true;             else INCLUDE_FILE=false;            fi
     if [[ $BUNDLED =~ "gcc" ]];             then INCLUDE_GCC=true;              else INCLUDE_GCC=false;             fi
     if [[ $BUNDLED =~ "git" ]];             then INCLUDE_GIT=true;              else INCLUDE_GIT=false;             fi

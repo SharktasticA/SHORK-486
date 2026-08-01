@@ -71,7 +71,7 @@ EXCLUDED_BB_CMDS=()
 EXCLUDED_FEATURES=""
 INCLUDED_BB_CMDS=()
 INCLUDED_FEATURES=""
-MINIMAL_TARGET_DISK=8
+MINI_TARGET_DISK=8
 ROOT_PART_SIZE=0
 TOTAL_DISK_SIZE=0
 USED_PARAMS=""
@@ -130,6 +130,8 @@ DIALOG_SRC="https://invisible-mirror.net/archives/dialog"
 DIALOG_VER="1.3-20260107"
 DROPBEAR_SRC="https://github.com/mkj/dropbear.git"
 DROPBEAR_VER="2026.92"
+E2FSPROGS_SRC="https://mirrors.edge.kernel.org/pub/linux/kernel/people/tytso/e2fsprogs"
+E2FSPROGS_VER="1.47.4"
 EMACS_SRC="https://ftp.gnu.org/gnu/emacs"
 EMACS_VER="30.2"
 FILE_SRC="https://github.com/file/file.git"
@@ -284,6 +286,7 @@ INCLUDE_CTAGS=false
 INCLUDE_CURL=false
 INCLUDE_DIALOG=true
 INCLUDE_DROPBEAR=true
+INCLUDE_E2FSPROGS=true
 INCLUDE_EMACS=false
 INCLUDE_FILE=true
 INCLUDE_GCC=false
@@ -394,27 +397,27 @@ if [ "$ID" == "shork-486" ]; then
         else
             EST_MIN_RAM="12MiB"
         fi
-    elif [ "$BUILD_TYPE" = "maximal" ]; then
-        echo -e "${GREEN}Noting minimum memory requirements for a SHORK 486 maximal build...${RESET}"
+    elif [ "$BUILD_TYPE" = "max" ]; then
+        echo -e "${GREEN}Noting minimum memory requirements for SHORK 486 Max...${RESET}"
         EST_MIN_RAM="32MiB/24MiB + 8MiB swap"
     elif [ "$BUILD_TYPE" = "plus" ]; then
-        echo -e "${GREEN}Noting minimum memory requirements for a SHORK 486 plus build...${RESET}"
+        echo -e "${GREEN}Noting minimum memory requirements for SHORK 486 Plus...${RESET}"
         EST_MIN_RAM="24MiB + 8MiB swap/16MiB + 16MiB swap"
     elif [ "$BUILD_TYPE" = "writer" ]; then
-        echo -e "${GREEN}Noting minimum memory requirements for a SHORK 486 writer build...${RESET}"
+        echo -e "${GREEN}Noting minimum memory requirements for SHORK 486 Writer...${RESET}"
         EST_MIN_RAM="24MiB + 8MiB swap/16MiB + 16MiB swap"
     elif [ "$BUILD_TYPE" = "offline" ]; then
-        echo -e "${GREEN}Noting minimum memory requirements for a SHORK 486 offline build...${RESET}"
+        echo -e "${GREEN}Noting minimum memory requirements for SHORK 486 Offline...${RESET}"
         EST_MIN_RAM="12MiB"
-    elif [ "$BUILD_TYPE" = "minimal" ]; then
-        echo -e "${GREEN}Noting minimum memory requirements for a SHORK 486 minimal build...${RESET}"
+    elif [ "$BUILD_TYPE" = "mini" ]; then
+        echo -e "${GREEN}Noting minimum memory requirements for SHORK 486 Mini...${RESET}"
         EST_MIN_RAM="8MiB"
     fi
 elif [ "$ID" == "shork-disc" ]; then
-    echo -e "${GREEN}Noting minimum memory requirements for a SHORK DISC build...${RESET}"
+    echo -e "${GREEN}Noting minimum memory requirements for SHORK DISC...${RESET}"
     EST_MIN_RAM="8MiB"
 elif [ "$ID" == "shork-diskette" ]; then
-    echo -e "${GREEN}Noting minimum memory requirements for a SHORK DISKETTE build...${RESET}"
+    echo -e "${GREEN}Noting minimum memory requirements for SHORK DISKETTE...${RESET}"
     EST_MIN_RAM="16MiB"
 fi
 
@@ -2280,8 +2283,20 @@ get_patched_xlinux()
 ## BusyBox & core utilities building                ##
 ######################################################
 
-# Used to merge a BusyBox config fragment into .config
-merge_busybox_frag()
+# Disables the given boolean BusyBox feature (from =y)
+disable_bb_feat()
+{
+    sed -i "s/^${1}=y\$/# ${1} is not set/" .config
+}
+
+# Enables the given boolean BusyBox feature (to =y)
+enable_bb_feat()
+{
+    sed -i "s/^# ${1} is not set\$/${1}=y/" .config
+}
+
+# Merges a BusyBox .config fragment into .config
+merge_bb_frag()
 {
     local FRAG="$1"
     while IFS= read -r line; do
@@ -2358,17 +2373,17 @@ get_busybox()
 
     if $ENABLE_HELP_VERBOSE; then
         echo -e "${GREEN}Enabling BusyBox's verbose --help...${RESET}"
-        merge_busybox_frag "$CONFIGS_DIR/busybox/busybox.config.help.frag"
+        merge_bb_frag "$CONFIGS_DIR/busybox/busybox.config.help.frag"
     fi
     
     if $ENABLE_LOOP; then
         echo -e "${GREEN}Enabling BusyBox's losetup utility...${RESET}"
-        merge_busybox_frag "$CONFIGS_DIR/busybox/busybox.config.loop.frag"
+        merge_bb_frag "$CONFIGS_DIR/busybox/busybox.config.loop.frag"
     fi
 
     if $ENABLE_MULTIUSER_REAL; then
         echo -e "${GREEN}Enabling BusyBox's multi-user utilities...${RESET}"
-        merge_busybox_frag "$CONFIGS_DIR/busybox/busybox.config.multiuser.frag"
+        merge_bb_frag "$CONFIGS_DIR/busybox/busybox.config.multiuser.frag"
         
         echo -e "${GREEN}Applying 1.37.0-1.38.0_musl_utmp patch...${RESET}"
         patch -p1 < "${PATCHES_DIR}/busybox/1.37.0-1.38.0_musl_utmp.patch"
@@ -2376,21 +2391,35 @@ get_busybox()
     
     if $ENABLE_NET_ETH; then
         echo -e "${GREEN}Enabling BusyBox's networking utilities...${RESET}"
-        merge_busybox_frag "$CONFIGS_DIR/busybox/busybox.config.net.frag"
+        merge_bb_frag "$CONFIGS_DIR/busybox/busybox.config.net.frag"
     fi
 
     if $ENABLE_USB; then
         echo -e "${GREEN}Enabling BusyBox's USB-related utilities...${RESET}"
-        merge_busybox_frag "$CONFIGS_DIR/busybox/busybox.config.usb.frag"
+        merge_bb_frag "$CONFIGS_DIR/busybox/busybox.config.usb.frag"
         yes | make oldconfig
+    fi
+
+    if $INCLUDE_E2FSPROGS; then
+        echo -e "${GREEN}Disabling BusyBox's blkid and mke2fs/mkfs.ext2 implementations in favour of e2fsprogs'...${RESET}"
+        disable_bb_feat "CONFIG_BLKID"
+        disable_bb_feat "CONFIG_FEATURE_BLKID_TYPE"
+        disable_bb_feat "CONFIG_MKE2FS"
+        disable_bb_feat "CONFIG_MKFS_EXT2"
+        disable_bb_feat "CONFIG_UUIDGEN"
     fi
 
     if $INCLUDE_GCC; then
         echo -e "${GREEN}Disabling BusyBox's ar and strings implementations in favour of GNU Bintuils'...${RESET}"
-        sed -i 's/^CONFIG_AR=y$/# CONFIG_AR is not set/' .config
-        sed -i 's/^CONFIG_FEATURE_AR_LONG_FILENAMES=y$/# CONFIG_FEATURE_AR_LONG_FILENAMES is not set/' .config
-        sed -i 's/^CONFIG_FEATURE_AR_CREATE=y$/# CONFIG_FEATURE_AR_CREATE is not set/' .config
-        sed -i 's/^CONFIG_STRINGS=y$/# CONFIG_STRINGS is not set/' .config
+        disable_bb_feat "CONFIG_AR"
+        disable_bb_feat "CONFIG_FEATURE_AR_LONG_FILENAMES"
+        disable_bb_feat "CONFIG_FEATURE_AR_CREATE"
+        disable_bb_feat "CONFIG_STRINGS"
+    fi
+
+    if $INCLUDE_VIM; then
+        echo -e "${GREEN}Disabling BusyBox's xxd implementation in favour of Vim's...${RESET}"
+        disable_bb_feat "CONFIG_XXD"
     fi
 
     # Compile and install
@@ -4876,6 +4905,73 @@ get_dropbear()
     sudo mv "$DESTDIR/usr/bin/dbclient" "$DESTDIR/usr/bin/ssh"
 }
 
+# Download and compile e2fsprogs
+get_e2fsprogs()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$DESTDIR/usr/bin/chattr" ] && \
+       [ -f "$DESTDIR/usr/bin/lsattr" ] && \
+       [ -f "$DESTDIR/usr/bin/uuidgen" ] && \
+       [ -f "$DESTDIR/usr/sbin/badblocks" ] && \
+       [ -f "$DESTDIR/usr/sbin/blkid" ] && \
+       [ -f "$DESTDIR/usr/sbin/debugfs" ] && \
+       [ -f "$DESTDIR/usr/sbin/dumpe2fs" ] && \
+       [ -f "$DESTDIR/usr/sbin/e2freefrag" ] && \
+       [ -f "$DESTDIR/usr/sbin/e2fsck" ] && \
+       [ -f "$DESTDIR/usr/sbin/e2image" ] && \
+       [ -f "$DESTDIR/usr/sbin/e2label" ] && \
+       [ -f "$DESTDIR/usr/sbin/e2mmpstatus" ] && \
+       [ -f "$DESTDIR/usr/sbin/e2scrub" ] && \
+       [ -f "$DESTDIR/usr/sbin/e2undo" ] && \
+       [ -f "$DESTDIR/usr/sbin/e4crypt" ] && \
+       [ -f "$DESTDIR/usr/sbin/e4defrag" ] && \
+       [ -f "$DESTDIR/usr/sbin/filefrag" ] && \
+       [ -f "$DESTDIR/usr/sbin/findfs" ] && \
+       [ -f "$DESTDIR/usr/sbin/fsck" ] && \
+       [ -f "$DESTDIR/usr/sbin/logsave" ] && \
+       [ -f "$DESTDIR/usr/sbin/mke2fs" ] && \
+       [ -f "$DESTDIR/usr/sbin/mklost+found" ] && \
+       [ -f "$DESTDIR/usr/sbin/resize2fs" ] && \
+       [ -f "$DESTDIR/usr/sbin/tune2fs" ] && \
+       [ -f "$DESTDIR/usr/libexec/e2fsprogs/e2scrub_all_cron" ]; then
+        echo -e "${LIGHT_RED}e2fsprogs already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading e2fsprogs...${RESET}"
+    DIR="e2fsprogs-${E2FSPROGS_VER}"
+    ARC="${DIR}.tar.xz"
+    URI="${E2FSPROGS_SRC}/v${E2FSPROGS_VER}/${ARC}"
+
+    # Download source
+    [ -f $ARC ] || wget $URI
+
+    # Extract source
+    if [ -d $DIR ]; then
+        echo -e "${YELLOW}e2fsprogs' source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -rf $DIR
+    fi
+    tar xf $ARC
+    cd $DIR
+
+    # Compile and install
+    echo -e "${GREEN}Compiling e2fsprogs...${RESET}"
+    ./configure \
+        --host=${HOST} \
+        --prefix=/usr \
+        CC="${CC_STATIC}" \
+        AR="${AR}" \
+        RANLIB="${RANLIB}" \
+        STRIP="${STRIP}" \
+        CFLAGS="-Os -march=${ARCH} -mno-fancy-math-387 -ffunction-sections -fdata-sections" \
+        CPPFLAGS="-I${SYSROOT}/include -I${PREFIX}/include" \
+        LDFLAGS="-static -Wl,--gc-sections -s -L${PREFIX}/lib"
+    make -j$(nproc)
+    sudo make DESTDIR=$DESTDIR install
+}
+
 # Download and compile file
 get_file()
 {
@@ -6123,7 +6219,32 @@ trim_fat()
     sudo rm -rf "$DESTDIR/usr/lib/pkgconfig" "$DESTDIR/usr/man" "$DESTDIR/usr/share/bash-completion" "$DESTDIR/usr/share/doc" "$DESTDIR/usr/share/info" "$DESTDIR/usr/share/man"
 
     if $INCLUDE_DIALOG; then
+        # TODO: consider skipping if GCC is included
         sudo rm -rf "$DESTDIR/usr/lib/libdialog.a"
+    fi
+
+    if $INCLUDE_E2FSPROGS; then
+        sudo rm -rf "$DESTDIR/usr/bin/compile_et"
+        sudo rm -rf "$DESTDIR/usr/bin/mk_cmds"
+
+        # TODO: consider skipping if GCC is included
+        sudo rm -rf "$DESTDIR/usr/include/blkid"
+        sudo rm -rf "$DESTDIR/usr/include/e2p"
+        sudo rm -rf "$DESTDIR/usr/include/et"
+        sudo rm -rf "$DESTDIR/usr/include/ext2fs"
+        sudo rm -rf "$DESTDIR/usr/include/ss"
+        sudo rm -rf "$DESTDIR/usr/include/uuid"
+        sudo rm -rf "$DESTDIR/usr/include/com_err.h"
+        sudo rm -rf "$DESTDIR/usr/lib/libblkid.a"
+        sudo rm -rf "$DESTDIR/usr/lib/libcom_err.a"
+        sudo rm -rf "$DESTDIR/usr/lib/libe2p.a"
+        sudo rm -rf "$DESTDIR/usr/lib/libext2fs.a"
+        sudo rm -rf "$DESTDIR/usr/lib/libss.a"
+        sudo rm -rf "$DESTDIR/usr/lib/libuuid.a"
+        sudo rm -rf "$DESTDIR/usr/sbin/uuidd"
+        sudo rm -rf "$DESTDIR/usr/share/et"
+        sudo rm -rf "$DESTDIR/usr/share/locale"
+        sudo rm -rf "$DESTDIR/usr/share/ss"
     fi
 
     if $INCLUDE_EMACS; then
@@ -6311,6 +6432,12 @@ copy_licences()
         CSV+="\nDropbear,MIT + BSD 2-Clause,dropbear.txt"
     fi
 
+    if $INCLUDE_E2FSPROGS && 
+       [ -f "$CURR_DIR/build/e2fsprogs-$E2FSPROGS_VER/NOTICE" ]; then
+        cp "$CURR_DIR/build/e2fsprogs-$E2FSPROGS_VER/NOTICE" "$DESTDIR/LICENCES/e2fsprogs.txt" || true
+        CSV+="\ne2fsprogs,GNU GPLv2 & LGPLv2,e2fsprogs.txt"
+    fi
+
     if [ "$ID" == "shork-486" ] &&
        $FIX_EXTLINUX &&
        [ -f "$CURR_DIR/build/syslinux/COPYING" ]; then
@@ -6381,6 +6508,12 @@ copy_licences()
         CSV+="\nlibao,GNU GPLv2,libao.txt"
     fi
 
+    if $INCLUDE_E2FSPROGS &&
+    [ -f "$CURR_DIR/build/e2fsprogs-$E2FSPROGS_VER/lib/et/com_err.c" ]; then
+        sed -n '/^ \* Copyright/,/warranty\.$/p' "$CURR_DIR/build/e2fsprogs-$E2FSPROGS_VER/lib/et/com_err.c" | sed 's/^ \* \{0,1\}//' > "$DESTDIR/LICENCES/libcom_err.txt"
+        CSV+="\nlibcom_err,MIT SIPB,libcom_err.txt"
+    fi
+
     if $NEED_LIBEVENT && 
        [ -f "$CURR_DIR/build/libevent/LICENSE" ]; then
         cp "$CURR_DIR/build/libevent/LICENSE" "$DESTDIR/LICENCES/libevent.txt" || true
@@ -6399,7 +6532,18 @@ copy_licences()
         CSV+="\nlibmad,GNU GPLv2,libmad.txt"
     fi
 
+    if $INCLUDE_E2FSPROGS &&
+    [ -f "$CURR_DIR/build/e2fsprogs-$E2FSPROGS_VER/lib/ss/data.c" ]; then
+        sed -n '/^ \* Copyright/,/warranty\.$/p' "$CURR_DIR/build/e2fsprogs-$E2FSPROGS_VER/lib/ss/data.c" | sed 's/^ \* \{0,1\}//' > "$DESTDIR/LICENCES/libss.txt"
+        CSV+="\nlibss,MIT SIPB,libss.txt"
+    fi
+
     # TODO: $NEED_LIBUUID
+    if $INCLUDE_E2FSPROGS && 
+       [ -f "$CURR_DIR/build/e2fsprogs-$E2FSPROGS_VER/lib/uuid/COPYING" ]; then
+        cp "$CURR_DIR/build/e2fsprogs-$E2FSPROGS_VER/lib/uuid/COPYING" "$DESTDIR/LICENCES/libuuid.txt" || true
+        CSV+="\nlibuuid,BSD 3-Clause,libuuid.txt"
+    fi
 
     if $NEED_LIBXLSXWRITER && 
        [ -f "$CURR_DIR/build/libxlsxwriter/License.txt" ]; then
@@ -7115,12 +7259,12 @@ build_disk_img()
     FILES_BYTES=$((KERNEL_BYTES + ROOT_BYTES))
     FILES_MIB=$(((FILES_BYTES + 1048575) / 1048576))
 
-    # For a minimal build, the process is simpler since we have a pretty good
+    # For a mini build, the process is simpler since we have a pretty good
     # idea of the smallest acceptable disk size and have no need to factor in 
     # some overhead
-    if [ "$BUILD_TYPE" = "minimal" ] && [ "$TARGET_DISK" -ge "$FILES_MIB" ]; then
-        if [ "$TARGET_DISK" -le "$MINIMAL_TARGET_DISK" ]; then
-            TOTAL_DISK_SIZE=$MINIMAL_TARGET_DISK
+    if [ "$BUILD_TYPE" = "mini" ] && [ "$TARGET_DISK" -ge "$FILES_MIB" ]; then
+        if [ "$TARGET_DISK" -le "$MINI_TARGET_DISK" ]; then
+            TOTAL_DISK_SIZE=$MINI_TARGET_DISK
         else
             TOTAL_DISK_SIZE=$TARGET_DISK
         fi
@@ -7535,18 +7679,14 @@ get_included_busybox_commands()
     check_bb_config "CONFIG_FDFORMAT" ""
     check_bb_config "CONFIG_FDISK" ""
     check_bb_config "CONFIG_HEXDUMP" ""
-    if ! $INCLUDE_VIM; then
-        check_bb_config "CONFIG_XXD" ""
-    else
-        EXCLUDED_BB_CMDS+=("xxd")
-    fi
+    check_bb_config "CONFIG_XXD" ""
     check_bb_config "CONFIG_LOSETUP" ""
     check_bb_config "CONFIG_LSBLK" ""
     check_bb_config "CONFIG_LSPCI" ""
     check_bb_config "CONFIG_LSUSB" ""
     check_bb_config "CONFIG_MDEV" ""
-    check_bb_config "CONFIG_MKFS_EXT2" "mkdosfs/mkfs.vfat"
-    check_bb_config "CONFIG_MKFS_VFAT" "mke2fs/mkfs.ext2"
+    check_bb_config "CONFIG_MKFS_EXT2" "mke2fs/mkfs.ext2"
+    check_bb_config "CONFIG_MKFS_VFAT" "mkdosfs/mkfs.vfat"
     check_bb_config "CONFIG_MKSWAP" ""
     check_bb_config "CONFIG_MOUNT" ""
     check_bb_config "CONFIG_MOUNTPOINT" ""
@@ -8614,6 +8754,9 @@ if $INCLUDE_DIALOG; then
 fi
 if $INCLUDE_DROPBEAR; then
     get_dropbear
+fi
+if $INCLUDE_E2FSPROGS; then
+    get_e2fsprogs
 fi
 if $INCLUDE_EMACS; then
     get_prog_tar \

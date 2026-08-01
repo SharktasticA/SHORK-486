@@ -1,8 +1,8 @@
 # SHORK 486, DISC & DISKETTE
 
-SHORK 486 is a free and open-source operating system for 486 and Pentium (P5) era vintage personal computers. The aim is to produce a 32-bit Linux distribution that is lean and functional, but still capable on such PCs, often with my '90s IBM ThinkPads in mind. A default SHORK 486 system aims to work with at least 16MiB system memory and take up no more than ~100MiB on your disk. Despite those constraints, the default SHORK 486 experience includes [Linux kernel 7.1.5](KERNEL.md), many typical Linux commands, custom SHORK Utilities such as shorkdir (TUI file browser) and shorkfetch (*fetch clone), a terminal multiplexer, a C compiler, Lua intepreter, Python 3.4-syntax interpreter and dialog for shell script TUI widgets, a text web browser, an FTP, SCP and SSH client, a Git source control client, the ed, Mg (Emacs-style), nano and vi editors, a spreadsheet editor, a minesweeper game, IDE CD-ROM and DVD-ROM support, SCSI tape drive support, ISA, PCI and PCMCIA ethernet support, support for most major national keyboard layouts, and a cute ASCII shark welcome screen!
+SHORK 486 is a free and open-source operating system for 486 and Pentium (P5) era vintage personal computers. The aim is to produce a 32-bit Linux distribution that is lean and functional, but still capable on such PCs, often with my '90s IBM ThinkPads in mind. A default SHORK 486 system aims to work with at least 16MiB system memory and take up no more than ~100MiB on your disk. Despite those constraints, the default SHORK 486 experience includes [Linux kernel 7.1.5](KERNEL.md), many typical Linux commands, custom SHORK Utilities such as shorkdir (TUI file browser) and shorkfetch (*fetch clone), a terminal multiplexer, a C compiler, Lua intepreter, Python 3.4-syntax interpreter and dialog for shell script TUI widgets, a text web browser, an FTP, SCP and SSH client, a Git source control client, the ed, Mg (Emacs-style), nano and vi editors, a spreadsheet editor, a minesweeper game, DOS and ext\* file system tools, IDE CD-ROM and DVD-ROM support, SCSI tape drive support, ISA, PCI and PCMCIA ethernet support, support for most major national keyboard layouts, and a cute ASCII shark welcome screen!
 
-A build configurator is available to alter SHORK 486 to your liking. For example, you can select the "minimal" build type that requires just 8MiB RAM and ~8MiB disk space, whilst still including most typical commands as before, some custom SHORK Utilities, and the ed and vi editors. You can also configure SHORK 486 for serial console use, multi-user support (if not "minimal" build), and pick and choose specific software and features (if "custom" build). Versions of SHORK 486 that can be burned to a CD (SHORK DISC) or small enough to fit on a 1.44MB floppy diskette (SHORK DISKETTE) are also available.
+A build configurator is available to alter SHORK 486 to your liking. For example, you can select the "mini" build type that requires just 8MiB RAM and ~8MiB disk space, whilst still including most typical commands as before, some custom SHORK Utilities, and the ed and vi editors. You can also configure SHORK 486 for serial console use, multi-user support (if not "mini" build), and pick and choose specific software and features (if "custom" build). Versions of SHORK 486 that can be burned to a CD (SHORK DISC) or small enough to fit on a 1.44MB floppy diskette (SHORK DISKETTE) are also available.
 
 <p align="center"><img alt="A photo of SHORK 486 running on an IBM ThinkPad 365ED after a cold boot" src="photos/20260223_365ed.jpg" width="512"></p>
 
@@ -40,9 +40,9 @@ In the temporary lieu of a package manager, SHORK 486 can be made as one of seve
 
 * **Offline:** Like default but _without_ full networking support and software that would require it. If you don't need the internet but still want a generalist system, you can save some system memory (~4MiB) and disk space (~40MiB) with this.
 
-* **Minimal:** SHORK 486 in its smallest configuration. All bundled software and additional features are excluded, and multi-user, networking and non-US keyboard layout support are disabled. That said, a robust BusyBox configuration is still provided, so comparatively few general and system utilities are lost, and you still have the ed and vi editors. It's a very lightweight Linux, but one may still find it quite usable.
+* **Mini:** SHORK 486 in its smallest configuration. All bundled software and additional features are excluded, and multi-user, networking and non-US keyboard layout support are disabled. That said, a robust BusyBox configuration is still provided, so comparatively few general and system utilities are lost, and you still have the ed and vi editors. It's a very lightweight Linux, but one may still find it quite usable.
 
-* **Maximal:** SHORK 486 with every possible option enabled, including support for more modern hardware. It is not intended or recommended for 486/586/P5 Pentium systems per se, more a shortcut to those who like SHORK 486's design but want to use it on late '90s to early '10s systems as well, in lieu of future SHORK 686.
+* **Max:** SHORK 486 with every possible option enabled, including support for more modern hardware. It is not intended or recommended for 486/586/P5 Pentium systems per se, more a shortcut to those who like SHORK 486's design but want to use it on late '90s to early '10s systems as well, in lieu of future SHORK 686.
 
 ### Licences
 
@@ -59,18 +59,18 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 * Processor: Intel 486SX or compatible (no FPU required)
 * Memory:
     * **Default: 16MiB RAM (8MiB swap recommended)**
-    * Maximal: 32MiB RAM (recommended), 24MiB RAM + 8MiB swap (acceptable)
+    * Max: 32MiB RAM (recommended), 24MiB RAM + 8MiB swap (acceptable)
     * Plus: 24MiB RAM + 8MiB swap (recommended), 16MiB RAM + 16MiB swap (acceptable)
     * Writer: 24MiB RAM + 8MiB swap (recommended), 16MiB RAM + 16MiB swap (acceptable)
     * Offline: 12MiB RAM (8MiB swap recommended)
-    * Minimal: 8MiB RAM
+    * Mini: 8MiB RAM
 * IDE or SCSI disk: 
     * **Default: 100MiB**
-    * Maximal: 500MiB
-    * Plus: 480MiB
+    * Max: 540MiB
+    * Plus: 500MiB
     * Writer: 100MiB
     * Offline: 60MiB
-    * Minimal: 8MiB
+    * Mini: 8MiB
 * Graphics: IBM VGA or compatible (for most programs); VBE 2.0-compatible (for `shorkgui` and VBE resolutions in `shorkset`)
 * Monitor: VGA (640x480) or higher
 
@@ -86,7 +86,7 @@ addgroup, adduser, chgrp, chown, chpasswd, chroot, cryptpw, delgroup, deluser, f
 
 ### Bundled software
 
-* **P:** plus/maximal - **D:** default - **W:** writer - **O:** offline
+* **P:** plus/max - **D:** default - **W:** writer - **O:** offline
 * **\*** indicates the software is included for the given edition
 
 | Name | Command(s) | Version | Purpose | Licence(s) |P|D|W|O|
@@ -95,6 +95,7 @@ addgroup, adduser, chgrp, chown, chpasswd, chroot, cryptpw, delgroup, deluser, f
 | [cURL](https://curl.se/) | `curl` | 8.21.0 | HTTP client & transfer utility | MIT |*||||
 | [dialog](https://invisible-mirror.net/dialog/dialog.html) | `dialog` | 1.3 | Shell script TUI widgets | LGPLv2.1 |*|**\***||*|
 | [Dropbear](https://github.com/mkj/dropbear) | `scp`, `ssh` | 2026.92 | SCP and SSH clients | MIT + BSD 2-Clause |*|**\***|||
+| [e2fsprogs](https://e2fsprogs.sourceforge.net/)| e.g. `blkid`\*, `fsck`, `mke2fs`\*, `resize2fs`, `tune2fs`, `uuidgen`\* | 1.47.4 | ext2/3/4 file system utilities | GPLv2 + LGPLv2 |*|**\***||*|
 | [file](https://github.com/file/file)| `file` | 5_48 | File identification | BSD 2-Clause |*|**\***||*|
 | [GCC](https://musl.cc/)‡§ | `gcc`, `g++`, `gfortran` | 11.2.1 | C, C++ and Fortran compilers | GPLv3 + GCC RLE |*||||
 | [Git](https://github.com/git/git) | `git` | 2.55.0 | Source control client | GPLv2 |*|**\***|||
@@ -133,9 +134,12 @@ addgroup, adduser, chgrp, chown, chpasswd, chroot, cryptpw, delgroup, deluser, f
 | Name | Version | For | Licence(s) |
 |------|---------|-----|------------|
 | [libao](https://github.com/xiph/libao) | 1.2.2 | mpg321 | GNU GPLv2 |
+| libcom_err | 1.47.4 | e2fsprogs | MIT SIPB |
 | [libevent](https://github.com/libevent/libevent) | 2.1.13 | tmux | BSD 3-Clause |
 | [libid3tag](https://github.com/markjeee/libid3tag) | 0.15.1b | mpg321 | GNU GPLv2 |
 | [libmad](https://github.com/markjeee/libmad) | 0.15.1b | mpg321 | GNU GPLv2 |
+| libss | 1.47.4 | e2fsprogs | MIT SIPB |
+| libuuid | 1.47.4 | e2fsprogs | BSD 3-Clause |
 | [libxlsxwriter](https://github.com/jmcnamara/libxlsxwriter) | 1.2.4 | sc-im | BSD 2-Clause |
 | [libxml2](https://github.com/gnome/libxml2) | 2.15.3 | sc-im, Universal Ctags | MIT |
 | [libzip](https://github.com/nih-at/libzip) | 1.11.4 | sc-im | BSD 3-Clause |
@@ -311,18 +315,18 @@ When running the SHORK 486 Build Configurator, you will be prompted to select th
 * Target distribution (SHORK 486, SHORK DISC or SHORK DISKETTE)
 * Linux kernel version (7.2-rc5, 7.1.5 or 7.0.14)
 * _If SHORK 486:_
-    * Build type (default, maximal, plus, writer, offline, minimal or custom)
+    * Build type (default, max, plus, writer, offline, mini or custom)
     * Target disk size (size in MiB)
     * Swap partition size (size in MiB)
 * _If SHORK DISKETTE:_
     * Target diskette size (1.44MB or 2.88MB)
 * Keyboard scancode set (skip, set 2 or set 3)
 * _If SHORK 486:_
-    * __If not "Minimal" build type selected:__
+    * __If not "Mini" build type selected:__
         * Keyboard layout (keymap) (single choice)
 * Hostname (text input)
 * _If SHORK 486:_
-    * __If not "Minimal" build type selected:__
+    * __If not "Mini" build type selected:__
         * Multi-user support (yes/no)
             * Root password (text input)
     * Serial console mode (yes/no)
@@ -377,13 +381,18 @@ EXTLINUX (SHORK 486), ISOLINUX (SHORK DISC) and SYSLINUX (SHORK DISKETTE) are th
 
 #### Bundled Software
 
+* **e2fsprogs**: Adds utilities for creating, inspecting and maintaining ext2, ext3 and ext4 file systems.
+    * **Note:** If included, BusyBox's `blkid`, `mke2fs`/`mkfs.ext2` and `uuidgen` implementations will be disabled in favour of e2fsprogs'.
+
 * **file**: Adds the `file` command, which can identify a file's type by checking its contents against a database of possible magic signatures. Due to the size of said database, 16MiB RAM is required for it to work correctly.
 
-* **gcc**: Adds the GNU Assembler, GCC's C, C++ and Fortran compiler and musl C standard library. Using `g++` requires more system memory than usual, hence it is not included by default. Memory requirements are ideally 32MiB system memory if no swap partition, 24MiB with 8MiB swap or 16MiB with 16MiB swap.
+* **gcc**: Adds the GCC's C, C++ and Fortran compiler, musl C standard library and GNU Bintuils. Using `g++` requires more system memory than usual, hence it is not included by default. Memory requirements are ideally 32MiB system memory if no swap partition, 24MiB with 8MiB swap or 16MiB with 16MiB swap.
+    * **Note:** If included, BusyBox's `ar` and `strings` implementations will be disabled in favour of GNU Binutils'.
 
 * **shorktainment**: Includes the SHORK Entertainment programs bundle: shorklocomotive, shorkmatrix, shorkmines, and shorksay.
 
 * **vim**: Adds the Vi IMproved (Vim) text editor. Some of its features like syntax highlighting seem be memory-intensive for 486-era levels of RAM, so memory requirements are ideally 32MiB system memory if no swap partition, 24MiB with 8MiB swap or 16MiB with 16MiB swap. In the worst case scenario, SHORK 486 will automatically create a swapfile between 16-128MiB to help keep Vim running.
+    * **Note:** If included, BusyBox's `xxd` implementation will be disabled in favour of Vim's.
 
 #### Options
 
