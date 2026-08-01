@@ -244,11 +244,14 @@ val_str()
 
 set_mini_vars()
 {
-    local SKIP_KEYMAP_RESET="$1"
-    if [ "$SKIP_KEYMAP_RESET" = false ]; then
+    # First argument =true bypasses resetting SET_KEYMAP
+    if [ -z "$1" ] || [ "$1" = false ]; then
         SET_KEYMAP="en_us"
     fi
-    ENABLE_MULTIUSER_REAL=false
+    # Second argument =true bypasses resetting ENABLE_MULTIUSER_REAL
+    if [ -z "$2" ] || [ "$2" = false ]; then
+        ENABLE_MULTIUSER_REAL=false
+    fi
     ENABLE_NET_ETH=false
     INCLUDE_C3270=false
     INCLUDE_CSCOPE=false
@@ -306,7 +309,7 @@ set_mini_vars()
 
 set_default_vars()
 {
-    set_mini_vars true
+    set_mini_vars true true
     ENABLE_NET_ETH=true
     INCLUDE_DIALOG=true
     INCLUDE_DROPBEAR=true
@@ -355,7 +358,7 @@ set_offline_vars()
 
 set_writer_vars()
 {
-    set_mini_vars
+    set_mini_vars true true
     INCLUDE_HTOP=true
     INCLUDE_JOE=true
     INCLUDE_MG=true
