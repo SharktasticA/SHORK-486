@@ -6143,6 +6143,7 @@ trim_fat()
         sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/PROBLEMS"
         sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/README"
         sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/JOKES"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/rgb.txt"
         sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/DEVEL.HUMOR"
         sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/spook.lines"
         sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/yow.lines"
@@ -6178,6 +6179,11 @@ trim_fat()
         sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/lisp/pixel-scroll.elc"
         sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/lisp/mwheel.elc"
         sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/lisp/soundex.elc"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/refcards/"*.pdf
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/refcards/Makefile"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/refcards/README"
+        sudo rm -rf "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/"*.desktop
+        find "$DESTDIR/usr/share/emacs/$EMACS_VER/etc/charsets" -maxdepth 1 -type f \! -name '8859-2.map' \! -name '8859-13.map' \! -name '8859-15.map' \! -name 'README' -delete
         sudo rm -rf "$DESTDIR/usr/share/icons"
         sudo rm -rf "$DESTDIR/usr/share/metainfo"
     fi
