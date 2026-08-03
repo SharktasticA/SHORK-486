@@ -314,7 +314,7 @@ When running the SHORK 486 Build Configurator, you will be prompted to select th
 
 * Build environment (Arch native, Debian native/Dockerised or Fedora native)
 * Target distribution (SHORK 486, SHORK DISC or SHORK DISKETTE)
-* Linux kernel version (7.2-rc5, 7.1.5 or 7.0.14)
+* Linux kernel version (7.2-rc6, 7.1.5 or 7.0.14)
 * _If SHORK 486:_
     * Build type (default, max, plus, writer, offline, mini or custom)
     * Target disk size (size in MiB)
