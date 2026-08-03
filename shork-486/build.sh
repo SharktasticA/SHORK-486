@@ -335,7 +335,7 @@ while [ $# -gt 0 ]; do
         --always-build)
             ALWAYS_BUILD=true
             ;;
-        --enable-tests)
+        --include-tests)
             INCLUDE_TESTS=true
             ;;
         --is-arch)
