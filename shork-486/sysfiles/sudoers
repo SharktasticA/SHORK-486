@@ -1,0 +1,18 @@
+######################################################
+## /etc/sudoers                                     ##
+######################################################
+## Main sudoers policy file                         ##
+######################################################
+## Kali (links.sharktastica.co.uk)                  ##
+######################################################
+
+
+
+Defaults env_reset
+Defaults secure_path="/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin"
+Defaults env_keep += "TERM"
+
+root    ALL=(ALL:ALL) ALL
+%sudo   ALL=(ALL:ALL) ALL
+
+@includedir /etc/sudoers.d

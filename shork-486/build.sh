@@ -213,6 +213,8 @@ SC_IM_SRC="https://github.com/andmarti1424/sc-im.git"
 SC_IM_VER="0.8.5"
 STRACE_SRC="https://github.com/strace/strace.git"
 STRACE_VER="7.1"
+SUDO_SRC="https://www.sudo.ws/dist"
+SUDO_VER="1.9.17p2"
 TCC_SRC="https://github.com/Tiny-C-Compiler/tinycc-mirror-repository.git"
 TCC_VER="e5eedc0"
 TILDE_VER="1.1.3"
@@ -312,6 +314,7 @@ INCLUDE_NANO=true
 INCLUDE_NASM=false
 INCLUDE_PCI_IDS=true
 INCLUDE_SC_IM=true
+INCLUDE_SUDO=false
 INCLUDE_SHORKSTALL=false
 INCLUDE_SHORKTAINMENT=true
 INCLUDE_STRACE=true
@@ -475,8 +478,9 @@ if [ "$INCLUDE_HTOP" = true ]; then
     ENABLE_TASKSTATS=true
 fi
 
-# Ensure NET_BASE is enabled with HTOP, TMUX or NET_ETH
-if [ "$INCLUDE_HTOP" = true ] || [ "$INCLUDE_TMUX" = true ] || [ "$ENABLE_NET_ETH" = true ]; then
+# Ensure NET_BASE is enabled with HTOP, SUDO, TMUX or NET_ETH
+if [ "$INCLUDE_HTOP" = true ] || [ "$INCLUDE_SUDO" = true ] ||
+   [ "$INCLUDE_TMUX" = true ] || [ "$ENABLE_NET_ETH" = true ]; then
     ENABLE_NET_BASE=true
 fi
 
@@ -6303,6 +6307,17 @@ trim_fat()
         sudo rm -rf "$DESTDIR/usr/share/mg"
     fi
 
+    if $INCLUDE_SUDO; then
+        sudo rm -rf "$DESTDIR/usr/sbin/sudo_logsrvd"
+        sudo rm -rf "$DESTDIR/usr/sbin/sudo_sendlog"
+        sudo rm -rf "$DESTDIR/etc/sudo_logsrvd.conf"
+        sudo rm -rf "$DESTDIR/usr/bin/sudoreplay"
+        sudo rm -rf "$DESTDIR/usr/bin/cvtsudoers"
+        sudo rm -rf "$DESTDIR/usr/include/sudo_plugin.h"
+        sudo rm -rf "$DESTDIR/usr/lib/tmpfiles.d/sudo.conf"
+        sudo rm -rf "$DESTDIR/etc/sudoers.dist"
+    fi
+
     if $INCLUDE_VIM; then
         KEEP='^(nosyntax|syntax|synload|syncolor|a65|asm.*|avra|fasm|ia64|masm|mmix|nasm|tasm|tiasm|vmasm|z8a|cpp?|cs|csc|sh|bash|make|cmake.*|diff|vim.*|basic|freebasic|ibasic|qb64|vb|awk|git.*|tmux|python2?|pyrex|pymanifest|cfg|conf.*|dosini|change(log)?|debchangelog|cabal.*|fortran|rust|tex|plaintex|texinfo|texmf|initex|context|n?roff|man|x?html.*|css|javascript.*|java|javacc|json.*|modula[23].*|m3build|m3quake|php|phtml|xml|xsd|xslt|xquery|dtd|yaml|sql.*|mysql|plsql|esqlc|n1ql|typescript.*)\.vim$'
         for d in syntax indent ftplugin; do
@@ -6634,6 +6649,12 @@ copy_licences()
         CSV+="\nstrace,GNU LGPLv2.1,strace.txt"
     fi
 
+    if $INCLUDE_SUDO && 
+       [ -f "$CURR_DIR/build/sudo-$SUDO_VER/LICENSE.md" ]; then
+        cp "$CURR_DIR/build/sudo-$SUDO_VER/LICENSE.md" "$DESTDIR/LICENCES/sudo.txt" || true
+        CSV+="\nsudo,ISC + BSD 2-Clause + BSD 3-Clause + zlib,sudo.txt"
+    fi
+
     if [ "$ID" == "shork-diskette" ] &&
        $FIX_EXTLINUX &&
        [ -f "$CURR_DIR/build/syslinux/COPYING" ]; then
@@ -6771,8 +6792,8 @@ copy_tests()
     cd $DESTDIR
 }
 
-# Builds the root file system
-build_file_system()
+# Builds the root filesystem
+build_filesystem()
 {
     echo -e "${GREEN}Building the root system...${RESET}"
     cd $DESTDIR
@@ -6862,6 +6883,7 @@ build_file_system()
         sudo mkdir -p $DESTDIR/home
 
         copy_sysfile $CURR_DIR/sysfiles/486/inittab.getty $DESTDIR/etc/inittab
+        copy_sysfile $CURR_DIR/sysfiles/busybox.conf $DESTDIR/etc/busybox.conf
         copy_sysfile $CURR_DIR/sysfiles/group $DESTDIR/etc/group
         copy_sysfile $CURR_DIR/sysfiles/shadow $DESTDIR/etc/shadow
 
@@ -6877,6 +6899,15 @@ build_file_system()
         sudo sed -i '/^export USER=root$/d' "$DESTDIR/etc/profile"
         sudo sed -i '/^export LOGNAME=root$/d' "$DESTDIR/etc/profile"
         sudo sed -i '/^export LOGIN_TIMEOUT=0$/d' "$DESTDIR/etc/profile"
+
+        if $INCLUDE_SUDO; then
+            echo -e "${GREEN}Copying sudo configuration...${RESET}"
+            copy_sysfile $CURR_DIR/sysfiles/sudoers $DESTDIR/etc/sudoers
+            copy_sysfile $CURR_DIR/sysfiles/sudo.conf $DESTDIR/etc/sudo.conf
+            if $ENABLE_SWAP_WRAP; then
+                copy_sysfile $CURR_DIR/sysfiles/swap_wrap $DESTDIR/etc/sudoers.d/swap_wrap
+            fi
+        fi
     else
         if [ "$ID" == "shork-486" ]; then
             sudo mkdir -p $DESTDIR/root
@@ -6954,8 +6985,73 @@ build_file_system()
     sudo find "$DESTDIR" -type f ! -perm -111 -exec chmod 644 {} +
 }
 
+# Sets any specifically required filesystem permissions based on enabled
+# options
+set_filesystem_perms()
+{
+    echo -e "${GREEN}Setting filesystem permissions...${RESET}"
+
+    # If multi-user is enabled, we need to make sure particular files within
+    # DESTDIR have correct permissions
+    if $ENABLE_MULTIUSER_REAL; then
+        # Format: "path|owner:group|mode|type(f=file/d=dir)"
+        PATHS=(
+            "$DESTDIR/bin/busybox|root:root|4755|f"
+            "$DESTDIR/etc|root:root|0755|d"
+            "$DESTDIR/etc/busybox.conf|root:root|0644|f"
+            "$DESTDIR/etc/group|root:root|0644|f"
+            "$DESTDIR/etc/hostname|root:root|0644|f"
+            "$DESTDIR/etc/init.d|root:root|0755|d"
+            "$DESTDIR/etc/inittab|root:root|0644|f"
+            "$DESTDIR/etc/issue|root:root|0644|f"
+            "$DESTDIR/etc/os-release|root:root|0644|f"
+            "$DESTDIR/etc/passwd|root:root|0644|f"
+            "$DESTDIR/etc/profile|root:root|0644|f"
+            "$DESTDIR/etc/shadow|root:shadow|0640|f"
+            "$DESTDIR/etc/shorkset.conf|root:root|0644|f"
+            "$DESTDIR/etc/sudo.conf|root:root|0644|f"
+            "$DESTDIR/etc/sudo_logsrvd.conf|root:root|0644|f"
+            "$DESTDIR/etc/sudoers|root:root|0440|f"
+            "$DESTDIR/etc/sudoers.d|root:root|0750|d"
+            "$DESTDIR/etc/sudoers.dist|root:root|0440|f"
+            "$DESTDIR/usr/bin/sudoedit|root:root|0755|f"
+            "$DESTDIR/usr/bin/sudo|root:root|4755|f"
+            "$DESTDIR/usr/sbin/visudo|root:root|0755|f"
+        )
+
+        for P in "${PATHS[@]}"; do
+            IFS='|' read -r path owner mode type <<< "$P"
+            if [ "$type" = "d" ] && [ -d "$path" ]; then
+                sudo chown "$owner" "$path"
+                sudo chmod "$mode" "$path"
+            elif [ "$type" = "f" ] && [ -f "$path" ]; then
+                sudo chown "$owner" "$path"
+                sudo chmod "$mode" "$path"
+            fi
+        done
+
+        # Process init.d scripts separately
+        if [ -d "$DESTDIR/etc/init.d" ]; then
+            for f in "$DESTDIR/etc/init.d/"*; do
+                [ -f "$f" ] || continue
+                sudo chown root:root "$f"
+                sudo chmod 0755 "$f"
+            done
+        fi
+
+        # Process sudoers.d frags separately
+        if [ -d "$DESTDIR/etc/sudoers.d" ]; then
+            for f in "$DESTDIR/etc/sudoers.d/"*; do
+                [ -f "$f" ] || continue
+                sudo chown root:root "$f"
+                sudo chmod 0440 "$f"
+            done
+        fi
+    fi
+}
+
 # Compresses the root file system (SHORK DISKETTE)
-compress_file_system()
+compress_filesystem()
 {
     cd "${DESTDIR}"
     echo -e "${GREEN}Compressing root file system into one file...${RESET}"
@@ -7207,7 +7303,7 @@ build_disk_img()
 
     # Get the size of our kernel and root fs
     KERNEL_BYTES=$(stat -c %s bzImage)
-    ROOT_BYTES=$(du -B1 -s root/ | cut -f1)
+    ROOT_BYTES=$(sudo du -B1 -s root/ | cut -f1)
     FILES_BYTES=$((KERNEL_BYTES + ROOT_BYTES))
     FILES_MIB=$(((FILES_BYTES + 1048575) / 1048576))
 
@@ -8482,6 +8578,24 @@ get_installed_progs_feats()
         else
             EXCLUDED_FEATURES+="\n * resize2fs (e2fsprogs)"
         fi
+
+        if [ -f "$DESTDIR/usr/bin/sudo" ]; then
+            INCLUDED_FEATURES+="\n * sudo (sudo, $SUDO_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * sudo (sudo)"
+        fi
+
+        if [ -f "$DESTDIR/usr/bin/sudoedit" ]; then
+            INCLUDED_FEATURES+="\n * sudoedit (sudo, $SUDO_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * sudoedit (sudo)"
+        fi
+
+        if [ -f "$DESTDIR/usr/sbin/visudo" ]; then
+            INCLUDED_FEATURES+="\n * visudo (sudo, $SUDO_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * visudo (sudo)"
+        fi
     fi
 }
 
@@ -8995,6 +9109,20 @@ fi
 if $INCLUDE_SC_IM; then
     get_sc_im
 fi
+if $INCLUDE_SUDO; then
+    get_prog_tar \
+        "usr/bin" \
+        "sudo" \
+        "sudo" \
+        "sudo-${SUDO_VER}" \
+        "tar.gz" \
+        "$SUDO_SRC" \
+        "xzf" \
+        false \
+        false \
+        "/usr" \
+        "--sysconfdir=/etc --with-runas-group=root --enable-sudoers-group=root --with-rundir=/tmp/run/sudo --with-vardir=/tmp/run/sudo --disable-shared --disable-pie --without-pam --without-pam-session --with-plugindir=/usr/libexec/sudo --enable-static-sudoers --disable-shared-libutil --without-lecture --disable-zlib --disable-openssl --without-sendmail --disable-nls --with-editor=/bin/vi"
+fi
 if $INCLUDE_TCC; then
     get_prog_tar \
         "usr/local/musl/lib" \
@@ -9086,13 +9214,14 @@ if $FIX_EXTLINUX; then
 fi
 
 find_mbr_bin
-build_file_system
+build_filesystem
+set_filesystem_perms
 if [ "$ID" == "shork-486" ]; then
     build_disk_img
 elif [ "$ID" == "shork-disc" ]; then
     build_disc_img
 elif [ "$ID" == "shork-diskette" ]; then
-    compress_file_system
+    compress_filesystem
     build_diskette_img
 fi
 

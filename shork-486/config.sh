@@ -83,6 +83,7 @@ INCLUDE_SC_IM=false
 INCLUDE_SHORKSTALL=false
 INCLUDE_SHORKTAINMENT=false
 INCLUDE_STRACE=false
+INCLUDE_SUDO=false
 INCLUDE_TCC=false
 INCLUDE_TILDE=false
 INCLUDE_TN5250=false
@@ -107,6 +108,7 @@ ENABLE_SATA=false
 ENABLE_SCSI_EXP=false
 ENABLE_SOUND=false
 ENABLE_SMP=false
+ENABLE_SWAP_WRAP=false
 ENABLE_USB=false
 ENABLE_ZSWAP=false
 
@@ -198,6 +200,7 @@ save_env()
         echo "INCLUDE_SHORKSTALL=$INCLUDE_SHORKSTALL"
         echo "INCLUDE_SHORKTAINMENT=$INCLUDE_SHORKTAINMENT"
         echo "INCLUDE_STRACE=$INCLUDE_STRACE"
+        echo "INCLUDE_SUDO=$INCLUDE_SUDO"
         echo "INCLUDE_TCC=$INCLUDE_TCC"
         echo "INCLUDE_TILDE=$INCLUDE_TILDE"
         echo "INCLUDE_TN5250=$INCLUDE_TN5250"
@@ -222,6 +225,7 @@ save_env()
         echo "ENABLE_SCSI_EXP=$ENABLE_SCSI_EXP"
         echo "ENABLE_SOUND=$ENABLE_SOUND"
         echo "ENABLE_SMP=$ENABLE_SMP"
+        echo "ENABLE_SWAP_WRAP=$ENABLE_SWAP_WRAP"
         echo "ENABLE_USB=$ENABLE_USB"
         echo "ENABLE_ZSWAP=$ENABLE_ZSWAP"
     } > .env
@@ -282,6 +286,7 @@ set_mini_vars()
     INCLUDE_SHORKSTALL=false
     INCLUDE_SHORKTAINMENT=false
     INCLUDE_STRACE=false
+    INCLUDE_SUDO=false
     INCLUDE_TCC=false
     INCLUDE_TILDE=false
     INCLUDE_TN5250=false
@@ -306,6 +311,7 @@ set_mini_vars()
     ENABLE_SCSI_EXP=false
     ENABLE_SOUND=false
     ENABLE_SMP=false
+    ENABLE_SWAP_WRAP=false
     ENABLE_USB=false
     ENABLE_ZSWAP=false
 }
@@ -346,6 +352,7 @@ set_default_vars()
     INCLUDE_PCI_IDS=true
     ENABLE_PCMCIA=true
     ENABLE_SCSI_EXP=true
+    ENABLE_SWAP_WRAP=true
     ENABLE_ZSWAP=true
 }
 
@@ -379,6 +386,7 @@ set_writer_vars()
     INCLUDE_KEYMAPS=true
     ENABLE_MENU=true
     INCLUDE_PCI_IDS=true
+    ENABLE_SWAP_WRAP=true
     ENABLE_ZSWAP=true
 }
 
@@ -414,6 +422,7 @@ set_max_vars()
 set_custom_vars()
 {
     INCLUDE_KEYMAPS=true
+    ENABLE_SWAP_WRAP=true
 }
 
 set_disc_vars()
@@ -825,15 +834,17 @@ if [ "$BUILD_TYPE" != "mini" ] && [ "$ID" == "shork-486" ]; then
         --backtitle "SHORK 486 Build Configurator" \
         --title "Multi-User Support" \
         $DEFAULT_FLAG \
-        --yesno "Do you want to enable multi-user support in SHORK 486? It will enable BusyBox's multi-user-related utilities and you will be able to set a root password in the next prompt." \
+        --yesno "Do you want to enable multi-user support in SHORK 486? It will enable BusyBox's multi-user-related utilities, sudo, and you will be able to set a root password in the next prompt." \
         7 $WIDTH
 
     CHOICE=$?
 
     if [[ $CHOICE -eq 0 ]]; then
         ENABLE_MULTIUSER_REAL=true
+        INCLUDE_SUDO=true
     elif [[ $CHOICE -eq 1 ]]; then
         ENABLE_MULTIUSER_REAL=false
+        INCLUDE_SUDO=false
         ROOT_PASSWD=""
     fi
 
@@ -1158,6 +1169,7 @@ else
     if [[ $BUNDLED =~ "sc-im" ]];           then INCLUDE_SC_IM=true;            else INCLUDE_SC_IM=false;           fi
     if [[ $BUNDLED =~ "shorktainment" ]];   then INCLUDE_SHORKTAINMENT=true;    else INCLUDE_SHORKTAINMENT=false;   fi
     if [[ $BUNDLED =~ "strace" ]];          then INCLUDE_STRACE=true;           else INCLUDE_STRACE=false;          fi
+    if [[ $BUNDLED =~ "sudo" ]];            then INCLUDE_SUDO=true;             else INCLUDE_SUDO=false;            fi
     if [[ $BUNDLED =~ "tcc" ]];             then INCLUDE_TCC=true;              else INCLUDE_TCC=false;             fi
     if [[ $BUNDLED =~ "tilde" ]];           then INCLUDE_TILDE=true;            else INCLUDE_TILDE=false;           fi
     if [[ $BUNDLED =~ "tmux" ]];            then INCLUDE_TMUX=true;             else INCLUDE_TMUX=false;            fi
@@ -1309,11 +1321,11 @@ if [ "$INCLUDE_MPG321" = true ] && [ "$ENABLE_SOUND" = false ]; then
     fi
 fi
 
-# Conflict Resolution - +MT_ST/-SCSI_EXP
+# Conflict Resolution - +INCLUDE_MT_ST/-ENABLE_SCSI_EXP
 if [ "$INCLUDE_MT_ST" = true ] && [ "$ENABLE_SCSI_EXP" = false ]; then
     dialog --clear \
         --backtitle "SHORK 486 Build Configurator" \
-        --title "Conflict Resolution - +MT_ST/-SCSI_EXP" \
+        --title "Conflict Resolution - +INCLUDE_MT_ST/-ENABLE_SCSI_EXP" \
         --yes-label "Enable support" \
         --no-label "Exclude tools" \
         --yesno "You have chosen to enable \"tape drive tools\" but disable \"kernel-level SCSI media changer & tape drive support\". Kernel-level support is required for the tape drive tools to work. Do you wish to enable the required support, or exclude the tools?" \

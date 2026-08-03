@@ -115,6 +115,7 @@ addgroup, adduser, chgrp, chown, chpasswd, chroot, cryptpw, delgroup, deluser, f
 | [NASM](https://www.nasm.us/) | `nasm`, `ndisasm` | 3.02 | Portable x86 assembler & disassembler | BSD 2-Clause |*||||
 | [sc-im](https://github.com/andmarti1424/sc-im) | `sc-im` | 0.8.5 | Terminal spreadsheet editor | BSD 4-Clause |*|**\***|*|*|
 | [strace](https://github.com/strace/strace) | `strace` | 7.1 | System calls & signals tracer | LGPLv2.1 |*|**\***||*|
+| [sudo](https://www.sudo.ws/)‖ | `sudo`, `sudoedit`, `visudo` | 1.9.17p2 | Run command as root/substitute user | ISC + BSD 2-Clause + BSD 3-Clause + zlib |*|**\***|*|*|
 | [Tilde](https://os.ghalkes.nl/tilde/) | `tilde` | 1.1.3 | GUI-like text editor | GPLv3 |*||*||
 | [Tiny C Compiler](https://bellard.org/tcc/)§ | `tcc` | `e5eedc0` | C compiler | LGPLv2.1 |*|**\***||*|
 | [tmux](https://github.com/tmux/tmux) | `tmux` | 3.7b | Terminal multiplexer | ISC |*|**\***|*|*|
@@ -125,10 +126,11 @@ addgroup, adduser, chgrp, chown, chpasswd, chroot, cryptpw, delgroup, deluser, f
 | [Vim](https://www.vim.org/)† | `ex`, `view`, `rvim`, `rview`, `vim`, `vimdiff`, `vimtutor`, `xxd`\* | 9.2 | Vi IMproved text editor | Vim |*||*||
 | [x3270](https://github.com/pmattes/x3270)† | `c3270` | 4.5ga5 | 3270 terminal emulator | BSD 3-Clause |*||||
 
-* \* _This replaces a BusyBox version of the same utility_
-* _† Their inclusion is experimental - expect bugs_
+* _\* Replaces a BusyBox version of the same utility_
+* _† Inclusion is experimental - expect bugs_
 * _‡ GCC and GNU Binutils are separate projects but are bundled together as one complete toolchain_
-* _§ These include musl for their libc_
+* _§ Includes musl for their libc_
+* _‖ Only included with multi-user configurations_
 
 #### Libraries & prerequisites
 
@@ -357,7 +359,7 @@ Allows you to specify an IBM scancode set for SHORK 486 to request. For most AT 
 
 #### Multi-User Support
 
-Selecting "Yes" here will enable multi-user and password-protected user support in SHORK 486. BusyBox will include implementations for the `addgroup`, `adduser`, `chgrp`, `chown`, `chpasswd`, `chroot`, `cryptpw`, `delgroup`, `deluser`, `getty`, `id`, `login`, `logname`, `mkpasswd`, `passwd`, `su`, `sulogin`, `users`, `w` and `who` commands. You will be asked to input a root password in the following prompt.
+Selecting "Yes" here will enable multi-user and password-protected user support in SHORK 486. BusyBox will include implementations for the `addgroup`, `adduser`, `chgrp`, `chown`, `chpasswd`, `chroot`, `cryptpw`, `delgroup`, `deluser`, `getty`, `id`, `login`, `logname`, `mkpasswd`, `passwd`, `su`, `sulogin`, `users`, `w` and `who` commands, and the sudo package (`sudo`, `sudoedit` and `visudo`) will be included. You will be asked to input a root password in the following prompt.
 
 
 
