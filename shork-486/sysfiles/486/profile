@@ -1,11 +1,12 @@
 ######################################################
 ## /etc/profile                                     ##
 ######################################################
-## System-wide shell profile defining core          ##
-## environment variables, prompt settings, and a    ##
-## helper function for the shorkset utility         ##
+## System-wide shell profile: core environment      ##
+## vars, prompt settings, the swap wrap OOM-        ##
+## protection feature, SHORKSET helper and first-   ##
+## boot welcome tip.                                ##
 ######################################################
-## Kali (sharktastica.co.uk)                        ##
+## Kali (links.sharktastica.co.uk)                  ##
 ######################################################
 
 
@@ -69,6 +70,18 @@ _swap_wrap()
         esac
     done
 
+    # If not root, we need to determine if we have sudo so regular users can
+    # swap wrap
+    local SUDO_BIN=""
+    if [ "$(id -u)" != "0" ]; then
+        if [ -x /usr/bin/sudo ]; then
+            SUDO_BIN="sudo -n /bin/busybox"
+        else
+            "$BIN_PATH" "$@"
+            return $?
+        fi
+    fi
+
     local SWAP_DIR="/var/tmp"
     local SWAP_PATH="${SWAP_DIR}/.$(basename "$BIN_PATH")_ramswap.$$"
     local SWAP_MIN=$((8 * 1024 * 1024))
@@ -102,20 +115,22 @@ _swap_wrap()
     [ "$TARGET_MB" -lt 1 ] && TARGET_MB=1
 
     local SWAP_OK=0
-    mkdir -p "${SWAP_DIR}"
-    if fallocate -l "${TARGET_MB}M" "$SWAP_PATH" 2>/dev/null \
-        && chmod 600 "$SWAP_PATH" \
-        && mkswap "$SWAP_PATH" >/dev/null 2>&1 \
-        && swapon "$SWAP_PATH" 2>/dev/null; then
+    if [ ! -d "${SWAP_DIR}" ]; then
+        $SUDO_BIN mkdir -p "${SWAP_DIR}"
+    fi
+    if $SUDO_BIN fallocate -l "${TARGET_MB}M" "$SWAP_PATH" 2>/dev/null \
+        && $SUDO_BIN chmod 600 "$SWAP_PATH" \
+        && $SUDO_BIN mkswap "$SWAP_PATH" >/dev/null 2>&1 \
+        && $SUDO_BIN swapon "$SWAP_PATH" 2>/dev/null; then
         SWAP_OK=1
     fi
 
     _swap_cleanup()
     {
         if [ "$SWAP_OK" = "1" ]; then
-            swapoff "$SWAP_PATH" 2>/dev/null
+            $SUDO_BIN swapoff "$SWAP_PATH" 2>/dev/null
         fi
-        rm -f "$SWAP_PATH"
+        $SUDO_BIN rm -f "$SWAP_PATH"
         trap - EXIT INT TERM
     }
     trap _swap_cleanup EXIT INT TERM
@@ -129,7 +144,7 @@ _swap_wrap()
 
 
 
-# Show welcome tip (if first boot marker does not exist)
+# Show first-boot welcome tip
 if [ ! -f /etc/.past_first_boot ] && [ "$(tty)" = "/dev/tty1" ]; then
     TERM_WIDTH=$(stty size 2>/dev/null | cut -d' ' -f2)
 

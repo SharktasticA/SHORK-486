@@ -1,0 +1,20 @@
+######################################################
+## /etc/sudoers.d/swap_wrap                         ##
+######################################################
+## Backs _swap_wrap() in /etc/profile, letting any  ##
+## user use the swap wrap feature without a         ##
+## password.                                        ##
+######################################################
+## Kali (links.sharktastica.co.uk)                  ##
+######################################################
+
+
+
+Cmnd_Alias SWAPWRAP = /bin/busybox mkdir -p /var/tmp, \
+                      /bin/busybox fallocate -l * /var/tmp/.*_ramswap.*, \
+                      /bin/busybox chmod 600 /var/tmp/.*_ramswap.*, \
+                      /bin/busybox mkswap /var/tmp/.*_ramswap.*, \
+                      /bin/busybox swapon /var/tmp/.*_ramswap.*, \
+                      /bin/busybox swapoff /var/tmp/.*_ramswap.*, \
+                      /bin/busybox rm -f /var/tmp/.*_ramswap.*
+ALL ALL=(root) NOPASSWD: SWAPWRAP

@@ -108,6 +108,7 @@ ENABLE_SATA=false
 ENABLE_SCSI_EXP=false
 ENABLE_SOUND=false
 ENABLE_SMP=false
+ENABLE_SWAP_WRAP=false
 ENABLE_USB=false
 ENABLE_ZSWAP=false
 
@@ -224,6 +225,7 @@ save_env()
         echo "ENABLE_SCSI_EXP=$ENABLE_SCSI_EXP"
         echo "ENABLE_SOUND=$ENABLE_SOUND"
         echo "ENABLE_SMP=$ENABLE_SMP"
+        echo "ENABLE_SWAP_WRAP=$ENABLE_SWAP_WRAP"
         echo "ENABLE_USB=$ENABLE_USB"
         echo "ENABLE_ZSWAP=$ENABLE_ZSWAP"
     } > .env
@@ -309,6 +311,7 @@ set_mini_vars()
     ENABLE_SCSI_EXP=false
     ENABLE_SOUND=false
     ENABLE_SMP=false
+    ENABLE_SWAP_WRAP=false
     ENABLE_USB=false
     ENABLE_ZSWAP=false
 }
@@ -349,6 +352,7 @@ set_default_vars()
     INCLUDE_PCI_IDS=true
     ENABLE_PCMCIA=true
     ENABLE_SCSI_EXP=true
+    ENABLE_SWAP_WRAP=true
     ENABLE_ZSWAP=true
 }
 
@@ -382,6 +386,7 @@ set_writer_vars()
     INCLUDE_KEYMAPS=true
     ENABLE_MENU=true
     INCLUDE_PCI_IDS=true
+    ENABLE_SWAP_WRAP=true
     ENABLE_ZSWAP=true
 }
 
@@ -417,6 +422,7 @@ set_max_vars()
 set_custom_vars()
 {
     INCLUDE_KEYMAPS=true
+    ENABLE_SWAP_WRAP=true
 }
 
 set_disc_vars()

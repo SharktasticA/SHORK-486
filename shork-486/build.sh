@@ -6904,6 +6904,9 @@ build_filesystem()
             echo -e "${GREEN}Copying sudo configuration...${RESET}"
             copy_sysfile $CURR_DIR/sysfiles/sudoers $DESTDIR/etc/sudoers
             copy_sysfile $CURR_DIR/sysfiles/sudo.conf $DESTDIR/etc/sudo.conf
+            if $ENABLE_SWAP_WRAP; then
+                copy_sysfile $CURR_DIR/sysfiles/swap_wrap $DESTDIR/etc/sudoers.d/swap_wrap
+            fi
         fi
     else
         if [ "$ID" == "shork-486" ]; then
