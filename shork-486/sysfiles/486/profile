@@ -30,7 +30,17 @@ export PATH
 # saved and applied immediately
 shorkset()
 {
-    /usr/libexec/shorkset "$@" || return
+    # Only proceed if user is root
+    if [ "$(id -u)" -ne 0 ]; then
+        if which sudo >/dev/null 2>&1; then
+            sudo /usr/libexec/shorkset "$@" || return
+        else
+            printf "SHORKSET must be ran whilst logged in as root, via \033[0;1;31msu\033[0m, or with \033[0;1;31msudo\033[0m\n" >&2
+            return
+        fi
+    else
+        /usr/libexec/shorkset "$@" || return
+    fi
     sync
     exit
 }
