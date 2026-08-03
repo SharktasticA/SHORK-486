@@ -8363,7 +8363,7 @@ get_installed_progs_feats()
             EXCLUDED_FEATURES+="\n * lsattr (e2fsprogs)"
         fi
 
-        if [ -f "$DESTDIR/usr/bin/uuidgen" ]; then
+        if $INCLUDE_E2FSPROGS && [ -f "$DESTDIR/usr/bin/uuidgen" ]; then
             INCLUDED_FEATURES+="\n * uuidgen (e2fsprogs, $E2FSPROGS_VER)"
         else
             EXCLUDED_FEATURES+="\n * uuidgen (e2fsprogs)"
@@ -8883,7 +8883,7 @@ if $INCLUDE_E2FSPROGS; then
         false \
         false \
         "/usr" \
-        ""
+        "--disable-fuse2fs"
 fi
 if $INCLUDE_EMACS; then
     get_prog_tar \
