@@ -429,6 +429,8 @@ set_disc_vars()
 {
     set_mini_vars
     ENABLE_CDROM=true
+    INCLUDE_DOSFSTOOLS=true
+    INCLUDE_E2FSPROGS=true
     INCLUDE_FILE=true
     INCLUDE_SHORKTAINMENT=true
     INCLUDE_STRACE=true
