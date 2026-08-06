@@ -113,7 +113,7 @@ BUSYBOX_SRC="https://busybox.net/downloads"
 BUSYBOX_VER="1.38.0"
 
 SHORKFETCH_SRC="https://github.com/SharktasticA/shorkfetch.git"
-SHORKFETCH_VER="0.4.4"
+SHORKFETCH_VER="0.5.0"
 SHORKMINES_SRC="https://github.com/SharktasticA/shorkmines.git"
 
 C3270_SRC="https://github.com/pmattes/x3270.git"
@@ -5892,9 +5892,9 @@ get_shorkfetch()
     echo -e "${GREEN}Compiling shorkfetch...${RESET}"
     make clean
     if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
-        make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+        make X86_ONLY=1 -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
     elif [ "$ID" == "shork-diskette" ]; then
-        make EMBEDDED=1 -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+        make NO_STR_CLEANING=1 X86_ONLY=1 -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
     fi
     sudo make DESTDIR=$DESTDIR install
 }
