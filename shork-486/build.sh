@@ -112,6 +112,7 @@ LINUX_VER="7.1.7"
 BUSYBOX_SRC="https://busybox.net/downloads"
 BUSYBOX_VER="1.38.0"
 
+SHORKBIN_SRC="https://github.com/SharktasticA/shorkbin.git"
 SHORKFETCH_SRC="https://github.com/SharktasticA/shorkfetch.git"
 SHORKFETCH_VER="0.5.0"
 SHORKMINES_SRC="https://github.com/SharktasticA/shorkmines.git"
@@ -5838,6 +5839,35 @@ get_shorkcommon_sh()
     sudo cp shorkcommon.sh $DESTDIR/usr/bin/shorkcommon.sh
 }
 
+# Download and compile shorkbin
+get_shorkbin()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ "$SHORKUTILS_RECLONE" != "true" ] && [ -f "$DESTDIR/usr/bin/shorkbin" ]; then
+        echo -e "${LIGHT_RED}shorkbin already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Delete if present
+    if [ -d shorkbin ]; then
+        echo -e "${YELLOW}shorkbin source already present, recloning...${RESET}"
+        sudo rm -r shorkbin
+    fi
+
+    # Download source
+    echo -e "${GREEN}Downloading shorkbin...${RESET}"
+    git clone $SHORKBIN_SRC
+    cd shorkbin
+
+    # Compile and install
+    echo -e "${GREEN}Compiling shorkbin...${RESET}"
+    make clean
+    make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+    sudo make DESTDIR=$DESTDIR install
+}
+
 # Download and compile shorkdir
 get_shorkdir()
 {
@@ -8023,7 +8053,13 @@ get_installed_progs_feats()
     fi
 
     # SHORK Utilities
-    if [ "$ID" != "shork-diskette" ]; then
+    if [ "$ID" == "shork-486" ]; then
+        if [ -f "$DESTDIR/usr/bin/shorkbin" ]; then
+            INCLUDED_FEATURES+="\n * shorkbin"
+        else
+            EXCLUDED_FEATURES+="\n * shorkbin"
+        fi
+
         if [ -f "$DESTDIR/usr/bin/shorkdir" ]; then
             INCLUDED_FEATURES+="\n * shorkdir"
         else
@@ -9185,11 +9221,10 @@ fi
 
 get_shorkhelp
 get_shorkfetch
-if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
-    get_shorkdir
-fi
 if [ "$ID" == "shork-486" ]; then
     get_shorkcommon_sh
+    get_shorkbin
+    get_shorkdir
     get_shorkoff
     get_shorkset
 fi

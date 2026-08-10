@@ -152,7 +152,7 @@ addgroup, adduser, chgrp, chown, chpasswd, chroot, cryptpw, delgroup, deluser, f
 | [zlib](https://github.com/madler/zlib) | 1.3.2 | Git, libzip | zlib |
 
 ### SHORK Utilities (shorkutils)
-
+* **[shorkbin](https://github.com/SharktasticA/shorkbin)** - An ASCII text/8-bit binary converter. Available as `bin2text`, `shorkbin` and `text2bin`.
 * **[shorkdir](https://github.com/SharktasticA/shorkdir)** - Lightweight terminal-based file browser.
 * **[shorkfetch](https://github.com/SharktasticA/shorkfetch)** - Displays basic system and environment information. Similar to fastfetch, neofetch, etc.
 * **[shorkhelp](https://github.com/SharktasticA/shorkhelp)** - Informs of SHORK 486's capabilities and provides guidance.
