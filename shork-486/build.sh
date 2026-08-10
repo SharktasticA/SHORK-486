@@ -7037,7 +7037,7 @@ set_filesystem_perms()
             "$DESTDIR/etc/os-release|root:root|0644|f"
             "$DESTDIR/etc/passwd|root:root|0644|f"
             "$DESTDIR/etc/profile|root:root|0644|f"
-            "$DESTDIR/etc/shadow|root:shadow|0640|f"
+            "$DESTDIR/etc/shadow|root:42|0640|f"
             "$DESTDIR/etc/shorkset.conf|root:root|0644|f"
             "$DESTDIR/etc/sudo.conf|root:root|0644|f"
             "$DESTDIR/etc/sudo_logsrvd.conf|root:root|0644|f"
