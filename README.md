@@ -78,11 +78,11 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 
 #### Base
 
-    ar, arch, ascii, ash, awk, base32, base64, basename, bc, beep, blkid, bunzip2, bzcat, bzip2, cal, cat, cksum, chmod, chvt, clear, comm, cp, cpio, crc32, crontab, cut, date, dc, dd, df, diff, dirname, dmesg, dos2unix, du, echo, ed, egrep, eject, env, expand, expr, factor, fallocate, false, fdflush, fdformat, fdisk, fgrep, find, fold, free, fuser, getfattr, getopt, grep, gunzip, gzip, halt, head, hexdump, hexedit, hostid, hostname, hwclock, init, install, iostat, kill, killall, less, link, ln, loadkmap, ls, lsblk, lscpu, lsof, lspci, lsscsi, lzcat, lzma, lzop, lzopcat, man, mdev, md5sum, mkdir, mkdosfs/mkfs.vfat, mke2fs/mkfs.ext2, mkfifo, mknod, mktemp, mkswap, more, mount, mountpoint, mv, nice, nl, nohup, nproc, od, partprobe, paste, patch, pgrep, pidof, pkill, pmap, printenv, printf, ps, pstree, pwd, pwdx, readlink, realpath, rev, rm, rmdir, sed, seq, setfattr, setfont, sha1sum, sha256sum, sha384sum, sha3sum, sha512sum, shred, showkey, shuf, sleep, sort, split, stat, strings, stty, sum, swapoff, swapon, sync, tac, tail, tar, taskset, tee, test, time, timeout, top, touch, tr, tree, true, truncate, tsort, tty, umount, uname, uncompress, unexpand, uniq, unix2dos, unlink, unlzma, unlzop, unxz, unzip, uptime, usleep, uuidgen, vi, vmstat, volname, watch, wc, which, whoami, xargs, xxd, xz, xzcat, yes, zcat
+<p><code>ar, arch, ascii, ash, awk, base32, base64, basename, bc, beep, blkid, bunzip2, bzcat, bzip2, cal, cat, cksum, chmod, chvt, clear, comm, cp, cpio, crc32, crontab, cut, date, dc, dd, df, diff, dirname, dmesg, dos2unix, du, echo, ed, egrep, eject, env, expand, expr, factor, fallocate, false, fdflush, fdformat, fdisk, fgrep, find, fold, free, fuser, getfattr, getopt, grep, gunzip, gzip, halt, head, hexdump, hexedit, hostid, hostname, hwclock, init, install, iostat, kill, killall, less, link, ln, loadkmap, ls, lsblk, lscpu, lsof, lspci, lsscsi, lzcat, lzma, lzop, lzopcat, man, mdev, md5sum, mkdir, mkdosfs/mkfs.vfat, mke2fs/mkfs.ext2, mkfifo, mknod, mktemp, mkswap, more, mount, mountpoint, mv, nice, nl, nohup, nproc, od, partprobe, paste, patch, pgrep, pidof, pkill, pmap, printenv, printf, ps, pstree, pwd, pwdx, readlink, realpath, rev, rm, rmdir, sed, seq, setfattr, setfont, sha1sum, sha256sum, sha384sum, sha3sum, sha512sum, shred, showkey, shuf, sleep, sort, split, stat, strings, stty, sum, swapoff, swapon, sync, tac, tail, tar, taskset, tee, test, time, timeout, top, touch, tr, tree, true, truncate, tsort, tty, umount, uname, uncompress, unexpand, uniq, unix2dos, unlink, unlzma, unlzop, unxz, unzip, uptime, usleep, uuidgen, vi, vmstat, volname, watch, wc, which, whoami, xargs, xxd, xz, xzcat, yes, zcat</code></p>
 
 #### Edition/option-dependent
 
-    addgroup, adduser, chgrp, chown, chpasswd, chroot, cryptpw, delgroup, deluser, ftpget, ftpput, getty, id, ifconfig, ip, login, logname, losetup, lsusb, mkpasswd, nc, netcat, passwd, ping, route, su, sulogin, telnet, traceroute, udhcpc, users, w, wget, who, whois
+<p><code>addgroup, adduser, chgrp, chown, chpasswd, chroot, cryptpw, delgroup, deluser, ftpget, ftpput, getty, id, ifconfig, ip, login, logname, losetup, lsusb, mkpasswd, nc, netcat, passwd, ping, route, su, sulogin, telnet, traceroute, udhcpc, users, w, wget, who, whois</code></p>
 
 ### Bundled software
 
@@ -220,7 +220,7 @@ SHORK DISC is a specialised version of the SHORK 486 Operating System that can b
 
 ### BusyBox
 
-    ar, ash, awk, basename, bunzip2, bzcat, bzip2, cat, clear, cp, cpio, date, dd, df, diff, dirname, dmesg, echo, ed, eject, expr, fdformat, fdisk, free, grep, gunzip, gzip, hexdump, hostname, init, less, ln, ls, lsblk, lscpu, lzcat, lzma, lzop, lzopcat, mdev, mkdir, mount, mv, patch, printenv, printf, pwd, rev, rm, sed, sync, tar, tee, test, touch, true, umount, uname, uncompress, unlzma, unlzop, unxz, unzip, vi, which, xxd, xz, xzcat, zcat
+<p><code>ar, ash, awk, basename, bunzip2, bzcat, bzip2, cat, clear, cp, cpio, date, dd, df, diff, dirname, dmesg, echo, ed, eject, expr, fdformat, fdisk, free, grep, gunzip, gzip, hexdump, hostname, init, less, ln, ls, lsblk, lscpu, lzcat, lzma, lzop, lzopcat, mdev, mkdir, mount, mv, patch, printenv, printf, pwd, rev, rm, sed, sync, tar, tee, test, touch, true, umount, uname, uncompress, unlzma, unlzop, unxz, unzip, vi, which, xxd, xz, xzcat, zcat</code></p>
 
 ### Bundled software
 
@@ -268,7 +268,7 @@ SHORK DISKETTE is a specialised version of the SHORK 486 Operating System that i
 
 ### BusyBox
 
-    ash, awk, basename, cat, clear, cp, date, dd, df, echo, expr, free, grep, hostname, init, less, ln, ls, lsblk, mdev, mkdir, mount, mv, printenv, printf, pwd, rev, rm, sed, sync, tee, test, touch, true, umount, uname, vi, which
+<p><code>ash, awk, basename, cat, clear, cp, date, dd, df, echo, expr, free, grep, hostname, init, less, ln, ls, lsblk, mdev, mkdir, mount, mv, printenv, printf, pwd, rev, rm, sed, sync, tee, test, touch, true, umount, uname, vi, which</code></p>
 
 ### SHORK Utilities (shorkutils)
 
