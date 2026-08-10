@@ -7884,6 +7884,7 @@ get_included_busybox_commands()
     check_bb_config "CONFIG_PIDOF" ""
     check_bb_config "CONFIG_PWDX" ""
     check_bb_config "CONFIG_WATCH" ""
+    check_bb_config "CONFIG_NC" ""
     check_bb_config "CONFIG_NETCAT" ""
 
     readarray -t INCLUDED_BB_CMDS < <(printf '%s\n' "${INCLUDED_BB_CMDS[@]}" | sort)
