@@ -7887,6 +7887,10 @@ get_included_busybox_commands()
     check_bb_config "CONFIG_NC" ""
     check_bb_config "CONFIG_NETCAT" ""
 
+    # Added 2026-08-14
+    check_bb_config "CONFIG_UUDECODE" ""
+    check_bb_config "CONFIG_UUENCODE" ""
+
     readarray -t INCLUDED_BB_CMDS < <(printf '%s\n' "${INCLUDED_BB_CMDS[@]}" | sort)
     readarray -t EXCLUDED_BB_CMDS < <(printf '%s\n' "${EXCLUDED_BB_CMDS[@]}" | sort)
 }
