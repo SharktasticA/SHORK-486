@@ -2592,7 +2592,7 @@ download_kernel()
     echo -e "${GREEN}Downloading the Linux kernel...${RESET}"
 
     local LINUX_SRC="$LINUX_STABLE_SRC"
-    if [[ "$USE_TORVALDS" = true || "$LINUX_VER" == *-rc* ]]; then
+    if [[ "$USE_TORVALDS" = true || "$LINUX_VER" == *-rc* || "$LINUX_VER" == "7.2" ]]; then
         LINUX_SRC="$LINUX_TORVALDS_SRC"
     fi
 
