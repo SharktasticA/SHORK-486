@@ -142,6 +142,13 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [libid3tag](https://github.com/markjeee/libid3tag) | 0.15.1b | mpg321 | GNU GPLv2 |
 | [libmad](https://github.com/markjeee/libmad) | 0.15.1b | mpg321 | GNU GPLv2 |
 | libss | 1.47.4 | e2fsprogs | MIT SIPB |
+| [libt3config](https://os.ghalkes.nl/t3/libt3config.html) | 1.0.0 | Tilde | GNU GPLv3 |
+| [libt3highlight](https://os.ghalkes.nl/t3/libt3highlight.html) | 0.5.0 | Tilde | GNU GPLv3 |
+| [libt3key](https://os.ghalkes.nl/t3/libt3key.html) | 0.2.11 | Tilde | GNU GPLv3 |
+| [libt3widget](https://os.ghalkes.nl/t3/libt3widget.html) | 1.2.2 | Tilde | GNU GPLv3 |
+| [libt3window](https://os.ghalkes.nl/t3/libt3window.html) | 0.4.2 | Tilde | GNU GPLv3 |
+| [libtranscript](https://os.ghalkes.nl/libtranscript.html) | 0.3.4 | Tilde | GNU GPLv3 |
+| [libunistring](https://ftp.gnu.org/gnu/libunistring/) | 1.4.2 | Tilde | GNU GPLv3 |
 | libuuid | 1.47.4 | e2fsprogs | BSD 3-Clause |
 | [libxlsxwriter](https://github.com/jmcnamara/libxlsxwriter) | 1.2.4 | sc-im | BSD 2-Clause |
 | [libxml2](https://github.com/gnome/libxml2) | 2.15.3 | sc-im, Universal Ctags | MIT |
@@ -149,6 +156,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [musl](somethhttps://musl.libc.org/) | 1.2.6 | GCC, Tiny C Compiler | MIT |
 | [ncurses](https://github.com/mirror/ncurses) | 6.4 | htop, Lynx, nano, sc-im, tic, tmux, tn5250, util-linux, x3270 | MIT |
 | [OpenSSL](https://github.com/openssl/openssl) | 3.6.3 | curl, Git, Lynx, tn5250 | Apache 2.0 |
+| [PCRE2](https://pcre2project.github.io/pcre2/) | 10.47 | Tilde | BSD 3-Clause w/ PCRE2 exception |
 | [zlib](https://github.com/madler/zlib) | 1.3.2 | Git, libzip | zlib |
 
 ### SHORK Utilities (shorkutils)
