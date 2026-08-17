@@ -118,21 +118,21 @@ SHORKFETCH_VER="0.5.0"
 SHORKMINES_SRC="https://github.com/SharktasticA/shorkmines.git"
 
 C3270_SRC="https://github.com/pmattes/x3270.git"
-C3270_VER="4.5ga5"
+C3270_VER="4.5ga6"
 CSCOPE_SRC="https://git.code.sf.net/p/cscope/cscope cscope-cscope"
 CSCOPE_VER="15.9"
 CTAGS_SRC="https://github.com/universal-ctags/ctags.git"
-CTAGS_VER="p6.2.20260705.0"
+CTAGS_VER="p6.2.20260816.0"
 CURL_SRC="https://curl.se/download"
 CURL_VER="8.21.0"
 BINUTILS_SRC="https://ftp.gnu.org/gnu/binutils"
 BINUTILS_VER="2.47"
 DIALOG_SRC="https://invisible-mirror.net/archives/dialog"
-DIALOG_VER="1.3-20260107"
+DIALOG_VER="1.3-20260721"
 DOSFSTOOLS_SRC="https://github.com/dosfstools/dosfstools.git"
 DOSFSTOOLS_VER="4.2"
 DROPBEAR_SRC="https://github.com/mkj/dropbear.git"
-DROPBEAR_VER="2026.92"
+DROPBEAR_VER="2026.94"
 E2FSPROGS_SRC="https://mirrors.edge.kernel.org/pub/linux/kernel/people/tytso/e2fsprogs"
 E2FSPROGS_VER="1.47.4"
 EMACS_SRC="https://ftp.gnu.org/gnu/emacs"
@@ -147,7 +147,7 @@ GIT_VER="2.55.0"
 GLIBC_SRC="https://ftp.gnu.org/gnu/glibc"
 GLIBC_VER="2.44"
 HTOP_SRC="https://github.com/htop-dev/htop.git"
-HTOP_VER="3.5.1"
+HTOP_VER="3.5.3"
 HWINFO_SRC="https://github.com/opensuse/hwinfo.git"
 HWINFO_VER="25.4"
 INDENT_SRC="https://ftp.gnu.org/gnu/indent"
@@ -180,7 +180,7 @@ LIBXML2_VER="2.15.3"
 LIBZIP_SRC="https://github.com/nih-at/libzip.git"
 LIBZIP_VER="1.11.4"
 LUA_SRC="https://github.com/lua/lua"
-LUA_VER="5.5.0"
+LUA_VER="5.5.1"
 LYNX_SRC="https://github.com/ThomasDickey/lynx-snapshots.git"
 LYNX_VER="2-9-3a"
 MAKE_SRC="https://ftp.gnu.org/gnu/make"
@@ -199,13 +199,11 @@ MUSL_SRC="https://musl.libc.org/releases"
 MUSL_VER="1.2.6"
 NANO_SRC="https://www.nano-editor.org/dist"
 NANO_DIST="v9"
-NANO_VER="9.1"
+NANO_VER="9.2"
 NASM_SRC="https://github.com/netwide-assembler/nasm.git"
 NASM_VER="3.02"
 NCURSES_SRC="https://github.com/mirror/ncurses.git"
 NCURSES_VER="6.4"
-NEDIT_SRC="https://git.code.sf.net/p/nedit/git"
-NEDIT_VER="NEDIT-CLASSIC-END"
 OPENSSL_SRC="https://github.com/openssl/openssl.git"
 OPENSSL_VER="3.6.3"
 PCRE2_SRC="https://github.com/PCRE2Project/pcre2/releases/download"
@@ -2140,18 +2138,18 @@ get_openssl()
     make install_sw
 }
 
-# Download and compile pcre2 (required for T3* stack)
+# Download and compile PCRE2 (required for T3* stack)
 get_pcre2()
 {
     cd "$CURR_DIR/build"
 
     # Skip if already compiled
     if [ -f "$SYSROOT/usr/include/pcre2.h" ]; then
-        echo -e "${LIGHT_RED}pcre2 already compiled, skipping...${RESET}"
+        echo -e "${LIGHT_RED}PCRE2 already compiled, skipping...${RESET}"
         return
     fi
 
-    echo -e "${GREEN}Downloading pcre2...${RESET}"
+    echo -e "${GREEN}Downloading PCRE2...${RESET}"
     DIR="pcre2-${PCRE2_VER}"
     ARC="${DIR}.tar.gz"
     URI="${PCRE2_SRC}/${DIR}/${ARC}"
@@ -2161,14 +2159,14 @@ get_pcre2()
 
     # Extract source
     if [ -d $DIR ]; then
-        echo -e "${YELLOW}pcre2's source archive is already present, re-extracting before proceeding...${RESET}"
+        echo -e "${YELLOW}PCRE2's source archive is already present, re-extracting before proceeding...${RESET}"
         rm -rf $DIR
     fi
     tar xf $ARC
     cd $DIR
 
     # Compile and install
-    echo -e "${GREEN}Compiling pcre2...${RESET}"
+    echo -e "${GREEN}Compiling PCRE2...${RESET}"
     ./configure \
         --host=${ARCH}-linux-musl \
         --prefix=/usr \

@@ -93,9 +93,9 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 |------|------------|---------|---------|------------|-|-|-|-|
 | [Cscope](https://cscope.sourceforge.net/) | `cscope` | 15.9 | C/C++ code browser | BSD 3-Clause |*||||
 | [cURL](https://curl.se/) | `curl` | 8.21.0 | HTTP client & transfer utility | MIT |*||||
-| [dialog](https://invisible-mirror.net/dialog/dialog.html) | `dialog` | 1.3 | Shell script TUI widgets | LGPLv2.1 |*|**\***||*|
+| [dialog](https://invisible-mirror.net/dialog/dialog.html) | `dialog` | 1.3-20260721 | Shell script TUI widgets | LGPLv2.1 |*|**\***||*|
 | [dosfstools](https://github.com/dosfstools/dosfstools/) | e.g. `dosfsck`, `mkdosfs`\* | 4.2 | FAT family filesystem utilities | GPLv3 |*|**\***||*|
-| [Dropbear](https://github.com/mkj/dropbear) | `scp`, `ssh` | 2026.92 | SCP and SSH clients | MIT + BSD 2-Clause |*|**\***|||
+| [Dropbear](https://github.com/mkj/dropbear) | `scp`, `ssh` | 2026.94 | SCP and SSH clients | MIT + BSD 2-Clause |*|**\***|||
 | [e2fsprogs](https://e2fsprogs.sourceforge.net/)| e.g. `blkid`\*, `fsck`, `mke2fs`\*, `resize2fs`, `tune2fs`, `uuidgen`\* | 1.47.4 | ext2/3/4 filesystem utilities | GPLv2 + LGPLv2 |*|**\***||*|
 | [file](https://github.com/file/file)| `file` | 5_48 | File identification | BSD 2-Clause |*|**\***||*|
 | [GCC](https://musl.cc/)‡§ | `gcc`, `g++`, `gfortran` | 11.2.1 | C, C++ and Fortran compilers | GPLv3 + GCC RLE |*||||
@@ -103,10 +103,10 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [GNU Binutils](https://musl.cc/)‡ | e.g. `ar`\*, `as`, `gprof`, `ld`, `nm`, `objdump`, `ranlib`,`readelf`, `strings`\*, `strip` | 2.37 | Binary tools to compliment GCC | GPLv3 |*||||
 | [GNU Indent](https://www.gnu.org/software/indent/) | `indent` | 2.2.13 | C code formatter | GPLv3 |*||||
 | [GNU Make](https://www.gnu.org/software/make/) | `make` | 4.4.1 | Build automation tool | GPLv3 |*||||
-| [GNU nano](https://www.nano-editor.org/) | `nano` | 9.1 | Pico-style text editor | GPLv3 |*|**\***|*|*|
-| [htop](https://github.com/htop-dev/htop) | `htop` | 3.5.1 | Interactive process viewer | GPLv2 |*|**\***|*|*|
+| [GNU nano](https://www.nano-editor.org/) | `nano` | 9.2 | Pico-style text editor | GPLv3 |*|**\***|*|*|
+| [htop](https://github.com/htop-dev/htop) | `htop` | 3.5.3 | Interactive process viewer | GPLv2 |*|**\***|*|*|
 | [Joe's Own Editor](https://github.com/joe-editor/joe) | `joe` | 4.8 | WordStar & Emacs-blend text editor | GPLv2 |*||*||
-| [Lua](https://www.lua.org/) | `lua` | 5.5.0 | Embedded scripting & extensions language | MIT |*|**\***||*|
+| [Lua](https://www.lua.org/) | `lua` | 5.5.1 | Embedded scripting & extensions language | MIT |*|**\***||*|
 | [Lynx](https://github.com/ThomasDickey/lynx-snapshots) | `lynx` | 2-9-3a | Terminal web browser | GPLv2 |*|**\***|||
 | [Mg](https://github.com/troglobit/mg) | `mg` | 4.0 | Emacs-style text editor | Unlicense |*|**\***|*|*|
 | [MicroPython](https://github.com/micropython/micropython) | `micropython` | 1.28.0 | Python 3.4-syntax intepreter | MIT |*|**\***||*|
@@ -116,15 +116,15 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [sc-im](https://github.com/andmarti1424/sc-im) | `sc-im` | 0.8.5 | Terminal spreadsheet editor | BSD 4-Clause |*|**\***|*|*|
 | [strace](https://github.com/strace/strace) | `strace` | 7.1 | System calls & signals tracer | LGPLv2.1 |*|**\***||*|
 | [sudo](https://www.sudo.ws/)‖ | `sudo`, `sudoedit`, `visudo` | 1.9.17p2 | Run command as root/substitute user | ISC + BSD 2-Clause + BSD 3-Clause + zlib |*|**\***|*|*|
-| [Tilde](https://os.ghalkes.nl/tilde/) | `tilde` | 1.1.3 | GUI-like text editor | GPLv3 |*||*||
+| [Tilde](https://os.ghalkes.nl/tilde/) | `tilde` | 1.1.3 | GUI-like text editor | c |*||*||
 | [Tiny C Compiler](https://bellard.org/tcc/)§ | `tcc` | `e5eedc0` | C compiler | LGPLv2.1 |*|**\***||*|
 | [tmux](https://github.com/tmux/tmux) | `tmux` | 3.7b | Terminal multiplexer | ISC |*|**\***|*|*|
 | [tn5250](https://github.com/tn5250/tn5250)† | `tn5250` | 0.18.0 | TCP/IP 5250 terminal emulator | LGPLv2.1 |*||||
 | [tnftp](https://ftp.netbsd.org/pub/NetBSD/misc/tnftp/) | `ftp` | 20260211 | FTP client | BSD 2-Clause |*|**\***|||
-| [Universal Ctags](https://ctags.io/) | `ctags`, `readtags` | 6.2.0 | Source code object indexing | GPLv2 |*||||
+| [Universal Ctags](https://ctags.io/) | `ctags`, `readtags` | 6.2.20260816.0 | Source code object indexing | GPLv2 |*||||
 | [util-linux](https://github.com/util-linux/util-linux) | `cfdisk`, `fdisk`\*, `lscpu`, `partx`, `sfdisk`, `whereis` | 2.42.2 | Extra Linux utilities | GPLv2 |*|**\***||*|
-| [Vim](https://www.vim.org/)† | `ex`, `view`, `rvim`, `rview`, `vim`, `vimdiff`, `vimtutor`, `xxd`\* | 9.2 | Vi IMproved text editor | Vim |*||*||
-| [x3270](https://github.com/pmattes/x3270)† | `c3270` | 4.5ga5 | 3270 terminal emulator | BSD 3-Clause |*||||
+| [Vim](https://www.vim.org/)† | `ex`, `view`, `rvim`, `rview`, `vim`, `vimdiff`, `vimtutor`, `xxd`\* | 9.2.0785 | Vi IMproved text editor | Vim |*||*||
+| [x3270](https://github.com/pmattes/x3270)† | `c3270` | 4.5ga6 | 3270 terminal emulator | BSD 3-Clause |*||||
 
 * _\* Replaces a BusyBox version of the same utility_
 * _† Inclusion is experimental - expect bugs_
