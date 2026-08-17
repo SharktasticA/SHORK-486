@@ -122,7 +122,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [tn5250](https://github.com/tn5250/tn5250)† | `tn5250` | 0.18.0 | TCP/IP 5250 terminal emulator | LGPLv2.1 |*||||
 | [tnftp](https://ftp.netbsd.org/pub/NetBSD/misc/tnftp/) | `ftp` | 20260211 | FTP client | BSD 2-Clause |*|**\***|||
 | [Universal Ctags](https://ctags.io/) | `ctags`, `readtags` | 6.2.0 | Source code object indexing | GPLv2 |*||||
-| [util-linux](https://github.com/util-linux/util-linux) | `lscpu`, `partx`, `sfdisk`, `whereis` | 2.42.2 | Extra Linux utilities | GPLv2 |*|**\***||*|
+| [util-linux](https://github.com/util-linux/util-linux) | `cfdisk`, `fdisk`\*, `lscpu`, `partx`, `sfdisk`, `whereis` | 2.42.2 | Extra Linux utilities | GPLv2 |*|**\***||*|
 | [Vim](https://www.vim.org/)† | `ex`, `view`, `rvim`, `rview`, `vim`, `vimdiff`, `vimtutor`, `xxd`\* | 9.2 | Vi IMproved text editor | Vim |*||*||
 | [x3270](https://github.com/pmattes/x3270)† | `c3270` | 4.5ga5 | 3270 terminal emulator | BSD 3-Clause |*||||
 
@@ -183,7 +183,6 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 * BASIC interpreter (exact one TBD)
 * bison
 * cmake
-* cfdisk
 * flex
 * GDB
 * IRC client (exact one TBD)
@@ -230,7 +229,7 @@ SHORK DISC is a specialised version of the SHORK 486 Operating System that can b
 | [e2fsprogs](https://e2fsprogs.sourceforge.net/)| e.g. `blkid`, `fsck`, `mke2fs`, `resize2fs`, `tune2fs`, `uuidgen` | 1.47.4 | ext2/3/4 filesystem utilities | GPLv2 + LGPLv2 |
 | [file](https://github.com/file/file) | `file` | 5_48 | File identification | BSD 2-Clause |
 | [strace](https://github.com/strace/strace) | `strace` | 7.1 | System calls & signals tracer | LGPLv2.1 |
-| [util-linux](https://github.com/util-linux/util-linux) | `lscpu`, `partx`, `sfdisk`, `whereis` | 2.42.2 | Extra Linux utilities | GPLv2 |
+| [util-linux](https://github.com/util-linux/util-linux) | `cfdisk`, `fdisk`, `lscpu`, `partx`, `sfdisk`, `whereis` | 2.42.2 | Extra Linux utilities | GPLv2 |
 
 #### Libraries & prerequisites
 

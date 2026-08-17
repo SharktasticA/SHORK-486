@@ -257,6 +257,7 @@ SKIP_KRN=false
 TARGET_DISK=$DEFAULT_TARGET_DISK
 TARGET_SWAP=$DEFAULT_TARGET_SWAP
 TINY_KRN=false
+USE_TORVALDS=false
 
 ENABLE_CDROM=true
 ENABLE_EPOLL=false
@@ -368,6 +369,9 @@ while [ $# -gt 0 ]; do
         --tiny)
             TINY_KRN=true
             ;;
+        --use-torvalds)
+            USE_TORVALDS=true
+            ;;
     esac
     shift
 done
@@ -468,8 +472,8 @@ if [ "$FIX_EXTLINUX" = true ]; then
     USE_GRUB=false
 fi
 
-# Ensure FB_VBE is enabled with GUI
-if [ "$INCLUDE_GUI" = true ]; then
+# Ensure FB_VBE is enabled with GUI or UTIL_LINUX
+if [ "$INCLUDE_GUI" = true ] || [ "$INCLUDE_UTIL_LINUX" = true ]; then
     ENABLE_FB_VBE=true
 fi
 
@@ -2431,6 +2435,14 @@ get_busybox()
         disable_bb_feat "CONFIG_STRINGS"
     fi
 
+    if $INCLUDE_UTIL_LINUX; then
+        echo -e "${GREEN}Disabling BusyBox's fdisk implementation in favour of util-linux's...${RESET}"
+        disable_bb_feat "CONFIG_FDISK"
+        disable_bb_feat "CONFIG_FEATURE_FDISK_BLKSIZE"
+        disable_bb_feat "CONFIG_FEATURE_FDISK_WRITABLE"
+        disable_bb_feat "CONFIG_FEATURE_FDISK_ADVANCED"
+    fi
+
     if $INCLUDE_VIM; then
         echo -e "${GREEN}Disabling BusyBox's xxd implementation in favour of Vim's...${RESET}"
         disable_bb_feat "CONFIG_XXD"
@@ -2479,17 +2491,20 @@ get_strace()
     make install DESTDIR="$DESTDIR"
 }
 
-# Download and compile util-linux (lscpu, partx, sfdisk and whereis)
+# Download and compile util-linux (cfdisk, fdisk, lscpu, partx, sfdisk and
+# whereis)
 get_util_linux()
 {
     cd "$CURR_DIR/build"
 
     # Skip if already compiled
-    if [ -f "$DESTDIR/usr/bin/lscpu" ] &&
+    if [ -f "$DESTDIR/usr/sbin/cfdisk" ] &&
+       [ -f "$DESTDIR/usr/sbin/fdisk" ] &&
+       [ -f "$DESTDIR/usr/bin/lscpu" ] &&
        [ -f "$DESTDIR/usr/bin/partx" ] &&
        [ -f "$DESTDIR/usr/sbin/sfdisk" ] &&
        [ -f "$DESTDIR/usr/bin/whereis" ]; then
-        echo -e "${LIGHT_RED}lscpu, partx, sfdisk and whereis from util-linux already compiled, skipping...${RESET}"
+        echo -e "${LIGHT_RED}cfdisk, fdisk, lscpu, partx, sfdisk and whereis from util-linux already compiled, skipping...${RESET}"
         return
     fi
 
@@ -2507,7 +2522,7 @@ get_util_linux()
     fi
 
     # Compile and install
-    echo -e "${GREEN}Compiling util-linux for lscpu, partx, sfdisk and whereis...${RESET}"
+    echo -e "${GREEN}Compiling util-linux...${RESET}"
 
     # In case "cannot find -ltinfo" error 
     export ac_cv_search_tigetstr='-lncursesw'
@@ -2554,7 +2569,7 @@ get_util_linux()
     for bin in lscpu partx whereis; do
         sudo install -D -m 755 "${bin}" "$DESTDIR/usr/bin/${bin}"
     done
-    for bin in sfdisk; do
+    for bin in cfdisk fdisk sfdisk; do
         sudo install -D -m 755 "${bin}" "$DESTDIR/usr/sbin/${bin}"
     done
 
@@ -2577,7 +2592,7 @@ download_kernel()
     echo -e "${GREEN}Downloading the Linux kernel...${RESET}"
 
     local LINUX_SRC="$LINUX_STABLE_SRC"
-    if [[ "$LINUX_VER" == *-rc* ]]; then
+    if [[ "$USE_TORVALDS" = true || "$LINUX_VER" == *-rc* ]]; then
         LINUX_SRC="$LINUX_TORVALDS_SRC"
     fi
 
@@ -5924,7 +5939,7 @@ get_shorkfetch()
     if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
         make X86_ONLY=1 -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
     elif [ "$ID" == "shork-diskette" ]; then
-        make NO_STR_CLEANING=1 X86_ONLY=1 -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+        make EMBEDDED=1 NO_STR_CLEANING=1 X86_ONLY=1 -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
     fi
     sudo make DESTDIR=$DESTDIR install
 }
@@ -8217,7 +8232,17 @@ get_installed_progs_feats()
         else
             EXCLUDED_FEATURES+="\n * c3270"
         fi
+    fi
 
+    if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
+        if [ -f "$DESTDIR/usr/sbin/cfdisk" ]; then
+            INCLUDED_FEATURES+="\n * cfdisk (util-linux, $UTIL_LINUX_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * cfdisk (util-linux)"
+        fi
+    fi
+
+    if [ "$ID" == "shork-486" ]; then
         if [ -f "$DESTDIR/usr/bin/cscope" ]; then
             INCLUDED_FEATURES+="\n * cscope ($CSCOPE_VER)"
         else
@@ -8244,6 +8269,12 @@ get_installed_progs_feats()
     fi
 
     if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
+        if [ -f "$DESTDIR/usr/sbin/fdisk" ]; then
+            INCLUDED_FEATURES+="\n * fdisk (util-linux, $UTIL_LINUX_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * fdisk (util-linux)"
+        fi
+
         if [ -f "$DESTDIR/usr/bin/file" ]; then
             INCLUDED_FEATURES+="\n * file ($FILE_VER)"
         else
@@ -8739,7 +8770,7 @@ generate_report()
             else
                 NEW="$line, $CMD"
             fi
-            if (( ${#NEW} > 80 )); then
+            if (( ${#NEW} > 76 )); then
                 INCL_BB_CMDS_LINES+=("$line")
                 line=" * $CMD"
             else
@@ -8776,7 +8807,7 @@ generate_report()
             else
                 NEW="$line, $CMD"
             fi
-            if (( ${#NEW} > 80 )); then
+            if (( ${#NEW} > 76 )); then
                 EXCL_BB_CMDS_LINES+=("$line")
                 line=" * $CMD"
             else

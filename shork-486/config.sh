@@ -1095,7 +1095,7 @@ if [ "$ENABLE_NET_ETH" == true ]; then
         "tmux"              "*Terminal multiplexer (+1.7MiB)"                       "$(val "$INCLUDE_TMUX")"
         "tn5250"            "TCP/IP 5250 terminal emulator (+6.4MiB, EXPERIMENTAL)" "$(val "$INCLUDE_TN5250")"
         "tnftp"             "*FTP client (+0.3MiB)"                                 "$(val "$INCLUDE_TNFTP")"
-        "util-linux"        "*lscpu, partx, sfdisk & whereis (+2.2MiB)"             "$(val "$INCLUDE_UTIL_LINUX")"
+        "util-linux"        "*cf/f/sfdisk, lscpu, partx & whereis (+4.1MiB)"        "$(val "$INCLUDE_UTIL_LINUX")"
         "vim"               "†Vi IMproved text editor (+23MiB)"                     "$(val "$INCLUDE_VIM")"
     )
 else
@@ -1125,7 +1125,7 @@ else
         "tcc"               "*Tiny C Compiler + musl (+4MiB)"                       "$(val "$INCLUDE_TCC")"
         "tilde"             "GUI-like text editor (+3.6MiB)"                        "$(val "$INCLUDE_TILDE")"
         "tmux"              "*Terminal multiplexer (+1.7MiB)"                       "$(val "$INCLUDE_TMUX")"
-        "util-linux"        "*lscpu, partx, sfdisk & whereis (+2.2MiB)"             "$(val "$INCLUDE_UTIL_LINUX")"
+        "util-linux"        "*cf/f/sfdisk, lscpu, partx & whereis (+4.1MiB)"        "$(val "$INCLUDE_UTIL_LINUX")"
         "vim"               "†Vi IMproved text editor (+23MiB)"                     "$(val "$INCLUDE_VIM")"
     )
 fi
