@@ -107,31 +107,32 @@ PATCHES_DIR="${CURR_DIR}/patches"
 # Target software/feature versions
 LINUX_STABLE_SRC="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git"
 LINUX_TORVALDS_SRC="https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
-LINUX_VER="7.1.6"
+LINUX_VER="7.2"
 
 BUSYBOX_SRC="https://busybox.net/downloads"
 BUSYBOX_VER="1.38.0"
 
+SHORKBIN_SRC="https://github.com/SharktasticA/shorkbin.git"
 SHORKFETCH_SRC="https://github.com/SharktasticA/shorkfetch.git"
-SHORKFETCH_VER="0.4.4"
+SHORKFETCH_VER="0.6.0"
 SHORKMINES_SRC="https://github.com/SharktasticA/shorkmines.git"
 
 C3270_SRC="https://github.com/pmattes/x3270.git"
-C3270_VER="4.5ga5"
+C3270_VER="4.5ga6"
 CSCOPE_SRC="https://git.code.sf.net/p/cscope/cscope cscope-cscope"
 CSCOPE_VER="15.9"
 CTAGS_SRC="https://github.com/universal-ctags/ctags.git"
-CTAGS_VER="p6.2.20260705.0"
+CTAGS_VER="p6.2.20260816.0"
 CURL_SRC="https://curl.se/download"
 CURL_VER="8.21.0"
 BINUTILS_SRC="https://ftp.gnu.org/gnu/binutils"
 BINUTILS_VER="2.47"
 DIALOG_SRC="https://invisible-mirror.net/archives/dialog"
-DIALOG_VER="1.3-20260107"
+DIALOG_VER="1.3-20260721"
 DOSFSTOOLS_SRC="https://github.com/dosfstools/dosfstools.git"
 DOSFSTOOLS_VER="4.2"
 DROPBEAR_SRC="https://github.com/mkj/dropbear.git"
-DROPBEAR_VER="2026.92"
+DROPBEAR_VER="2026.94"
 E2FSPROGS_SRC="https://mirrors.edge.kernel.org/pub/linux/kernel/people/tytso/e2fsprogs"
 E2FSPROGS_VER="1.47.4"
 EMACS_SRC="https://ftp.gnu.org/gnu/emacs"
@@ -146,7 +147,7 @@ GIT_VER="2.55.0"
 GLIBC_SRC="https://ftp.gnu.org/gnu/glibc"
 GLIBC_VER="2.44"
 HTOP_SRC="https://github.com/htop-dev/htop.git"
-HTOP_VER="3.5.1"
+HTOP_VER="3.5.3"
 HWINFO_SRC="https://github.com/opensuse/hwinfo.git"
 HWINFO_VER="25.4"
 INDENT_SRC="https://ftp.gnu.org/gnu/indent"
@@ -179,7 +180,7 @@ LIBXML2_VER="2.15.3"
 LIBZIP_SRC="https://github.com/nih-at/libzip.git"
 LIBZIP_VER="1.11.4"
 LUA_SRC="https://github.com/lua/lua"
-LUA_VER="5.5.0"
+LUA_VER="5.5.1"
 LYNX_SRC="https://github.com/ThomasDickey/lynx-snapshots.git"
 LYNX_VER="2-9-3a"
 MAKE_SRC="https://ftp.gnu.org/gnu/make"
@@ -198,13 +199,11 @@ MUSL_SRC="https://musl.libc.org/releases"
 MUSL_VER="1.2.6"
 NANO_SRC="https://www.nano-editor.org/dist"
 NANO_DIST="v9"
-NANO_VER="9.1"
+NANO_VER="9.2"
 NASM_SRC="https://github.com/netwide-assembler/nasm.git"
 NASM_VER="3.02"
 NCURSES_SRC="https://github.com/mirror/ncurses.git"
 NCURSES_VER="6.4"
-NEDIT_SRC="https://git.code.sf.net/p/nedit/git"
-NEDIT_VER="NEDIT-CLASSIC-END"
 OPENSSL_SRC="https://github.com/openssl/openssl.git"
 OPENSSL_VER="3.6.3"
 PCRE2_SRC="https://github.com/PCRE2Project/pcre2/releases/download"
@@ -256,6 +255,7 @@ SKIP_KRN=false
 TARGET_DISK=$DEFAULT_TARGET_DISK
 TARGET_SWAP=$DEFAULT_TARGET_SWAP
 TINY_KRN=false
+USE_TORVALDS=false
 
 ENABLE_CDROM=true
 ENABLE_EPOLL=false
@@ -335,7 +335,7 @@ while [ $# -gt 0 ]; do
         --always-build)
             ALWAYS_BUILD=true
             ;;
-        --enable-tests)
+        --include-tests)
             INCLUDE_TESTS=true
             ;;
         --is-arch)
@@ -366,6 +366,9 @@ while [ $# -gt 0 ]; do
             ;;
         --tiny)
             TINY_KRN=true
+            ;;
+        --use-torvalds)
+            USE_TORVALDS=true
             ;;
     esac
     shift
@@ -467,8 +470,8 @@ if [ "$FIX_EXTLINUX" = true ]; then
     USE_GRUB=false
 fi
 
-# Ensure FB_VBE is enabled with GUI
-if [ "$INCLUDE_GUI" = true ]; then
+# Ensure FB_VBE is enabled with GUI or UTIL_LINUX
+if [ "$INCLUDE_GUI" = true ] || [ "$INCLUDE_UTIL_LINUX" = true ]; then
     ENABLE_FB_VBE=true
 fi
 
@@ -2135,18 +2138,18 @@ get_openssl()
     make install_sw
 }
 
-# Download and compile pcre2 (required for T3* stack)
+# Download and compile PCRE2 (required for T3* stack)
 get_pcre2()
 {
     cd "$CURR_DIR/build"
 
     # Skip if already compiled
     if [ -f "$SYSROOT/usr/include/pcre2.h" ]; then
-        echo -e "${LIGHT_RED}pcre2 already compiled, skipping...${RESET}"
+        echo -e "${LIGHT_RED}PCRE2 already compiled, skipping...${RESET}"
         return
     fi
 
-    echo -e "${GREEN}Downloading pcre2...${RESET}"
+    echo -e "${GREEN}Downloading PCRE2...${RESET}"
     DIR="pcre2-${PCRE2_VER}"
     ARC="${DIR}.tar.gz"
     URI="${PCRE2_SRC}/${DIR}/${ARC}"
@@ -2156,14 +2159,14 @@ get_pcre2()
 
     # Extract source
     if [ -d $DIR ]; then
-        echo -e "${YELLOW}pcre2's source archive is already present, re-extracting before proceeding...${RESET}"
+        echo -e "${YELLOW}PCRE2's source archive is already present, re-extracting before proceeding...${RESET}"
         rm -rf $DIR
     fi
     tar xf $ARC
     cd $DIR
 
     # Compile and install
-    echo -e "${GREEN}Compiling pcre2...${RESET}"
+    echo -e "${GREEN}Compiling PCRE2...${RESET}"
     ./configure \
         --host=${ARCH}-linux-musl \
         --prefix=/usr \
@@ -2430,6 +2433,14 @@ get_busybox()
         disable_bb_feat "CONFIG_STRINGS"
     fi
 
+    if $INCLUDE_UTIL_LINUX; then
+        echo -e "${GREEN}Disabling BusyBox's fdisk implementation in favour of util-linux's...${RESET}"
+        disable_bb_feat "CONFIG_FDISK"
+        disable_bb_feat "CONFIG_FEATURE_FDISK_BLKSIZE"
+        disable_bb_feat "CONFIG_FEATURE_FDISK_WRITABLE"
+        disable_bb_feat "CONFIG_FEATURE_FDISK_ADVANCED"
+    fi
+
     if $INCLUDE_VIM; then
         echo -e "${GREEN}Disabling BusyBox's xxd implementation in favour of Vim's...${RESET}"
         disable_bb_feat "CONFIG_XXD"
@@ -2478,17 +2489,20 @@ get_strace()
     make install DESTDIR="$DESTDIR"
 }
 
-# Download and compile util-linux (lscpu, partx, sfdisk and whereis)
+# Download and compile util-linux (cfdisk, fdisk, lscpu, partx, sfdisk and
+# whereis)
 get_util_linux()
 {
     cd "$CURR_DIR/build"
 
     # Skip if already compiled
-    if [ -f "$DESTDIR/usr/bin/lscpu" ] &&
+    if [ -f "$DESTDIR/usr/sbin/cfdisk" ] &&
+       [ -f "$DESTDIR/usr/sbin/fdisk" ] &&
+       [ -f "$DESTDIR/usr/bin/lscpu" ] &&
        [ -f "$DESTDIR/usr/bin/partx" ] &&
        [ -f "$DESTDIR/usr/sbin/sfdisk" ] &&
        [ -f "$DESTDIR/usr/bin/whereis" ]; then
-        echo -e "${LIGHT_RED}lscpu, partx, sfdisk and whereis from util-linux already compiled, skipping...${RESET}"
+        echo -e "${LIGHT_RED}cfdisk, fdisk, lscpu, partx, sfdisk and whereis from util-linux already compiled, skipping...${RESET}"
         return
     fi
 
@@ -2506,7 +2520,7 @@ get_util_linux()
     fi
 
     # Compile and install
-    echo -e "${GREEN}Compiling util-linux for lscpu, partx, sfdisk and whereis...${RESET}"
+    echo -e "${GREEN}Compiling util-linux...${RESET}"
 
     # In case "cannot find -ltinfo" error 
     export ac_cv_search_tigetstr='-lncursesw'
@@ -2553,7 +2567,7 @@ get_util_linux()
     for bin in lscpu partx whereis; do
         sudo install -D -m 755 "${bin}" "$DESTDIR/usr/bin/${bin}"
     done
-    for bin in sfdisk; do
+    for bin in cfdisk fdisk sfdisk; do
         sudo install -D -m 755 "${bin}" "$DESTDIR/usr/sbin/${bin}"
     done
 
@@ -2576,7 +2590,7 @@ download_kernel()
     echo -e "${GREEN}Downloading the Linux kernel...${RESET}"
 
     local LINUX_SRC="$LINUX_STABLE_SRC"
-    if [[ "$LINUX_VER" == *-rc* ]]; then
+    if [[ "$USE_TORVALDS" = true || "$LINUX_VER" == *-rc* ]]; then
         LINUX_SRC="$LINUX_TORVALDS_SRC"
     fi
 
@@ -5838,6 +5852,35 @@ get_shorkcommon_sh()
     sudo cp shorkcommon.sh $DESTDIR/usr/bin/shorkcommon.sh
 }
 
+# Download and compile shorkbin
+get_shorkbin()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ "$SHORKUTILS_RECLONE" != "true" ] && [ -f "$DESTDIR/usr/bin/shorkbin" ]; then
+        echo -e "${LIGHT_RED}shorkbin already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Delete if present
+    if [ -d shorkbin ]; then
+        echo -e "${YELLOW}shorkbin source already present, recloning...${RESET}"
+        sudo rm -r shorkbin
+    fi
+
+    # Download source
+    echo -e "${GREEN}Downloading shorkbin...${RESET}"
+    git clone $SHORKBIN_SRC
+    cd shorkbin
+
+    # Compile and install
+    echo -e "${GREEN}Compiling shorkbin...${RESET}"
+    make clean
+    make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+    sudo make DESTDIR=$DESTDIR install
+}
+
 # Download and compile shorkdir
 get_shorkdir()
 {
@@ -5892,9 +5935,9 @@ get_shorkfetch()
     echo -e "${GREEN}Compiling shorkfetch...${RESET}"
     make clean
     if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
-        make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+        make X86_ONLY=1 -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
     elif [ "$ID" == "shork-diskette" ]; then
-        make EMBEDDED=1 -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+        make EMBEDDED=1 NO_STR_CLEANING=1 X86_ONLY=1 -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
     fi
     sudo make DESTDIR=$DESTDIR install
 }
@@ -7007,7 +7050,7 @@ set_filesystem_perms()
             "$DESTDIR/etc/os-release|root:root|0644|f"
             "$DESTDIR/etc/passwd|root:root|0644|f"
             "$DESTDIR/etc/profile|root:root|0644|f"
-            "$DESTDIR/etc/shadow|root:shadow|0640|f"
+            "$DESTDIR/etc/shadow|root:42|0640|f"
             "$DESTDIR/etc/shorkset.conf|root:root|0644|f"
             "$DESTDIR/etc/sudo.conf|root:root|0644|f"
             "$DESTDIR/etc/sudo_logsrvd.conf|root:root|0644|f"
@@ -7854,7 +7897,12 @@ get_included_busybox_commands()
     check_bb_config "CONFIG_PIDOF" ""
     check_bb_config "CONFIG_PWDX" ""
     check_bb_config "CONFIG_WATCH" ""
+    check_bb_config "CONFIG_NC" ""
     check_bb_config "CONFIG_NETCAT" ""
+
+    # Added 2026-08-14
+    check_bb_config "CONFIG_UUDECODE" ""
+    check_bb_config "CONFIG_UUENCODE" ""
 
     readarray -t INCLUDED_BB_CMDS < <(printf '%s\n' "${INCLUDED_BB_CMDS[@]}" | sort)
     readarray -t EXCLUDED_BB_CMDS < <(printf '%s\n' "${EXCLUDED_BB_CMDS[@]}" | sort)
@@ -8023,7 +8071,13 @@ get_installed_progs_feats()
     fi
 
     # SHORK Utilities
-    if [ "$ID" != "shork-diskette" ]; then
+    if [ "$ID" == "shork-486" ]; then
+        if [ -f "$DESTDIR/usr/bin/shorkbin" ]; then
+            INCLUDED_FEATURES+="\n * shorkbin"
+        else
+            EXCLUDED_FEATURES+="\n * shorkbin"
+        fi
+
         if [ -f "$DESTDIR/usr/bin/shorkdir" ]; then
             INCLUDED_FEATURES+="\n * shorkdir"
         else
@@ -8176,7 +8230,17 @@ get_installed_progs_feats()
         else
             EXCLUDED_FEATURES+="\n * c3270"
         fi
+    fi
 
+    if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
+        if [ -f "$DESTDIR/usr/sbin/cfdisk" ]; then
+            INCLUDED_FEATURES+="\n * cfdisk (util-linux, $UTIL_LINUX_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * cfdisk (util-linux)"
+        fi
+    fi
+
+    if [ "$ID" == "shork-486" ]; then
         if [ -f "$DESTDIR/usr/bin/cscope" ]; then
             INCLUDED_FEATURES+="\n * cscope ($CSCOPE_VER)"
         else
@@ -8203,6 +8267,12 @@ get_installed_progs_feats()
     fi
 
     if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
+        if [ -f "$DESTDIR/usr/sbin/fdisk" ]; then
+            INCLUDED_FEATURES+="\n * fdisk (util-linux, $UTIL_LINUX_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * fdisk (util-linux)"
+        fi
+
         if [ -f "$DESTDIR/usr/bin/file" ]; then
             INCLUDED_FEATURES+="\n * file ($FILE_VER)"
         else
@@ -8698,7 +8768,7 @@ generate_report()
             else
                 NEW="$line, $CMD"
             fi
-            if (( ${#NEW} > 80 )); then
+            if (( ${#NEW} > 76 )); then
                 INCL_BB_CMDS_LINES+=("$line")
                 line=" * $CMD"
             else
@@ -8735,7 +8805,7 @@ generate_report()
             else
                 NEW="$line, $CMD"
             fi
-            if (( ${#NEW} > 80 )); then
+            if (( ${#NEW} > 76 )); then
                 EXCL_BB_CMDS_LINES+=("$line")
                 line=" * $CMD"
             else
@@ -9185,11 +9255,10 @@ fi
 
 get_shorkhelp
 get_shorkfetch
-if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
-    get_shorkdir
-fi
 if [ "$ID" == "shork-486" ]; then
     get_shorkcommon_sh
+    get_shorkbin
+    get_shorkdir
     get_shorkoff
     get_shorkset
 fi

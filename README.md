@@ -1,6 +1,6 @@
 # SHORK 486, DISC & DISKETTE
 
-SHORK 486 is a free and open-source operating system for 486 and Pentium (P5) era vintage personal computers. The aim is to produce a 32-bit Linux distribution that is lean and functional, but still capable on such PCs, often with my '90s IBM ThinkPads in mind. A default SHORK 486 system aims to work with at least 16MiB system memory and take up no more than ~100MiB on your disk. Despite those constraints, the default SHORK 486 experience includes [Linux kernel 7.1.6](KERNEL.md), many typical Linux commands, custom SHORK Utilities such as shorkdir (TUI file browser) and shorkfetch (*fetch clone), a terminal multiplexer, a C compiler, Lua intepreter, Python 3.4-syntax interpreter and dialog for shell script TUI widgets, a text web browser, an FTP, SCP and SSH client, a Git source control client, the ed, Mg (Emacs-style), nano and vi editors, a spreadsheet editor, a minesweeper game, DOS and ext\* file system tools, IDE CD-ROM and DVD-ROM support, SCSI tape drive support, ISA, PCI and PCMCIA ethernet support, support for most major national keyboard layouts, and a cute ASCII shark welcome screen!
+SHORK 486 is a free and open-source operating system for 486 and Pentium (P5) era vintage personal computers. The aim is to produce a 32-bit Linux distribution that is lean and functional, but still capable on such PCs, often with my '90s IBM ThinkPads in mind. A default SHORK 486 system aims to work with at least 16MiB system memory and take up no more than ~100MiB on your disk. Despite those constraints, the default SHORK 486 experience includes [Linux kernel 7.2](KERNEL.md), many typical Linux commands, custom SHORK Utilities such as shorkdir (TUI file browser) and shorkfetch (*fetch clone), a terminal multiplexer, a C compiler, Lua intepreter, Python 3.4-syntax interpreter and dialog for shell script TUI widgets, a text web browser, an FTP, SCP and SSH client, a Git source control client, the ed, Mg (Emacs-style), nano and vi editors, a spreadsheet editor, a minesweeper game, DOS and ext\* file system tools, IDE CD-ROM and DVD-ROM support, SCSI tape drive support, ISA, PCI and PCMCIA ethernet support, support for most major national keyboard layouts, and a cute ASCII shark welcome screen!
 
 A build configurator is available to alter SHORK 486 to your liking. For example, you can select the "mini" build type that requires just 8MiB RAM and ~8MiB disk space, whilst still including most typical commands as before, some custom SHORK Utilities, and the ed and vi editors. You can also configure SHORK 486 for serial console use, multi-user support (if not "mini" build), and pick and choose specific software and features (if "custom" build). Versions of SHORK 486 that can be burned to a CD (SHORK DISC) or small enough to fit on a 1.44MB floppy diskette (SHORK DISKETTE) are also available.
 
@@ -78,11 +78,11 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 
 #### Base
 
-ar, arch, ascii, ash, awk, base32, base64, basename, bc, beep, blkid, bunzip2, bzcat, bzip2, cal, cat, cksum, chmod, chvt, clear, comm, cp, cpio, crc32, crontab, cut, date, dc, dd, df, diff, dirname, dmesg, dos2unix, du, echo, ed, egrep, eject, env, expand, expr, factor, fallocate, false, fdflush, fdformat, fdisk, fgrep, find, fold, free, fuser, getfattr, getopt, grep, gunzip, gzip, halt, head, hexdump, hexedit, hostid, hostname, hwclock, init, install, iostat, kill, killall, less, link, ln, loadkmap, ls, lsblk, lscpu, lsof, lspci, lsscsi, lzcat, lzma, lzop, lzopcat, man, mdev, md5sum, mkdir, mkdosfs/mkfs.vfat, mke2fs/mkfs.ext2, mkfifo, mknod, mktemp, mkswap, more, mount, mountpoint, mv, nice, nl, nohup, nproc, od, partprobe, paste, patch, pgrep, pidof, pkill, pmap, printenv, printf, ps, pstree, pwd, pwdx, readlink, realpath, rev, rm, rmdir, sed, seq, setfattr, setfont, sha1sum, sha256sum, sha384sum, sha3sum, sha512sum, shred, showkey, shuf, sleep, sort, split, stat, strings, stty, sum, swapoff, swapon, sync, tac, tail, tar, taskset, tee, test, time, timeout, top, touch, tr, tree, true, truncate, tsort, tty, umount, uname, uncompress, unexpand, uniq, unix2dos, unlink, unlzma, unlzop, unxz, unzip, uptime, usleep, uuidgen, vi, vmstat, volname, watch, wc, which, whoami, xargs, xxd, xz, xzcat, yes, zcat
+<p><code>ar, arch, ascii, ash, awk, base32, base64, basename, bc, beep, blkid, bunzip2, bzcat, bzip2, cal, cat, cksum, chmod, chvt, clear, comm, cp, cpio, crc32, crontab, cut, date, dc, dd, df, diff, dirname, dmesg, dos2unix, du, echo, ed, egrep, eject, env, expand, expr, factor, fallocate, false, fdflush, fdformat, fdisk, fgrep, find, fold, free, fuser, getfattr, getopt, grep, gunzip, gzip, halt, head, hexdump, hexedit, hostid, hostname, hwclock, init, install, iostat, kill, killall, less, link, ln, loadkmap, ls, lsblk, lscpu, lsof, lspci, lsscsi, lzcat, lzma, lzop, lzopcat, man, mdev, md5sum, mkdir, mkdosfs/mkfs.vfat, mke2fs/mkfs.ext2, mkfifo, mknod, mktemp, mkswap, more, mount, mountpoint, mv, nice, nl, nohup, nproc, od, partprobe, paste, patch, pgrep, pidof, pkill, pmap, printenv, printf, ps, pstree, pwd, pwdx, readlink, realpath, rev, rm, rmdir, sed, seq, setfattr, setfont, sha1sum, sha256sum, sha384sum, sha3sum, sha512sum, shred, showkey, shuf, sleep, sort, split, stat, strings, stty, sum, swapoff, swapon, sync, tac, tail, tar, taskset, tee, test, time, timeout, top, touch, tr, tree, true, truncate, tsort, tty, umount, uname, uncompress, unexpand, uniq, unix2dos, unlink, unlzma, unlzop, unxz, unzip, uptime, usleep, uudecode, uuencode, uuidgen, vi, vmstat, volname, watch, wc, which, whoami, xargs, xxd, xz, xzcat, yes, zcat</code></p>
 
 #### Edition/option-dependent
 
-addgroup, adduser, chgrp, chown, chpasswd, chroot, cryptpw, delgroup, deluser, ftpget, ftpput, getty, id, ifconfig, ip, login, logname, losetup, lsusb, mkpasswd, netcat, passwd, ping, route, su, sulogin, telnet, traceroute, udhcpc, users, w, wget, who, whois
+<p><code>addgroup, adduser, chgrp, chown, chpasswd, chroot, cryptpw, delgroup, deluser, ftpget, ftpput, getty, id, ifconfig, ip, login, logname, losetup, lsusb, mkpasswd, nc, netcat, passwd, ping, route, su, sulogin, telnet, traceroute, udhcpc, users, w, wget, who, whois</code></p>
 
 ### Bundled software
 
@@ -93,9 +93,9 @@ addgroup, adduser, chgrp, chown, chpasswd, chroot, cryptpw, delgroup, deluser, f
 |------|------------|---------|---------|------------|-|-|-|-|
 | [Cscope](https://cscope.sourceforge.net/) | `cscope` | 15.9 | C/C++ code browser | BSD 3-Clause |*||||
 | [cURL](https://curl.se/) | `curl` | 8.21.0 | HTTP client & transfer utility | MIT |*||||
-| [dialog](https://invisible-mirror.net/dialog/dialog.html) | `dialog` | 1.3 | Shell script TUI widgets | LGPLv2.1 |*|**\***||*|
+| [dialog](https://invisible-mirror.net/dialog/dialog.html) | `dialog` | 1.3-20260721 | Shell script TUI widgets | LGPLv2.1 |*|**\***||*|
 | [dosfstools](https://github.com/dosfstools/dosfstools/) | e.g. `dosfsck`, `mkdosfs`\* | 4.2 | FAT family filesystem utilities | GPLv3 |*|**\***||*|
-| [Dropbear](https://github.com/mkj/dropbear) | `scp`, `ssh` | 2026.92 | SCP and SSH clients | MIT + BSD 2-Clause |*|**\***|||
+| [Dropbear](https://github.com/mkj/dropbear) | `scp`, `ssh` | 2026.94 | SCP and SSH clients | MIT + BSD 2-Clause |*|**\***|||
 | [e2fsprogs](https://e2fsprogs.sourceforge.net/)| e.g. `blkid`\*, `fsck`, `mke2fs`\*, `resize2fs`, `tune2fs`, `uuidgen`\* | 1.47.4 | ext2/3/4 filesystem utilities | GPLv2 + LGPLv2 |*|**\***||*|
 | [file](https://github.com/file/file)| `file` | 5_48 | File identification | BSD 2-Clause |*|**\***||*|
 | [GCC](https://musl.cc/)‡§ | `gcc`, `g++`, `gfortran` | 11.2.1 | C, C++ and Fortran compilers | GPLv3 + GCC RLE |*||||
@@ -103,10 +103,10 @@ addgroup, adduser, chgrp, chown, chpasswd, chroot, cryptpw, delgroup, deluser, f
 | [GNU Binutils](https://musl.cc/)‡ | e.g. `ar`\*, `as`, `gprof`, `ld`, `nm`, `objdump`, `ranlib`,`readelf`, `strings`\*, `strip` | 2.37 | Binary tools to compliment GCC | GPLv3 |*||||
 | [GNU Indent](https://www.gnu.org/software/indent/) | `indent` | 2.2.13 | C code formatter | GPLv3 |*||||
 | [GNU Make](https://www.gnu.org/software/make/) | `make` | 4.4.1 | Build automation tool | GPLv3 |*||||
-| [GNU nano](https://www.nano-editor.org/) | `nano` | 9.1 | Pico-style text editor | GPLv3 |*|**\***|*|*|
-| [htop](https://github.com/htop-dev/htop) | `htop` | 3.5.1 | Interactive process viewer | GPLv2 |*|**\***|*|*|
+| [GNU nano](https://www.nano-editor.org/) | `nano` | 9.2 | Pico-style text editor | GPLv3 |*|**\***|*|*|
+| [htop](https://github.com/htop-dev/htop) | `htop` | 3.5.3 | Interactive process viewer | GPLv2 |*|**\***|*|*|
 | [Joe's Own Editor](https://github.com/joe-editor/joe) | `joe` | 4.8 | WordStar & Emacs-blend text editor | GPLv2 |*||*||
-| [Lua](https://www.lua.org/) | `lua` | 5.5.0 | Embedded scripting & extensions language | MIT |*|**\***||*|
+| [Lua](https://www.lua.org/) | `lua` | 5.5.1 | Embedded scripting & extensions language | MIT |*|**\***||*|
 | [Lynx](https://github.com/ThomasDickey/lynx-snapshots) | `lynx` | 2-9-3a | Terminal web browser | GPLv2 |*|**\***|||
 | [Mg](https://github.com/troglobit/mg) | `mg` | 4.0 | Emacs-style text editor | Unlicense |*|**\***|*|*|
 | [MicroPython](https://github.com/micropython/micropython) | `micropython` | 1.28.0 | Python 3.4-syntax intepreter | MIT |*|**\***||*|
@@ -116,15 +116,15 @@ addgroup, adduser, chgrp, chown, chpasswd, chroot, cryptpw, delgroup, deluser, f
 | [sc-im](https://github.com/andmarti1424/sc-im) | `sc-im` | 0.8.5 | Terminal spreadsheet editor | BSD 4-Clause |*|**\***|*|*|
 | [strace](https://github.com/strace/strace) | `strace` | 7.1 | System calls & signals tracer | LGPLv2.1 |*|**\***||*|
 | [sudo](https://www.sudo.ws/)‖ | `sudo`, `sudoedit`, `visudo` | 1.9.17p2 | Run command as root/substitute user | ISC + BSD 2-Clause + BSD 3-Clause + zlib |*|**\***|*|*|
-| [Tilde](https://os.ghalkes.nl/tilde/) | `tilde` | 1.1.3 | GUI-like text editor | GPLv3 |*||*||
+| [Tilde](https://os.ghalkes.nl/tilde/) | `tilde` | 1.1.3 | GUI-like text editor | c |*||*||
 | [Tiny C Compiler](https://bellard.org/tcc/)§ | `tcc` | `e5eedc0` | C compiler | LGPLv2.1 |*|**\***||*|
 | [tmux](https://github.com/tmux/tmux) | `tmux` | 3.7b | Terminal multiplexer | ISC |*|**\***|*|*|
 | [tn5250](https://github.com/tn5250/tn5250)† | `tn5250` | 0.18.0 | TCP/IP 5250 terminal emulator | LGPLv2.1 |*||||
 | [tnftp](https://ftp.netbsd.org/pub/NetBSD/misc/tnftp/) | `ftp` | 20260211 | FTP client | BSD 2-Clause |*|**\***|||
-| [Universal Ctags](https://ctags.io/) | `ctags`, `readtags` | 6.2.0 | Source code object indexing | GPLv2 |*||||
-| [util-linux](https://github.com/util-linux/util-linux) | `partx`, `sfdisk`, `whereis` | 2.42.2 | Extra Linux utilities | GPLv2 |*|**\***||*|
-| [Vim](https://www.vim.org/)† | `ex`, `view`, `rvim`, `rview`, `vim`, `vimdiff`, `vimtutor`, `xxd`\* | 9.2 | Vi IMproved text editor | Vim |*||*||
-| [x3270](https://github.com/pmattes/x3270)† | `c3270` | 4.5ga5 | 3270 terminal emulator | BSD 3-Clause |*||||
+| [Universal Ctags](https://ctags.io/) | `ctags`, `readtags` | 6.2.20260816.0 | Source code object indexing | GPLv2 |*||||
+| [util-linux](https://github.com/util-linux/util-linux) | `cfdisk`, `fdisk`\*, `lscpu`, `partx`, `sfdisk`, `whereis` | 2.42.2 | Extra Linux utilities | GPLv2 |*|**\***||*|
+| [Vim](https://www.vim.org/)† | `ex`, `view`, `rvim`, `rview`, `vim`, `vimdiff`, `vimtutor`, `xxd`\* | 9.2.0785 | Vi IMproved text editor | Vim |*||*||
+| [x3270](https://github.com/pmattes/x3270)† | `c3270` | 4.5ga6 | 3270 terminal emulator | BSD 3-Clause |*||||
 
 * _\* Replaces a BusyBox version of the same utility_
 * _† Inclusion is experimental - expect bugs_
@@ -142,6 +142,13 @@ addgroup, adduser, chgrp, chown, chpasswd, chroot, cryptpw, delgroup, deluser, f
 | [libid3tag](https://github.com/markjeee/libid3tag) | 0.15.1b | mpg321 | GNU GPLv2 |
 | [libmad](https://github.com/markjeee/libmad) | 0.15.1b | mpg321 | GNU GPLv2 |
 | libss | 1.47.4 | e2fsprogs | MIT SIPB |
+| [libt3config](https://os.ghalkes.nl/t3/libt3config.html) | 1.0.0 | Tilde | GNU GPLv3 |
+| [libt3highlight](https://os.ghalkes.nl/t3/libt3highlight.html) | 0.5.0 | Tilde | GNU GPLv3 |
+| [libt3key](https://os.ghalkes.nl/t3/libt3key.html) | 0.2.11 | Tilde | GNU GPLv3 |
+| [libt3widget](https://os.ghalkes.nl/t3/libt3widget.html) | 1.2.2 | Tilde | GNU GPLv3 |
+| [libt3window](https://os.ghalkes.nl/t3/libt3window.html) | 0.4.2 | Tilde | GNU GPLv3 |
+| [libtranscript](https://os.ghalkes.nl/libtranscript.html) | 0.3.4 | Tilde | GNU GPLv3 |
+| [libunistring](https://ftp.gnu.org/gnu/libunistring/) | 1.4.2 | Tilde | GNU GPLv3 |
 | libuuid | 1.47.4 | e2fsprogs | BSD 3-Clause |
 | [libxlsxwriter](https://github.com/jmcnamara/libxlsxwriter) | 1.2.4 | sc-im | BSD 2-Clause |
 | [libxml2](https://github.com/gnome/libxml2) | 2.15.3 | sc-im, Universal Ctags | MIT |
@@ -149,10 +156,11 @@ addgroup, adduser, chgrp, chown, chpasswd, chroot, cryptpw, delgroup, deluser, f
 | [musl](somethhttps://musl.libc.org/) | 1.2.6 | GCC, Tiny C Compiler | MIT |
 | [ncurses](https://github.com/mirror/ncurses) | 6.4 | htop, Lynx, nano, sc-im, tic, tmux, tn5250, util-linux, x3270 | MIT |
 | [OpenSSL](https://github.com/openssl/openssl) | 3.6.3 | curl, Git, Lynx, tn5250 | Apache 2.0 |
+| [PCRE2](https://pcre2project.github.io/pcre2/) | 10.47 | Tilde | BSD 3-Clause w/ PCRE2 exception |
 | [zlib](https://github.com/madler/zlib) | 1.3.2 | Git, libzip | zlib |
 
 ### SHORK Utilities (shorkutils)
-
+* **[shorkbin](https://github.com/SharktasticA/shorkbin)** - An ASCII text/8-bit binary converter. Available as `bin2text`, `shorkbin` and `text2bin`.
 * **[shorkdir](https://github.com/SharktasticA/shorkdir)** - Lightweight terminal-based file browser.
 * **[shorkfetch](https://github.com/SharktasticA/shorkfetch)** - Displays basic system and environment information. Similar to fastfetch, neofetch, etc.
 * **[shorkhelp](https://github.com/SharktasticA/shorkhelp)** - Informs of SHORK 486's capabilities and provides guidance.
@@ -183,7 +191,6 @@ addgroup, adduser, chgrp, chown, chpasswd, chroot, cryptpw, delgroup, deluser, f
 * BASIC interpreter (exact one TBD)
 * bison
 * cmake
-* cfdisk
 * flex
 * GDB
 * IRC client (exact one TBD)
@@ -207,7 +214,7 @@ _The planned SHORK 686 will make these modern system-orientated options obsolete
 
 ## SHORK DISC
 
-SHORK DISC is a specialised version of the SHORK 486 Operating System that can be burned to a CD or DVD. Only a subset of BusyBox commands, utilities and software are available for it, it is only offered as a single-user (root) system, and has no persistent storage. It is envisioned as a completely immutable system or diagnostic aid, and is to be used as SHORK 486's installation media.
+SHORK DISC is a specialised version of the SHORK 486 Operating System that can be burned to a CD or DVD. Only a subset of BusyBox commands, utilities and software are available for it, it is only offered as a single-user (root) system, and has no persistent storage. It is envisioned as a completely immutable system or diagnostic aid, and is to be used as SHORK 486's installation media. Its ISO image will be ~21MB.
 
 ### Hardware requirements
 
@@ -220,15 +227,25 @@ SHORK DISC is a specialised version of the SHORK 486 Operating System that can b
 
 ### BusyBox
 
-ar, ash, awk, basename, bunzip2, bzcat, bzip2, cat, clear, cp, cpio, date, dd, df, diff, dirname, dmesg, echo, ed, eject, expr, fdformat, fdisk, free, grep, gunzip, gzip, hexdump, hostname, init, less, ln, ls, lsblk, lscpu, lzcat, lzma, lzop, lzopcat, mdev, mkdir, mount, mv, patch, printenv, printf, pwd, rev, rm, sed, sync, tar, tee, test, touch, true, umount, uname, uncompress, unlzma, unlzop, unxz, unzip, vi, which, xxd, xz, xzcat, zcat
+<p><code>ar, ash, awk, basename, bunzip2, bzcat, bzip2, cat, clear, cp, cpio, date, dd, df, diff, dirname, dmesg, echo, ed, eject, expr, fdformat, fdisk, free, grep, gunzip, gzip, hexdump, hostname, init, less, ln, ls, lsblk, lscpu, lzcat, lzma, lzop, lzopcat, mdev, mkdir, mount, mv, patch, printenv, printf, pwd, rev, rm, sed, sync, tar, tee, test, touch, true, umount, uname, uncompress, unlzma, unlzop, unxz, unzip, vi, which, xxd, xz, xzcat, zcat</code></p>
 
 ### Bundled software
 
 | Name | Command(s) | Version | Purpose | Licence(s) |
 |------|------------|---------|---------|------------|
+| [dosfstools](https://github.com/dosfstools/dosfstools/) | e.g. `dosfsck`, `mkdosfs` | 4.2 | FAT family filesystem utilities | GPLv3 |
+| [e2fsprogs](https://e2fsprogs.sourceforge.net/)| e.g. `blkid`, `fsck`, `mke2fs`, `resize2fs`, `tune2fs`, `uuidgen` | 1.47.4 | ext2/3/4 filesystem utilities | GPLv2 + LGPLv2 |
 | [file](https://github.com/file/file) | `file` | 5_48 | File identification | BSD 2-Clause |
 | [strace](https://github.com/strace/strace) | `strace` | 7.1 | System calls & signals tracer | LGPLv2.1 |
-| [util-linux](https://github.com/util-linux/util-linux) | `partx`, `sfdisk`, `whereis` | 2.42.2 | Extra Linux utilities | GPLv2 |
+| [util-linux](https://github.com/util-linux/util-linux) | `cfdisk`, `fdisk`, `lscpu`, `partx`, `sfdisk`, `whereis` | 2.42.2 | Extra Linux utilities | GPLv2 |
+
+#### Libraries & prerequisites
+
+| Name | Version | For | Licence(s) |
+|------|---------|-----|------------|
+| libcom_err | 1.47.4 | e2fsprogs | MIT SIPB |
+| libss | 1.47.4 | e2fsprogs | MIT SIPB |
+| libuuid | 1.47.4 | e2fsprogs | BSD 3-Clause |
 
 ### SHORK Utilities (shorkutils)
 
@@ -258,7 +275,7 @@ SHORK DISKETTE is a specialised version of the SHORK 486 Operating System that i
 
 ### BusyBox
 
-ash, awk, basename, cat, clear, cp, date, dd, df, echo, expr, free, grep, hostname, init, less, ln, ls, lsblk, mdev, mkdir, mount, mv, printenv, printf, pwd, rev, rm, sed, sync, tee, test, touch, true, umount, uname, vi, which
+<p><code>ash, awk, basename, cat, clear, cp, date, dd, df, echo, expr, free, grep, hostname, init, less, ln, ls, lsblk, mdev, mkdir, mount, mv, printenv, printf, pwd, rev, rm, sed, sync, tee, test, touch, true, umount, uname, vi, which</code></p>
 
 ### SHORK Utilities (shorkutils)
 
@@ -316,7 +333,7 @@ When running the SHORK 486 Build Configurator, you will be prompted to select th
 
 * Build environment (Arch native, Debian native/Dockerised or Fedora native)
 * Target distribution (SHORK 486, SHORK DISC or SHORK DISKETTE)
-* Linux kernel version (7.2-rc6, 7.1.6 or 7.0.14)
+* Linux kernel version (7.2, 7.1.9 or 7.0.14)
 * _If SHORK 486:_
     * Build type (default, max, plus, writer, offline, mini or custom)
     * Target disk size (size in MiB)
@@ -365,7 +382,7 @@ Selecting "Yes" here will enable multi-user and password-protected user support 
 
 #### Ethernet Networking Support
 
-Selecting "Yes" here will enable ethernet networking support in SHORK 486. BusyBox will include implementations for the `ftpget`, `ftpput`, `ifconfig`, `ip`, `netcat`, `ping`, `route`, `telnet`, `traceroute`, `udhcpc`, `wget` and `whois` commands. You will be allowed to select bundled software and options that require an internet connection in the subsequent prompts.
+Selecting "Yes" here will enable ethernet networking support in SHORK 486. BusyBox will include implementations for the `ftpget`, `ftpput`, `ifconfig`, `ip`, `nc`, `netcat`, `ping`, `route`, `telnet`, `traceroute`, `udhcpc`, `wget` and `whois` commands. You will be allowed to select bundled software and options that require an internet connection in the subsequent prompts.
 
 
 

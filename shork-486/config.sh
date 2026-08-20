@@ -44,7 +44,7 @@ IS_ARCH=false
 IS_FEDORA=false
 IS_DEBIAN=true
 BUILD_TYPE="default"
-LINUX_VER="7.1.6"
+LINUX_VER="7.2"
 TARGET_DISK=100
 TARGET_SWAP=8
 SCANCODE_SET=-1
@@ -429,6 +429,8 @@ set_disc_vars()
 {
     set_mini_vars
     ENABLE_CDROM=true
+    INCLUDE_DOSFSTOOLS=true
+    INCLUDE_E2FSPROGS=true
     INCLUDE_FILE=true
     INCLUDE_SHORKTAINMENT=true
     INCLUDE_STRACE=true
@@ -540,8 +542,8 @@ LINUX_VER=$(dialog --clear \
     --cancel-label "Quit" \
     --default-item "$LINUX_VER" \
     --menu "Please select which Linux kernel version you wish to use. It is generally safe to use the newest major version that isn't \"-rc\", but if you experience hardware compatibility issues, try building with an older kernel to see if that resolves them. If so, please report it as an issue on the SHORK 486 GitHub repository. Only select a \"-rc\" kernel if you know what you're doing." 14 $WIDTH 5 \
-    "7.2-rc6"   "7.2-rc6 (2026-08-02, testing)" \
-    "7.1.6"     "7.1.6 (2026-08-03, stable)" \
+    "7.2"       "7.2 (2026-08-17, stable)" \
+    "7.1.9"     "7.1.9 (2026-08-19, stable)" \
     "7.0.14"    "7.0.14 (2026-06-27, EOL)" \
     3>&1 1>&2 2>&3)
 
@@ -1093,7 +1095,7 @@ if [ "$ENABLE_NET_ETH" == true ]; then
         "tmux"              "*Terminal multiplexer (+1.7MiB)"                       "$(val "$INCLUDE_TMUX")"
         "tn5250"            "TCP/IP 5250 terminal emulator (+6.4MiB, EXPERIMENTAL)" "$(val "$INCLUDE_TN5250")"
         "tnftp"             "*FTP client (+0.3MiB)"                                 "$(val "$INCLUDE_TNFTP")"
-        "util-linux"        "*lscpu, partx, sfdisk & whereis (+2.2MiB)"             "$(val "$INCLUDE_UTIL_LINUX")"
+        "util-linux"        "*cf/f/sfdisk, lscpu, partx & whereis (+4.1MiB)"        "$(val "$INCLUDE_UTIL_LINUX")"
         "vim"               "†Vi IMproved text editor (+23MiB)"                     "$(val "$INCLUDE_VIM")"
     )
 else
@@ -1123,7 +1125,7 @@ else
         "tcc"               "*Tiny C Compiler + musl (+4MiB)"                       "$(val "$INCLUDE_TCC")"
         "tilde"             "GUI-like text editor (+3.6MiB)"                        "$(val "$INCLUDE_TILDE")"
         "tmux"              "*Terminal multiplexer (+1.7MiB)"                       "$(val "$INCLUDE_TMUX")"
-        "util-linux"        "*lscpu, partx, sfdisk & whereis (+2.2MiB)"             "$(val "$INCLUDE_UTIL_LINUX")"
+        "util-linux"        "*cf/f/sfdisk, lscpu, partx & whereis (+4.1MiB)"        "$(val "$INCLUDE_UTIL_LINUX")"
         "vim"               "†Vi IMproved text editor (+23MiB)"                     "$(val "$INCLUDE_VIM")"
     )
 fi
