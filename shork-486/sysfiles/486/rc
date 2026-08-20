@@ -73,6 +73,12 @@ fi
 
 export ENV=/etc/profile
 
+# Generate module.dep if present and empty
+KRN_VER="$(uname -r)"
+if [ -f "/lib/modules/$KRN_VER/modules.dep" ] && [ ! -s "/lib/modules/$KRN_VER/modules.dep" ]; then
+    depmod -b / "$KRN_VER" 2>/dev/null
+fi
+
 # Set up networking
 if [ -d /sys/class/net/eth0 ] && [ -e /sys/class/net/eth0/device ]; then
     ifconfig eth0 up
@@ -80,9 +86,6 @@ if [ -d /sys/class/net/eth0 ] && [ -e /sys/class/net/eth0/device ]; then
         udhcpc -i eth0 -n -t 3 -T 2 -s /usr/share/udhcpc/default.script > /dev/null 2>&1 &
     fi
 fi
-
-# Set up PC speaker
-modprobe pcspkr 2>/dev/null || true
 
 # Flush any ttyx seen flags
 rm -f /tmp/.tty*_seen

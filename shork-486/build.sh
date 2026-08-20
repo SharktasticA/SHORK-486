@@ -264,6 +264,7 @@ ENABLE_HELP_VERBOSE=true
 ENABLE_HIGHMEM=false
 ENABLE_LOOP=true
 ENABLE_MENU=true
+ENABLE_MODULES=true
 ENABLE_NO_VDS032=true
 ENABLE_MULTIUSER_KRN=false
 ENABLE_MULTIUSER_REAL=false
@@ -448,10 +449,12 @@ fi
 
 # Networking-related overrides
 if [ "$ENABLE_NET_ETH" = true ]; then
-    # Ensure PCMCIA networking support is enabled if general PCMCIA support is also enabled
+    # Ensure NET_PCMCIA is enabled NET_ETH and PCMCIA
     if [ "$ENABLE_PCMCIA" = true ]; then
         ENABLE_NET_PCMCIA=true
     fi
+    # Ensure MODULES is enabled NET_ETH 
+    ENABLE_MODULES=true
 else
     # If networking support is disabled, make sure networking-based programs and features are also disabled
     ENABLE_NET_PCMCIA=false
@@ -463,6 +466,11 @@ fi
 # Ensure MULTIUSER_KRN is enabled with MULTIUSER_REAL
 if [ "$ENABLE_MULTIUSER_REAL" = true ]; then
     ENABLE_MULTIUSER_KRN=true
+fi
+
+# Ensure MODULES is enabled SOUND 
+if [ "$ENABLE_SOUND" = true ]; then
+    ENABLE_MODULES=true
 fi
 
 # Ensure USE_GRUB is disabled with FIX_EXTLINUX
@@ -492,8 +500,9 @@ if [ "$INCLUDE_MICRO" = true ]; then
     ENABLE_EPOLL=true
 fi
 
-# Ensure SOUND and SYSVIPC are enabled with MPG321
+# Ensure MODULES, SOUND and SYSVIPC are enabled with MPG321
 if [ "$INCLUDE_MPG321" = true ]; then
+    ENABLE_MODULES=true
     ENABLE_SOUND=true
     ENABLE_SYSVIPC=true
 fi
@@ -2383,17 +2392,22 @@ get_busybox()
 
     if $ENABLE_HELP_VERBOSE; then
         echo -e "${GREEN}Enabling BusyBox's verbose --help...${RESET}"
-        merge_bb_frag "$CONFIGS_DIR/busybox/busybox.config.help.frag"
+        merge_bb_frag "${CONFIGS_DIR}/busybox/busybox.config.help.frag"
     fi
     
     if $ENABLE_LOOP; then
         echo -e "${GREEN}Enabling BusyBox's losetup utility...${RESET}"
-        merge_bb_frag "$CONFIGS_DIR/busybox/busybox.config.loop.frag"
+        merge_bb_frag "${CONFIGS_DIR}/busybox/busybox.config.loop.frag"
+    fi
+    
+    if $ENABLE_MODULES; then
+        echo -e "${GREEN}Enabling BusyBox's Linux kernel modules utilities...${RESET}"
+        merge_bb_frag "${CONFIGS_DIR}/busybox/busybox.config.modules.frag"
     fi
 
     if $ENABLE_MULTIUSER_REAL; then
         echo -e "${GREEN}Enabling BusyBox's multi-user utilities...${RESET}"
-        merge_bb_frag "$CONFIGS_DIR/busybox/busybox.config.multiuser.frag"
+        merge_bb_frag "${CONFIGS_DIR}/busybox/busybox.config.multiuser.frag"
         
         echo -e "${GREEN}Applying 1.37.0-1.38.0_musl_utmp patch...${RESET}"
         patch -p1 < "${PATCHES_DIR}/busybox/1.37.0-1.38.0_musl_utmp.patch"
@@ -2401,12 +2415,12 @@ get_busybox()
     
     if $ENABLE_NET_ETH; then
         echo -e "${GREEN}Enabling BusyBox's networking utilities...${RESET}"
-        merge_bb_frag "$CONFIGS_DIR/busybox/busybox.config.net.frag"
+        merge_bb_frag "${CONFIGS_DIR}/busybox/busybox.config.net.frag"
     fi
 
     if $ENABLE_USB; then
         echo -e "${GREEN}Enabling BusyBox's USB-related utilities...${RESET}"
-        merge_bb_frag "$CONFIGS_DIR/busybox/busybox.config.usb.frag"
+        merge_bb_frag "${CONFIGS_DIR}/busybox/busybox.config.usb.frag"
         yes | make oldconfig
     fi
 
@@ -2620,105 +2634,110 @@ configure_kernel()
     if $ENABLE_CDROM; then
         echo -e "${GREEN}Enabling kernel-level CD-ROM & DVD-ROM support...${RESET}"
         if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
-            FRAGS+="$CONFIGS_DIR/linux/linux.config.cdrom.frag "
+            FRAGS+="${CONFIGS_DIR}/linux/linux.config.cdrom.frag "
         elif [ "$ID" == "shork-diskette" ]; then
-            FRAGS+="$CONFIGS_DIR/linux/linux.config.cdrom.diskette.frag "
+            FRAGS+="${CONFIGS_DIR}/linux/linux.config.cdrom.diskette.frag "
         fi
     fi
 
     if $ENABLE_EPOLL; then
         echo -e "${GREEN}Enabling kernel-level eventpoll support...${RESET}"
-        FRAGS+="$CONFIGS_DIR/linux/linux.config.epoll.frag "
+        FRAGS+="${CONFIGS_DIR}/linux/linux.config.epoll.frag "
     fi
     
     if $ENABLE_FB_VBE; then
         echo -e "${GREEN}Enabling kernel-level framebuffer & VBE support...${RESET}"
-        FRAGS+="$CONFIGS_DIR/linux/linux.config.fb.frag "
+        FRAGS+="${CONFIGS_DIR}/linux/linux.config.fb.frag "
     fi
 
     if $INCLUDE_GUI; then
         echo -e "${GREEN}Enabling kernel-level event interface support...${RESET}"
-        FRAGS+="$CONFIGS_DIR/linux/linux.config.x11.frag "
+        FRAGS+="${CONFIGS_DIR}/linux/linux.config.x11.frag "
     fi
 
     if $ENABLE_HIGHMEM; then
         echo -e "${GREEN}Enabling kernel-level high memory support...${RESET}"
-        FRAGS+="$CONFIGS_DIR/linux/linux.config.highmem.frag "
+        FRAGS+="${CONFIGS_DIR}/linux/linux.config.highmem.frag "
     fi
 
     if $ENABLE_LOOP; then
         echo -e "${GREEN}Enabling kernel-level loopback device support...${RESET}"
-        FRAGS+="$CONFIGS_DIR/linux/linux.config.loop.frag "
+        FRAGS+="${CONFIGS_DIR}/linux/linux.config.loop.frag "
+    fi
+
+    if $ENABLE_MODULES; then
+        echo -e "${GREEN}Enabling kernel-level modules support...${RESET}"
+        FRAGS+="${CONFIGS_DIR}/linux/linux.config.modules.frag "
     fi
 
     if $ENABLE_MULTIUSER_KRN; then
         echo -e "${GREEN}Enabling kernel-level multi-user support...${RESET}"
-        FRAGS+="$CONFIGS_DIR/linux/linux.config.multiuser.frag "
-    fi
-
-    if $ENABLE_PCMCIA; then
-        echo -e "${GREEN}Enabling kernel-level PCMCIA support...${RESET}"
-        FRAGS+="$CONFIGS_DIR/linux/linux.config.pcmcia.frag "
+        FRAGS+="${CONFIGS_DIR}/linux/linux.config.multiuser.frag "
     fi
 
     if $ENABLE_NET_BASE; then
         echo -e "${GREEN}Enabling kernel-level networking support (base)...${RESET}"
-        FRAGS+="$CONFIGS_DIR/linux/linux.config.net.base.frag "
+        FRAGS+="${CONFIGS_DIR}/linux/linux.config.net.base.frag "
     fi
 
     if $ENABLE_NET_ETH; then
         echo -e "${GREEN}Enabling kernel-level networking support (ethernet)...${RESET}"
-        FRAGS+="$CONFIGS_DIR/linux/linux.config.net.eth.frag "
+        FRAGS+="${CONFIGS_DIR}/linux/linux.config.net.eth.frag "
     fi
 
     if $ENABLE_NET_PCMCIA; then
         echo -e "${GREEN}Enabling kernel-level networking support (PCMCIA)...${RESET}"
-        FRAGS+="$CONFIGS_DIR/linux/linux.config.net.pcmcia.frag "
+        FRAGS+="${CONFIGS_DIR}/linux/linux.config.net.pcmcia.frag "
+    fi
+
+    if $ENABLE_PCMCIA; then
+        echo -e "${GREEN}Enabling kernel-level PCMCIA support...${RESET}"
+        FRAGS+="${CONFIGS_DIR}/linux/linux.config.pcmcia.frag "
     fi
 
     if $ENABLE_SATA; then
         echo -e "${GREEN}Enabling kernel-level SATA support...${RESET}"
-        FRAGS+="$CONFIGS_DIR/linux/linux.config.sata.frag "
+        FRAGS+="${CONFIGS_DIR}/linux/linux.config.sata.frag "
     fi
 
     if $ENABLE_SCSI_EXP; then
         echo -e "${GREEN}Enabling kernel-level SCSI media changer & tape drive support...${RESET}"
-        FRAGS+="$CONFIGS_DIR/linux/linux.config.scsi.exp.frag "
+        FRAGS+="${CONFIGS_DIR}/linux/linux.config.scsi.exp.frag "
     fi
 
     if $ENABLE_SMP; then
         echo -e "${GREEN}Enabling kernel-level symmetric multiprocessing (SMP) support...${RESET}"
-        FRAGS+="$CONFIGS_DIR/linux/linux.config.smp.frag "
+        FRAGS+="${CONFIGS_DIR}/linux/linux.config.smp.frag "
     fi
 
     if $ENABLE_SOUND; then
         echo -e "${GREEN}Enabling kernel-level sound support...${RESET}"
-        FRAGS+="$CONFIGS_DIR/linux/linux.config.sound.frag "
+        FRAGS+="${CONFIGS_DIR}/linux/linux.config.sound.frag "
     fi
 
     if $ENABLE_SYSVIPC; then
         echo -e "${GREEN}Enabling kernel-level System V IPC support...${RESET}"
-        FRAGS+="$CONFIGS_DIR/linux/linux.config.sysvipc.frag "
+        FRAGS+="${CONFIGS_DIR}/linux/linux.config.sysvipc.frag "
     fi
 
     if $ENABLE_TASKSTATS; then
         echo -e "${GREEN}Enabling kernel-level taskstats support...${RESET}"
-        FRAGS+="$CONFIGS_DIR/linux/linux.config.taskstats.frag "
+        FRAGS+="${CONFIGS_DIR}/linux/linux.config.taskstats.frag "
     fi
 
     if $ENABLE_USB; then
         echo -e "${GREEN}Enabling kernel-level USB & HID support...${RESET}"
-        FRAGS+="$CONFIGS_DIR/linux/linux.config.usb.frag "
+        FRAGS+="${CONFIGS_DIR}/linux/linux.config.usb.frag "
     fi
 
     if $ENABLE_VM86; then
         echo -e "${GREEN}Enabling kernel-level VM86 support...${RESET}"
-        FRAGS+="$CONFIGS_DIR/linux/linux.config.vm86.frag "
+        FRAGS+="${CONFIGS_DIR}/linux/linux.config.vm86.frag "
     fi
 
     if $ENABLE_ZSWAP; then
         echo -e "${GREEN}Enabling kernel-level zswap support...${RESET}"
-        FRAGS+="$CONFIGS_DIR/linux/linux.config.zswap.frag "
+        FRAGS+="${CONFIGS_DIR}/linux/linux.config.zswap.frag "
     fi
 
     if [ -n "$PHYSICAL_START" ]; then
@@ -2808,7 +2827,17 @@ compile_kernel()
     make ARCH=x86 bzImage -j$(nproc)
     $STRIP vmlinux
 
+    echo -e "${GREEN}Installing Linux kernel image...${RESET}"
     sudo mv arch/x86/boot/bzImage "$CURR_DIR/build" || true
+
+    if $ENABLE_MODULES; then
+        KRN_BUILT_VER=$(make ARCH=x86 -s kernelrelease)
+        echo -e "${GREEN}Compiling Linux kernel modules...${RESET}"
+        make ARCH=x86 modules -j$(nproc)
+
+        echo -e "${GREEN}Installing Linux kernel modules...${RESET}"
+        sudo make ARCH=x86 modules_install INSTALL_MOD_PATH="$CURR_DIR/build/root"
+    fi
 }
 
 # Download and compile Linux kernel
@@ -7903,6 +7932,14 @@ get_included_busybox_commands()
     # Added 2026-08-14
     check_bb_config "CONFIG_UUDECODE" ""
     check_bb_config "CONFIG_UUENCODE" ""
+
+    # Added 2026-08-20
+    check_bb_config "CONFIG_DEPMOD" ""
+    check_bb_config "CONFIG_INSMOD" ""
+    check_bb_config "CONFIG_LSMOD" ""
+    check_bb_config "CONFIG_MODINFO" ""
+    check_bb_config "CONFIG_MODPROBE" ""
+    check_bb_config "CONFIG_RMMOD" ""
 
     readarray -t INCLUDED_BB_CMDS < <(printf '%s\n' "${INCLUDED_BB_CMDS[@]}" | sort)
     readarray -t EXCLUDED_BB_CMDS < <(printf '%s\n' "${EXCLUDED_BB_CMDS[@]}" | sort)

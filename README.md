@@ -82,7 +82,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 
 #### Edition/option-dependent
 
-<p><code>addgroup, adduser, chgrp, chown, chpasswd, chroot, cryptpw, delgroup, deluser, ftpget, ftpput, getty, id, ifconfig, ip, login, logname, losetup, lsusb, mkpasswd, nc, netcat, passwd, ping, route, su, sulogin, telnet, traceroute, udhcpc, users, w, wget, who, whois</code></p>
+<p><code>addgroup, adduser, chgrp, chown, chpasswd, chroot, cryptpw, delgroup, deluser, depmod, ftpget, ftpput, getty, id, ifconfig, insmod, ip, login, logname, losetup, lsmod, lsusb, mkpasswd, modinfo, modprobe, nc, netcat, passwd, ping, rmmod, route, su, sulogin, telnet, traceroute, udhcpc, users, w, wget, who, whois</code></p>
 
 ### Bundled software
 
