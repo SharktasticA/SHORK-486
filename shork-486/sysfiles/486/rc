@@ -79,6 +79,19 @@ if [ -f "/lib/modules/$KRN_VER/modules.dep" ] && [ ! -s "/lib/modules/$KRN_VER/m
     depmod -b / "$KRN_VER" 2>/dev/null
 fi
 
+# Load modules listed in shorkset.conf
+if [ -f /etc/shorkset.conf ]; then
+    . /etc/shorkset.conf
+    if [ -n "$MODULES" ]; then
+        OLD_IFS="$IFS"
+        IFS=","
+        for MOD in $MODULES; do
+            modprobe "$MOD" 2>/dev/null
+        done
+        IFS="$OLD_IFS"
+    fi
+fi
+
 # Set up networking
 if [ -d /sys/class/net/eth0 ] && [ -e /sys/class/net/eth0/device ]; then
     ifconfig eth0 up
