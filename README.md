@@ -104,6 +104,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [GNU Indent](https://www.gnu.org/software/indent/) | `indent` | 2.2.13 | C code formatter | GPLv3 |*||||
 | [GNU Make](https://www.gnu.org/software/make/) | `make` | 4.4.1 | Build automation tool | GPLv3 |*||||
 | [GNU nano](https://www.nano-editor.org/) | `nano` | 9.2 | Pico-style text editor | GPLv3 |*|**\***|*|*|
+| [GnuPG & pinentry](https://gnupg.org/)  | e.g. `gpg`, `gpg-agent`, `gpgconf`, `kbxutil`, `pinentry`, `watchgnupg` | 2.5.21 & 1.3.3 | OpenPGP-compliant encryption & signing | GPLv3 |*||||
 | [htop](https://github.com/htop-dev/htop) | `htop` | 3.5.3 | Interactive process viewer | GPLv2 |*|**\***|*|*|
 | [Joe's Own Editor](https://github.com/joe-editor/joe) | `joe` | 4.8 | WordStar & Emacs-blend text editor | GPLv2 |*||*||
 | [Lua](https://www.lua.org/) | `lua` | 5.5.1 | Embedded scripting & extensions language | MIT |*|**\***||*|
@@ -113,6 +114,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [mpg321](https://mpg321.sourceforge.net/)† | `mpg321` | 0.3.2-1 | MP3 player | GPLv2 |*||||
 | [mt-st](https://github.com/iustin/mt-st) | `mt`, `stinit` | 1.8 | Tape drive tools | GPLv2 |*|**\***||*|
 | [NASM](https://www.nasm.us/) | `nasm`, `ndisasm` | 3.02 | Portable x86 assembler & disassembler | BSD 2-Clause |*||||
+| [Ncdu](https://dev.yorhel.nl/ncdu) | `ncdu` | 1.22 | Disk usage analyser | MIT |*|**\***|*|*|
 | [sc-im](https://github.com/andmarti1424/sc-im) | `sc-im` | 0.8.5 | Terminal spreadsheet editor | BSD 4-Clause |*|**\***|*|*|
 | [strace](https://github.com/strace/strace) | `strace` | 7.1 | System calls & signals tracer | LGPLv2.1 |*|**\***||*|
 | [sudo](https://www.sudo.ws/)‖ | `sudo`, `sudoedit`, `visudo` | 1.9.17p2 | Run command as root/substitute user | ISC + BSD 2-Clause + BSD 3-Clause + zlib |*|**\***|*|*|
@@ -136,10 +138,15 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 
 | Name | Version | For | Licence(s) |
 |------|---------|-----|------------|
+| [Compiler-RT](https://github.com/llvm/llvm-project/tree/main/compiler-rt) (libsoftfp) | 23.1.0 | GnuPG | Apache 2.0 w/ LLVM Exceptions |
 | [libao](https://github.com/xiph/libao) | 1.2.2 | mpg321 | GNU GPLv2 |
+| [libassuan](https://www.gnupg.org/software/libassuan/index.html) | 3.0.2 | GnuPG | GNU GPLv3 |
 | libcom_err | 1.47.4 | e2fsprogs | MIT SIPB |
 | [libevent](https://github.com/libevent/libevent) | 2.1.13 | tmux | BSD 3-Clause |
+| [libgcrypt](https://www.gnupg.org/software/libgcrypt/index.html) | 1.12.2 | GnuPG | GNU GPLv3 |
+| [libgpg-error](https://www.gnupg.org/software/libgpg-error/index.html) | 1.61 | GnuPG | GNU GPLv3 |
 | [libid3tag](https://github.com/markjeee/libid3tag) | 0.15.1b | mpg321 | GNU GPLv2 |
+| [libksba](https://www.gnupg.org/software/libksba/index.html) | 1.8.0 | GnuPG | GNU GPLv3 |
 | [libmad](https://github.com/markjeee/libmad) | 0.15.1b | mpg321 | GNU GPLv2 |
 | libss | 1.47.4 | e2fsprogs | MIT SIPB |
 | [libt3config](https://os.ghalkes.nl/t3/libt3config.html) | 1.0.0 | Tilde | GNU GPLv3 |
@@ -155,11 +162,15 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [libzip](https://github.com/nih-at/libzip) | 1.11.4 | sc-im | BSD 3-Clause |
 | [musl](somethhttps://musl.libc.org/) | 1.2.6 | GCC, Tiny C Compiler | MIT |
 | [ncurses](https://github.com/mirror/ncurses) | 6.4 | htop, Lynx, nano, sc-im, tic, tmux, tn5250, util-linux, x3270 | MIT |
+| [nPth](https://www.gnupg.org/software/npth/index.html) | 1.8 | GnuPG | GNU LGPLv2.1 |
 | [OpenSSL](https://github.com/openssl/openssl) | 3.6.3 | curl, Git, Lynx, tn5250 | Apache 2.0 |
 | [PCRE2](https://pcre2project.github.io/pcre2/) | 10.47 | Tilde | BSD 3-Clause w/ PCRE2 exception |
-| [zlib](https://github.com/madler/zlib) | 1.3.2 | Git, libzip | zlib |
+| [zlib](https://github.com/madler/zlib) | 1.3.2 | Git, GnuPG, libzip | zlib |
 
 ### SHORK Utilities (shorkutils)
+
+_Only partially included with SHORK 486 Mini, SHORK DISC and SHORK DISKETTE_
+
 * **[shorkbin](https://github.com/SharktasticA/shorkbin)** - An ASCII text/8-bit binary converter. Available as `bin2text`, `shorkbin` and `text2bin`.
 * **[shorkdir](https://github.com/SharktasticA/shorkdir)** - Lightweight terminal-based file browser.
 * **[shorkfetch](https://github.com/SharktasticA/shorkfetch)** - Displays basic system and environment information. Similar to fastfetch, neofetch, etc.
@@ -168,6 +179,8 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 * **[shorkset](https://github.com/SharktasticA/shorkset)** - A settings program for changing display resolution (VGA, and if compatible, VBE), keyboard layout (keymap), system sound volume, the terminal's PSF font, and the terminal's font colour.
 
 ### SHORK Entertainment (shorktainment)
+
+_Not included with SHORK 486 Mini and SHORK DISKETTE_
 
 * **[shorklocomotive](https://github.com/SharktasticA/shorklocomotive)** - A shark-themed take on [sl (Steam Locomotive)](https://github.com/mtoyoda/sl) that kindly pokes fun at making typos when trying to type `ls`. Available as `sl` and `shorklocomotive`.
 * **[shorkmatrix](https://github.com/SharktasticA/shorkmatrix)** - A quick, blue-themed take on the [CMatrix](https://github.com/abishekvashok/cmatrix) "digital rain" vertical scrolling text screensaver. Available as `cmatrix` and `shorkmatrix`.
@@ -290,7 +303,7 @@ SHORK 486, DISC and DISKETTE do not presently have released compilations or medi
 
 ### Configuration
 
-Whilst you *can* build SHORK 486 proper immediately, it is recommended to first run the SHORK 486 Build Configurator (`config.sh`) whilst in the `shork-486` directory to select SHORK DISC or SHORK DISKETTE if needed, and to tailor SHORK 486 to your liking.
+Whilst you *can* build SHORK 486 proper immediately - which produces a SHORK 486 Mini build - it is recommended to first run the SHORK 486 Build Configurator (`config.sh`) whilst in the `shork-486` directory to select SHORK DISC or SHORK DISKETTE if needed, or to tailor SHORK 486 to your liking.
 
 ### Native building
 

@@ -67,6 +67,7 @@ INCLUDE_E2FSPROGS=false
 INCLUDE_FILE=false
 INCLUDE_GCC=false
 INCLUDE_GIT=false
+INCLUDE_GNUPG=false
 INCLUDE_HTOP=false
 INCLUDE_INDENT=false
 INCLUDE_JOE=false
@@ -79,6 +80,7 @@ INCLUDE_MPG321=false
 INCLUDE_MT_ST=false
 INCLUDE_NANO=false
 INCLUDE_NASM=false
+INCLUDE_NCDU=false
 INCLUDE_SC_IM=false
 INCLUDE_SHORKSTALL=false
 INCLUDE_SHORKTAINMENT=false
@@ -184,6 +186,7 @@ save_env()
         echo "INCLUDE_FILE=$INCLUDE_FILE"
         echo "INCLUDE_GCC=$INCLUDE_GCC"
         echo "INCLUDE_GIT=$INCLUDE_GIT"
+        echo "INCLUDE_GNUPG=$INCLUDE_GNUPG"
         echo "INCLUDE_HTOP=$INCLUDE_HTOP"
         echo "INCLUDE_INDENT=$INCLUDE_INDENT"
         echo "INCLUDE_JOE=$INCLUDE_JOE"
@@ -196,6 +199,7 @@ save_env()
         echo "INCLUDE_MT_ST=$INCLUDE_MT_ST"
         echo "INCLUDE_NANO=$INCLUDE_NANO"
         echo "INCLUDE_NASM=$INCLUDE_NASM"
+        echo "INCLUDE_NCDU=$INCLUDE_NCDU"
         echo "INCLUDE_SC_IM=$INCLUDE_SC_IM"
         echo "INCLUDE_SHORKSTALL=$INCLUDE_SHORKSTALL"
         echo "INCLUDE_SHORKTAINMENT=$INCLUDE_SHORKTAINMENT"
@@ -270,6 +274,7 @@ set_mini_vars()
     INCLUDE_FILE=false
     INCLUDE_GCC=false
     INCLUDE_GIT=false
+    INCLUDE_GNUPG=false
     INCLUDE_HTOP=false
     INCLUDE_INDENT=false
     INCLUDE_JOE=false
@@ -282,6 +287,7 @@ set_mini_vars()
     INCLUDE_MT_ST=false
     INCLUDE_NANO=false
     INCLUDE_NASM=false
+    INCLUDE_NCDU=false
     INCLUDE_SC_IM=false
     INCLUDE_SHORKSTALL=false
     INCLUDE_SHORKTAINMENT=false
@@ -327,14 +333,13 @@ set_default_vars()
     INCLUDE_FILE=true
     INCLUDE_GIT=true
     INCLUDE_HTOP=true
-    INCLUDE_JOE=false
     INCLUDE_LUA=true
     INCLUDE_LYNX=true
     INCLUDE_MG=true
     INCLUDE_MICROPYTHON=true
     INCLUDE_MT_ST=true
     INCLUDE_NANO=true
-    INCLUDE_NASM=false
+    INCLUDE_NCDU=true
     INCLUDE_SC_IM=true
     INCLUDE_SHORKTAINMENT=true
     INCLUDE_STRACE=true
@@ -374,6 +379,7 @@ set_writer_vars()
     INCLUDE_JOE=true
     INCLUDE_MG=true
     INCLUDE_NANO=true
+    INCLUDE_NCDU=true
     INCLUDE_SC_IM=true
     INCLUDE_SHORKTAINMENT=true
     INCLUDE_TILDE=true
@@ -398,6 +404,7 @@ set_plus_vars()
     INCLUDE_CTAGS=true
     INCLUDE_CURL=true
     INCLUDE_GCC=true
+    INCLUDE_GNUPG=true
     INCLUDE_INDENT=true
     INCLUDE_JOE=true
     INCLUDE_MAKE=true
@@ -1075,6 +1082,7 @@ if [ "$ENABLE_NET_ETH" == true ]; then
         "file"              "*†File type identification (+10MiB)"                   "$(val "$INCLUDE_FILE")"
         "gcc"               "†GCC + binutils + musl (+215MiB)"                      "$(val "$INCLUDE_GCC")"
         "git"               "*Source control client (+19MiB)"                       "$(val "$INCLUDE_GIT")"
+        "gnupg"             "OpenPGP-compliant encryption & signing (+25MiB)"       "$(val "$INCLUDE_GNUPG")"
         "htop"              "*Interactive process viewer (+0.6MiB)"                 "$(val "$INCLUDE_HTOP")"
         "indent"            "C code formatter (+0.1MiB)"                            "$(val "$INCLUDE_INDENT")"
         "joe"               "WordStar & Emacs-blend text editor (+1.9MiB)"          "$(val "$INCLUDE_JOE")"
@@ -1087,6 +1095,7 @@ if [ "$ENABLE_NET_ETH" == true ]; then
         "mt-st"             "*Tape drive tools (+0.2MiB)"                           "$(val "$INCLUDE_MT_ST")"
         "nano"              "*Pico-style text editor (+0.8MiB)"                     "$(val "$INCLUDE_NANO")"
         "nasm"              "Portable x86 assembler & disassembler (+2.5MiB)"       "$(val "$INCLUDE_NASM")"
+        "ncdu"              "*Disk usage analyser (+0.4MiB)"                        "$(val "$INCLUDE_NCDU")"
         "sc-im"             "*Terminal spreadsheet editor (+2.8MiB)"                "$(val "$INCLUDE_SC_IM")"
         "shorktainment"     "*shorkmatrix, shorkmines, shorksay & sl (+0.5MiB)"     "$(val "$INCLUDE_SHORKTAINMENT")"
         "strace"            "*System calls & signals tracer (+1.1MiB)"              "$(val "$INCLUDE_STRACE")"
@@ -1108,6 +1117,7 @@ else
         "e2fsprogs"         "*ext2/3/4 file system utilities (+4MiB)"               "$(val "$INCLUDE_E2FSPROGS")"
         "file"              "*†File type identification (+10MiB)"                   "$(val "$INCLUDE_FILE")"
         "gcc"               "†GCC + binutils + musl (+215MiB)"                      "$(val "$INCLUDE_GCC")"
+        "gnupg"             "OpenPGP-compliant encryption & signing (+25MiB)"       "$(val "$INCLUDE_GNUPG")"
         "htop"              "*Interactive process viewer (+0.6MiB)"                 "$(val "$INCLUDE_HTOP")"
         "indent"            "C code formatter (+0.1MiB)"                            "$(val "$INCLUDE_INDENT")"
         "joe"               "WordStar & Emacs-blend text editor (+1.9MiB)"          "$(val "$INCLUDE_JOE")"
@@ -1119,6 +1129,7 @@ else
         "mt-st"             "*Tape drive tools (+0.2MiB)"                           "$(val "$INCLUDE_MT_ST")"
         "nano"              "*Pico-style text editor (+0.8MiB)"                     "$(val "$INCLUDE_NANO")"
         "nasm"              "Portable x86 assembler & disassembler (+2.5MiB)"       "$(val "$INCLUDE_NASM")"
+        "ncdu"              "*Disk usage analyser (+0.4MiB)"                        "$(val "$INCLUDE_NCDU")"
         "sc-im"             "*Terminal spreadsheet editor (+2.8MiB)"                "$(val "$INCLUDE_SC_IM")"
         "shorktainment"     "*shorkmatrix, shorkmines, shorksay & sl (+0.5MiB)"     "$(val "$INCLUDE_SHORKTAINMENT")"
         "strace"            "*System calls & signals tracer (+1.1MiB)"              "$(val "$INCLUDE_STRACE")"
@@ -1156,6 +1167,7 @@ else
     if [[ $BUNDLED =~ "file" ]];            then INCLUDE_FILE=true;             else INCLUDE_FILE=false;            fi
     if [[ $BUNDLED =~ "gcc" ]];             then INCLUDE_GCC=true;              else INCLUDE_GCC=false;             fi
     if [[ $BUNDLED =~ "git" ]];             then INCLUDE_GIT=true;              else INCLUDE_GIT=false;             fi
+    if [[ $BUNDLED =~ "gnupg" ]];           then INCLUDE_GNUPG=true;            else INCLUDE_GNUPG=false;           fi
     if [[ $BUNDLED =~ "htop" ]];            then INCLUDE_HTOP=true;             else INCLUDE_HTOP=false;            fi
     if [[ $BUNDLED =~ "indent" ]]           then INCLUDE_INDENT=true;           else INCLUDE_INDENT=false;          fi
     if [[ $BUNDLED =~ "joe" ]];             then INCLUDE_JOE=true;              else INCLUDE_JOE=false;             fi
@@ -1168,6 +1180,7 @@ else
     if [[ $BUNDLED =~ "mt-st" ]];           then INCLUDE_MT_ST=true;            else INCLUDE_MT_ST=false;           fi
     if [[ $BUNDLED =~ "nano" ]];            then INCLUDE_NANO=true;             else INCLUDE_NANO=false;            fi
     if [[ $BUNDLED =~ "nasm" ]];            then INCLUDE_NASM=true;             else INCLUDE_NASM=false;            fi
+    if [[ $BUNDLED =~ "ncdu" ]];            then INCLUDE_NCDU=true;             else INCLUDE_NCDU=false;            fi
     if [[ $BUNDLED =~ "sc-im" ]];           then INCLUDE_SC_IM=true;            else INCLUDE_SC_IM=false;           fi
     if [[ $BUNDLED =~ "shorktainment" ]];   then INCLUDE_SHORKTAINMENT=true;    else INCLUDE_SHORKTAINMENT=false;   fi
     if [[ $BUNDLED =~ "strace" ]];          then INCLUDE_STRACE=true;           else INCLUDE_STRACE=false;          fi

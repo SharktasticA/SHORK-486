@@ -57,16 +57,16 @@ echo -e "${BLUE}========================${RESET}"
 ######################################################
 
 # General global vars
-BUILD_TYPE="default"
+BUILD_TYPE="mini"
 BOOTLDR_USED=""
-DEFAULT_TARGET_DISK=100
-DEFAULT_TARGET_SWAP=8
+DEFAULT_TARGET_DISK=8
+DEFAULT_TARGET_SWAP=0
 DISK_CYLINDERS=0
 DISK_HEADS=16
 DISK_SECTORS_TRACK=63
 DONT_DEL_ROOT=false
 DOTENV_USED=false
-EST_MIN_RAM="16MiB"
+EST_MIN_RAM="8MiB"
 EXCLUDED_BB_CMDS=()
 EXCLUDED_FEATURES=""
 INCLUDED_BB_CMDS=()
@@ -79,7 +79,7 @@ USED_WM="TWM"
 
 # Branding
 ARCH="$(cat ${CURR_DIR}/branding/ARCH | tr -d '\n')"
-DIST="SHORK 486"
+DIST="SHORK 486 Mini"
 VER="$(cat ${CURR_DIR}/branding/VER | tr -d '\n')"
 ID="shork-486"
 URL="$(cat ${CURR_DIR}/branding/URL | tr -d '\n')"
@@ -146,6 +146,8 @@ GIT_SRC="https://github.com/git/git.git"
 GIT_VER="2.55.0"
 GLIBC_SRC="https://ftp.gnu.org/gnu/glibc"
 GLIBC_VER="2.44"
+GNUPG_SRC="https://gnupg.org/ftp/gcrypt/gnupg"
+GNUPG_VER="2.5.21"
 HTOP_SRC="https://github.com/htop-dev/htop.git"
 HTOP_VER="3.5.3"
 HWINFO_SRC="https://github.com/opensuse/hwinfo.git"
@@ -156,10 +158,18 @@ JOE_SRC="https://github.com/joe-editor/joe"
 JOE_VER="4.8"
 LIBAO_SRC="https://github.com/xiph/libao.git"
 LIBAO_VER="1.2.2"
+LIBASSUAN_SRC="https://gnupg.org/ftp/gcrypt/libassuan"
+LIBASSUAN_VER="3.0.2"
 LIBEVENT_SRC="https://github.com/libevent/libevent.git"
 LIBEVENT_VER="release-2.1.13-stable"
+LIBGCRYPT_SRC="https://gnupg.org/ftp/gcrypt/libgcrypt"
+LIBGCRYPT_VER="1.12.2"
+LIBGPG_ERROR_SRC="https://gnupg.org/ftp/gcrypt/libgpg-error"
+LIBGPG_ERROR_VER="1.61"
 LIBID3TAG_SRC="https://github.com/markjeee/libid3tag.git"
 LIBID3TAG_VER="7929736a334804dc5670b203c9129cac2708d31c"
+LIBKSBA_SRC="https://gnupg.org/ftp/gcrypt/libksba"
+LIBKSBA_VER="1.8.0"
 LIBMAD_SRC="https://github.com/markjeee/libmad.git"
 LIBMAD_VER="c2f96fa4166446ac99449bdf6905f4218fb7d6b5"
 LIBT3_SRC="https://os.ghalkes.nl/dist"
@@ -179,6 +189,8 @@ LIBXML2_SRC="https://github.com/gnome/libxml2.git"
 LIBXML2_VER="2.15.3"
 LIBZIP_SRC="https://github.com/nih-at/libzip.git"
 LIBZIP_VER="1.11.4"
+LLVM_SRC="https://github.com/llvm/llvm-project.git"
+LLVM_VER="23.1.0"
 LUA_SRC="https://github.com/lua/lua"
 LUA_VER="5.5.1"
 LYNX_SRC="https://github.com/ThomasDickey/lynx-snapshots.git"
@@ -202,12 +214,18 @@ NANO_DIST="v9"
 NANO_VER="9.2"
 NASM_SRC="https://github.com/netwide-assembler/nasm.git"
 NASM_VER="3.02"
+NCDU_SRC="https://dev.yorhel.nl/download"
+NCDU_VER="1.22"
 NCURSES_SRC="https://github.com/mirror/ncurses.git"
 NCURSES_VER="6.4"
+NPTH_SRC="https://gnupg.org/ftp/gcrypt/npth"
+NPTH_VER="1.8"
 OPENSSL_SRC="https://github.com/openssl/openssl.git"
 OPENSSL_VER="3.6.3"
 PCRE2_SRC="https://github.com/PCRE2Project/pcre2/releases/download"
 PCRE2_VER="10.47"
+PINENTRY_SRC="https://www.gnupg.org/ftp/gcrypt/pinentry"
+PINENTRY_VER="1.3.3"
 SC_IM_SRC="https://github.com/andmarti1424/sc-im.git"
 SC_IM_VER="0.8.5"
 STRACE_SRC="https://github.com/strace/strace.git"
@@ -257,75 +275,77 @@ TARGET_SWAP=$DEFAULT_TARGET_SWAP
 TINY_KRN=false
 USE_TORVALDS=false
 
-ENABLE_CDROM=true
+ENABLE_CDROM=false
 ENABLE_EPOLL=false
-ENABLE_FB_VBE=true
-ENABLE_HELP_VERBOSE=true
+ENABLE_FB_VBE=false
+ENABLE_HELP_VERBOSE=false
 ENABLE_HIGHMEM=false
-ENABLE_LOOP=true
-ENABLE_MENU=true
-ENABLE_MODULES=true
+ENABLE_LOOP=false
+ENABLE_MENU=false
+ENABLE_MODULES=false
 ENABLE_NO_VDS032=true
 ENABLE_MULTIUSER_KRN=false
 ENABLE_MULTIUSER_REAL=false
 ENABLE_NET_BASE=false
 ENABLE_NET_ETH=false
 ENABLE_NET_PCMCIA=false
-ENABLE_PCMCIA=true
+ENABLE_PCMCIA=false
 ENABLE_SATA=false
-ENABLE_SCSI_EXP=true
+ENABLE_SCSI_EXP=false
 ENABLE_SERIAL_CON=false
 ENABLE_SMP=false
 ENABLE_SOUND=false
-ENABLE_SWAP_WRAP=true
+ENABLE_SWAP_WRAP=false
 ENABLE_SYSVIPC=false
 ENABLE_TASKSTATS=false
 ENABLE_USB=false
 ENABLE_VM86=false
-ENABLE_ZSWAP=true
+ENABLE_ZSWAP=false
 
 INCLUDE_C3270=false
-INCLUDE_CON_FONTS=true
+INCLUDE_CON_FONTS=false
 INCLUDE_CSCOPE=false
 INCLUDE_CTAGS=false
 INCLUDE_CURL=false
-INCLUDE_DIALOG=true
-INCLUDE_DOSFSTOOLS=true
-INCLUDE_DROPBEAR=true
-INCLUDE_E2FSPROGS=true
+INCLUDE_DIALOG=false
+INCLUDE_DOSFSTOOLS=false
+INCLUDE_DROPBEAR=false
+INCLUDE_E2FSPROGS=false
 INCLUDE_EMACS=false
-INCLUDE_FILE=true
+INCLUDE_FILE=false
 INCLUDE_GCC=false
-INCLUDE_GIT=true
+INCLUDE_GIT=false
+INCLUDE_GNUPG=false
 INCLUDE_GUI=false
-INCLUDE_HTOP=true
+INCLUDE_HTOP=false
 INCLUDE_HWINFO=false
 INCLUDE_INDENT=false
 INCLUDE_JOE=false
-INCLUDE_KEYMAPS=true
-INCLUDE_LUA=true
-INCLUDE_LYNX=true
+INCLUDE_KEYMAPS=false
+INCLUDE_LUA=false
+INCLUDE_LYNX=false
 INCLUDE_MAKE=false
-INCLUDE_MG=true
+INCLUDE_MG=false
 INCLUDE_MICRO=false
-INCLUDE_MICROPYTHON=true
+INCLUDE_MICROPYTHON=false
 INCLUDE_MPG321=false
-INCLUDE_MT_ST=true
-INCLUDE_NANO=true
+INCLUDE_MT_ST=false
+INCLUDE_NANO=false
 INCLUDE_NASM=false
-INCLUDE_PCI_IDS=true
-INCLUDE_SC_IM=true
+INCLUDE_NCDU=false
+INCLUDE_PCI_IDS=false
+INCLUDE_SC_IM=false
 INCLUDE_SUDO=false
 INCLUDE_SHORKSTALL=false
-INCLUDE_SHORKTAINMENT=true
-INCLUDE_STRACE=true
+INCLUDE_SHORKTAINMENT=false
+INCLUDE_STRACE=false
 INCLUDE_TESTS=false
-INCLUDE_TCC=true
+INCLUDE_TCC=false
 INCLUDE_TILDE=false
-INCLUDE_TMUX=true
+INCLUDE_TMUX=false
 INCLUDE_TN5250=false
-INCLUDE_TNFTP=true
-INCLUDE_UTIL_LINUX=true
+INCLUDE_TNFTP=false
+INCLUDE_UTIL_LINUX=false
 INCLUDE_VIM=false
 
 USE_GRUB=false
@@ -478,8 +498,9 @@ if [ "$FIX_EXTLINUX" = true ]; then
     USE_GRUB=false
 fi
 
-# Ensure FB_VBE is enabled with GUI or UTIL_LINUX
-if [ "$INCLUDE_GUI" = true ] || [ "$INCLUDE_UTIL_LINUX" = true ]; then
+# Ensure FB_VBE is enabled with GUI, NCDU or UTIL_LINUX
+if [ "$INCLUDE_GUI" = true ] || [ "$INCLUDE_NCDU" = true ] ||
+   [ "$INCLUDE_UTIL_LINUX" = true ]; then
     ENABLE_FB_VBE=true
 fi
 
@@ -489,9 +510,10 @@ if [ "$INCLUDE_HTOP" = true ]; then
     ENABLE_TASKSTATS=true
 fi
 
-# Ensure NET_BASE is enabled with HTOP, SUDO, TMUX or NET_ETH
-if [ "$INCLUDE_HTOP" = true ] || [ "$INCLUDE_SUDO" = true ] ||
-   [ "$INCLUDE_TMUX" = true ] || [ "$ENABLE_NET_ETH" = true ]; then
+# Ensure NET_BASE is enabled with HTOP, GNUPG, SUDO, TMUX or NET_ETH
+if [ "$INCLUDE_GNUPG" = true ] || [ "$INCLUDE_HTOP" = true ] ||
+   [ "$INCLUDE_SUDO" = true ] ||[ "$INCLUDE_TMUX" = true ] ||
+   [ "$ENABLE_NET_ETH" = true ]; then
     ENABLE_NET_BASE=true
 fi
 
@@ -574,9 +596,14 @@ fi
 NEED_CURL=false
 NEED_GCCGO=false
 NEED_LIBAO=false
+NEED_LIBASSUAN=false
 NEED_LIBEVENT=false
+NEED_LIBGCRYPT=false
+NEED_LIBGPG_ERROR=false
 NEED_LIBID3TAG=false
+NEED_LIBKSBA=false
 NEED_LIBMAD=false
+NEED_LIBSOFTFP=false
 NEED_LIBT3CONFIG=false
 NEED_LIBT3HIGHLIGHT=false
 NEED_LIBT3KEY=false
@@ -589,6 +616,7 @@ NEED_LIBUUID=false
 NEED_LIBXLSXWRITER=false
 NEED_LIBXML2=false
 NEED_LIBZIP=false
+NEED_NPTH=false
 NEED_PCRE2=false
 NEED_OPENSSL=false
 NEED_X86EMU=false
@@ -611,6 +639,16 @@ fi
 
 if $INCLUDE_EMACS; then
     NEED_LIBXML2=true
+fi
+
+if $INCLUDE_GNUPG; then
+    NEED_ZLIB=true
+    NEED_LIBSOFTFP=true
+    NEED_NPTH=true
+    NEED_LIBGPG_ERROR=true
+    NEED_LIBGCRYPT=true
+    NEED_LIBASSUAN=true
+    NEED_LIBKSBA=true
 fi
 
 if $INCLUDE_HWINFO; then
@@ -961,8 +999,8 @@ get_musl_cross()
     [ -d "${CROSS}" ] || tar xvf "${CROSS}.tgz"
 }
 
-# Download and compile ncurses (required for c3270, htop, Lynx, nano, sc-im,
-# T3* stack, tic, Tilde, tmux, tn5250 and util-linux)
+# Download and compile ncurses (required for c3270, htop, Lynx, nano, Ncdu,
+# sc-im, T3* stack, tic, Tilde, tmux, tn5250 and util-linux)
 get_ncurses()
 {
     cd "$CURR_DIR/build"
@@ -1316,6 +1354,54 @@ get_libao()
     #sudo ln -sf libc.so $DESTDIR/lib/ld-musl-i386.so.1
 }
 
+# Download and compile libassuan (required for GnuPG)
+get_libassuan()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/libassuan.a" ]; then
+        echo -e "${LIGHT_RED}libassuan already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading libassuan...${RESET}"
+    DIR="libassuan-${LIBASSUAN_VER}"
+    ARC="${DIR}.tar.bz2"
+    URI="${LIBASSUAN_SRC}/${ARC}"
+
+    # Download source
+    [ -f $ARC ] || wget $URI
+
+    # Extract source
+    if [ -d $DIR ]; then
+        echo -e "${YELLOW}libassuan's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -rf $DIR
+    fi
+    tar xjf $ARC
+    cd $DIR
+
+    # Compile and install
+    echo -e "${GREEN}Compiling libassuan...${RESET}"
+    ./configure \
+        --host=${ARCH}-linux-musl \
+        --prefix=/usr \
+        --enable-static \
+        --disable-shared \
+        CC="${CC_STATIC}" \
+        CXX="${CXX_STATIC}" \
+        AR="${AR}" \
+        LD="${LD}" \
+        RANLIB="${RANLIB}" \
+        GPG_ERROR_CONFIG="${SYSROOT}/usr/bin/gpg-error-config" \
+        GPGRT_CONFIG="${SYSROOT}/usr/bin/gpgrt-config" \
+        CFLAGS="-static -fno-pie -fno-pic -mno-fancy-math-387 -msoft-float -mno-80387 -mno-fp-ret-in-387 -D__gnuc_va_list=va_list -I${SYSROOT}/usr/include" \
+        LDFLAGS="-static -static-libgcc -no-pie -Wl,-static -L${PREFIX}/lib -L${SYSROOT}/lib -L${SYSROOT}/usr/lib" \
+        LIBS="-lsoftfp -lgcc"
+    make -j$(nproc)
+    make DESTDIR="${SYSROOT}" install
+}
+
 # Download and compile libevent (required for tmux)
 get_libevent()
 {
@@ -1344,6 +1430,100 @@ get_libevent()
     ./configure --host=${HOST} --prefix="${PREFIX}" --disable-shared  --enable-static --disable-samples --disable-openssl CC="${CC}"
     make -j$(nproc)
     make install
+}
+
+# Download and compile libgcrypt (required for GnuPG)
+get_libgcrypt()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/libgcrypt.a" ]; then
+        echo -e "${LIGHT_RED}libgcrypt already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading libgcrypt...${RESET}"
+    DIR="libgcrypt-${LIBGCRYPT_VER}"
+    ARC="${DIR}.tar.bz2"
+    URI="${LIBGCRYPT_SRC}/${ARC}"
+
+    # Download source
+    [ -f $ARC ] || wget $URI
+
+    # Extract source
+    if [ -d $DIR ]; then
+        echo -e "${YELLOW}libgcrypt's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -rf $DIR
+    fi
+    tar xjf $ARC
+    cd $DIR
+
+    # Compile and install
+    echo -e "${GREEN}Compiling libgcrypt...${RESET}"
+    ./configure \
+        --host=${ARCH}-linux-musl \
+        --prefix=/usr \
+        --enable-static \
+        --disable-shared \
+        CC="${CC_STATIC}" \
+        CXX="${CXX_STATIC}" \
+        AR="${AR}" \
+        LD="${LD}" \
+        RANLIB="${RANLIB}" \
+        GPG_ERROR_CONFIG="${SYSROOT}/usr/bin/gpg-error-config" \
+        GPGRT_CONFIG="${SYSROOT}/usr/bin/gpgrt-config" \
+        CFLAGS="-static -fno-pie -fno-pic -mno-fancy-math-387 -msoft-float -mno-80387 -mno-fp-ret-in-387 -D__gnuc_va_list=va_list -I${SYSROOT}/usr/include" \
+        LDFLAGS="-static -static-libgcc -no-pie -Wl,-static -L${PREFIX}/lib -L${SYSROOT}/lib -L${SYSROOT}/usr/lib" \
+        LIBS="-lsoftfp -lgcc"
+    make -j$(nproc)
+    make DESTDIR="${SYSROOT}" install
+}
+
+# Download and compile libgpg-error (required for GnuPG)
+get_libgpg_error()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/libgpg-error.a" ]; then
+        echo -e "${LIGHT_RED}libgpg-error already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading libgpg-error...${RESET}"
+    DIR="libgpg-error-${LIBGPG_ERROR_VER}"
+    ARC="${DIR}.tar.bz2"
+    URI="${LIBGPG_ERROR_SRC}/${ARC}"
+
+    # Download source
+    [ -f $ARC ] || wget $URI
+
+    # Extract source
+    if [ -d $DIR ]; then
+        echo -e "${YELLOW}libgpg-error's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -rf $DIR
+    fi
+    tar xjf $ARC
+    cd $DIR
+
+    # Compile and install
+    echo -e "${GREEN}Compiling libgpg-error...${RESET}"
+    ./configure \
+        --host=${ARCH}-linux-musl \
+        --prefix=/usr \
+        --enable-static \
+        --disable-shared \
+        CC="${CC_STATIC}" \
+        CXX="${CXX_STATIC}" \
+        AR="${AR}" \
+        LD="${LD}" \
+        RANLIB="${RANLIB}" \
+        CFLAGS="-static -fno-pie -fno-pic -mno-fancy-math-387 -msoft-float -mno-80387 -mno-fp-ret-in-387 -D__gnuc_va_list=va_list -I${SYSROOT}/usr/include" \
+        LDFLAGS="-static -static-libgcc -no-pie -Wl,-static -L${PREFIX}/lib -L${SYSROOT}/lib -L${SYSROOT}/usr/lib" \
+        LIBS="-lsoftfp -lgcc"
+    make -j$(nproc)
+    make DESTDIR="${SYSROOT}" install
 }
 
 # Download and compile libmad (required for mpg321) 
@@ -1392,51 +1572,6 @@ get_libmad()
     make DESTDIR=$SYSROOT install
 }
 
-# Download and compile util-linux for libuuid (required for hwinfo)
-get_libuuid()
-{
-    mkdir -p "$CURR_DIR/build/libuuid"
-    cd "$CURR_DIR/build/libuuid"
-
-    # Skip if already compiled
-    if [ -f "$DESTDIR/usr/bin/lscpu" ] &&
-       [ -f "$DESTDIR/usr/bin/partx" ] &&
-       [ -f "$DESTDIR/usr/sbin/sfdisk" ] &&
-       [ -f "$DESTDIR/usr/bin/whereis" ]; then
-        echo -e "${LIGHT_RED}util-linux for libuuid already compiled, skipping...${RESET}"
-        return
-    fi
-
-    # Download source
-    if [ -d util-linux ]; then
-        echo -e "${YELLOW}util-linux for libuuid source already present, resetting...${RESET}"
-        cd util-linux
-        git config --global --add safe.directory $CURR_DIR/build/libuuid/util-linux
-        git reset --hard
-        git clean -fdx
-    else
-        echo -e "${GREEN}Downloading util-linux for libuuid...${RESET}"
-        git clone --depth=1 --branch v$UTIL_LINUX_VER $UTIL_LINUX_SRC
-        cd util-linux
-    fi
-
-    # Compile and install
-    echo -e "${GREEN}Compiling util-linux for libuuid...${RESET}"
-    ./autogen.sh
-    ./configure \
-        --host=${HOST} \
-        --prefix=/usr \
-        --disable-all-programs \
-        --enable-libuuid \
-        CC="${CC_STATIC}" \
-        CFLAGS="-Os -march=${ARCH} -I${PREFIX}/include" \
-        CPPFLAGS="-I${PREFIX}/include" \
-        LDFLAGS="-L${PREFIX}/lib -static" \
-        PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig"
-    make TINFO_LIBS="" -j$(nproc)
-    make DESTDIR=$SYSROOT install
-}
-
 # Download and compile libid3tag (required for mpg321) 
 get_libid3tag()
 {
@@ -1479,6 +1614,124 @@ get_libid3tag()
         LDFLAGS="-static -L$SYSROOT/usr/lib"
     make -j$(nproc)
     make DESTDIR=$SYSROOT install
+}
+
+# Download and compile libksba (required for GnuPG)
+get_libksba()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/libksba.a" ]; then
+        echo -e "${LIGHT_RED}libksba already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading libksba...${RESET}"
+    DIR="libksba-${LIBKSBA_VER}"
+    ARC="${DIR}.tar.bz2"
+    URI="${LIBKSBA_SRC}/${ARC}"
+
+    # Download source
+    [ -f $ARC ] || wget $URI
+
+    # Extract source
+    if [ -d $DIR ]; then
+        echo -e "${YELLOW}libksba's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -rf $DIR
+    fi
+    tar xjf $ARC
+    cd $DIR
+
+    # Compile and install
+    echo -e "${GREEN}Compiling libksba...${RESET}"
+    ./configure \
+        --host=${ARCH}-linux-musl \
+        --prefix=/usr \
+        --enable-static \
+        --disable-shared \
+        CC="${CC_STATIC}" \
+        CXX="${CXX_STATIC}" \
+        AR="${AR}" \
+        LD="${LD}" \
+        RANLIB="${RANLIB}" \
+        GPG_ERROR_CONFIG="${SYSROOT}/usr/bin/gpg-error-config" \
+        GPGRT_CONFIG="${SYSROOT}/usr/bin/gpgrt-config" \
+        CFLAGS="-static -fno-pie -fno-pic -mno-fancy-math-387 -msoft-float -mno-80387 -mno-fp-ret-in-387 -D__gnuc_va_list=va_list -I${SYSROOT}/usr/include" \
+        LDFLAGS="-static -static-libgcc -no-pie -Wl,-static -L${PREFIX}/lib -L${SYSROOT}/lib -L${SYSROOT}/usr/lib" \
+        LIBS="-lsoftfp -lgcc"
+    make -j$(nproc)
+    make DESTDIR="${SYSROOT}" install
+}
+
+# Compile our own static library of C software floating-point routines from
+## LLVM
+get_libsoftfp()
+{
+    # Skip if already built and installed
+    if [ -f "${PREFIX}/lib/libsoftfp.a" ]; then
+        echo -e "${LIGHT_RED}libsoftfp already compiled, skipping...${RESET}"
+        return
+    fi
+
+    mkdir -p $CURR_DIR/build/libsoftfp
+    cd $CURR_DIR/build/libsoftfp
+
+    # Download source
+    if [ -d llvm-project ]; then
+        echo -e "${YELLOW}LLVM source already present, resetting...${RESET}"
+        cd llvm-project
+        git config --global --add safe.directory "$CURR_DIR/build/llvm-project"
+        git reset --hard
+    else
+        echo -e "${GREEN}Downloading LLVM...${RESET}"
+        git clone --branch "llvmorg-${LLVM_VER}" --depth 1 --filter=blob:none --sparse $LLVM_SRC
+        cd llvm-project
+    fi
+
+    git sparse-checkout set compiler-rt/lib/builtins
+    cd ..
+
+    cp llvm-project/compiler-rt/lib/builtins/*.h .
+    cp llvm-project/compiler-rt/lib/builtins/*.inc .
+    cp llvm-project/compiler-rt/lib/builtins/adddf3.c \
+        llvm-project/compiler-rt/lib/builtins/subdf3.c \
+        llvm-project/compiler-rt/lib/builtins/muldf3.c \
+        llvm-project/compiler-rt/lib/builtins/divdf3.c \
+        llvm-project/compiler-rt/lib/builtins/negdf2.c \
+        llvm-project/compiler-rt/lib/builtins/floatsidf.c \
+        llvm-project/compiler-rt/lib/builtins/floatunsidf.c \
+        llvm-project/compiler-rt/lib/builtins/fixdfsi.c \
+        llvm-project/compiler-rt/lib/builtins/fixunsdfsi.c \
+        llvm-project/compiler-rt/lib/builtins/extendsfdf2.c \
+        llvm-project/compiler-rt/lib/builtins/truncdfsf2.c \
+        llvm-project/compiler-rt/lib/builtins/comparedf2.c \
+        llvm-project/compiler-rt/lib/builtins/int_util.c \
+        llvm-project/compiler-rt/lib/builtins/addsf3.c \
+        llvm-project/compiler-rt/lib/builtins/subsf3.c \
+        llvm-project/compiler-rt/lib/builtins/mulsf3.c \
+        llvm-project/compiler-rt/lib/builtins/divsf3.c \
+        llvm-project/compiler-rt/lib/builtins/negsf2.c \
+        llvm-project/compiler-rt/lib/builtins/floatsisf.c \
+        llvm-project/compiler-rt/lib/builtins/floatunsisf.c \
+        llvm-project/compiler-rt/lib/builtins/fixsfsi.c \
+        llvm-project/compiler-rt/lib/builtins/fixunssfsi.c \
+        llvm-project/compiler-rt/lib/builtins/comparesf2.c \
+        .
+
+    cp $CURR_DIR/compilation/fp_mode_shim.c .
+
+    echo -e "${GREEN}Compile libsoftfp...${RESET}"
+    for f in adddf3 subdf3 muldf3 divdf3 negdf2 floatsidf floatunsidf \
+        fixdfsi fixunsdfsi extendsfdf2 truncdfsf2 comparedf2 int_util \
+        addsf3 subsf3 mulsf3 divsf3 negsf2 floatsisf floatunsisf fixsfsi \
+        fixunssfsi comparesf2 fp_mode_shim; do
+        ${CC_STATIC} -c -Os -march=${ARCH} -msoft-float -mno-80387 -mno-fp-ret-in-387 -I. -o ${f}.o ${f}.c
+    done
+
+    ${AR} rcs libsoftfp.a *.o
+    ${RANLIB} libsoftfp.a
+    sudo install -m644 libsoftfp.a ${PREFIX}/lib/
 }
 
 # Download and compile libt3config (required for Tilde)
@@ -1990,6 +2243,51 @@ get_libunistring()
     make DESTDIR="${SYSROOT}" install
 }
 
+# Download and compile util-linux for libuuid (required for hwinfo)
+get_libuuid()
+{
+    mkdir -p "$CURR_DIR/build/libuuid"
+    cd "$CURR_DIR/build/libuuid"
+
+    # Skip if already compiled
+    if [ -f "$DESTDIR/usr/bin/lscpu" ] &&
+       [ -f "$DESTDIR/usr/bin/partx" ] &&
+       [ -f "$DESTDIR/usr/sbin/sfdisk" ] &&
+       [ -f "$DESTDIR/usr/bin/whereis" ]; then
+        echo -e "${LIGHT_RED}util-linux for libuuid already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d util-linux ]; then
+        echo -e "${YELLOW}util-linux for libuuid source already present, resetting...${RESET}"
+        cd util-linux
+        git config --global --add safe.directory $CURR_DIR/build/libuuid/util-linux
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading util-linux for libuuid...${RESET}"
+        git clone --depth=1 --branch v$UTIL_LINUX_VER $UTIL_LINUX_SRC
+        cd util-linux
+    fi
+
+    # Compile and install
+    echo -e "${GREEN}Compiling util-linux for libuuid...${RESET}"
+    ./autogen.sh
+    ./configure \
+        --host=${HOST} \
+        --prefix=/usr \
+        --disable-all-programs \
+        --enable-libuuid \
+        CC="${CC_STATIC}" \
+        CFLAGS="-Os -march=${ARCH} -I${PREFIX}/include" \
+        CPPFLAGS="-I${PREFIX}/include" \
+        LDFLAGS="-L${PREFIX}/lib -static" \
+        PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig"
+    make TINFO_LIBS="" -j$(nproc)
+    make DESTDIR=$SYSROOT install
+}
+
 # Download and compile libxlsxwriter (required for sc-im)
 get_libxlsxwriter()
 {
@@ -2109,6 +2407,52 @@ get_libzip()
     cp lib/libzip.a "${PREFIX}/lib/"
     cp zipconf.h "${PREFIX}/include/"
     cp lib/zip.h "${PREFIX}/include/"
+}
+
+# Download and compile nPth (required for GnuPG)
+get_npth()
+{
+    cd "$CURR_DIR/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/libnpth.a" ]; then
+        echo -e "${LIGHT_RED}nPth already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading nPth...${RESET}"
+    DIR="npth-${NPTH_VER}"
+    ARC="${DIR}.tar.bz2"
+    URI="${NPTH_SRC}/${ARC}"
+
+    # Download source
+    [ -f $ARC ] || wget $URI
+
+    # Extract source
+    if [ -d $DIR ]; then
+        echo -e "${YELLOW}nPth's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -rf $DIR
+    fi
+    tar xjf $ARC
+    cd $DIR
+
+    # Compile and install
+    echo -e "${GREEN}Compiling nPth...${RESET}"
+    ./configure \
+        --host=${ARCH}-linux-musl \
+        --prefix=/usr \
+        --enable-static \
+        --disable-shared \
+        CC="${CC_STATIC}" \
+        CXX="${CXX_STATIC}" \
+        AR="${AR}" \
+        LD="${LD}" \
+        RANLIB="${RANLIB}" \
+        CFLAGS="-static -fno-pie -fno-pic -mno-fancy-math-387 -msoft-float -mno-80387 -mno-fp-ret-in-387 -D__gnuc_va_list=va_list -I${SYSROOT}/usr/include" \
+        LDFLAGS="-static -static-libgcc -no-pie -Wl,-static -L${PREFIX}/lib -L${SYSROOT}/lib -L${SYSROOT}/usr/lib" \
+        LIBS="-lsoftfp -lgcc"
+    make -j$(nproc)
+    make DESTDIR="${SYSROOT}" install
 }
 
 # Download and compile OpenSSL (required for curl, Git, Lynx and tn5250)
@@ -4847,6 +5191,9 @@ get_prog_tar()
     local AUTORECONF=$9
     local CONFIGURE_PREFIX="${10}" 
     local CONFIGURE="${11}"
+    local EXTRA_CFLAGS="${12}"
+    local EXTRA_LDFLAGS="${13}"
+    local LIBS="${14}"
 
     if [ -n "$CONFIGURE_PREFIX" ]; then
         CONFIGURE_PREFIX=("--prefix=${CONFIGURE_PREFIX}")
@@ -4896,9 +5243,10 @@ get_prog_tar()
             AR="${AR}" \
             RANLIB="${RANLIB}" \
             STRIP="${STRIP}" \
-            CFLAGS="-Os -march=${ARCH} -mno-fancy-math-387 -ffunction-sections -fdata-sections -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
+            CFLAGS="-Os -march=${ARCH} -mno-fancy-math-387 -ffunction-sections -fdata-sections -I${PREFIX}/include -I${PREFIX}/include/ncursesw ${EXTRA_CFLAGS}" \
             CPPFLAGS="-I${SYSROOT}/include -I${PREFIX}/include -I${PREFIX}/include/ncursesw -DHAVE_FORKPTY" \
-            LDFLAGS="-static -Wl,--gc-sections -s -L${PREFIX}/lib" \
+            LDFLAGS="-static -Wl,--gc-sections -s -L${PREFIX}/lib ${EXTRA_LDFLAGS}" \
+            LIBS="${LIBS}" \
             LIBEVENT_CFLAGS="-I${PREFIX}/include" \
             LIBEVENT_LIBS="-L${PREFIX}/lib -levent" \
             CURSES_CFLAGS="-I${PREFIX}/include/ncursesw -I${PREFIX}/include" \
@@ -5158,7 +5506,7 @@ get_hwinfo()
     # Skip if already compiled
     if [ -f "$DESTDIR/usr/bin/hwinfo" ]; then
         echo -e "${LIGHT_RED}hwinfo already compiled, skipping...${RESET}"
-        #return
+        return
     fi
 
     # Download source
@@ -6362,6 +6710,21 @@ trim_fat()
         sudo mkdir -p "$DESTDIR/usr/share/git-core/templates"
     fi
 
+    if $INCLUDE_GNUPG; then
+        sudo rm -f "${DESTDIR}/usr/bin/gpgsm"
+        sudo rm -f "${DESTDIR}/usr/bin/gpgparsemail"
+        sudo rm -f "${DESTDIR}/usr/bin/gpg-card"
+        sudo rm -f "${DESTDIR}/usr/libexec/scdaemon"
+        sudo rm -f "${DESTDIR}/usr/bin/gpg-wks-client"
+        sudo rm -f "${DESTDIR}/usr/libexec/gpg-wks-client"
+        sudo rm -f "${DESTDIR}/usr/bin/gpg-wks-server"
+        sudo rm -f "${DESTDIR}/usr/bin/gpg-mail-tube"
+        sudo rm -f "${DESTDIR}/usr/bin/gpg-authcode-sign.sh"
+        sudo rm -f "${DESTDIR}/usr/sbin/addgnupghome"
+        sudo rm -f "${DESTDIR}/usr/sbin/applygnupgdefaults"
+        sudo rm -f "${DESTDIR}/usr/bin/gpgscm"
+    fi
+
     if $INCLUDE_GUI && ! $ENABLE_MULTIUSER_REAL; then
         sudo rm -rf "$DESTDIR/home"
     fi
@@ -6447,6 +6810,12 @@ copy_licences()
         CSV+="\nCscope,BSD 3-Clause,cscope.txt"
     fi
 
+    if $NEED_LIBSOFTFP && 
+       [ -f "$CURR_DIR/build/libsoftfp/llvm-project/LICENSE.TXT" ]; then
+        cp "$CURR_DIR/build/libsoftfp/llvm-project/LICENSE.TXT" "$DESTDIR/LICENCES/compiler-rt.txt" || true
+        CSV+="\nCompiler-RT,Apache 2.0 w/ LLVM Exceptions,compiler-rt.txt"
+    fi
+
     if $NEED_CURL && 
        [ -f "$CURR_DIR/build/curl-${CURL_VER}/COPYING" ]; then
         cp "$CURR_DIR/build/curl-${CURL_VER}/COPYING" "$DESTDIR/LICENCES/curl.txt" || true
@@ -6504,6 +6873,12 @@ copy_licences()
         CSV+="\nGit,GNU GPLv2,git.txt"
     fi
 
+    if $INCLUDE_GNUPG && 
+       [ -f "$CURR_DIR/build/gnupg-$GNUPG_VER/COPYING" ]; then
+        cp "$CURR_DIR/build/gnupg-$GNUPG_VER/COPYING" "$DESTDIR/LICENCES/gnupg.txt" || true
+        CSV+="\nGnuPG & pinentry,GNU GPLv3,gnupg.txt"
+    fi
+
     if $INCLUDE_HTOP && 
        [ -f "$CURR_DIR/build/htop/COPYING" ]; then
         cp "$CURR_DIR/build/htop/COPYING" "$DESTDIR/LICENCES/htop.txt" || true
@@ -6541,6 +6916,12 @@ copy_licences()
         CSV+="\nlapitfetch,MIT,lapifetch.txt"
     fi
 
+    if $NEED_LIBASSUAN && 
+       [ -f "$CURR_DIR/build/libassuan-${LIBASSUAN_VER}/COPYING" ]; then
+        cp "$CURR_DIR/build/libassuan-${LIBASSUAN_VER}/COPYING" "$DESTDIR/LICENCES/libassuan.txt" || true
+        CSV+="\nlibassuan,GNU GPLv3,libassuan.txt"
+    fi
+
     if $NEED_LIBAO && 
        [ -f "$CURR_DIR/build/libao/COPYING" ]; then
         cp "$CURR_DIR/build/libao/COPYING" "$DESTDIR/LICENCES/libao.txt" || true
@@ -6548,7 +6929,7 @@ copy_licences()
     fi
 
     if $INCLUDE_E2FSPROGS &&
-    [ -f "$CURR_DIR/build/e2fsprogs-$E2FSPROGS_VER/lib/et/com_err.c" ]; then
+       [ -f "$CURR_DIR/build/e2fsprogs-$E2FSPROGS_VER/lib/et/com_err.c" ]; then
         sed -n '/^ \* Copyright/,/warranty\.$/p' "$CURR_DIR/build/e2fsprogs-$E2FSPROGS_VER/lib/et/com_err.c" | sed 's/^ \* \{0,1\}//' > "$DESTDIR/LICENCES/libcom_err.txt"
         CSV+="\nlibcom_err,MIT SIPB,libcom_err.txt"
     fi
@@ -6559,16 +6940,40 @@ copy_licences()
         CSV+="\nlibevent,BSD 3-Clause,libevent.txt"
     fi
 
+    if $NEED_LIBGCRYPT && 
+       [ -f "$CURR_DIR/build/libgcrypt-${LIBGCRYPT_VER}/COPYING" ]; then
+        cp "$CURR_DIR/build/libgcrypt-${LIBGCRYPT_VER}/COPYING" "$DESTDIR/LICENCES/libgcrypt.txt" || true
+        CSV+="\nlibgcrypt,GNU GPLv3,libgcrypt.txt"
+    fi
+
+    if $NEED_LIBGPG_ERROR && 
+       [ -f "$CURR_DIR/build/libgpg-error-${LIBGPG_ERROR_VER}/COPYING" ]; then
+        cp "$CURR_DIR/build/libgpg-error-${LIBGPG_ERROR_VER}/COPYING" "$DESTDIR/LICENCES/libgpg-error.txt" || true
+        CSV+="\nlibgpg-error,GNU GPLv3,libgpg-error.txt"
+    fi
+
     if $NEED_LIBID3TAG && 
        [ -f "$CURR_DIR/build/libid3tag/COPYING" ]; then
         cp "$CURR_DIR/build/libid3tag/COPYING" "$DESTDIR/LICENCES/libid3tag.txt" || true
         CSV+="\nlibid3tag,GNU GPLv2,libid3tag.txt"
     fi
 
+    if $NEED_LIBKSBA && 
+       [ -f "$CURR_DIR/build/libksba-${LIBKSBA_VER}/COPYING" ]; then
+        cp "$CURR_DIR/build/libksba-${LIBKSBA_VER}/COPYING" "$DESTDIR/LICENCES/libksba.txt" || true
+        CSV+="\nlibksba,GNU GPLv3,libksba.txt"
+    fi
+
     if $NEED_LIBMAD && 
        [ -f "$CURR_DIR/build/libmad/COPYING" ]; then
         cp "$CURR_DIR/build/libmad/COPYING" "$DESTDIR/LICENCES/libmad.txt" || true
         CSV+="\nlibmad,GNU GPLv2,libmad.txt"
+    fi
+
+    if $NEED_NPTH && 
+       [ -f "$CURR_DIR/build/npth-${NPTH_VER}/COPYING.LIB" ]; then
+        cp "$CURR_DIR/build/npth-${NPTH_VER}/COPYING.LIB" "$DESTDIR/LICENCES/npth.txt" || true
+        CSV+="\nnPth,GNU LGPLv2.1,npth.txt"
     fi
 
     if $INCLUDE_E2FSPROGS &&
@@ -6663,6 +7068,12 @@ copy_licences()
        [ -f "$CURR_DIR/build/nasm/LICENSE" ]; then
         cp "$CURR_DIR/build/nasm/LICENSE" "$DESTDIR/LICENCES/nasm.txt" || true
         CSV+="\nNASM,BSD 2-Clause,nasm.txt"
+    fi
+
+    if $INCLUDE_NCDU && 
+       [ -f "$CURR_DIR/build/ncdu-$NCDU_VER/COPYING" ]; then
+        cp "$CURR_DIR/build/ncdu-$NCDU_VER/COPYING" "$DESTDIR/LICENCES/ncdu.txt" || true
+        CSV+="\nNcdu,MIT,ncdu.txt"
     fi
 
     if [ -f "${PREFIX}/lib/libncursesw.a" ] && 
@@ -6927,9 +7338,15 @@ build_filesystem()
     fi
 
     if $INCLUDE_GIT; then
-        echo -e "${GREEN}Copying pre-defined Git settings...${RESET}"
+        echo -e "${GREEN}Copying predefined Git settings...${RESET}"
         sudo mkdir -p $DESTDIR/usr/etc
         copy_sysfile $CURR_DIR/sysfiles/gitconfig $DESTDIR/usr/etc/gitconfig
+    fi
+
+    if $INCLUDE_GNUPG; then
+        echo -e "${GREEN}Copying predefined GnuPG settings...${RESET}"
+        sudo mkdir -p $DESTDIR/etc/gnupg
+        copy_sysfile $CURR_DIR/sysfiles/gpg-agent.conf $DESTDIR/etc/gnupg/gpg-agent.conf
     fi
 
     if $INCLUDE_KEYMAPS; then
@@ -6945,7 +7362,7 @@ build_filesystem()
     fi
 
     if $INCLUDE_MG; then
-        echo -e "${GREEN}Copying pre-defined Mg settings...${RESET}"
+        echo -e "${GREEN}Copying predefined Mg settings...${RESET}"
         copy_sysfile $CURR_DIR/sysfiles/mg $DESTDIR/etc/mg
     fi
 
@@ -7014,7 +7431,7 @@ build_filesystem()
     fi
 
     if $INCLUDE_NANO; then
-        echo -e "${GREEN}Copying pre-defined nano settings...${RESET}"
+        echo -e "${GREEN}Copying predefined nano settings...${RESET}"
         sudo mkdir -p $DESTDIR/usr/etc
         copy_sysfile $CURR_DIR/sysfiles/nanorc $DESTDIR/usr/etc/nanorc
     fi
@@ -8703,6 +9120,22 @@ get_installed_progs_feats()
         else
             EXCLUDED_FEATURES+="\n * visudo (sudo)"
         fi
+
+
+
+        if [ -f "$DESTDIR/usr/bin/ncdu" ]; then
+            INCLUDED_FEATURES+="\n * Ncdu ($NCDU_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * Ncdu"
+        fi
+
+
+
+        if [ -f "$DESTDIR/usr/bin/gpg" ]; then
+            INCLUDED_FEATURES+="\n * GnuPG ($GNUPG_VER)"
+        else
+            EXCLUDED_FEATURES+="\n * GnuPG"
+        fi
     fi
 }
 
@@ -8718,11 +9151,11 @@ generate_report()
     BUSYBOX_VER="${BUSYBOX_VER//_/.}"
 
     local lines=(
-        "================================================================================"
-        "==                          SHORK after-build report                          =="
-        "================================================================================"
-        "==                            $DATE                            =="
-        "================================================================================"
+        "============================================================================"
+        "==                        SHORK after-build report                        =="
+        "============================================================================"
+        "==                          $DATE                          =="
+        "============================================================================"
         ""
         "OS/version:          $DIST $VER"
         "Kernel:              Linux $LINUX_VER"
@@ -8998,6 +9431,25 @@ fi
 if $NEED_GCCGO; then
     get_gccgo
 fi
+if $NEED_LIBSOFTFP;then
+    get_libsoftfp
+fi
+if $NEED_NPTH; then
+    get_npth
+fi
+if $NEED_LIBGPG_ERROR; then
+    get_libgpg_error
+fi
+if $NEED_LIBGCRYPT; then
+    get_libgcrypt
+fi
+if $NEED_LIBASSUAN; then
+    get_libassuan
+fi
+if $NEED_LIBKSBA; then
+    get_libksba
+fi
+
 
 if $INCLUDE_GUI; then
     prepare_x11
@@ -9127,6 +9579,39 @@ if $INCLUDE_GIT; then
     get_git
     make_swap_wrap "$DESTDIR/usr/bin/git"
 fi
+if $INCLUDE_GNUPG; then
+    get_prog_tar \
+        "usr/bin" \
+        "pinentry-tty" \
+        "Pinentry" \
+        "pinentry-${PINENTRY_VER}" \
+        "tar.bz2" \
+        "${PINENTRY_SRC}" \
+        "xjf" \
+        false \
+        false \
+        "/usr" \
+        "--sysconfdir=/etc --enable-pinentry-tty --disable-pinentry-curses --disable-pinentry-qt --disable-pinentry-qt5 --disable-pinentry-gtk2 --disable-pinentry-gnome3 --disable-pinentry-tqt --disable-pinentry-qt4 --disable-pinentry-emacs --disable-pinentry-fltk --disable-pinentry-efl --disable-libsecret --without-libsecret GPG_ERROR_CONFIG=${SYSROOT}/usr/bin/gpg-error-config GPGRT_CONFIG=${SYSROOT}/usr/bin/gpgrt-config LIBASSUAN_CONFIG=${SYSROOT}/usr/bin/libassuan-config PKG_CONFIG_PATH=${SYSROOT}/usr/lib/pkgconfig" \
+        "-msoft-float -mno-80387 -mno-fp-ret-in-387" \
+        "" \
+        "-lsoftfp -lgcc"
+
+    get_prog_tar \
+        "usr/bin" \
+        "gpg" \
+        "GnuPG" \
+        "gnupg-${GNUPG_VER}" \
+        "tar.bz2" \
+        "${GNUPG_SRC}" \
+        "xjf" \
+        false \
+        false \
+        "/usr" \
+        "--enable-static --disable-shared --disable-doc --disable-ldap --disable-nls --disable-gpgsm --disable-scdaemon --disable-card-support --disable-wks-tools --disable-sqlite --disable-tofu --disable-dirmngr --disable-photo-viewers --disable-ntbtls --disable-gnutls GPG_ERROR_CONFIG=${SYSROOT}/usr/bin/gpg-error-config GPGRT_CONFIG=${SYSROOT}/usr/bin/gpgrt-config LIBGCRYPT_CONFIG=${SYSROOT}/usr/bin/libgcrypt-config LIBASSUAN_CONFIG=${SYSROOT}/usr/bin/libassuan-config KSBA_CONFIG=${SYSROOT}/usr/bin/ksba-config NPTH_CONFIG=${SYSROOT}/usr/bin/npth-config PKG_CONFIG_PATH=${SYSROOT}/usr/lib/pkgconfig" \
+        "-msoft-float -mno-80387 -mno-fp-ret-in-387" \
+        "" \
+        "-lsoftfp -lgcc"
+fi
 if $INCLUDE_HTOP; then
     get_htop
 fi
@@ -9212,6 +9697,20 @@ if $INCLUDE_NANO; then
 fi
 if $INCLUDE_NASM; then
     get_nasm
+fi
+if $INCLUDE_NCDU; then
+    get_prog_tar \
+        "usr/bin" \
+        "ncdu" \
+        "ncdu" \
+        "ncdu-${NCDU_VER}" \
+        "tar.gz" \
+        "${NCDU_SRC}" \
+        "xzf" \
+        false \
+        false \
+        "/usr" \
+        ""
 fi
 if $INCLUDE_SC_IM; then
     get_sc_im
