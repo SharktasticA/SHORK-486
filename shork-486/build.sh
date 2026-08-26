@@ -1022,39 +1022,38 @@ get_ncurses()
     # Skip if already compiled
     if [ -f "${PREFIX}/lib/libncursesw.a" ]; then
         echo -e "${LIGHT_RED}ncurses already compiled, skipping...${RESET}"
-        return
-    fi
-
-    # Download source
-    if [ -d ncurses ]; then
-        echo -e "${YELLOW}ncurses source already present, resetting...${RESET}"
-        git config --global --add safe.directory "${CURR_DIR}"/build/ncurses
-        cd ncurses
-        git reset --hard
     else
-        echo -e "${GREEN}Downloading ncurses...${RESET}"
-        git clone --branch v${NCURSES_VER} $NCURSES_SRC
-        cd ncurses
-    fi
+        # Download source
+        if [ -d ncurses ]; then
+            echo -e "${YELLOW}ncurses source already present, resetting...${RESET}"
+            git config --global --add safe.directory "${CURR_DIR}"/build/ncurses
+            cd ncurses
+            git reset --hard
+        else
+            echo -e "${GREEN}Downloading ncurses...${RESET}"
+            git clone --branch v${NCURSES_VER} $NCURSES_SRC
+            cd ncurses
+        fi
 
-    # Compile and install
-    echo -e "${GREEN}Compiling ncurses...${RESET}"
-    ./configure \
-        --host="${HOST}" \
-        --build=$(./config.guess) \
-        --prefix="${PREFIX}" \
-        --with-normal \
-        --without-shared \
-        --without-debug \
-        --without-cxx \
-        --enable-widec \
-        --enable-pc-files \
-        --with-pkg-config-libdir="${SYSROOT}/lib/pkgconfig" \
-        CC="${CC_STATIC}" \
-        CFLAGS="-fPIC" \
-        CPPFLAGS="-D_XOPEN_SOURCE=600"
-    make -j$(nproc)
-    make install
+        # Compile and install
+        echo -e "${GREEN}Compiling ncurses...${RESET}"
+        ./configure \
+            --host="${HOST}" \
+            --build=$(./config.guess) \
+            --prefix="${PREFIX}" \
+            --with-normal \
+            --without-shared \
+            --without-debug \
+            --without-cxx \
+            --enable-widec \
+            --enable-pc-files \
+            --with-pkg-config-libdir="${SYSROOT}/lib/pkgconfig" \
+            CC="${CC_STATIC}" \
+            CFLAGS="-fPIC" \
+            CPPFLAGS="-D_XOPEN_SOURCE=600"
+        make -j$(nproc)
+        make install
+    fi
 
     ln -sf "${PREFIX}/include/ncursesw/curses.h" "${PREFIX}/include/curses.h"
     ln -sf "${PREFIX}/include/ncursesw/ncurses.h" "${PREFIX}/include/ncurses.h"
