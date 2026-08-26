@@ -1810,7 +1810,7 @@ get_libt3config()
 
     # Need to assemble our own archive to produce a usable static library
     OBJS=$(find ./src/.libs -maxdepth 1 -name '*.o')
-    "${AR}" rcs "$SYSROOT/usr/lib/libt3config.a" "$OBJS"
+    "${AR}" rcs "$SYSROOT/usr/lib/libt3config.a" $OBJS
     "${RANLIB}" "$SYSROOT/usr/lib/libt3config.a"
 }
 
@@ -1866,7 +1866,7 @@ get_libt3highlight()
 
     # Need to assemble our own archive to produce a usable static library
     OBJS=$(find ./src/.libs -maxdepth 1 -name '*.o')
-    "${AR}" rcs "$SYSROOT/usr/lib/libt3highlight.a" "$OBJS"
+    "${AR}" rcs "$SYSROOT/usr/lib/libt3highlight.a" $OBJS
     "${RANLIB}" "$SYSROOT/usr/lib/libt3highlight.a"
 }
 
@@ -1958,7 +1958,7 @@ get_libt3key()
 
     # Need to assemble our own archive to produce a usable static library
     OBJS=$(find ./src/.libs -maxdepth 1 -name '*.o')
-    "${AR}" rcs "$SYSROOT/usr/lib/libt3key.a" "$OBJS"
+    "${AR}" rcs "$SYSROOT/usr/lib/libt3key.a" $OBJS
     "${RANLIB}" "$SYSROOT/usr/lib/libt3key.a"
 }
 
@@ -2020,7 +2020,7 @@ get_libt3widget()
 
     # Need to assemble our own archive to produce a usable static library
     OBJS=$(find ./src -path '*/.libs/*.o')
-    "${AR}" rcs "$SYSROOT/usr/lib/libt3widget.a" "$OBJS"
+    "${AR}" rcs "$SYSROOT/usr/lib/libt3widget.a" $OBJS
     "${RANLIB}" "$SYSROOT/usr/lib/libt3widget.a"
 }
 
@@ -2079,7 +2079,7 @@ get_libt3window()
 
     # Need to assemble our own archive to produce a usable static library
     OBJS=$(find ./src -path '*/.libs/*.o')
-    "${AR}" rcs "$SYSROOT/usr/lib/libt3window.a" "$OBJS"
+    "${AR}" rcs "$SYSROOT/usr/lib/libt3window.a" $OBJS
     "${RANLIB}" "$SYSROOT/usr/lib/libt3window.a"
 }
 
@@ -2182,6 +2182,8 @@ get_libtranscript()
             CFLAGS="--sysroot=${SYSROOT} -I${SYSROOT}/usr/include" \
             LDFLAGS="--sysroot=${SYSROOT} -L${SYSROOT}/usr/lib -lltdl"
         make -j$(nproc)
+        rm -rf "$SYSROOT/usr/lib/transcript1"
+        mkdir -p "$SYSROOT/usr/lib/transcript1"
         make DESTDIR="${SYSROOT}" install
 
         # Modify libtool archive's libdir to target the cross-compiler's, and not
@@ -2193,8 +2195,7 @@ get_libtranscript()
 
         # Need to assemble our own archive to produce a usable static library
         OBJS=$(find src/.libs -maxdepth 1 -name '*.o')
-        "${AR}" rcs "$SYSROOT/usr/lib/libtranscript.a" "$OBJS"
-        "${RANLIB}" "$SYSROOT/usr/lib/libtranscript.a"
+        "${AR}" rcs "$SYSROOT/usr/lib/libtranscript.a" $OBJS
         
         # Compile and install libtranscript codec modules
         echo -e "${GREEN}Compiling libtranscript codec modules...${RESET}"
@@ -5150,7 +5151,7 @@ get_prog_git()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading $NAME...${RESET}"
-        git clone --branch "$VER" "$SRC"
+        git clone --branch "$VER" $SRC
         cd "$GIT_DIR"
     fi
 
