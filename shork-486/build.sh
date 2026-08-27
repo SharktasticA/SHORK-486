@@ -68,8 +68,9 @@ echo -e "${BLUE}========================${RESET}"
 ######################################################
 
 # General global vars
-BUILD_TYPE="mini"
 BOOTLDR_USED=""
+BOUNDARY_ALIGN=2
+BUILD_TYPE="mini"
 DEFAULT_TARGET_DISK=8
 DEFAULT_TARGET_SWAP=0
 DISK_CYLINDERS=0
@@ -82,6 +83,7 @@ EXCLUDED_BB_CMDS=()
 EXCLUDED_FEATURES=()
 INCLUDED_BB_CMDS=()
 INCLUDED_FEATURES=()
+MICRO_TARGET_DISK=4
 MINI_TARGET_DISK=8
 ROOT_PART_SIZE=0
 TOTAL_DISK_SIZE=0
@@ -285,7 +287,6 @@ SKIP_BB=false
 SKIP_KRN=false
 TARGET_DISK=$DEFAULT_TARGET_DISK
 TARGET_SWAP=$DEFAULT_TARGET_SWAP
-TINY_KRN=false
 USE_TORVALDS=false
 
 ENABLE_CDROM=false
@@ -398,9 +399,6 @@ while [ $# -gt 0 ]; do
             SKIP_KRN=true
             DONT_DEL_ROOT=true
             ;;
-        --tiny)
-            TINY_KRN=true
-            ;;
         --use-torvalds)
             USE_TORVALDS=true
             ;;
@@ -440,6 +438,9 @@ if [ "$ID" == "shork-486" ]; then
         else
             EST_MIN_RAM="12MiB"
         fi
+    elif [ "$BUILD_TYPE" = "default" ]; then
+        echo -e "${GREEN}Noting minimum memory requirements for SHORK 486 Default...${RESET}"
+        EST_MIN_RAM="16MiB"
     elif [ "$BUILD_TYPE" = "max" ]; then
         echo -e "${GREEN}Noting minimum memory requirements for SHORK 486 Max...${RESET}"
         EST_MIN_RAM="32MiB/24MiB + 8MiB swap"
@@ -455,9 +456,9 @@ if [ "$ID" == "shork-486" ]; then
     elif [ "$BUILD_TYPE" = "mini" ]; then
         echo -e "${GREEN}Noting minimum memory requirements for SHORK 486 Mini...${RESET}"
         EST_MIN_RAM="8MiB"
-    elif [ "$BUILD_TYPE" = "default" ]; then
-        echo -e "${GREEN}Noting minimum memory requirements for SHORK 486 Default...${RESET}"
-        EST_MIN_RAM="16MiB"
+    elif [ "$BUILD_TYPE" = "micro" ]; then
+        echo -e "${GREEN}Noting minimum memory requirements for SHORK 486 Micro...${RESET}"
+        EST_MIN_RAM="8MiB"
     fi
 elif [ "$ID" == "shork-disc" ]; then
     echo -e "${GREEN}Noting minimum memory requirements for SHORK DISC...${RESET}"
@@ -2980,124 +2981,125 @@ configure_kernel()
     echo -e "${GREEN}Copying base ${DIST} kernel configuration file...${RESET}"
 
     if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
-        if ! $TINY_KRN; then
-            cp "$CONFIGS_DIR"/linux/linux.config.base .config
-        else
-            cp "$CONFIGS_DIR"/linux/linux.config.base.tiny .config
-        fi
+        cp "$CONFIGS_DIR"/linux/linux.config.base .config
     elif [ "$ID" == "shork-diskette" ]; then
         cp "$CONFIGS_DIR"/linux/linux.config.base.diskette .config
     fi
 
     FRAGS=""
 
-    if $ENABLE_CDROM; then
-        echo -e "${GREEN}Enabling kernel-level CD-ROM & DVD-ROM support...${RESET}"
-        if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
-            FRAGS+="${CONFIGS_DIR}/linux/linux.config.cdrom.frag "
-        elif [ "$ID" == "shork-diskette" ]; then
-            FRAGS+="${CONFIGS_DIR}/linux/linux.config.cdrom.diskette.frag "
+    if [ "$BUILD_TYPE" != "micro" ]; then
+        if $ENABLE_CDROM; then
+            echo -e "${GREEN}Enabling kernel-level CD-ROM & DVD-ROM support...${RESET}"
+            if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
+                FRAGS+="${CONFIGS_DIR}/linux/linux.config.cdrom.frag "
+            elif [ "$ID" == "shork-diskette" ]; then
+                FRAGS+="${CONFIGS_DIR}/linux/linux.config.cdrom.diskette.frag "
+            fi
         fi
-    fi
 
-    if $ENABLE_EPOLL; then
-        echo -e "${GREEN}Enabling kernel-level eventpoll support...${RESET}"
-        FRAGS+="${CONFIGS_DIR}/linux/linux.config.epoll.frag "
-    fi
-    
-    if $ENABLE_FB_VBE; then
-        echo -e "${GREEN}Enabling kernel-level framebuffer & VBE support...${RESET}"
-        FRAGS+="${CONFIGS_DIR}/linux/linux.config.fb.frag "
-    fi
+        if $ENABLE_EPOLL; then
+            echo -e "${GREEN}Enabling kernel-level eventpoll support...${RESET}"
+            FRAGS+="${CONFIGS_DIR}/linux/linux.config.epoll.frag "
+        fi
+        
+        if $ENABLE_FB_VBE; then
+            echo -e "${GREEN}Enabling kernel-level framebuffer & VBE support...${RESET}"
+            FRAGS+="${CONFIGS_DIR}/linux/linux.config.fb.frag "
+        fi
 
-    if $INCLUDE_GUI; then
-        echo -e "${GREEN}Enabling kernel-level event interface support...${RESET}"
-        FRAGS+="${CONFIGS_DIR}/linux/linux.config.x11.frag "
-    fi
+        if $INCLUDE_GUI; then
+            echo -e "${GREEN}Enabling kernel-level event interface support...${RESET}"
+            FRAGS+="${CONFIGS_DIR}/linux/linux.config.x11.frag "
+        fi
 
-    if $ENABLE_HIGHMEM; then
-        echo -e "${GREEN}Enabling kernel-level high memory support...${RESET}"
-        FRAGS+="${CONFIGS_DIR}/linux/linux.config.highmem.frag "
-    fi
+        if $ENABLE_HIGHMEM; then
+            echo -e "${GREEN}Enabling kernel-level high memory support...${RESET}"
+            FRAGS+="${CONFIGS_DIR}/linux/linux.config.highmem.frag "
+        fi
 
-    if $ENABLE_LOOP; then
-        echo -e "${GREEN}Enabling kernel-level loopback device support...${RESET}"
-        FRAGS+="${CONFIGS_DIR}/linux/linux.config.loop.frag "
-    fi
+        if $ENABLE_LOOP; then
+            echo -e "${GREEN}Enabling kernel-level loopback device support...${RESET}"
+            FRAGS+="${CONFIGS_DIR}/linux/linux.config.loop.frag "
+        fi
 
-    if $ENABLE_MODULES; then
-        echo -e "${GREEN}Enabling kernel-level modules support...${RESET}"
-        FRAGS+="${CONFIGS_DIR}/linux/linux.config.modules.frag "
-    fi
+        if $ENABLE_MODULES; then
+            echo -e "${GREEN}Enabling kernel-level modules support...${RESET}"
+            FRAGS+="${CONFIGS_DIR}/linux/linux.config.modules.frag "
+        fi
 
-    if $ENABLE_MULTIUSER_KRN; then
-        echo -e "${GREEN}Enabling kernel-level multi-user support...${RESET}"
-        FRAGS+="${CONFIGS_DIR}/linux/linux.config.multiuser.frag "
-    fi
+        if $ENABLE_MULTIUSER_KRN; then
+            echo -e "${GREEN}Enabling kernel-level multi-user support...${RESET}"
+            FRAGS+="${CONFIGS_DIR}/linux/linux.config.multiuser.frag "
+        fi
 
-    if $ENABLE_NET_BASE; then
-        echo -e "${GREEN}Enabling kernel-level networking support (base)...${RESET}"
-        FRAGS+="${CONFIGS_DIR}/linux/linux.config.net.base.frag "
-    fi
+        if $ENABLE_NET_BASE; then
+            echo -e "${GREEN}Enabling kernel-level networking support (base)...${RESET}"
+            FRAGS+="${CONFIGS_DIR}/linux/linux.config.net.base.frag "
+        fi
 
-    if $ENABLE_NET_ETH; then
-        echo -e "${GREEN}Enabling kernel-level networking support (ethernet)...${RESET}"
-        FRAGS+="${CONFIGS_DIR}/linux/linux.config.net.eth.frag "
-    fi
+        if $ENABLE_NET_ETH; then
+            echo -e "${GREEN}Enabling kernel-level networking support (ethernet)...${RESET}"
+            FRAGS+="${CONFIGS_DIR}/linux/linux.config.net.eth.frag "
+        fi
 
-    if $ENABLE_NET_PCMCIA; then
-        echo -e "${GREEN}Enabling kernel-level networking support (PCMCIA)...${RESET}"
-        FRAGS+="${CONFIGS_DIR}/linux/linux.config.net.pcmcia.frag "
-    fi
+        if $ENABLE_NET_PCMCIA; then
+            echo -e "${GREEN}Enabling kernel-level networking support (PCMCIA)...${RESET}"
+            FRAGS+="${CONFIGS_DIR}/linux/linux.config.net.pcmcia.frag "
+        fi
 
-    if $ENABLE_PCMCIA; then
-        echo -e "${GREEN}Enabling kernel-level PCMCIA support...${RESET}"
-        FRAGS+="${CONFIGS_DIR}/linux/linux.config.pcmcia.frag "
-    fi
+        if $ENABLE_PCMCIA; then
+            echo -e "${GREEN}Enabling kernel-level PCMCIA support...${RESET}"
+            FRAGS+="${CONFIGS_DIR}/linux/linux.config.pcmcia.frag "
+        fi
 
-    if $ENABLE_SATA; then
-        echo -e "${GREEN}Enabling kernel-level SATA support...${RESET}"
-        FRAGS+="${CONFIGS_DIR}/linux/linux.config.sata.frag "
-    fi
+        if $ENABLE_SATA; then
+            echo -e "${GREEN}Enabling kernel-level SATA support...${RESET}"
+            FRAGS+="${CONFIGS_DIR}/linux/linux.config.sata.frag "
+        fi
 
-    if $ENABLE_SCSI_EXP; then
-        echo -e "${GREEN}Enabling kernel-level SCSI media changer & tape drive support...${RESET}"
-        FRAGS+="${CONFIGS_DIR}/linux/linux.config.scsi.exp.frag "
-    fi
+        if $ENABLE_SCSI_EXP; then
+            echo -e "${GREEN}Enabling kernel-level SCSI media changer & tape drive support...${RESET}"
+            FRAGS+="${CONFIGS_DIR}/linux/linux.config.scsi.exp.frag "
+        fi
 
-    if $ENABLE_SMP; then
-        echo -e "${GREEN}Enabling kernel-level symmetric multiprocessing (SMP) support...${RESET}"
-        FRAGS+="${CONFIGS_DIR}/linux/linux.config.smp.frag "
-    fi
+        if $ENABLE_SMP; then
+            echo -e "${GREEN}Enabling kernel-level symmetric multiprocessing (SMP) support...${RESET}"
+            FRAGS+="${CONFIGS_DIR}/linux/linux.config.smp.frag "
+        fi
 
-    if $ENABLE_SOUND; then
-        echo -e "${GREEN}Enabling kernel-level sound support...${RESET}"
-        FRAGS+="${CONFIGS_DIR}/linux/linux.config.sound.frag "
-    fi
+        if $ENABLE_SOUND; then
+            echo -e "${GREEN}Enabling kernel-level sound support...${RESET}"
+            FRAGS+="${CONFIGS_DIR}/linux/linux.config.sound.frag "
+        fi
 
-    if $ENABLE_SYSVIPC; then
-        echo -e "${GREEN}Enabling kernel-level System V IPC support...${RESET}"
-        FRAGS+="${CONFIGS_DIR}/linux/linux.config.sysvipc.frag "
-    fi
+        if $ENABLE_SYSVIPC; then
+            echo -e "${GREEN}Enabling kernel-level System V IPC support...${RESET}"
+            FRAGS+="${CONFIGS_DIR}/linux/linux.config.sysvipc.frag "
+        fi
 
-    if $ENABLE_TASKSTATS; then
-        echo -e "${GREEN}Enabling kernel-level taskstats support...${RESET}"
-        FRAGS+="${CONFIGS_DIR}/linux/linux.config.taskstats.frag "
-    fi
+        if $ENABLE_TASKSTATS; then
+            echo -e "${GREEN}Enabling kernel-level taskstats support...${RESET}"
+            FRAGS+="${CONFIGS_DIR}/linux/linux.config.taskstats.frag "
+        fi
 
-    if $ENABLE_USB; then
-        echo -e "${GREEN}Enabling kernel-level USB & HID support...${RESET}"
-        FRAGS+="${CONFIGS_DIR}/linux/linux.config.usb.frag "
-    fi
+        if $ENABLE_USB; then
+            echo -e "${GREEN}Enabling kernel-level USB & HID support...${RESET}"
+            FRAGS+="${CONFIGS_DIR}/linux/linux.config.usb.frag "
+        fi
 
-    if $ENABLE_VM86; then
-        echo -e "${GREEN}Enabling kernel-level VM86 support...${RESET}"
-        FRAGS+="${CONFIGS_DIR}/linux/linux.config.vm86.frag "
-    fi
+        if $ENABLE_VM86; then
+            echo -e "${GREEN}Enabling kernel-level VM86 support...${RESET}"
+            FRAGS+="${CONFIGS_DIR}/linux/linux.config.vm86.frag "
+        fi
 
-    if $ENABLE_ZSWAP; then
-        echo -e "${GREEN}Enabling kernel-level zswap support...${RESET}"
-        FRAGS+="${CONFIGS_DIR}/linux/linux.config.zswap.frag "
+        if $ENABLE_ZSWAP; then
+            echo -e "${GREEN}Enabling kernel-level zswap support...${RESET}"
+            FRAGS+="${CONFIGS_DIR}/linux/linux.config.zswap.frag "
+        fi
+    else
+        echo -e "${GREEN}Enabling SHORK 486 Micro kernel tweaks...${RESET}"
+        FRAGS+="${CONFIGS_DIR}/linux/linux.config.micro.frag "
     fi
 
     if [ -n "$PHYSICAL_START" ]; then
@@ -7302,6 +7304,7 @@ build_filesystem()
 
     echo -e "${GREEN}Configure permissions...${RESET}"
     chmod +x "${CURR_DIR}"/sysfiles/*/rc
+    chmod +x "${CURR_DIR}"/sysfiles/*/rc.micro
     chmod +x "${CURR_DIR}"/sysfiles/default.script
     chmod +x "${CURR_DIR}"/sysfiles/poweroff
     chmod +x "${CURR_DIR}"/shorkutils/shorkgui
@@ -7313,15 +7316,21 @@ build_filesystem()
     copy_sysfile "${CURR_DIR}"/sysfiles/os-release "${DESTDIR}"/etc/os-release
 
     if [ "$ID" == "shork-486" ]; then
-        copy_sysfile "${CURR_DIR}"/sysfiles/486/rc "${DESTDIR}"/etc/init.d/rc
-        copy_sysfile "${CURR_DIR}"/sysfiles/486/profile "${DESTDIR}"/etc/profile
-        copy_sysfile "${CURR_DIR}"/sysfiles/486/welcome "${DESTDIR}"/banners/welcome
-        copy_sysfile "${CURR_DIR}"/sysfiles/goodbye-80 "${DESTDIR}"/banners/goodbye-80
-        copy_sysfile "${CURR_DIR}"/sysfiles/goodbye-100 "${DESTDIR}"/banners/goodbye-100
-        copy_sysfile "${CURR_DIR}"/sysfiles/goodbye-128 "${DESTDIR}"/banners/goodbye-128
-        copy_sysfile "${CURR_DIR}"/sysfiles/passwd "${DESTDIR}"/etc/passwd
-        copy_sysfile "${CURR_DIR}"/sysfiles/poweroff "${DESTDIR}"/sbin/poweroff
-        copy_sysfile "${CURR_DIR}"/sysfiles/shutdown "${DESTDIR}"/sbin/shutdown
+        if [ "$BUILD_TYPE" != "micro" ]; then
+            copy_sysfile "${CURR_DIR}"/sysfiles/486/rc "${DESTDIR}"/etc/init.d/rc
+            copy_sysfile "${CURR_DIR}"/sysfiles/486/profile "${DESTDIR}"/etc/profile
+            copy_sysfile "${CURR_DIR}"/sysfiles/486/welcome "${DESTDIR}"/banners/welcome
+            copy_sysfile "${CURR_DIR}"/sysfiles/goodbye-80 "${DESTDIR}"/banners/goodbye-80
+            copy_sysfile "${CURR_DIR}"/sysfiles/goodbye-100 "${DESTDIR}"/banners/goodbye-100
+            copy_sysfile "${CURR_DIR}"/sysfiles/goodbye-128 "${DESTDIR}"/banners/goodbye-128
+            copy_sysfile "${CURR_DIR}"/sysfiles/passwd "${DESTDIR}"/etc/passwd
+            copy_sysfile "${CURR_DIR}"/sysfiles/poweroff "${DESTDIR}"/sbin/poweroff
+            copy_sysfile "${CURR_DIR}"/sysfiles/shutdown "${DESTDIR}"/sbin/shutdown
+        else
+            copy_sysfile "${CURR_DIR}"/sysfiles/486/rc.micro "${DESTDIR}"/etc/init.d/rc
+            copy_sysfile "${CURR_DIR}"/sysfiles/486/profile.micro "${DESTDIR}"/etc/profile
+            copy_sysfile "${CURR_DIR}"/sysfiles/486/welcome.micro "${DESTDIR}"/banners/welcome
+        fi
     elif [ "$ID" == "shork-disc" ]; then
         copy_sysfile "${CURR_DIR}"/sysfiles/disc/profile "${DESTDIR}"/etc/profile
         copy_sysfile "${CURR_DIR}"/sysfiles/disc/rc "${DESTDIR}"/etc/init.d/rc
@@ -7812,11 +7821,16 @@ build_disk_img()
     FILES_BYTES=$((KERNEL_BYTES + ROOT_BYTES))
     FILES_MIB=$(((FILES_BYTES + 1048575) / 1048576))
 
-    # For a mini build, the process is simpler since we have a pretty good
-    # idea of the smallest acceptable disk size and have no need to factor in 
-    # some overhead
-    if [ "$BUILD_TYPE" = "mini" ] && [ "$TARGET_DISK" -ge "$FILES_MIB" ]; then
-        if [ "$TARGET_DISK" -le "$MINI_TARGET_DISK" ]; then
+    # For a mini/micro build, the process is simpler since we have a pretty
+    # good idea of the smallest acceptable disk size and have no need to
+    # factor in some overhead
+    if [[ "$BUILD_TYPE" =~ ^(mini|micro)$ ]] &&
+       [ "$TARGET_DISK" -ge "$FILES_MIB" ]; then
+        if [ "$BUILD_TYPE" == "micro" ] &&
+            [ "$TARGET_DISK" -le "$MICRO_TARGET_DISK" ]; then
+            TOTAL_DISK_SIZE=$MICRO_TARGET_DISK
+        elif [ "$BUILD_TYPE" == "mini" ] &&
+            [ "$TARGET_DISK" -le "$MINI_TARGET_DISK" ]; then
             TOTAL_DISK_SIZE=$MINI_TARGET_DISK
         else
             TOTAL_DISK_SIZE=$TARGET_DISK
@@ -7857,8 +7871,9 @@ build_disk_img()
         fi
     fi
 
-    # Align to 4MiB boundary
-    TOTAL_DISK_SIZE=$((((TOTAL_DISK_SIZE + 3) / 4) * 4))
+    # Align to boundary
+    TOTAL_DISK_SIZE=$((((TOTAL_DISK_SIZE + BOUNDARY_ALIGN - 1) /
+        BOUNDARY_ALIGN) * BOUNDARY_ALIGN))
 
 
 
@@ -9287,26 +9302,28 @@ if $INCLUDE_GCC; then
     make_swap_wrap "${DESTDIR}/opt/${ARCH}-linux-musl-native/bin/gfortran"
 fi
 
-get_shorkhelp
-get_shorkfetch
-if [ "$ID" == "shork-486" ]; then
-    get_shorkcommon_sh
-    get_shorkbin
-    get_shorkdir
-    get_shorkoff
-    get_shorkset
-fi
-if [ "$ID" == "shork-disc" ]; then
-    if $INCLUDE_SHORKSTALL; then
-        get_shorkstall
+if [ "$BUILD_TYPE" != "micro" ]; then
+    get_shorkhelp
+    get_shorkfetch
+    if [ "$ID" == "shork-486" ]; then
+        get_shorkcommon_sh
+        get_shorkbin
+        get_shorkdir
+        get_shorkoff
+        get_shorkset
     fi
-fi
+    if [ "$ID" == "shork-disc" ]; then
+        if $INCLUDE_SHORKSTALL; then
+            get_shorkstall
+        fi
+    fi
 
-if $INCLUDE_SHORKTAINMENT; then
-    get_shorklocomotive
-    get_shorkmatrix
-    get_shorkmines
-    get_shorksay
+    if $INCLUDE_SHORKTAINMENT; then
+        get_shorklocomotive
+        get_shorkmatrix
+        get_shorkmines
+        get_shorksay
+    fi
 fi
 
 trim_fat

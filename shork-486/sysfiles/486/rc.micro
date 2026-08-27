@@ -1,0 +1,67 @@
+#!/bin/sh
+
+# Mount core file systems
+mount -t proc  proc  /proc
+mount -t sysfs sysfs /sys
+
+# Mount devpts for pseudo-terminals
+mkdir -p /dev/pts
+mount -t devpts devpts /dev/pts
+chmod 666 /dev/pts
+
+# Required device nodes
+[ -c /dev/ptmx ] || mknod -m 666 /dev/ptmx c 5 2
+[ -c /dev/tty ]  || mknod -m 666 /dev/tty  c 5 0
+[ -c /dev/tty0 ] || mknod -m 620 /dev/tty0 c 4 0
+[ -c /dev/tty1 ] || mknod -m 620 /dev/tty1 c 4 1
+
+[ -r /etc/hostname ] && hostname "$(cat /etc/hostname)"
+
+export ENV=/etc/profile
+
+# Flush any ttyx seen flags
+rm -f /tmp/.tty*_seen
+
+# Prepare to show the welcome banner
+clear
+
+# Show welcome banner, OS name and author name
+if [ -f /banners/welcome ]; then
+    TERM_WIDTH=$(stty size 2>/dev/null | awk '{print $2}')
+    [ -z "$TERM_WIDTH" ] && TERM_WIDTH=80
+
+    BUFFER=""
+    if [ "$TERM_WIDTH" -gt 40 ]; then
+        # Print top border
+        BUFFER="${BUFFER}$(printf "%*s" "$TERM_WIDTH" '')"
+
+        # Print banner
+        BUFFER="${BUFFER}$(cat /banners/welcome)"
+
+        # Show OS name
+        OS="@DIST@"
+        TOTAL_PAD=$((TERM_WIDTH - ${#OS}))
+        RIGHT_PAD=$((TOTAL_PAD / 2))
+        LEFT_PAD=$((TOTAL_PAD - RIGHT_PAD))
+        BUFFER="${BUFFER}$(printf "%*s%s%*s\n" "$LEFT_PAD" '' "$OS" "$RIGHT_PAD" '')"
+
+        # Show author
+        AUTHOR="Kali (links.sharktastica.co.uk)"
+        TOTAL_PAD=$((TERM_WIDTH - ${#AUTHOR}))
+        RIGHT_PAD=$((TOTAL_PAD / 2))
+        LEFT_PAD=$((TOTAL_PAD - RIGHT_PAD))
+        BUFFER="${BUFFER}$(printf "%*s%s%*s\n" "$LEFT_PAD" '' "$AUTHOR" "$RIGHT_PAD" '')"
+
+        # Print bottom border
+        BUFFER="${BUFFER}$(printf "%*s" "$TERM_WIDTH" '')"
+    fi
+
+    # Set terminal to white on blue
+    printf "\x1b[37;44m"
+    # Print buffer
+    printf "%b" "$BUFFER"
+    # Reset colour
+    printf "\x1b[0m"
+fi
+
+printf "\n\n"

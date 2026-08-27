@@ -21,7 +21,7 @@ mount --bind /mnt/floppy/data /home
 # Prepare to show the welcome banner
 clear
 
-# Show welcome banner and OS name
+# Show welcome banner, OS name and author name
 if [ -f /banners/welcome ]; then
     COLS=80
     BANNER_WIDTH=30
