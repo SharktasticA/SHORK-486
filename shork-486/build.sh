@@ -2751,74 +2751,79 @@ get_busybox()
     echo -e "${GREEN}Applying 1.38.0_lsblk_swap patch...${RESET}"
     patch -p1 < "${PATCHES_DIR}/busybox/1.38.0_lsblk_swap.patch"
 
-    if $ENABLE_HELP_VERBOSE; then
-        echo -e "${GREEN}Enabling BusyBox's verbose --help...${RESET}"
-        merge_bb_frag "${CONFIGS_DIR}/busybox/busybox.config.help.frag"
-    fi
-    
-    if $ENABLE_LOOP; then
-        echo -e "${GREEN}Enabling BusyBox's losetup utility...${RESET}"
-        merge_bb_frag "${CONFIGS_DIR}/busybox/busybox.config.loop.frag"
-    fi
-    
-    if $ENABLE_MODULES; then
-        echo -e "${GREEN}Enabling BusyBox's Linux kernel modules utilities...${RESET}"
-        merge_bb_frag "${CONFIGS_DIR}/busybox/busybox.config.modules.frag"
-    fi
-
-    if $ENABLE_MULTIUSER_REAL; then
-        echo -e "${GREEN}Enabling BusyBox's multi-user utilities...${RESET}"
-        merge_bb_frag "${CONFIGS_DIR}/busybox/busybox.config.multiuser.frag"
+    if [ "$BUILD_TYPE" != "micro" ]; then
+        if $ENABLE_HELP_VERBOSE; then
+            echo -e "${GREEN}Enabling BusyBox's verbose --help...${RESET}"
+            merge_bb_frag "${CONFIGS_DIR}/busybox/busybox.config.help.frag"
+        fi
         
-        echo -e "${GREEN}Applying 1.37.0-1.38.0_musl_utmp patch...${RESET}"
-        patch -p1 < "${PATCHES_DIR}/busybox/1.37.0-1.38.0_musl_utmp.patch"
-    fi
-    
-    if $ENABLE_NET_ETH; then
-        echo -e "${GREEN}Enabling BusyBox's networking utilities...${RESET}"
-        merge_bb_frag "${CONFIGS_DIR}/busybox/busybox.config.net.frag"
-    fi
+        if $ENABLE_LOOP; then
+            echo -e "${GREEN}Enabling BusyBox's losetup utility...${RESET}"
+            merge_bb_frag "${CONFIGS_DIR}/busybox/busybox.config.loop.frag"
+        fi
+        
+        if $ENABLE_MODULES; then
+            echo -e "${GREEN}Enabling BusyBox's Linux kernel modules utilities...${RESET}"
+            merge_bb_frag "${CONFIGS_DIR}/busybox/busybox.config.modules.frag"
+        fi
 
-    if $ENABLE_USB; then
-        echo -e "${GREEN}Enabling BusyBox's USB-related utilities...${RESET}"
-        merge_bb_frag "${CONFIGS_DIR}/busybox/busybox.config.usb.frag"
-        yes | make oldconfig
-    fi
+        if $ENABLE_MULTIUSER_REAL; then
+            echo -e "${GREEN}Enabling BusyBox's multi-user utilities...${RESET}"
+            merge_bb_frag "${CONFIGS_DIR}/busybox/busybox.config.multiuser.frag"
+            
+            echo -e "${GREEN}Applying 1.37.0-1.38.0_musl_utmp patch...${RESET}"
+            patch -p1 < "${PATCHES_DIR}/busybox/1.37.0-1.38.0_musl_utmp.patch"
+        fi
+        
+        if $ENABLE_NET_ETH; then
+            echo -e "${GREEN}Enabling BusyBox's networking utilities...${RESET}"
+            merge_bb_frag "${CONFIGS_DIR}/busybox/busybox.config.net.frag"
+        fi
 
-    if $INCLUDE_DOSFSTOOLS; then
-        echo -e "${GREEN}Disabling BusyBox's mkdosfs/mkfs.vfat implementation in favour of dosfstools'...${RESET}"
-        disable_bb_feat "CONFIG_MKDOSFS"
-        disable_bb_feat "CONFIG_MKFS_VFAT"
-    fi
+        if $ENABLE_USB; then
+            echo -e "${GREEN}Enabling BusyBox's USB-related utilities...${RESET}"
+            merge_bb_frag "${CONFIGS_DIR}/busybox/busybox.config.usb.frag"
+            yes | make oldconfig
+        fi
 
-    if $INCLUDE_E2FSPROGS; then
-        echo -e "${GREEN}Disabling BusyBox's blkid, mke2fs/mkfs.ext2 and uuidgen implementations in favour of e2fsprogs'...${RESET}"
-        disable_bb_feat "CONFIG_BLKID"
-        disable_bb_feat "CONFIG_FEATURE_BLKID_TYPE"
-        disable_bb_feat "CONFIG_MKE2FS"
-        disable_bb_feat "CONFIG_MKFS_EXT2"
-        disable_bb_feat "CONFIG_UUIDGEN"
-    fi
+        if $INCLUDE_DOSFSTOOLS; then
+            echo -e "${GREEN}Disabling BusyBox's mkdosfs/mkfs.vfat implementation in favour of dosfstools'...${RESET}"
+            disable_bb_feat "CONFIG_MKDOSFS"
+            disable_bb_feat "CONFIG_MKFS_VFAT"
+        fi
 
-    if $INCLUDE_GCC; then
-        echo -e "${GREEN}Disabling BusyBox's ar and strings implementations in favour of GNU Bintuils'...${RESET}"
-        disable_bb_feat "CONFIG_AR"
-        disable_bb_feat "CONFIG_FEATURE_AR_LONG_FILENAMES"
-        disable_bb_feat "CONFIG_FEATURE_AR_CREATE"
-        disable_bb_feat "CONFIG_STRINGS"
-    fi
+        if $INCLUDE_E2FSPROGS; then
+            echo -e "${GREEN}Disabling BusyBox's blkid, mke2fs/mkfs.ext2 and uuidgen implementations in favour of e2fsprogs'...${RESET}"
+            disable_bb_feat "CONFIG_BLKID"
+            disable_bb_feat "CONFIG_FEATURE_BLKID_TYPE"
+            disable_bb_feat "CONFIG_MKE2FS"
+            disable_bb_feat "CONFIG_MKFS_EXT2"
+            disable_bb_feat "CONFIG_UUIDGEN"
+        fi
 
-    if $INCLUDE_UTIL_LINUX; then
-        echo -e "${GREEN}Disabling BusyBox's fdisk implementation in favour of util-linux's...${RESET}"
-        disable_bb_feat "CONFIG_FDISK"
-        disable_bb_feat "CONFIG_FEATURE_FDISK_BLKSIZE"
-        disable_bb_feat "CONFIG_FEATURE_FDISK_WRITABLE"
-        disable_bb_feat "CONFIG_FEATURE_FDISK_ADVANCED"
-    fi
+        if $INCLUDE_GCC; then
+            echo -e "${GREEN}Disabling BusyBox's ar and strings implementations in favour of GNU Bintuils'...${RESET}"
+            disable_bb_feat "CONFIG_AR"
+            disable_bb_feat "CONFIG_FEATURE_AR_LONG_FILENAMES"
+            disable_bb_feat "CONFIG_FEATURE_AR_CREATE"
+            disable_bb_feat "CONFIG_STRINGS"
+        fi
 
-    if $INCLUDE_VIM; then
-        echo -e "${GREEN}Disabling BusyBox's xxd implementation in favour of Vim's...${RESET}"
-        disable_bb_feat "CONFIG_XXD"
+        if $INCLUDE_UTIL_LINUX; then
+            echo -e "${GREEN}Disabling BusyBox's fdisk implementation in favour of util-linux's...${RESET}"
+            disable_bb_feat "CONFIG_FDISK"
+            disable_bb_feat "CONFIG_FEATURE_FDISK_BLKSIZE"
+            disable_bb_feat "CONFIG_FEATURE_FDISK_WRITABLE"
+            disable_bb_feat "CONFIG_FEATURE_FDISK_ADVANCED"
+        fi
+
+        if $INCLUDE_VIM; then
+            echo -e "${GREEN}Disabling BusyBox's xxd implementation in favour of Vim's...${RESET}"
+            disable_bb_feat "CONFIG_XXD"
+        fi
+    else
+        echo -e "${GREEN}Enabling SHORK 486 Micro BusyBox tweaks...${RESET}"
+        merge_bb_frag "${CONFIGS_DIR}/busybox/busybox.config.micro.frag"
     fi
 
     # Compile and install

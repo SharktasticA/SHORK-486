@@ -34,15 +34,19 @@ In the temporary lieu of a package manager, SHORK 486 can be made as one of seve
 
 * **Default:** SHORK 486 in its recommended configuration that tries to balance features and software variety with system requirements. It's what was described at the start of this README.
 
+* **Max:** SHORK 486 with every possible option enabled, including support for more modern hardware. It is not intended or recommended for 486/586/P5 Pentium systems per se, more a shortcut to those who like SHORK 486's design but want to use it on late '90s to early '10s systems as well, in lieu of future SHORK 686.
+
 * **Plus:** Like default but _with_ all the optional bundled software included. It includes a lot more development-focused software, additional editors (most notably Vim), IBM terminal emulation software, and (for 586) an MP3 player. It _can_ be used with the same minimum 16MiB system memory as default, but it will lean into slower swap memory a lot more if you don't have more physical memory (ideally at least 24MiB).
 
 * **Writer:** SHORK 486 with all text editors enabled, no full networking support, and fewer distractions. It sacrifices the generalist system configuration of default to get all the editors bundled in the same footprint as said default. This may be interesting for a writing-oriented system such as a writerdeck. It _can_ be used with the same minimum 16MiB system memory as default, but in particular whilst using Vim, it can lean into slower swap memory a lot more if you don't have more physical memory (ideally at least 24MiB).
 
 * **Offline:** Like default but _without_ full networking support and software that would require it. If you don't need the internet but still want a generalist system, you can save some system memory (~4MiB) and disk space (~40MiB) with this.
 
-* **Mini:** SHORK 486 in its smallest configuration. All bundled software and additional features are excluded, and multi-user, networking and non-US keyboard layout support are disabled. That said, a robust BusyBox configuration is still provided, so comparatively few general and system utilities are lost, and you still have the ed and vi editors. It's a very lightweight Linux, but one may still find it quite usable.
+* **Mini:** SHORK 486 in a small but reasonable configuration. All bundled software, additional features and SHORK Entertainment are excluded, and multi-user, networking and non-US keyboard layout support are disabled. That said, a robust BusyBox configuration is still provided, so you lose comparatively few general and system utilities. You still have the ed and vi editors, a complement of archive and compression utilities, and basic partitioning tools for managing ext2 and FAT32 partitions you may encounter with old systems. It's a very lightweight Linux system, but one may still find it quite usable.
 
-* **Max:** SHORK 486 with every possible option enabled, including support for more modern hardware. It is not intended or recommended for 486/586/P5 Pentium systems per se, more a shortcut to those who like SHORK 486's design but want to use it on late '90s to early '10s systems as well, in lieu of future SHORK 686.
+* **Micro (EXPERIMENTAL):** SHORK 486 in its smallest configuration. It's designed to provide a basic Linux system in just 4MiB, but not much else. All the cutbacks of Mini apply, but the BusyBox configuration is now also reduced, especially regarding file archiving, file compression and disk management/partitioning, and no SHORK Utilities are included.
+
+
 
 ### Licences
 
@@ -64,6 +68,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
     * Writer: 24MiB RAM + 8MiB swap (recommended), 16MiB RAM + 16MiB swap (acceptable)
     * Offline: 12MiB RAM (8MiB swap recommended)
     * Mini: 8MiB RAM
+    * Micro: 7MiB RAM
 * IDE or SCSI disk: 
     * **Default: 100MiB**
     * Max: 540MiB
@@ -71,6 +76,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
     * Writer: 100MiB
     * Offline: 60MiB
     * Mini: 8MiB
+    * Micro: 4MiB
 * Graphics: IBM VGA or compatible (for most programs); VBE 2.0-compatible (for `shorkgui` and VBE resolutions in `shorkset`)
 * Monitor: VGA (640x480) or higher
 
@@ -169,7 +175,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 
 ### SHORK Utilities (shorkutils)
 
-_Only partially included with SHORK 486 Mini, SHORK DISC and SHORK DISKETTE_
+_Only partially included with SHORK 486 Mini, SHORK DISC and SHORK DISKETTE; not included with SHORK 486 Micro_
 
 * **[shorkbin](https://github.com/SharktasticA/shorkbin)** - An ASCII text/8-bit binary converter. Available as `bin2text`, `shorkbin` and `text2bin`.
 * **[shorkdir](https://github.com/SharktasticA/shorkdir)** - Lightweight terminal-based file browser.
@@ -180,7 +186,7 @@ _Only partially included with SHORK 486 Mini, SHORK DISC and SHORK DISKETTE_
 
 ### SHORK Entertainment (shorktainment)
 
-_Not included with SHORK 486 Mini and SHORK DISKETTE_
+_Not included with SHORK 486 Micro, SHORK 486 Mini and SHORK DISKETTE_
 
 * **[shorklocomotive](https://github.com/SharktasticA/shorklocomotive)** - A shark-themed take on [sl (Steam Locomotive)](https://github.com/mtoyoda/sl) that kindly pokes fun at making typos when trying to type `ls`. Available as `sl` and `shorklocomotive`.
 * **[shorkmatrix](https://github.com/SharktasticA/shorkmatrix)** - A quick, blue-themed take on the [CMatrix](https://github.com/abishekvashok/cmatrix) "digital rain" vertical scrolling text screensaver. Available as `cmatrix` and `shorkmatrix`.
@@ -348,18 +354,18 @@ When running the SHORK 486 Build Configurator, you will be prompted to select th
 * Target distribution (SHORK 486, SHORK DISC or SHORK DISKETTE)
 * Linux kernel version (7.2, 7.1.10 or 7.0.14)
 * _If SHORK 486:_
-    * Build type (default, max, plus, writer, offline, mini or custom)
+    * Build type (default, max, plus, writer, offline, mini, micro or custom)
     * Target disk size (size in MiB)
     * Swap partition size (size in MiB)
 * _If SHORK DISKETTE:_
     * Target diskette size (1.44MB or 2.88MB)
 * Keyboard scancode set (skip, set 2 or set 3)
 * _If SHORK 486:_
-    * __If not "Mini" build type selected:__
+    * __If not "Micro" or "Mini" build type selected:__
         * Keyboard layout (keymap) (single choice)
 * Hostname (text input)
 * _If SHORK 486:_
-    * __If not "Mini" build type selected:__
+    * __If not "Micro" or "Mini" build type selected:__
         * Multi-user support (yes/no)
             * Root password (text input)
     * Serial console mode (yes/no)
