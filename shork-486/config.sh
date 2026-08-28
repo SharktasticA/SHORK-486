@@ -28,6 +28,8 @@ DEFAULT_DEF_SWAP=8
 DEFAULT_MIN_DISK=100
 MAX_DEF_SWAP=16
 MAX_MIN_DISK=540
+MICRO_DEF_SWAP=0
+MICRO_MIN_DISK=4
 MINI_DEF_SWAP=0
 MINI_MIN_DISK=8
 OFFLINE_DEF_SWAP=8
@@ -568,13 +570,14 @@ if [ "$ID" == "shork-486" ]; then
         --title "Build Type" \
         --cancel-label "Quit" \
         --default-item "$BUILD_TYPE" \
-        --menu "Select the build type, presets for SHORK 486 feature levels. The minimum requirements for each are enclosed in brackets. The \"custom\" option will enable further prompts for software and feature selection." 16 $WIDTH 7 \
+        --menu "Select the build type, presets for SHORK 486 feature levels. The minimum requirements for each are enclosed in brackets. The \"custom\" option will enable further prompts for software and feature selection." 17 $WIDTH 7 \
         "default"   "Typical experience (16MiB RAM, 8MiB swap, 100MiB disk)" \
         "max"       "Largest configuration (24MiB RAM, 16MiB swap, 540MiB disk)" \
         "plus"      "Default w/ optional software (16MiB RAM, 16MiB swap, 500MiB disk)" \
         "writer"    "Writing focused (16MiB RAM, 16MiB swap, 100MiB disk)" \
         "offline"   "Default w/o networking (12MiB RAM, 8MiB swap, 60MiB disk)" \
-        "mini"      "Smallest configuration (8MiB RAM, 8MiB disk)" \
+        "mini"      "Small configuration (8MiB RAM, 8MiB disk)" \
+        "micro"     "*EXPERIMENTAL* Extremely tiny configuration (7MiB RAM, 4MiB disk)" \
         "custom"    "Requirements depend on subsequent choices" \
         3>&1 1>&2 2>&3)
 
@@ -597,6 +600,9 @@ if [ "$ID" == "shork-486" ]; then
     elif [ "$BUILD_TYPE" == "mini" ]; then
         set_mini_vars
         DIST="$DIST Mini"
+    elif [ "$BUILD_TYPE" == "micro" ]; then
+        set_mini_vars
+        DIST="$DIST Micro"
     elif [ "$BUILD_TYPE" == "custom" ]; then
         set_custom_vars
     fi
@@ -640,6 +646,12 @@ if [ "$ID" == "shork-486" ]; then
         if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
             TARGET_DISK=$MINI_MIN_DISK
             TARGET_SWAP=$MINI_DEF_SWAP
+        fi
+    elif [ "$BUILD_TYPE" == "micro" ]; then
+        CURR_MIN_DISK=$MICRO_MIN_DISK
+        if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
+            TARGET_DISK=$MICRO_MIN_DISK
+            TARGET_SWAP=$MICRO_DEF_SWAP
         fi
     elif [ "$BUILD_TYPE" == "custom" ]; then
         CURR_MIN_DISK=$CUSTOM_MIN_DISK
@@ -777,7 +789,8 @@ esac
 
 
 # Get desired keymap (486)
-if [ "$BUILD_TYPE" != "mini" ] && [ "$ID" == "shork-486" ]; then
+if [ "$BUILD_TYPE" != "mini" ] && [ "$BUILD_TYPE" != "micro" ] &&
+   [ "$ID" == "shork-486" ]; then
     KEYMAP_ITEMS=()
     for f in "$CURR_DIR/sysfiles/keymaps/"*.kmap.bin; do
         name=$(basename "$f" .kmap.bin)
@@ -833,7 +846,8 @@ HOSTNAME=$(dialog --clear \
 
 
 # Get multi-user support choice (486)
-if [ "$BUILD_TYPE" != "mini" ] && [ "$ID" == "shork-486" ]; then
+if [ "$BUILD_TYPE" != "mini" ] && [ "$BUILD_TYPE" != "micro" ] &&
+   [ "$ID" == "shork-486" ]; then
     DEFAULT_FLAG="--defaultno"
     if $ENABLE_MULTIUSER_REAL; then
         DEFAULT_FLAG=""

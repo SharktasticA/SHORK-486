@@ -106,7 +106,7 @@ rm -f /tmp/.tty*_seen
 # Prepare to show the welcome banner
 clear
 
-# Show welcome banner and OS name
+# Show welcome banner, OS name and author name
 if [ -f /banners/welcome ]; then
     TERM_WIDTH=$(stty size 2>/dev/null | awk '{print $2}')
     BANNER_WIDTH=36
