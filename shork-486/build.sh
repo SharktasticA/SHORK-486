@@ -3175,6 +3175,9 @@ compile_kernel()
 
         echo -e "${GREEN}Applying 7.2.x_restore-isa-pcmcia-net patch...${RESET}"
         patch -p1 < "${PATCHES_DIR}/linux/7.2.x/7.2.x_restore-isa-pcmcia-net.patch"
+    
+        echo -e "${GREEN}Applying 7.2.x_restore-arcnet-isa-pcmcia patch...${RESET}"
+        patch -p1 < "${PATCHES_DIR}/linux/7.2.x/7.2.x_restore-arcnet-isa-pcmcia.patch"
     elif [[ "$LINUX_VER" == 7.1* ]]; then
         echo -e "${GREEN}Applying 7.1.x_restore-M486-M486SX-ELAN patch...${RESET}"
         patch -p1 < "${PATCHES_DIR}/linux/7.1.x/7.1.x_restore-M486-M486SX-ELAN.patch"

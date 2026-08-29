@@ -10,7 +10,6 @@ Whilst SHORK 486 itself is licensed under GPL 3.0 terms, the contents of the `sh
 
 ### 7.2.x
 
-* Restore ARCnet ISA/PCMCIA drivers: https://www.phoronix.com/news/Linux-To-Drop-ARCnet-ISA-PCMCIA
 * Restore Double Talk driver: https://www.phoronix.com/news/Linux-Dropping-Double-Talk
 
 ### 7.1.x
@@ -23,19 +22,26 @@ Whilst SHORK 486 itself is licensed under GPL 3.0 terms, the contents of the `sh
 
 _**Forward ported from 7.1.x:** 7.1.x_restore-M486-M486SX-ELAN.patch, 7.1.x_restore-pcmcia-hosts.patch, 7.1.x_restore-no-pci-devices.patch, 7.1.x_restore-pc110pad.patch_
 
+### [7.2.x_restore-arcnet-isa-pcmcia.patch](shork-486/patches/linux/7.2.x/7.2.x_restore-arcnet-isa-pcmcia.patch)
+
+* Original kernel: 7.2.0
+* Context: https://www.phoronix.com/news/Linux-To-Drop-ARCnet-ISA-PCMCIA
+
+This patch reverts the removal of various ISA and PCMCIA ARCnet drivers and documentation from [this patch series](https://lore.kernel.org/netdev/20260521001631.45434-1-enelsonmoore@gmail.com/T/). This was done as per the request of a user.
+
 ### [7.2.x_restore-isa-pcmcia-net.patch](shork-486/patches/linux/7.2.x/7.2.x_restore-isa-pcmcia-net.patch)
 
-* Original kernel: 7.2.0-rc1
+* Original kernel: 7.2.0
 * Context: https://www.phoronix.com/news/Linux-7.1-Removes-Old-Net, https://lore.kernel.org/all/20260422-v7-0-0-net-next-driver-removal-v1-v2-0-08a5b59784d5@lunn.ch/
 
-This is a modification of `7.1.x_restore-isa-pcmcia-net.patch` that allows it to be cleanly applied to 7.2.x. This patch reverts the removal of several ISA and PCMCIA network drivers from [this removal series](https://github.com/search?q=repo%3Atorvalds%2Flinux+net-next+driver-removal&type=commits). It includes the ISA drivers `3c515`, `lance`, `smc9194`, `ultra` and `wd80x3`, and the PCMCIA drivers `3c574`, `3c589`, `ax88190`, `fmvj18x`, `nmclan` and `smc91c92`. Several of these drivers include hardware relevant for SHORK 486.
+This is a modification of `7.1.x_restore-isa-pcmcia-net.patch` that allows it to be cleanly applied to 7.2.x. This patch reverts the removal of several ISA and PCMCIA network drivers from [this patch series](https://github.com/search?q=repo%3Atorvalds%2Flinux+net-next+driver-removal&type=commits). It includes the ISA drivers `3c515`, `lance`, `smc9194`, `ultra` and `wd80x3`, and the PCMCIA drivers `3c574`, `3c589`, `ax88190`, `fmvj18x`, `nmclan` and `smc91c92`. Several of these drivers include hardware relevant for SHORK 486.
 
 ### [7.2.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.patch](shork-486/patches/linux/7.2.x/7.2.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.patch)
 
-* Original kernel: 7.2.0-rc1
+* Original kernel: 7.2.0
 * Context: https://www.phoronix.com/news/AMD-K5-CPUs, https://www.phoronix.com/news/AMD-Elan-Linux-Driver-Removal
 
-This patch reverts the removal of various applicable CPU targets and features from TODO. It includes build targets for 586 (AMD K5, Cyrix 5x86, etc.), AMD Élan, IDT Winchip, RDC R-321x and UMC U5x, x87 math emulation support, and Geode GX1 support.
+This patch reverts the removal of various TSC-less and CX8-less CPU build targets, 486-related plumming, AMD Élan support, and 387 maths emulation support from [this patch series](https://lore.kernel.org/all/20250425084216.3913608-1-mingo@kernel.org/). It includes build targets for "586" (AMD K5, Cyrix 5x86, etc.), AMD Élan, IDT Winchip, RDC R-321x and UMC U5x, x87 math emulation support, and Geode GX1 support.
 
 
 
@@ -46,7 +52,7 @@ This patch reverts the removal of various applicable CPU targets and features fr
 * Original kernel: 7.1.0
 * Context: https://www.phoronix.com/news/Linux-7.1-Removes-Old-Net, https://lore.kernel.org/all/20260422-v7-0-0-net-next-driver-removal-v1-v2-0-08a5b59784d5@lunn.ch/
 
-This patch reverts the removal of several ISA and PCMCIA network drivers from [this removal series](https://github.com/search?q=repo%3Atorvalds%2Flinux+net-next+driver-removal&type=commits). It includes the ISA drivers `3c515`, `lance`, `smc9194`, `ultra` and `wd80x3`, and the PCMCIA drivers `3c574`, `3c589`, `ax88190`, `fmvj18x`, `nmclan` and `smc91c92`. Several of these drivers include hardware relevant for SHORK 486.
+This patch reverts the removal of several ISA and PCMCIA network drivers from [this patch series](https://github.com/search?q=repo%3Atorvalds%2Flinux+net-next+driver-removal&type=commits). It includes the ISA drivers `3c515`, `lance`, `smc9194`, `ultra` and `wd80x3`, and the PCMCIA drivers `3c574`, `3c589`, `ax88190`, `fmvj18x`, `nmclan` and `smc91c92`. Several of these drivers include hardware relevant for SHORK 486.
 
 ### [7.1.x_restore-pc110pad.patch](shork-486/patches/linux/7.1.x/7.1.x_restore-pc110pad.patch)
 
