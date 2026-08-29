@@ -212,6 +212,8 @@ LYNX_SRC="https://github.com/ThomasDickey/lynx-snapshots.git"
 LYNX_VER="2-9-3a"
 MAKE_SRC="https://ftp.gnu.org/gnu/make"
 MAKE_VER="4.4.1"
+MEMTESTER_SRC="https://pyropus.ca./software/memtester/old-versions"
+MEMTESTER_VER="4.7.1"
 MG_SRC="https://github.com/troglobit/mg.git"
 MG_VER="4.0"
 MICRO_SRC="https://github.com/micro-editor/MICRO.git"
@@ -339,6 +341,7 @@ INCLUDE_KEYMAPS=false
 INCLUDE_LUA=false
 INCLUDE_LYNX=false
 INCLUDE_MAKE=false
+INCLUDE_MEMTESTER=false
 INCLUDE_MG=false
 INCLUDE_MICRO=false
 INCLUDE_MICROPYTHON=false
@@ -5664,6 +5667,45 @@ get_lua()
     install -m755 lua "${DESTDIR}/usr/bin/lua"
 }
 
+# Download and compile memtester
+get_memtester()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ -f "${DESTDIR}/usr/bin/memtester" ]; then
+        echo -e "${LIGHT_RED}memtester already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading memtester...${RESET}"
+    
+    DIR="memtester-${MEMTESTER_VER}"
+    ARC="${DIR}.tar.gz"
+    URI="${MEMTESTER_SRC}/${NANO_ARC}"
+
+    # Download source
+    [ -f $ARC ] || wget $URI
+
+    # Extract source
+    if [ -d $DIR ]; then
+        echo -e "${YELLOW}memtester's source archive is already present, re-extracting before proceeding...${RESET}"
+        sudo rm -rf $DIR
+    fi
+    tar xzf $ARC
+    cd $DIR
+
+    # Patch relevant build files to support 486/no-x87 building, our
+    # cross-compiler and our DESTDIR
+    sed -i "1s|^cc |${CC_STATIC} -m32 -march=i486 -mtune=i486 -mno-80387 -mno-fp-ret-in-387 |" conf-cc
+    sed -i "1s|^cc -s|${CC_STATIC} -m32 -static -s|" conf-ld
+    sed -i "s|^INSTALLPATH\t= /usr/local|INSTALLPATH\t= ${DESTDIR}/usr|" Makefile
+
+    # Compile program
+    echo -e "${GREEN}Compiling memtester...${RESET}"
+    sudo make install
+}
+
 # Download and compile Mg
 get_mg()
 {
@@ -7055,6 +7097,12 @@ copy_licences()
        [ -f "${CURR_DIR}/build/make-${MAKE_VER}/COPYING" ]; then
         cp "${CURR_DIR}/build/make-${MAKE_VER}/COPYING" "${DESTDIR}/LICENCES/make.txt" || true
         CSV+="\nMake,GNU GPLv3,make.txt"
+    fi
+
+    if $INCLUDE_MEMTESTER && 
+       [ -f "${CURR_DIR}/build/memtester-${MEMTESTER_VER}/COPYING" ]; then
+        cp "${CURR_DIR}/build/memtester-${MEMTESTER_VER}/COPYING" "${DESTDIR}/LICENCES/memtester.txt" || true
+        CSV+="\nmemtester,GNU GPLv2,memtester.txt"
     fi
 
     if $INCLUDE_MG && 
@@ -8618,6 +8666,7 @@ get_installed_progs_feats()
         check_installed_file "Lua ${LUA_VER}" "/usr/bin/lua"
         check_installed_file "Lynx ${LYNX_VER}" "/usr/bin/lynx"
         check_installed_file "GNU Make ${MAKE_VER}" "/usr/bin/make"
+        check_installed_file "memtester ${MEMTESTER_VER}" "/usr/bin/memtester"
         check_installed_file "Mg ${MG_VER}" "/usr/bin/mg"
         check_installed_file "MicroPython ${MICROPYTHON_VER}" "/usr/bin/micropython"
         check_installed_file "mpg321 ${MPG321_VER}" "/usr/bin/mpg321"
@@ -9183,6 +9232,9 @@ if $INCLUDE_MAKE; then
         false \
         "/usr" \
         ""
+fi
+if $INCLUDE_MEMTESTER; then
+    get_memtester
 fi
 if $INCLUDE_MG; then
     get_mg

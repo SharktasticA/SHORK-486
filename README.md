@@ -115,6 +115,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [Joe's Own Editor](https://github.com/joe-editor/joe) | `joe` | 4.8 | WordStar & Emacs-blend text editor | GPLv2 |*||*||
 | [Lua](https://www.lua.org/) | `lua` | 5.5.1 | Embedded scripting & extensions language | MIT |*|**\***||*|
 | [Lynx](https://github.com/ThomasDickey/lynx-snapshots) | `lynx` | 2-9-3a | Terminal web browser | GPLv2 |*|**\***|||
+| [memtester](https://pyropus.ca./software/memtester/) | `memtester` | 4.7.1 | Userspace memory subsystem fault tester | GPLv2 |*|**\***|*|*|
 | [Mg](https://github.com/troglobit/mg) | `mg` | 4.0 | Emacs-style text editor | Unlicense |*|**\***|*|*|
 | [MicroPython](https://github.com/micropython/micropython) | `micropython` | 1.28.0 | Python 3.4-syntax intepreter | MIT |*|**\***||*|
 | [mpg321](https://mpg321.sourceforge.net/)† | `mpg321` | 0.3.2-1 | MP3 player | GPLv2 |*||||

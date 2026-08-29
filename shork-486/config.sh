@@ -76,6 +76,7 @@ INCLUDE_JOE=false
 INCLUDE_LUA=false
 INCLUDE_LYNX=false
 INCLUDE_MAKE=false
+INCLUDE_MEMTESTER=false
 INCLUDE_MG=false
 INCLUDE_MICROPYTHON=false
 INCLUDE_MPG321=false
@@ -195,6 +196,7 @@ save_env()
         echo "INCLUDE_LUA=$INCLUDE_LUA"
         echo "INCLUDE_LYNX=$INCLUDE_LYNX"
         echo "INCLUDE_MAKE=$INCLUDE_MAKE"
+        echo "INCLUDE_MEMTESTER=$INCLUDE_MEMTESTER"
         echo "INCLUDE_MG=$INCLUDE_MG"
         echo "INCLUDE_MICROPYTHON=$INCLUDE_MICROPYTHON"
         echo "INCLUDE_MPG321=$INCLUDE_MPG321"
@@ -283,6 +285,7 @@ set_mini_vars()
     INCLUDE_LUA=false
     INCLUDE_LYNX=false
     INCLUDE_MAKE=false
+    INCLUDE_MEMTESTER=false
     INCLUDE_MG=false
     INCLUDE_MICROPYTHON=false
     INCLUDE_MPG321=false
@@ -337,6 +340,7 @@ set_default_vars()
     INCLUDE_HTOP=true
     INCLUDE_LUA=true
     INCLUDE_LYNX=true
+    INCLUDE_MEMTESTER=true
     INCLUDE_MG=true
     INCLUDE_MICROPYTHON=true
     INCLUDE_MT_ST=true
@@ -379,6 +383,7 @@ set_writer_vars()
     set_mini_vars true true
     INCLUDE_HTOP=true
     INCLUDE_JOE=true
+    INCLUDE_MEMTESTER=true
     INCLUDE_MG=true
     INCLUDE_NANO=true
     INCLUDE_NCDU=true
@@ -1103,6 +1108,7 @@ if [ "$ENABLE_NET_ETH" == true ]; then
         "lua"              "*Embedded scripting & extensions language (+0.4MiB)"    "$(val "$INCLUDE_LUA")"
         "lynx"              "*Terminal web browser (+7.3MiB)"                       "$(val "$INCLUDE_LYNX")"
         "make"              "Build automation tool (+0.3MiB)"                       "$(val "$INCLUDE_MAKE")"
+        "memtester"         "*Userspace memory subsystem fault tester (+0.05MiB)"   "$(val "$INCLUDE_MEMTESTER")"
         "mg"                "*Emacs-style text editor (+0.3MiB)"                    "$(val "$INCLUDE_MG")"
         "micropython"       "*Python 3.4-syntax intepreter (+0.7MiB)"               "$(val "$INCLUDE_MICROPYTHON")"
         "mpg321"            "MP3 player (+0.4MiB)"                                  "$(val "$INCLUDE_MPG321")"
@@ -1137,6 +1143,7 @@ else
         "joe"               "WordStar & Emacs-blend text editor (+1.9MiB)"          "$(val "$INCLUDE_JOE")"
         "lua"              "*Embedded scripting & extensions language (+0.4MiB)"    "$(val "$INCLUDE_LUA")"
         "make"              "Build automation tool (+0.3MiB)"                       "$(val "$INCLUDE_MAKE")"
+        "memtester"         "*Userspace memory subsystem fault tester (+0.05MiB)"   "$(val "$INCLUDE_MEMTESTER")"
         "mg"                "*Emacs-style text editor (+0.3MiB)"                    "$(val "$INCLUDE_MG")"
         "micropython"       "*Python 3.4-syntax intepreter (+0.7MiB)"               "$(val "$INCLUDE_MICROPYTHON")"
         "mpg321"            "MP3 player (+0.4MiB)"                                  "$(val "$INCLUDE_MPG321")"
@@ -1188,6 +1195,7 @@ else
     if [[ $BUNDLED =~ "lua" ]];             then INCLUDE_LUA=true;              else INCLUDE_LUA=false;             fi
     if [[ $BUNDLED =~ "lynx" ]];            then INCLUDE_LYNX=true;             else INCLUDE_LYNX=false;            fi
     if [[ $BUNDLED =~ "make" ]];            then INCLUDE_MAKE=true;             else INCLUDE_MAKE=false;            fi
+    if [[ $BUNDLED =~ "memtester" ]];       then INCLUDE_MEMTESTER=true;        else INCLUDE_MEMTESTER=false;       fi
     if [[ $BUNDLED =~ "mg" ]];              then INCLUDE_MG=true;               else INCLUDE_MG=false;              fi
     if [[ $BUNDLED =~ "micropython" ]];     then INCLUDE_MICROPYTHON=true;      else INCLUDE_MICROPYTHON=false;     fi
     if [[ $BUNDLED =~ "mpg321" ]];          then INCLUDE_MPG321=true;           else INCLUDE_MPG321=false;          fi
