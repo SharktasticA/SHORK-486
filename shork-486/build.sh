@@ -127,7 +127,7 @@ BUSYBOX_VER="1.38.0"
 
 SHORKBIN_SRC="https://github.com/SharktasticA/shorkbin.git"
 SHORKFETCH_SRC="https://github.com/SharktasticA/shorkfetch.git"
-SHORKFETCH_VER="0.6.1"
+SHORKFETCH_VER="0.6.3"
 SHORKMINES_SRC="https://github.com/SharktasticA/shorkmines.git"
 
 C3270_SRC="https://github.com/pmattes/x3270.git"
