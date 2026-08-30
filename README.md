@@ -117,20 +117,20 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [Lynx](https://github.com/ThomasDickey/lynx-snapshots) | `lynx` | 2-9-3a | Terminal web browser | GPLv2 |*|**\***|||
 | [memtester](https://pyropus.ca./software/memtester/) | `memtester` | 4.7.1 | Userspace memory subsystem fault tester | GPLv2 |*|**\***|*|*|
 | [Mg](https://github.com/troglobit/mg) | `mg` | 4.0 | Emacs-style text editor | Unlicense |*|**\***|*|*|
-| [MicroPython](https://github.com/micropython/micropython) | `micropython` | 1.28.0 | Python 3.4-syntax intepreter | MIT |*|**\***||*|
+| [MicroPython](https://github.com/micropython/micropython) | `micropython` | 1.29.0 | Python 3.4-syntax intepreter | MIT |*|**\***||*|
 | [mpg321](https://mpg321.sourceforge.net/)† | `mpg321` | 0.3.2-1 | MP3 player | GPLv2 |*||||
 | [mt-st](https://github.com/iustin/mt-st) | `mt`, `stinit` | 1.8 | Tape drive tools | GPLv2 |*|**\***||*|
 | [NASM](https://www.nasm.us/) | `nasm`, `ndisasm` | 3.02 | Portable x86 assembler & disassembler | BSD 2-Clause |*||||
 | [Ncdu](https://dev.yorhel.nl/ncdu) | `ncdu` | 1.22 | Disk usage analyser | MIT |*|**\***|*|*|
 | [sc-im](https://github.com/andmarti1424/sc-im) | `sc-im` | 0.8.5 | Terminal spreadsheet editor | BSD 4-Clause |*|**\***|*|*|
-| [strace](https://github.com/strace/strace) | `strace` | 7.1 | System calls & signals tracer | LGPLv2.1 |*|**\***||*|
+| [strace](https://github.com/strace/strace) | `strace` | 7.2 | System calls & signals tracer | LGPLv2.1 |*|**\***||*|
 | [sudo](https://www.sudo.ws/)‖ | `sudo`, `sudoedit`, `visudo` | 1.9.17p2 | Run command as root/substitute user | ISC + BSD 2-Clause + BSD 3-Clause + zlib |*|**\***|*|*|
 | [Tilde](https://os.ghalkes.nl/tilde/) | `tilde` | 1.1.3 | GUI-like text editor | c |*||*||
 | [Tiny C Compiler](https://bellard.org/tcc/)§ | `tcc` | `e5eedc0` | C compiler | LGPLv2.1 |*|**\***||*|
-| [tmux](https://github.com/tmux/tmux) | `tmux` | 3.7b | Terminal multiplexer | ISC |*|**\***|*|*|
+| [tmux](https://github.com/tmux/tmux) | `tmux` | 3.7c | Terminal multiplexer | ISC |*|**\***|*|*|
 | [tn5250](https://github.com/tn5250/tn5250)† | `tn5250` | 0.18.0 | TCP/IP 5250 terminal emulator | LGPLv2.1 |*||||
 | [tnftp](https://ftp.netbsd.org/pub/NetBSD/misc/tnftp/) | `ftp` | 20260211 | FTP client | BSD 2-Clause |*|**\***|||
-| [Universal Ctags](https://ctags.io/) | `ctags`, `readtags` | 6.2.20260816.0 | Source code object indexing | GPLv2 |*||||
+| [Universal Ctags](https://ctags.io/) | `ctags`, `readtags` | 6.2.20260823.0 | Source code object indexing | GPLv2 |*||||
 | [util-linux](https://github.com/util-linux/util-linux) | `cfdisk`, `fdisk`\*, `lscpu`, `partx`, `sfdisk`, `whereis` | 2.42.2 | Extra Linux utilities | GPLv2 |*|**\***||*|
 | [Vim](https://www.vim.org/)† | `ex`, `view`, `rvim`, `rview`, `vim`, `vimdiff`, `vimtutor`, `xxd`\* | 9.2.0785 | Vi IMproved text editor | Vim |*||*||
 | [x3270](https://github.com/pmattes/x3270)† | `c3270` | 4.5ga6 | 3270 terminal emulator | BSD 3-Clause |*||||
@@ -150,10 +150,10 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [libassuan](https://www.gnupg.org/software/libassuan/index.html) | 3.0.2 | GnuPG | GPLv3 |
 | libcom_err | 1.47.4 | e2fsprogs | MIT SIPB |
 | [libevent](https://github.com/libevent/libevent) | 2.1.13 | tmux | BSD 3-Clause |
-| [libgcrypt](https://www.gnupg.org/software/libgcrypt/index.html) | 1.12.2 | GnuPG | GPLv3 |
+| [libgcrypt](https://www.gnupg.org/software/libgcrypt/index.html) | 1.12.3 | GnuPG | GPLv3 |
 | [libgpg-error](https://www.gnupg.org/software/libgpg-error/index.html) | 1.61 | GnuPG | GPLv3 |
 | [libid3tag](https://github.com/markjeee/libid3tag) | 0.15.1b | mpg321 | GPLv2 |
-| [libksba](https://www.gnupg.org/software/libksba/index.html) | 1.8.0 | GnuPG | GPLv3 |
+| [libksba](https://www.gnupg.org/software/libksba/index.html) | 1.8.1 | GnuPG | GPLv3 |
 | [libmad](https://github.com/markjeee/libmad) | 0.15.1b | mpg321 | GPLv2 |
 | libss | 1.47.4 | e2fsprogs | MIT SIPB |
 | [libt3config](https://os.ghalkes.nl/t3/libt3config.html) | 1.0.0 | Tilde | GPLv3 |
@@ -170,7 +170,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [musl](somethhttps://musl.libc.org/) | 1.2.6 | GCC, Tiny C Compiler | MIT |
 | [ncurses](https://github.com/mirror/ncurses) | 6.4 | htop, Lynx, nano, sc-im, tic, tmux, tn5250, util-linux, x3270 | MIT |
 | [nPth](https://www.gnupg.org/software/npth/index.html) | 1.8 | GnuPG | LGPLv2.1 |
-| [OpenSSL](https://github.com/openssl/openssl) | 3.6.3 | curl, Git, Lynx, tn5250 | Apache 2.0 |
+| [OpenSSL](https://github.com/openssl/openssl) | 3.6.4 | curl, Git, Lynx, tn5250 | Apache 2.0 |
 | [PCRE2](https://pcre2project.github.io/pcre2/) | 10.47 | Tilde | BSD 3-Clause w/ PCRE2 exception |
 | [zlib](https://github.com/madler/zlib) | 1.3.2 | Git, GnuPG, libzip | zlib |
 
