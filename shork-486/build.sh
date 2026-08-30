@@ -159,6 +159,9 @@ GCCGO_SRC="https://ftp.gnu.org/gnu/gcc"
 GCCGO_VER="16.2.0"
 GIT_SRC="https://github.com/git/git.git"
 GIT_VER="2.55.0"
+GLIB_SRC="https://download.gnome.org/sources/glib"
+GLIB_DIST="2.89"
+GLIB_VER="2.89.4"
 GLIBC_SRC="https://ftp.gnu.org/gnu/glibc"
 GLIBC_VER="2.44"
 GNUPG_SRC="https://gnupg.org/ftp/gcrypt/gnupg"
@@ -239,6 +242,8 @@ NPTH_SRC="https://gnupg.org/ftp/gcrypt/npth"
 NPTH_VER="1.8"
 OPENSSL_SRC="https://github.com/openssl/openssl.git"
 OPENSSL_VER="3.6.4"
+PATCHELF_SRC="https://github.com/NixOS/patchelf/archive/refs/tags"
+PATCHELF_VER="0.19.1"
 PCRE2_SRC="https://github.com/PCRE2Project/pcre2/releases/download"
 PCRE2_VER="10.47"
 PINENTRY_SRC="https://www.gnupg.org/ftp/gcrypt/pinentry"
@@ -264,6 +269,8 @@ UTIL_LINUX_SRC="https://github.com/util-linux/util-linux.git"
 UTIL_LINUX_VER="2.42.2"
 VIM_SRC="https://github.com/vim/vim.git"
 VIM_VER="9.2.0785"
+WIRESHARK_SRC="https://www.wireshark.org/download/src"
+WIRESHARK_VER="4.7.2"
 X86EMU_SRC="https://github.com/wfeldt/libx86emu.git"
 X86EMU_VER="3.7"
 ZLIB_SRC="https://github.com/madler/zlib.git"
@@ -338,6 +345,7 @@ INCLUDE_HWINFO=false
 INCLUDE_INDENT=false
 INCLUDE_JOE=false
 INCLUDE_KEYMAPS=false
+INCLUDE_KSHARK=false
 INCLUDE_LUA=false
 INCLUDE_LYNX=false
 INCLUDE_MAKE=false
@@ -350,6 +358,7 @@ INCLUDE_MT_ST=false
 INCLUDE_NANO=false
 INCLUDE_NASM=false
 INCLUDE_NCDU=false
+INCLUDE_PATCHELF=false
 INCLUDE_PCI_IDS=false
 INCLUDE_SC_IM=false
 INCLUDE_SUDO=false
@@ -615,6 +624,7 @@ fi
 # Check what other prerequisites we need
 NEED_CURL=false
 NEED_GCCGO=false
+NEED_GLIB=false
 NEED_LIBAO=false
 NEED_LIBASSUAN=false
 NEED_LIBEVENT=false
@@ -674,6 +684,12 @@ fi
 if $INCLUDE_HWINFO; then
     NEED_LIBUUID=true
     NEED_X86EMU=true
+fi
+
+if $INCLUDE_KSHARK; then
+    NEED_GLIB=true
+    NEED_LIBSOFTFP=true
+    NEED_ZLIB=true
 fi
 
 if $INCLUDE_LYNX; then
@@ -791,8 +807,9 @@ clean_stale_mounts()
 ## Copy functions                                   ##
 ######################################################
 
-# Copies a config file to a destination and makes sure any @CC@, @CC_STATIC@,
-# @AR@ or @STRIP@ placeholders are replaced
+# Copies a config file to a destination and makes sure any @AR@, @ARCH@,
+# @CC@, @CC_STATIC@, @CXX_STATIC@, @PREFIX@, @STRIP@ or @SYSROOT@
+# placeholders are replaced
 copy_config()
 {
     # Input parameters
@@ -806,7 +823,15 @@ copy_config()
     sudo cp "$SRC" "$DST"
 
     # Replace all placeholders with their respective values
-    sudo sed -i -e "s|@CC@|$CC|g" -e "s|@CC_STATIC@|$CC_STATIC|g" -e "s|@AR@|$AR|g" -e "s|@STRIP@|$STRIP|g" "$DST"
+    sudo sed -i -e "s|@CC@|$CC|g" \
+        -e "s|@CC_STATIC@|$CC_STATIC|g" \
+        -e "s|@AR@|$AR|g" \
+        -e "s|@ARCH@|$ARCH|g" \
+        -e "s|@CXX_STATIC@|$CXX_STATIC|g" \
+        -e "s|@PREFIX@|$PREFIX|g" \
+        -e "s|@SYSROOT@|$SYSROOT|g" \
+        -e "s|@STRIP@|$STRIP|g" \
+        "$DST"
 }
 
 # Copies a sysfile to a destination and makes sure any @DIST@, @VER@, @ID@,
@@ -1152,6 +1177,48 @@ get_curl()
         echo -e "${GREEN}Installing cURL for system...${RESET}"
         sudo install -D -m 755 "$SYSROOT/bin/curl" "${DESTDIR}/usr/bin/curl"
     fi
+}
+
+# Download and compile glib (required for kshark)
+get_glib()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    #if [ -f "$SYSROOT/usr/lib/TODO.a" ]; then
+    #    echo -e "${LIGHT_RED}glib already compiled, skipping...${RESET}"
+    #    return
+    #fi
+
+    echo -e "${GREEN}Downloading glib...${RESET}"
+    DIR="glib-${GLIB_VER}"
+    ARC="${DIR}.tar.xz"
+    URI="${GLIB_SRC}/${GLIB_DIST}/${ARC}"
+
+    # Download source
+    [ -f $ARC ] || wget $URI
+
+    # Extract source
+    if [ -d $DIR ]; then
+        echo -e "${YELLOW}glib's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -rf $DIR
+    fi
+    tar xf $ARC
+    cd $DIR
+
+    copy_config "${CURR_DIR}/compilation/meson-cross.ini" "${CURR_DIR}/build/${DIR}/meson-cross.ini"
+
+    # Compile and install
+    echo -e "${GREEN}Compiling glib...${RESET}"
+    meson setup _build \
+        --prefix=/usr \
+        --cross-file meson-cross.ini \
+        --default-library=static \
+        -Dtests=false \
+        -Dintrospection=disabled \
+        -Dman=false
+    ninja -C _build
+    DESTDIR="${SYSROOT}" ninja -C _build install
 }
 
 # Download and compile GNU Binutils and GCC for Go (required for micro)
@@ -2556,7 +2623,7 @@ get_pcre2()
     make DESTDIR="${SYSROOT}" install
 }
 
-# Download and compile zlib (required for Git, libzip and TWM)
+# Download and compile zlib (required for Git, kshark, libzip and TWM)
 get_zlib()
 {
     cd "${CURR_DIR}/build"
@@ -5212,17 +5279,18 @@ get_prog_tar()
     local BIN_DIR="$1"
     local TEST_BIN="$2"
     local NAME="$3"
-    local SRC_DIR="$4"
-    local ARC_EXT="$5"
-    local SRC_URI="$6"
-    local TAR_CMD="$7"
-    local AUTOGEN=$8
-    local AUTORECONF=$9
-    local CONFIGURE_PREFIX="${10}" 
-    local CONFIGURE="${11}"
-    local EXTRA_CFLAGS="${12}"
-    local EXTRA_LDFLAGS="${13}"
-    local LIBS="${14}"
+    local VER="$4"
+    local SRC_DIR="$5"
+    local ARC_EXT="$6"
+    local SRC_URI="$7"
+    local TAR_CMD="$8"
+    local AUTOGEN=$9
+    local AUTORECONF=${10}
+    local CONFIGURE_PREFIX="${11}" 
+    local CONFIGURE="${12}"
+    local EXTRA_CFLAGS="${13}"
+    local EXTRA_LDFLAGS="${14}"
+    local LIBS="${15}"
 
     if [ -n "$CONFIGURE_PREFIX" ]; then
         CONFIGURE_PREFIX=("--prefix=${CONFIGURE_PREFIX}")
@@ -5240,6 +5308,11 @@ get_prog_tar()
     echo -e "${GREEN}Downloading $NAME...${RESET}"
 
     ARC="${SRC_DIR}.${ARC_EXT}"
+    # Catch if GitHub "archive/refs/tags" link and thus ARC should just be
+    # the version number + extension
+    if [[ "$SRC_URI" == *"archive/refs/tags"* ]]; then
+        ARC="${VER}.${ARC_EXT}"
+    fi
     URI="${SRC_URI}/${ARC}"
 
     # Download source
@@ -5260,6 +5333,9 @@ get_prog_tar()
     fi
     if $AUTORECONF; then
         autoreconf -fi
+    fi
+    if [ -f ./bootstrap.sh ]; then
+        ./bootstrap.sh
     fi
     if [ -x ./configure ] || [ -f ./configure ]; then
         ./configure \
@@ -5574,7 +5650,7 @@ get_joe()
 
     # Skip if already compiled
     if [ -f "${DESTDIR}/usr/bin/joe" ]; then
-        echo -e "${LIGHT_RED}Lynx already compiled, skipping...${RESET}"
+        echo -e "${LIGHT_RED}JOE already compiled, skipping...${RESET}"
         return
     fi
 
@@ -5604,6 +5680,116 @@ get_joe()
         CC="${CC_STATIC}"
     make -j$(nproc)
     sudo make DESTDIR="$DESTDIR" install
+}
+
+# Download and compile kshark
+get_kshark()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    #if [ -f "${DESTDIR}/usr/bin/kshark" ]; then
+    #    echo -e "${LIGHT_RED}kshark already compiled, skipping...${RESET}"
+    #    return
+    #fi
+
+    echo -e "${GREEN}Downloading Wireshark...${RESET}"
+    
+    DIR="wireshark-${WIRESHARK_VER}"
+    ARC="${DIR}.tar.xz"
+    URI="${WIRESHARK_SRC}/${ARC}"
+
+    # Download source
+    [ -f $ARC ] || wget $URI
+
+    # Extract source
+    if [ -d $DIR ]; then
+        echo -e "${YELLOW}Wireshark's source archive is already present, re-extracting before proceeding...${RESET}"
+        sudo rm -rf $DIR
+    fi
+    tar xf $ARC
+    cd $DIR
+
+    export PKG_CONFIG_PATH=""
+    export PKG_CONFIG_LIBDIR="${SYSROOT}/usr/lib/pkgconfig:${SYSROOT}/usr/share/pkgconfig"
+    export PKG_CONFIG_SYSROOT_DIR="${SYSROOT}"
+
+    # Compile program
+    echo -e "${GREEN}Compiling Wireshark...${RESET}"
+    cmake -B build -S . \
+        -DCMAKE_SYSTEM_NAME=Linux \
+        -DCMAKE_SYSTEM_PROCESSOR=x86 \
+        -DCMAKE_C_COMPILER="${CC}" \
+        -DCMAKE_CXX_COMPILER="${CXX}" \
+        -DCMAKE_AR="${AR}" \
+        -DCMAKE_RANLIB="${RANLIB}" \
+        -DCMAKE_STRIP="${STRIP}" \
+        -DCMAKE_FIND_ROOT_PATH="${SYSROOT}" \
+        -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
+        -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
+        -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
+        -DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=ONLY \
+        -DCMAKE_C_FLAGS="-m32 -march=i486 -mtune=i486 -mno-80387 -mno-fp-ret-in-387 -Os" \
+        -DCMAKE_CXX_FLAGS="-m32 -march=i486 -mtune=i486 -mno-80387 -mno-fp-ret-in-387 -Os" \
+        -DCMAKE_EXE_LINKER_FLAGS="-static" \
+        -DCMAKE_BUILD_TYPE=MinSizeRel \
+        -DCMAKE_INSTALL_PREFIX="${DESTDIR}" \
+        -DUSE_STATIC=ON \
+        -DBUILD_SHARED_LIBS=OFF \
+        -DENABLE_WERROR=OFF \
+        -DBUILD_wireshark=OFF \
+        -DBUILD_stratoshark=OFF \
+        -DBUILD_tshark=ON \
+        -DBUILD_dumpcap=ON \
+        -DBUILD_editcap=ON \
+        -DBUILD_rawshark=OFF \
+        -DBUILD_text2pcap=OFF \
+        -DBUILD_mergecap=OFF \
+        -DBUILD_reordercap=OFF \
+        -DBUILD_capinfos=OFF \
+        -DBUILD_captype=OFF \
+        -DBUILD_randpkt=OFF \
+        -DBUILD_dftest=OFF \
+        -DBUILD_dcerpcidl2wrs=OFF \
+        -DBUILD_androiddump=OFF \
+        -DBUILD_sshdump=OFF \
+        -DBUILD_ciscodump=OFF \
+        -DBUILD_dpauxmon=OFF \
+        -DBUILD_randpktdump=OFF \
+        -DBUILD_wifidump=OFF \
+        -DBUILD_sdjournal=OFF \
+        -DBUILD_udpdump=OFF \
+        -DBUILD_sharkd=OFF \
+        -DBUILD_mmdbresolve=OFF \
+        -DENABLE_PCAP=ON \
+        -DENABLE_CAP=OFF \
+        -DENABLE_ZLIB=ON \
+        -DENABLE_ZLIBNG=OFF \
+        -DENABLE_MINIZIP=OFF \
+        -DENABLE_MINIZIPNG=OFF \
+        -DENABLE_XXHASH=OFF \
+        -DENABLE_LZ4=OFF \
+        -DENABLE_BROTLI=OFF \
+        -DENABLE_SNAPPY=OFF \
+        -DENABLE_ZSTD=OFF \
+        -DENABLE_NGHTTP2=OFF \
+        -DENABLE_NGHTTP3=OFF \
+        -DENABLE_LUA=OFF \
+        -DENABLE_SMI=OFF \
+        -DENABLE_GNUTLS=OFF \
+        -DENABLE_PKCS11=OFF \
+        -DENABLE_NETLINK=OFF \
+        -DENABLE_KERBEROS=OFF \
+        -DENABLE_SBC=OFF \
+        -DENABLE_SPANDSP=OFF \
+        -DENABLE_BCG729=OFF \
+        -DENABLE_AMRNB=OFF \
+        -DENABLE_AMRWB=OFF \
+        -DENABLE_ILBC=OFF \
+        -DENABLE_OPUS=OFF \
+        -DENABLE_SINSP=OFF \
+        -DENABLE_CPUINFO=OFF
+    cmake --build build -j$(nproc)
 }
 
 # Download and compile lapifetch
@@ -7173,6 +7359,12 @@ copy_licences()
         CSV+="\nOpenSSL,Apache 2.0,openssl.txt"
     fi
 
+    if $INCLUDE_PATCHELF && 
+       [ -f "${CURR_DIR}/build/patchelf-$PATCHELF_VER/COPYING" ]; then
+        cp "${CURR_DIR}/build/patchelf-$PATCHELF_VER/COPYING" "${DESTDIR}/LICENCES/patchelf.txt" || true
+        CSV+="\nPatchELF,GNU GPLv3,patchelf.txt"
+    fi
+
     if $INCLUDE_PCI_IDS && 
        [ -f "../../COPYING" ]; then
         {
@@ -7182,7 +7374,7 @@ copy_licences()
         CSV+="\npci.ids,GNU GPLv3,pci-ids.txt"
     fi
 
-    if $INCLUDE_SC_IM && 
+    if $INCLUDE_SC_IM && \
        [ -f "${CURR_DIR}/build/sc-im/LICENSE" ]; then
         cp "${CURR_DIR}/build/sc-im/LICENSE" "${DESTDIR}/LICENCES/sc-im.txt" || true
         CSV+="\nsc-im,BSD 4-Clause,sc-im.txt"
@@ -8669,7 +8861,6 @@ get_installed_progs_feats()
         check_installed_file "Lua ${LUA_VER}" "/usr/bin/lua"
         check_installed_file "Lynx ${LYNX_VER}" "/usr/bin/lynx"
         check_installed_file "GNU Make ${MAKE_VER}" "/usr/bin/make"
-        check_installed_file "memtester ${MEMTESTER_VER}" "/usr/bin/memtester"
         check_installed_file "Mg ${MG_VER}" "/usr/bin/mg"
         check_installed_file "MicroPython ${MICROPYTHON_VER}" "/usr/bin/micropython"
         check_installed_file "mpg321 ${MPG321_VER}" "/usr/bin/mpg321"
@@ -8689,6 +8880,8 @@ get_installed_progs_feats()
         check_installed_file "sudo ${SUDO_VER}" "/usr/bin/sudo"
         check_installed_file "Ncdu ${NCDU_VER}" "/usr/bin/ncdu"
         check_installed_file "GnuPG ${GNUPG_VER}" "/usr/bin/gpg"
+        check_installed_file "memtester ${MEMTESTER_VER}" "/usr/bin/memtester"
+        check_installed_file "PatchELF ${PATCHELF_VER}" "/usr/bin/patchelf"
     fi
     if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
         check_installed_file "util-linux ${UTIL_LINUX_VER}" "/usr/bin/whereis"
@@ -9019,7 +9212,9 @@ fi
 if $NEED_LIBKSBA; then
     get_libksba
 fi
-
+if $NEED_GLIB; then
+    get_glib
+fi
 
 if $INCLUDE_GUI; then
     prepare_x11
@@ -9088,6 +9283,7 @@ if $INCLUDE_DIALOG; then
         "usr/bin" \
         "dialog" \
         "dialog" \
+        "${DIALOG_VER}" \
         "dialog-${DIALOG_VER}" \
         "tgz" \
         "$DIALOG_SRC" \
@@ -9119,6 +9315,7 @@ if $INCLUDE_E2FSPROGS; then
         "usr/sbin" \
         "e2image" \
         "e2fsprogs" \
+        "${E2FSPROGS_VER}" \
         "e2fsprogs-${E2FSPROGS_VER}" \
         "tar.xz" \
         "${E2FSPROGS_SRC}/v${E2FSPROGS_VER}" \
@@ -9133,6 +9330,7 @@ if $INCLUDE_EMACS; then
         "usr/bin" \
         "emacs" \
         "emacs" \
+        "${EMACS_VER}" \
         "emacs-${EMACS_VER}" \
         "tar.xz" \
         "$EMACS_SRC" \
@@ -9154,6 +9352,7 @@ if $INCLUDE_GNUPG; then
         "usr/bin" \
         "pinentry-tty" \
         "Pinentry" \
+        "${PINENTRY_VER}" \
         "pinentry-${PINENTRY_VER}" \
         "tar.bz2" \
         "${PINENTRY_SRC}" \
@@ -9170,6 +9369,7 @@ if $INCLUDE_GNUPG; then
         "usr/bin" \
         "gpg" \
         "GnuPG" \
+        "${GNUPG_VER}" \
         "gnupg-${GNUPG_VER}" \
         "tar.bz2" \
         "${GNUPG_SRC}" \
@@ -9193,6 +9393,7 @@ if $INCLUDE_INDENT; then
         "usr/bin" \
         "indent" \
         "indent" \
+        "${INDENT_VER}" \
         "indent-${INDENT_VER}" \
         "tar.xz" \
         "$INDENT_SRC" \
@@ -9227,6 +9428,7 @@ if $INCLUDE_MAKE; then
         "usr/bin" \
         "make" \
         "make" \
+        "${MAKE_VER}" \
         "make-${MAKE_VER}" \
         "tar.gz" \
         "$MAKE_SRC" \
@@ -9276,6 +9478,7 @@ if $INCLUDE_NCDU; then
         "usr/bin" \
         "ncdu" \
         "ncdu" \
+        "${NCDU_VER}" \
         "ncdu-${NCDU_VER}" \
         "tar.gz" \
         "${NCDU_SRC}" \
@@ -9285,6 +9488,20 @@ if $INCLUDE_NCDU; then
         "/usr" \
         ""
 fi
+if $INCLUDE_PATCHELF; then
+    get_prog_tar \
+        "usr/bin" \
+        "patchelf" \
+        "patchelf" \
+        "${PATCHELF_VER}" \
+        "patchelf-${PATCHELF_VER}" \
+        "tar.gz" \
+        "${PATCHELF_SRC}" \
+        "xzf" \
+        false \
+        false \
+        "/usr"
+fi
 if $INCLUDE_SC_IM; then
     get_sc_im
 fi
@@ -9293,6 +9510,7 @@ if $INCLUDE_SUDO; then
         "usr/bin" \
         "sudo" \
         "sudo" \
+        "${SUDO_VER}" \
         "sudo-${SUDO_VER}" \
         "tar.gz" \
         "$SUDO_SRC" \
@@ -9307,6 +9525,7 @@ if $INCLUDE_TCC; then
         "usr/local/musl/lib" \
         "libc.so" \
         "musl" \
+        "${MUSL_VER}" \
         "musl-${MUSL_VER}" \
         "tar.gz" \
         "$MUSL_SRC" \
