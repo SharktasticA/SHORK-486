@@ -6282,8 +6282,6 @@ get_tcc()
     ./configure --cpu=i386 --cc="$CC_STATIC" --enable-cross --enable-static
     sudo make cross-i386 -j$(nproc)
     sudo make DESTDIR="$DESTDIR" install
-    
-    ln -sf /usr/local/bin/i386-tcc "${DESTDIR}"/usr/bin/tcc || true
 }
 
 # Download and compile tilde
@@ -9535,6 +9533,8 @@ if $INCLUDE_TCC; then
         "" \
         ""
     get_tcc
+    make_swap_wrap "${DESTDIR}/usr/local/bin/i386-tcc"
+    ln -sf /usr/local/bin/i386-tcc "${DESTDIR}"/usr/bin/tcc || true
 fi
 if $INCLUDE_TILDE; then
     get_tilde
