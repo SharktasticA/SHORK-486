@@ -18,9 +18,22 @@ Whilst SHORK 486 itself is licensed under GPL 3.0 terms, the contents of the `sh
 
 
 
+## 7.3.x
+
+_**Forward ported:** 7.1.x_restore-M486-M486SX-ELAN.patch, 7.1.x_restore-pcmcia-hosts.patch, 7.1.x_restore-no-pci-devices.patch, 7.1.x_restore-pc110pad.patch, 7.2.x_restore-isa-pcmcia-net.patch, 7.2.x_restore-arcnet-isa-pcmcia.patch_
+
+### [7.3.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.patch](shork-486/patches/linux/7.3.x/7.3.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.patch)
+
+* Original kernel: 7.3-rc1
+* Context: https://www.phoronix.com/news/AMD-K5-CPUs, https://www.phoronix.com/news/AMD-Elan-Linux-Driver-Removal
+
+This is a modification of `7.2.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.patch` that allows it to be cleanly applied to 7.3.x. This patch reverts the removal of various TSC-less and CX8-less CPU build targets, 486-related plumming, AMD Élan support, and 387 maths emulation support from [this patch series](https://lore.kernel.org/all/20250425084216.3913608-1-mingo@kernel.org/). It includes build targets for "586" (AMD K5, Cyrix 5x86, etc.), AMD Élan, IDT Winchip, RDC R-321x and UMC U5x, x87 math emulation support, and Geode GX1 support.
+
+
+
 ## 7.2.x
 
-_**Forward ported from 7.1.x:** 7.1.x_restore-M486-M486SX-ELAN.patch, 7.1.x_restore-pcmcia-hosts.patch, 7.1.x_restore-no-pci-devices.patch, 7.1.x_restore-pc110pad.patch_
+_**Forward ported:** 7.1.x_restore-M486-M486SX-ELAN.patch, 7.1.x_restore-pcmcia-hosts.patch, 7.1.x_restore-no-pci-devices.patch, 7.1.x_restore-pc110pad.patch_
 
 ### [7.2.x_restore-arcnet-isa-pcmcia.patch](shork-486/patches/linux/7.2.x/7.2.x_restore-arcnet-isa-pcmcia.patch)
 
