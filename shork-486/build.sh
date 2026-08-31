@@ -5398,7 +5398,7 @@ make_swap_wrap()
                 '. /etc/profile' \
                 "_swap_wrap ${BIN_REALPATH}.real \"\$@\"" \
                 > "$BIN_FULLPATH"
-            chmod 755 "$BIN_FULLPATH"
+            sudo chmod 755 "$BIN_FULLPATH"
         fi
     fi
 }
