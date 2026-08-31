@@ -102,6 +102,7 @@ HOSTNAME="$shork-486"
 CROSS="${ARCH}-linux-musl-cross"
 PREFIX="${CURR_DIR}/build/${CROSS}"
 AR="${PREFIX}/bin/${ARCH}-linux-musl-ar"
+AS="${PREFIX}/bin/${ARCH}-linux-musl-as"
 CC="${PREFIX}/bin/${ARCH}-linux-musl-gcc"
 CC_STATIC="${CURR_DIR}/compilation/${ARCH}-linux-musl-gcc-static"
 CXX="${PREFIX}/bin/${ARCH}-linux-musl-g++"
@@ -143,6 +144,8 @@ BINUTILS_TEST_VER="2.47"
 BINUTILS_VER="2.37"
 DIALOG_SRC="https://invisible-mirror.net/archives/dialog"
 DIALOG_VER="1.3-20260721"
+DOSEMU2_SRC="https://codeload.github.com/dosemu2/dosemu2/tar.gz/refs/tags"
+DOSEMU2_VER="2.0pre9-2"
 DOSFSTOOLS_SRC="https://github.com/dosfstools/dosfstools.git"
 DOSFSTOOLS_VER="4.2"
 DROPBEAR_SRC="https://github.com/mkj/dropbear.git"
@@ -331,6 +334,7 @@ INCLUDE_CSCOPE=false
 INCLUDE_CTAGS=false
 INCLUDE_CURL=false
 INCLUDE_DIALOG=false
+INCLUDE_DOSEMU2=false
 INCLUDE_DOSFSTOOLS=false
 INCLUDE_DROPBEAR=false
 INCLUDE_E2FSPROGS=false
@@ -527,6 +531,11 @@ if [ "$FIX_EXTLINUX" = true ]; then
     USE_GRUB=false
 fi
 
+# Ensure VM86 is enabled with DOSEMU2
+if [ "$INCLUDE_DOSEMU2" = true ]; then
+    ENABLE_VM86=true
+fi
+
 # Ensure FB_VBE is enabled with GUI, NCDU or UTIL_LINUX
 if [ "$INCLUDE_GUI" = true ] || [ "$INCLUDE_NCDU" = true ] ||
    [ "$INCLUDE_UTIL_LINUX" = true ]; then
@@ -539,10 +548,11 @@ if [ "$INCLUDE_HTOP" = true ]; then
     ENABLE_TASKSTATS=true
 fi
 
-# Ensure NET_BASE is enabled with HTOP, GNUPG, SUDO, TMUX or NET_ETH
-if [ "$INCLUDE_GNUPG" = true ] || [ "$INCLUDE_HTOP" = true ] ||
-   [ "$INCLUDE_SUDO" = true ] ||[ "$INCLUDE_TMUX" = true ] ||
-   [ "$ENABLE_NET_ETH" = true ]; then
+# Ensure NET_BASE is enabled with DOSEMU2, GNUPG, HTOP, SUDO, TMUX or
+# NET_ETH
+if [ "$INCLUDE_DOSEMU2" = true ] || [ "$INCLUDE_GNUPG" = true ] || 
+    [ "$INCLUDE_HTOP" = true ] || [ "$INCLUDE_SUDO" = true ] || 
+    [ "$INCLUDE_TMUX" = true ] || [ "$ENABLE_NET_ETH" = true ]; then
     ENABLE_NET_BASE=true
 fi
 
@@ -5278,6 +5288,7 @@ get_prog_git()
             --with-ncursesw \
             CC="${CC_STATIC}" \
             AR="${AR}" \
+            AS="${AS}" \
             RANLIB="${RANLIB}" \
             STRIP="${STRIP}" \
             CFLAGS="-Os -march=${ARCH} -mno-fancy-math-387 -ffunction-sections -fdata-sections -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
@@ -5328,11 +5339,11 @@ get_prog_tar()
 
     echo -e "${GREEN}Downloading $NAME...${RESET}"
 
-    ARC="${SRC_DIR}.${ARC_EXT}"
+    ARC="${SRC_DIR}${ARC_EXT}"
     # Catch if GitHub "archive/refs/tags" link and thus ARC should just be
     # the version number + extension
     if [[ "$SRC_URI" == *"archive/refs/tags"* ]]; then
-        ARC="${VER}.${ARC_EXT}"
+        ARC="${VER}${ARC_EXT}"
     fi
     URI="${SRC_URI}/${ARC}"
 
@@ -5345,7 +5356,19 @@ get_prog_tar()
         sudo rm -rf "$SRC_DIR"
     fi
     tar "$TAR_CMD" "$ARC"
-    cd "$SRC_DIR"
+    cd "$SRC_DIR" || cd "${NAME}-${SRC_DIR}"
+
+
+
+    # Apply any desired patches
+    if [ "$NAME" = "dosemu2" ]; then
+        sed -i '/^int priv_drop(void)$/{n; s/^{$/{\n  if (skip_priv_setting)\n    return 1;/}' src/base/core/priv.c
+    fi
+
+
+
+    export PKG_CONFIG_LIBDIR="${PREFIX}/lib/pkgconfig"
+    export PKG_CONFIG_SYSROOT_DIR="${SYSROOT}"
 
     # Compile program
     echo -e "${GREEN}Compiling $NAME...${RESET}"
@@ -5367,6 +5390,7 @@ get_prog_tar()
             --with-ncursesw \
             CC="${CC_STATIC}" \
             AR="${AR}" \
+            AS="${AS}" \
             RANLIB="${RANLIB}" \
             STRIP="${STRIP}" \
             CFLAGS="-Os -march=${ARCH} -mno-fancy-math-387 -ffunction-sections -fdata-sections -I${PREFIX}/include -I${PREFIX}/include/ncursesw ${EXTRA_CFLAGS}" \
@@ -7615,6 +7639,15 @@ build_filesystem()
         sudo tic -x -1 -o "${DESTDIR}"/usr/share/terminfo "${DESTDIR}"/usr/share/terminfo/src/terminfo.src
     fi
 
+    if $INCLUDE_DOSEMU2; then
+        sudo mkdir -p "${DESTDIR}"/etc/dosemu
+        sudo mkdir -p "${DESTDIR}"/root/.dosemu
+        copy_sysfile "${CURR_DIR}"/sysfiles/dosemu.conf "${DESTDIR}"/etc/dosemu/dosemu.conf
+        copy_sysfile "${CURR_DIR}"/sysfiles/dosemurc "${DESTDIR}"/root/.dosemu/dosemurc
+        sudo mkdir -p "${DESTDIR}"/var/run/user/0
+        sudo chmod 700 "${DESTDIR}"/var/run/user/0
+    fi
+
     if $INCLUDE_GUI; then
         echo -e "${GREEN}Installing files needed for SHORKGUI...${RESET}"
         sudo mkdir -p {usr/share/backgrounds,usr/share/X11/app-defaults}
@@ -9304,13 +9337,28 @@ if $INCLUDE_DIALOG; then
         "dialog" \
         "${DIALOG_VER}" \
         "dialog-${DIALOG_VER}" \
-        "tgz" \
+        ".tgz" \
         "$DIALOG_SRC" \
         "xzf" \
         false \
         false \
         "/usr" \
         ""
+fi
+if $INCLUDE_DOSEMU2; then
+    get_prog_tar \
+        "usr/bin" \
+        "dosemu.bin" \
+        "dosemu2" \
+        "${DOSEMU2_VER}" \
+        "dosemu2-${DOSEMU2_VER}" \
+        "" \
+        "$DOSEMU2_SRC" \
+        "xzf" \
+        true \
+        false \
+        "/usr" \
+        "--sysconfdir=/etc --disable-x --disable-sdl --disable-fdpp --disable-dj64 --disable-alsa --disable-libao --disable-ladspa --disable-fluidsynth --disable-midimisc --disable-dlplugins"
 fi
 if $INCLUDE_DOSFSTOOLS; then
     get_prog_git \
@@ -9336,7 +9384,7 @@ if $INCLUDE_E2FSPROGS; then
         "e2fsprogs" \
         "${E2FSPROGS_VER}" \
         "e2fsprogs-${E2FSPROGS_VER}" \
-        "tar.xz" \
+        ".tar.xz" \
         "${E2FSPROGS_SRC}/v${E2FSPROGS_VER}" \
         "xf" \
         false \
@@ -9351,7 +9399,7 @@ if $INCLUDE_EMACS; then
         "emacs" \
         "${EMACS_VER}" \
         "emacs-${EMACS_VER}" \
-        "tar.xz" \
+        ".tar.xz" \
         "$EMACS_SRC" \
         "xf" \
         false \
@@ -9373,7 +9421,7 @@ if $INCLUDE_GNUPG; then
         "Pinentry" \
         "${PINENTRY_VER}" \
         "pinentry-${PINENTRY_VER}" \
-        "tar.bz2" \
+        ".tar.bz2" \
         "${PINENTRY_SRC}" \
         "xjf" \
         false \
@@ -9390,7 +9438,7 @@ if $INCLUDE_GNUPG; then
         "GnuPG" \
         "${GNUPG_VER}" \
         "gnupg-${GNUPG_VER}" \
-        "tar.bz2" \
+        ".tar.bz2" \
         "${GNUPG_SRC}" \
         "xjf" \
         false \
@@ -9414,7 +9462,7 @@ if $INCLUDE_INDENT; then
         "indent" \
         "${INDENT_VER}" \
         "indent-${INDENT_VER}" \
-        "tar.xz" \
+        ".tar.xz" \
         "$INDENT_SRC" \
         "xf" \
         false \
@@ -9449,7 +9497,7 @@ if $INCLUDE_MAKE; then
         "make" \
         "${MAKE_VER}" \
         "make-${MAKE_VER}" \
-        "tar.gz" \
+        ".tar.gz" \
         "$MAKE_SRC" \
         "xzf" \
         false \
@@ -9499,7 +9547,7 @@ if $INCLUDE_NCDU; then
         "ncdu" \
         "${NCDU_VER}" \
         "ncdu-${NCDU_VER}" \
-        "tar.gz" \
+        ".tar.gz" \
         "${NCDU_SRC}" \
         "xzf" \
         false \
@@ -9514,7 +9562,7 @@ if $INCLUDE_PATCHELF; then
         "patchelf" \
         "${PATCHELF_VER}" \
         "patchelf-${PATCHELF_VER}" \
-        "tar.gz" \
+        ".tar.gz" \
         "${PATCHELF_SRC}" \
         "xzf" \
         false \
@@ -9531,7 +9579,7 @@ if $INCLUDE_SUDO; then
         "sudo" \
         "${SUDO_VER}" \
         "sudo-${SUDO_VER}" \
-        "tar.gz" \
+        ".tar.gz" \
         "$SUDO_SRC" \
         "xzf" \
         false \
@@ -9546,7 +9594,7 @@ if $INCLUDE_TCC; then
         "musl" \
         "${MUSL_VER}" \
         "musl-${MUSL_VER}" \
-        "tar.gz" \
+        ".tar.gz" \
         "$MUSL_SRC" \
         "xzf" \
         false \

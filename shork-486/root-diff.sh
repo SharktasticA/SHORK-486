@@ -3,7 +3,7 @@
 ######################################################
 ## Takes two snapshots of build/root directory to   ##
 # work out the size difference and added files      ##
-# between the two.                                  ##
+# between them.                                     ##
 ######################################################
 ## Kali (links.sharktastica.co.uk)                  ##
 ######################################################

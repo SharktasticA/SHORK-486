@@ -8,6 +8,13 @@ Whilst SHORK 486 itself is licensed under GPL 3.0 terms, the contents of the `sh
 
 ## Todo & for consideration
 
+### 7.3.x
+
+* https://www.phoronix.com/news/Linux-Retiring-Moxa-Driver
+* https://www.phoronix.com/news/SGI-GRU-Being-Removed
+* https://www.phoronix.com/news/Old-IBM-SGI-Drivers-Linux-7.3
+
+
 ### 7.2.x
 
 * Restore Double Talk driver: https://www.phoronix.com/news/Linux-Dropping-Double-Talk

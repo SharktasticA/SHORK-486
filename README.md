@@ -207,16 +207,19 @@ _Not included with SHORK 486 Micro, SHORK 486 Mini and SHORK DISKETTE_
 
 #### Bundled software
 
-* autoreconf
-* automake
+* Autotools (especially automake and autoreconf)
 * BASIC interpreter (exact one TBD)
 * bison
 * cmake
 * flex
 * GDB
+* GPM
 * IRC client (exact one TBD)
 * libtool
+* m4
 * pkg-config
+* SWIG
+* tshark (Wireshark)
 * w3m
 
 ### SHORK 486 on modern hardware
