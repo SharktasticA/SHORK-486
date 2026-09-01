@@ -103,6 +103,13 @@ fi
 # Flush any ttyx seen flags
 rm -f /tmp/.tty*_seen
 
+# Flush any orphaned swap files created by swap-wrap
+for SWAP_FILE in /var/tmp/.*_ramswap.*; do
+    [ -e "$SWAP_FILE" ] || continue
+    swapoff "$SWAP_FILE" 2>/dev/null
+    rm -f "$SWAP_FILE"
+done
+
 # Prepare to show the welcome banner
 clear
 
