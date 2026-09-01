@@ -176,7 +176,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [PCRE2](https://pcre2project.github.io/pcre2/) | 10.47 | Tilde | BSD 3-Clause w/ PCRE2 exception |
 | [zlib](https://github.com/madler/zlib) | 1.3.2 | Git, GnuPG, libzip | zlib |
 
-### SHORK Utilities (shorkutils)
+### SHORK Utilities (SHORKUTILS)
 
 _Only partially included with SHORK 486 Mini, SHORK DISC and SHORK DISKETTE; not included with SHORK 486 Micro_
 
@@ -185,9 +185,9 @@ _Only partially included with SHORK 486 Mini, SHORK DISC and SHORK DISKETTE; not
 * **[shorkfetch](https://github.com/SharktasticA/shorkfetch)** - Displays basic system and environment information. Similar to fastfetch, neofetch, etc.
 * **[shorkhelp](https://github.com/SharktasticA/shorkhelp)** - Informs of SHORK 486's capabilities and provides guidance.
 * **[shorkoff](https://github.com/SharktasticA/shorkoff)** - A shutdown helper that safely brings the system to a controlled halt before a manual power off.
-* **[shorkset](https://github.com/SharktasticA/shorkset)** - A settings program for changing display resolution (VGA, and if compatible, VBE), keyboard layout (keymap), system sound volume, the terminal's PSF font, and the terminal's font colour.
+* **[shorkset](https://github.com/SharktasticA/shorkset)** - A settings program for changing display resolution (VGA, and if compatible, VBE), network and sound device drivers, keyboard layout (keymap), system sound volume, the terminal's PSF font, and the terminal's font colour.
 
-### SHORK Entertainment (shorktainment)
+### SHORK Entertainment (SHORKTAINMENT)
 
 _Not included with SHORK 486 Micro, SHORK 486 Mini and SHORK DISKETTE_
 
@@ -196,9 +196,9 @@ _Not included with SHORK 486 Micro, SHORK 486 Mini and SHORK DISKETTE_
 * **[shorkmines](https://github.com/SharktasticA/shorkmines)** - A terminal-based minesweeper game based on [terminal-mines](https://github.com/joelekstrom/terminal-mines). Available as `shorkmines` and `terminal-mines`.
 * **[shorksay](https://github.com/SharktasticA/shorksay)** - A shark-themed take on [cowsay](https://github.com/cowsay-org/cowsay), a "simple and silly" program that outputs an ASCII art shark and speech bubble containing a message of your choice. Available as `shorksay` and `cowsay`.
 
-### Planned, todo & under consideration
+### Todo, planned & under consideration
 
-#### shorkutils & shorktainment
+#### SHORKUTILS & SHORKTAINMENT
 
 * shorkchess (chess game)
 * shorkdisk (disk mounting, unmounting and ejecting)
@@ -208,12 +208,16 @@ _Not included with SHORK 486 Micro, SHORK 486 Mini and SHORK DISKETTE_
 
 #### Bundled software
 
-* Autotools (especially automake and autoreconf)
 * BASIC interpreter (exact one TBD)
 * bison
 * cmake
+* dosemu2
+    * Already successfully compiled - working out teething issues
 * flex
 * GDB
+* GNU Autotools (especially automake and autoreconf)
+* GNU Emacs
+    * Already successfully compiled - streamlining/pruning extraneous files
 * GPM
 * IRC client (exact one TBD)
 * libtool
