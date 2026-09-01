@@ -113,6 +113,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [GnuPG & pinentry](https://gnupg.org/)  | e.g. `gpg`, `gpg-agent`, `gpgconf`, `kbxutil`, `pinentry`, `watchgnupg` | 2.5.21 & 1.3.3 | OpenPGP-compliant encryption & signing | GPLv3 |*||||
 | [htop](https://github.com/htop-dev/htop) | `htop` | 3.5.3 | Interactive process viewer | GPLv2 |*|**\***|*|*|
 | [Joe's Own Editor](https://github.com/joe-editor/joe) | `joe` | 4.8 | WordStar & Emacs-blend text editor | GPLv2 |*||*||
+| [lsb-release-minimal](https://github.com/deepin-community/lsb-release-minimal) | `lsb_release` | 12.0-2 | Linux Standard Base/distribution info reporter | ISC |*|**\***|*|*|
 | [Lua](https://www.lua.org/) | `lua` | 5.5.1 | Embedded scripting & extensions language | MIT |*|**\***||*|
 | [Lynx](https://github.com/ThomasDickey/lynx-snapshots) | `lynx` | 2-9-3a | Terminal web browser | GPLv2 |*|**\***|||
 | [memtester](https://pyropus.ca./software/memtester/) | `memtester` | 4.7.1 | Userspace memory subsystem fault tester | GPLv2 |*|**\***|*|*|

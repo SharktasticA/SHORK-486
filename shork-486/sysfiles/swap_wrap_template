@@ -1,0 +1,3 @@
+#!/bin/sh
+. /etc/profile
+_swap_wrap "@BIN_FULL_PATH@" "$@"

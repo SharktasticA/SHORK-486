@@ -92,11 +92,16 @@ USED_WM="TWM"
 
 # Branding
 ARCH="$(cat "${CURR_DIR}"/branding/ARCH | tr -d '\n')"
+BUG_REPORT_URL="$(cat "${CURR_DIR}"/branding/BUG_REPORT_URL | tr -d '\n')"
 DIST="SHORK 486 Mini"
-VER="$(cat "${CURR_DIR}"/branding/VER | tr -d '\n')"
 ID="shork-486"
-URL="$(cat "${CURR_DIR}"/branding/URL | tr -d '\n')"
-HOSTNAME="$shork-486"
+HOME_URL="$(cat "${CURR_DIR}"/branding/HOME_URL | tr -d '\n')"
+HOSTNAME="shork-486"
+NAME="$(cat "${CURR_DIR}"/branding/NAME | tr -d '\n')"
+SUPPORT_URL="$(cat "${CURR_DIR}"/branding/SUPPORT_URL | tr -d '\n')"
+VERSION="$(cat "${CURR_DIR}"/branding/VERSION | tr -d '\n')"
+VERSION_CODENAME="$(cat "${CURR_DIR}"/branding/VERSION_CODENAME | tr -d '\n')"
+VERSION_ID="$(cat "${CURR_DIR}"/branding/VERSION_ID | tr -d '\n')"
 
 # Common compiler/compiler-related locations
 CROSS="${ARCH}-linux-musl-cross"
@@ -212,6 +217,8 @@ LIBZIP_SRC="https://github.com/nih-at/libzip.git"
 LIBZIP_VER="1.11.4"
 LLVM_SRC="https://github.com/llvm/llvm-project.git"
 LLVM_VER="23.1.0"
+LSB_RELEASE_MIN_SRC="https://github.com/deepin-community/lsb-release-minimal.git"
+LSB_RELEASE_MIN_VER="12.0-2"
 LUA_SRC="https://github.com/lua/lua"
 LUA_VER="5.5.1"
 LYNX_SRC="https://github.com/ThomasDickey/lynx-snapshots.git"
@@ -351,6 +358,7 @@ INCLUDE_INDENT=false
 INCLUDE_JOE=false
 INCLUDE_KEYMAPS=false
 INCLUDE_KSHARK=false
+INCLUDE_LSB_RELEASE_MIN=false
 INCLUDE_LUA=false
 INCLUDE_LYNX=false
 INCLUDE_MAKE=false
@@ -754,13 +762,13 @@ fi
 
 
 # Use commit ID-based versioning is VER is not numeric 
-if [[ ! "$VER" =~ [0-9] ]]; then
+if [[ ! "$VERSION" =~ [0-9] ]]; then
     if [ -n "$IN_DOCKER" ]; then
         git config --global --add safe.directory "/var/shork-486"
     fi
     if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
         COMMIT=$(git rev-parse --short=7 HEAD)
-        VER="$VER $COMMIT"
+        VER="$VERSION $COMMIT"
     fi
 fi
 
@@ -851,8 +859,10 @@ copy_config()
         "$DST"
 }
 
-# Copies a sysfile to a destination and makes sure any @DIST@, @VER@, @ID@,
-# @HOSTNAME@ or @URL@ placeholders are replaced
+# Copies a sysfile to a destination and makes sure any @ARCH@,
+# @BUG_REPORT_URL@, @DIST@, @ID@, @HOSTNAME@, @HOME_URL@, @NAME@,
+# @SUPPORT_URL@, @VERSION@ ,@VERSION_CODENAME@ and/or @VERSION_ID@
+# placeholders are replaced
 copy_sysfile()
 {
     # Input parameters
@@ -866,7 +876,19 @@ copy_sysfile()
     sudo cp "$SRC" "$DST"
 
     # Replace all placeholders with their respective values
-    sudo sed -i -e "s|@DIST@|$DIST|g" -e "s|@VER@|$VER|g" -e "s|@ID@|$ID|g" -e "s|@HOSTNAME@|$HOSTNAME|g" -e "s|@URL@|$URL|g" "$DST"
+    sudo sed -i \
+        -e "s|@ARCH@|$ARCH|g" \
+        -e "s|@BUG_REPORT_URL@|$BUG_REPORT_URL|g" \
+        -e "s|@DIST@|$DIST|g" \
+        -e "s|@ID@|$ID|g" \
+        -e "s|@HOSTNAME@|$HOSTNAME|g" \
+        -e "s|@HOME_URL@|$HOME_URL|g" \
+        -e "s|@NAME@|$NAME|g" \
+        -e "s|@SUPPORT_URL@|$SUPPORT_URL|g" \
+        -e "s|@VERSION@|$VERSION|g" \
+        -e "s|@VERSION_CODENAME@|$VERSION_CODENAME|g" \
+        -e "s|@VERSION_ID@|$VERSION_ID|g" \
+        "$DST"
 }
 
 
@@ -5418,18 +5440,15 @@ get_prog_tar()
 make_swap_wrap()
 {
     if $ENABLE_SWAP_WRAP; then
-        local BIN_FULLPATH="$1"
-        local BIN_REALPATH="${BIN_FULLPATH#"$DESTDIR"}"
+        local BIN_FULL_PATH="$1"
+        local BIN_REAL_PATH="${BIN_FULL_PATH#"$DESTDIR"}"
 
-        if [ -f "$BIN_FULLPATH" ] && [ ! -f "$BIN_FULLPATH.real" ]; then
-            echo -e "${GREEN}Configure swap wrap for $BIN_FULLPATH...${RESET}"
-            sudo mv "$BIN_FULLPATH" "$BIN_FULLPATH.real"
-            printf '%s\n' \
-                '#!/bin/sh' \
-                '. /etc/profile' \
-                "_swap_wrap ${BIN_REALPATH}.real \"\$@\"" \
-                > "$BIN_FULLPATH"
-            sudo chmod 755 "$BIN_FULLPATH"
+        if [ -f "$BIN_FULL_PATH" ] && [ ! -f "$BIN_FULL_PATH.real" ]; then
+            echo -e "${GREEN}Configure swap wrap for $BIN_FULL_PATH...${RESET}"
+            sudo mv "$BIN_FULL_PATH" "$BIN_FULL_PATH.real"
+            sudo cp "$CURR_DIR/sysfiles/swap_wrap_template" "$BIN_FULL_PATH"
+            sudo sed -i "s|@BIN_FULL_PATH@|${BIN_REAL_PATH}.real|g" "$BIN_FULL_PATH"
+            sudo chmod 755 "$BIN_FULL_PATH"
         fi
     fi
 }
@@ -5912,6 +5931,35 @@ get_lapifetch()
     echo -e "${GREEN}Compiling lapifetch...${RESET}"
     make -j$(nproc) CXX="${CXX_STATIC}"
     sudo make DESTDIR="$DESTDIR" install
+}
+
+# Download and copy lsb-release-minimal
+get_lsb_release_minimal()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already copied
+    if [ -f "${DESTDIR}/usr/bin/lsb_release" ]; then
+        echo -e "${LIGHT_RED}lsb-release-minimal already copied, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d lsb-release-minimal ]; then
+        echo -e "${YELLOW}lsb-release-minimal source already present, resetting...${RESET}"
+        cd lsb-release-minimal
+        git config --global --add safe.directory "${CURR_DIR}/build/lsb-release-minimal"
+        git reset --hard
+    else
+        echo -e "${GREEN}Downloading lsb-release-minimal...${RESET}"
+        git clone --branch "${LSB_RELEASE_MIN_VER}" $LSB_RELEASE_MIN_SRC
+        cd lsb-release-minimal
+    fi
+
+    # Compile and install
+    echo -e "${GREEN}Copying lsb-release-minimal...${RESET}"
+    sudo cp lsb_release "${DESTDIR}"/usr/bin/lsb_release
+    sudo chmod +x "${DESTDIR}"/usr/bin/lsb_release
 }
 
 # Download and compile Lua
@@ -7358,6 +7406,12 @@ copy_licences()
         CSV+="\nlibzip,BSD 3-Clause,libzip.txt"
     fi
 
+    if $INCLUDE_LSB_RELEASE_MIN && 
+        [ -f "${CURR_DIR}/build/lsb-release-minimal/LICENSE.txt" ]; then
+        cp "${CURR_DIR}/build/lsb-release-minimal/LICENSE.txt" "${DESTDIR}/LICENCES/lsb-release-minimal.txt" || true
+        CSV+="\nlsb-release-minimal,ISC,lsb-release-minimal.txt"
+    fi
+
     if $INCLUDE_LUA && 
         [ -f "${CURR_DIR}/build/lua/lua.h" ]; then
         sed -n '/^\* Copyright/,/^\* SOFTWARE/p' "${CURR_DIR}/build/lua/lua.h" | sed 's/^\* \{0,1\}//' > "${DESTDIR}/LICENCES/lua.txt"
@@ -7773,7 +7827,7 @@ build_filesystem()
             copy_sysfile "${CURR_DIR}"/sysfiles/sudoers "${DESTDIR}"/etc/sudoers
             copy_sysfile "${CURR_DIR}"/sysfiles/sudo.conf "${DESTDIR}"/etc/sudo.conf
             if $ENABLE_SWAP_WRAP; then
-                copy_sysfile "${CURR_DIR}"/sysfiles/swap_wrap "${DESTDIR}"/etc/sudoers.d/swap_wrap
+                copy_sysfile "${CURR_DIR}"/sysfiles/swap_wrap_sudoers "${DESTDIR}"/etc/sudoers.d/swap_wrap
             fi
         fi
     else
@@ -8988,6 +9042,7 @@ get_installed_progs_feats()
         check_installed_file "GnuPG ${GNUPG_VER}" "/usr/bin/gpg"
         check_installed_file "memtester ${MEMTESTER_VER}" "/usr/bin/memtester"
         check_installed_file "PatchELF ${PATCHELF_VER}" "/usr/bin/patchelf"
+        check_installed_file "lsb-release-minimal ${LSB_RELEASE_MIN_VER}" "/usr/bin/lsb_release"
     fi
     if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
         check_installed_file "util-linux ${UTIL_LINUX_VER}" "/usr/bin/whereis"
@@ -9017,7 +9072,7 @@ generate_report()
         "==                          $DATE                          =="
         "============================================================================"
         ""
-        "OS/version:          $DIST $VER"
+        "OS/version:          $DIST $VERSION"
         "Kernel:              Linux $LINUX_VER"
         "Base:                BusyBox $BUSYBOX_VER"
         "Bootloader:          $BOOTLDR_USED"
@@ -9543,6 +9598,9 @@ if $INCLUDE_INDENT; then
 fi
 if $INCLUDE_JOE; then
     get_joe
+fi
+if $INCLUDE_LSB_RELEASE_MIN; then
+    get_lsb_release_minimal
 fi
 if $INCLUDE_LUA; then
     get_lua
