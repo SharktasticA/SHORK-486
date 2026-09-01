@@ -532,8 +532,9 @@ if [ "$FIX_EXTLINUX" = true ]; then
     USE_GRUB=false
 fi
 
-# Ensure VM86 is enabled with DOSEMU2
+# Ensure MULTIUSER_KRN and VM86 is enabled with DOSEMU2
 if [ "$INCLUDE_DOSEMU2" = true ]; then
+    ENABLE_MULTIUSER_KRN=true
     ENABLE_VM86=true
 fi
 
@@ -5471,7 +5472,7 @@ get_freedos()
     cd "${CURR_DIR}/build"
 
     if [ -d "${DESTDIR}/root/.dosemu/drive_c" ] &&
-        [ "$(ls -1 "${DESTDIR}/root/.dosemu/drive_c" 2>/dev/null | wc -l)" -eq 7 ]; then
+        [ "$(ls -1 "${DESTDIR}/root/.dosemu/drive_c" 2>/dev/null | wc -l)" -eq 8 ]; then
         echo -e "${LIGHT_RED}FreeDOS for dosemu2 already copied, skipping...${RESET}"
         return
     fi
@@ -5480,19 +5481,21 @@ get_freedos()
     mkdir -p "${CURR_DIR}/build/FreeDOS"
     cd "${CURR_DIR}/build/FreeDOS"
 
+    [ -f "DEBUG250.zip" ] || wget https://www.ibiblio.org/pub/micro/pc-stuff/freedos/files/dos/debug/debugx/2.50/DEBUG250.zip
     [ -f "edit09ax.zip" ] || wget https://www.ibiblio.org/pub/micro/pc-stuff/freedos/files/dos/edit/0.9/edit09ax.zip
-    [ -f "command.zip" ] || wget https://www.ibiblio.org/pub/micro/pc-stuff/freedos/files/dos/command/0.86/command.zip
-    [ -f "kernel.zip" ] || wget https://www.ibiblio.org/pub/micro/pc-stuff/freedos/files/dos/kernel/2046/kernel.zip
+    [ -f "fdkernel.zip" ] || wget https://pushbx.org/ecm/download/fdkernel.zip
+    [ -f "freecom.zip" ]  || wget https://pushbx.org/ecm/download/freecom.zip
     [ -f "more43.zip" ] || wget https://www.ibiblio.org/pub/micro/pc-stuff/freedos/files/dos/more/4.3/more43.zip
     [ -f "move34.zip" ] || wget https://www.ibiblio.org/pub/micro/pc-stuff/freedos/files/dos/move/3.4/move34.zip
     [ -f "xcopy18b.zip" ] || wget https://www.ibiblio.org/pub/micro/pc-stuff/freedos/files/dos/xcopy/1.8/xcopy18b.zip
 
     # The core essentials
-    unzip -o -j command.zip BIN/COMMAND.COM -d "${DESTDIR}/root/.dosemu/drive_c"
-    unzip -o -j kernel.zip BIN/KERNL86.SYS -d "${DESTDIR}/root/.dosemu/drive_c"
-    unzip -o -j kernel.zip BIN/SYS.COM -d "${DESTDIR}/root/.dosemu/drive_c"
+    unzip -o -j fdkernel.zip bin/kernel.sys -d "${DESTDIR}/root/.dosemu/drive_c"
+    unzip -o -j fdkernel.zip bin/sys.com -d "${DESTDIR}/root/.dosemu/drive_c"
+    unzip -o -j freecom.zip command.com -d "${DESTDIR}/root/.dosemu/drive_c"
 
     # Nice to haves
+    unzip -o -j DEBUG250.zip DEBUG.COM -d "${DESTDIR}/root/.dosemu/drive_c"
     unzip -o -j edit09ax.zip BIN/EDIT.EXE -d "${DESTDIR}/root/.dosemu/drive_c"
     unzip -o -j more43.zip bin/MORE.EXE -d "${DESTDIR}/root/.dosemu/drive_c"
     unzip -o -j move34.zip move/bin/move.exe -d "${DESTDIR}/root/.dosemu/drive_c"
@@ -9410,7 +9413,20 @@ if $INCLUDE_DOSEMU2; then
         false \
         "/usr" \
         "--sysconfdir=/etc --disable-x --disable-sdl --disable-fdpp --disable-dj64 --disable-alsa --disable-libao --disable-ladspa --disable-fluidsynth --disable-midimisc --disable-dlplugins"
+
     make_swap_wrap "${DESTDIR}/usr/bin/dosemu.bin"
+
+    # Make the dosemu bootstrap script pure shell-compatible and remove
+    # unneeded parts
+    sed -i -e '1s|^#!/usr/bin/env bash|#!/bin/sh|' \
+        -e 's/\$BASHPID/\$\$/g' \
+        "${DESTDIR}/usr/bin/dosemu"
+    sed -i -e '/^LOCAL_BUILD_PATH=/d' \
+        -e '/^LOCAL_BIN_DIR=/d' \
+        -e '/if \[ "\$BINDIR" = "\$(realpath -q \$LOCAL_BUILD_PATH\/\$LOCAL_BIN_DIR)" \]; then/,/^  fi$/d' \
+        -e 's/if \[ "`id -ur`" -eq 0 \]; then/if [ "$(whoami)" = "root" ]; then/' \
+        -e '/if \[ -f "\$LOG_FILE" -a -x "\/usr\/bin\/dpkg-query" \]; then/,/^fi$/d' \
+        "${DESTDIR}/usr/bin/dosemu"
 fi
 if $INCLUDE_DOSFSTOOLS; then
     get_prog_git \
