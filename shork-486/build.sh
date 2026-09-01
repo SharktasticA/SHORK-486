@@ -340,6 +340,7 @@ INCLUDE_DROPBEAR=false
 INCLUDE_E2FSPROGS=false
 INCLUDE_EMACS=false
 INCLUDE_FILE=false
+INCLUDE_FREEDOS=false
 INCLUDE_GCC=false
 INCLUDE_GIT=false
 INCLUDE_GNUPG=false
@@ -534,6 +535,11 @@ fi
 # Ensure VM86 is enabled with DOSEMU2
 if [ "$INCLUDE_DOSEMU2" = true ]; then
     ENABLE_VM86=true
+fi
+
+# Ensure FREEDOS is excluded without DOSEMU2
+if [ "$INCLUDE_DOSEMU2" = false ] && [ "$INCLUDE_FREEDOS" = true ]; then
+    INCLUDE_FREEDOS=false
 fi
 
 # Ensure FB_VBE is enabled with GUI, NCDU or UTIL_LINUX
@@ -5459,6 +5465,40 @@ get_dropbear()
     sudo mv "${DESTDIR}/usr/bin/dbclient" "${DESTDIR}/usr/bin/ssh"
 }
 
+# Download FreeDOS for dosemu2
+get_freedos()
+{
+    cd "${CURR_DIR}/build"
+
+    if [ -d "${DESTDIR}/root/.dosemu/drive_c" ] &&
+        [ "$(ls -1 "${DESTDIR}/root/.dosemu/drive_c" 2>/dev/null | wc -l)" -eq 7 ]; then
+        echo -e "${LIGHT_RED}FreeDOS for dosemu2 already copied, skipping...${RESET}"
+        return
+    fi
+
+    mkdir -p "${DESTDIR}"/root/.dosemu/drive_c
+    mkdir -p "${CURR_DIR}/build/FreeDOS"
+    cd "${CURR_DIR}/build/FreeDOS"
+
+    [ -f "edit09ax.zip" ] || wget https://www.ibiblio.org/pub/micro/pc-stuff/freedos/files/dos/edit/0.9/edit09ax.zip
+    [ -f "command.zip" ] || wget https://www.ibiblio.org/pub/micro/pc-stuff/freedos/files/dos/command/0.86/command.zip
+    [ -f "kernel.zip" ] || wget https://www.ibiblio.org/pub/micro/pc-stuff/freedos/files/dos/kernel/2046/kernel.zip
+    [ -f "more43.zip" ] || wget https://www.ibiblio.org/pub/micro/pc-stuff/freedos/files/dos/more/4.3/more43.zip
+    [ -f "move34.zip" ] || wget https://www.ibiblio.org/pub/micro/pc-stuff/freedos/files/dos/move/3.4/move34.zip
+    [ -f "xcopy18b.zip" ] || wget https://www.ibiblio.org/pub/micro/pc-stuff/freedos/files/dos/xcopy/1.8/xcopy18b.zip
+
+    # The core essentials
+    unzip -o -j command.zip BIN/COMMAND.COM -d "${DESTDIR}/root/.dosemu/drive_c"
+    unzip -o -j kernel.zip BIN/KERNL86.SYS -d "${DESTDIR}/root/.dosemu/drive_c"
+    unzip -o -j kernel.zip BIN/SYS.COM -d "${DESTDIR}/root/.dosemu/drive_c"
+
+    # Nice to haves
+    unzip -o -j edit09ax.zip BIN/EDIT.EXE -d "${DESTDIR}/root/.dosemu/drive_c"
+    unzip -o -j more43.zip bin/MORE.EXE -d "${DESTDIR}/root/.dosemu/drive_c"
+    unzip -o -j move34.zip move/bin/move.exe -d "${DESTDIR}/root/.dosemu/drive_c"
+    unzip -o -j xcopy18b.zip xcopy/BIN/xcopy.exe -d "${DESTDIR}/root/.dosemu/drive_c"
+}
+
 # Download and compile file
 get_file()
 {
@@ -7096,68 +7136,79 @@ copy_licences()
     fi
 
     if $INCLUDE_C3270 && 
-       [ -f "${CURR_DIR}/build/x3270/LICENSE.md" ]; then
+        [ -f "${CURR_DIR}/build/x3270/LICENSE.md" ]; then
         cp "${CURR_DIR}/build/x3270/LICENSE.md" "${DESTDIR}/LICENCES/c3270.txt" || true
         CSV+="\nc3270,BSD 3-Clause,c3270.txt"
     fi
 
     if $INCLUDE_CSCOPE && 
-       [ -f "${CURR_DIR}/build/cscope-cscope/COPYING" ]; then
+        [ -f "${CURR_DIR}/build/cscope-cscope/COPYING" ]; then
         cp "${CURR_DIR}/build/cscope-cscope/COPYING" "${DESTDIR}/LICENCES/cscope.txt" || true
         CSV+="\nCscope,BSD 3-Clause,cscope.txt"
     fi
 
     if $NEED_LIBSOFTFP && 
-       [ -f "${CURR_DIR}/build/libsoftfp/llvm-project/LICENSE.TXT" ]; then
+        [ -f "${CURR_DIR}/build/libsoftfp/llvm-project/LICENSE.TXT" ]; then
         cp "${CURR_DIR}/build/libsoftfp/llvm-project/LICENSE.TXT" "${DESTDIR}/LICENCES/compiler-rt.txt" || true
         CSV+="\nCompiler-RT,Apache 2.0 w/ LLVM Exceptions,compiler-rt.txt"
     fi
 
     if $NEED_CURL && 
-       [ -f "${CURR_DIR}/build/curl-${CURL_VER}/COPYING" ]; then
+        [ -f "${CURR_DIR}/build/curl-${CURL_VER}/COPYING" ]; then
         cp "${CURR_DIR}/build/curl-${CURL_VER}/COPYING" "${DESTDIR}/LICENCES/curl.txt" || true
         CSV+="\ncurl,MIT,curl.txt"
     fi
 
     if $INCLUDE_DIALOG && 
-       [ -f "${CURR_DIR}/build/dialog-${DIALOG_VER}/COPYING" ]; then
+        [ -f "${CURR_DIR}/build/dialog-${DIALOG_VER}/COPYING" ]; then
         cp "${CURR_DIR}/build/dialog-${DIALOG_VER}/COPYING" "${DESTDIR}/LICENCES/dialog.txt" || true
         CSV+="\ndialog,GNU LGPLv2.1,dialog.txt"
     fi
 
+    if $INCLUDE_DOSEMU2 && 
+        [ -f "${CURR_DIR}/build/dosemu2-dosemu2-${DOSEMU2_VER}/COPYING.DOSEMU" ]; then
+        cp "${CURR_DIR}/build/dosemu2-dosemu2-${DOSEMU2_VER}/COPYING.DOSEMU" "${DESTDIR}/LICENCES/dosemu2.txt" || true
+        CSV+="\ndosemu2,GNU GPLv2,dosemu2.txt"
+    fi
+
     if $INCLUDE_DOSFSTOOLS && 
-       [ -f "${CURR_DIR}/build/dosfstools/COPYING" ]; then
+        [ -f "${CURR_DIR}/build/dosfstools/COPYING" ]; then
         cp "${CURR_DIR}/build/dosfstools/COPYING" "${DESTDIR}/LICENCES/dosfstools.txt" || true
         CSV+="\ndosfstools,GNU GPLv3,dosfstools.txt"
     fi
 
     if $INCLUDE_DROPBEAR && 
-       [ -f "${CURR_DIR}/build/dropbear/LICENSE" ]; then
+        [ -f "${CURR_DIR}/build/dropbear/LICENSE" ]; then
         cp "${CURR_DIR}/build/dropbear/LICENSE" "${DESTDIR}/LICENCES/dropbear.txt" || true
         CSV+="\nDropbear,MIT + BSD 2-Clause,dropbear.txt"
     fi
 
     if $INCLUDE_E2FSPROGS && 
-       [ -f "${CURR_DIR}/build/e2fsprogs-$E2FSPROGS_VER/NOTICE" ]; then
+        [ -f "${CURR_DIR}/build/e2fsprogs-$E2FSPROGS_VER/NOTICE" ]; then
         cp "${CURR_DIR}/build/e2fsprogs-$E2FSPROGS_VER/NOTICE" "${DESTDIR}/LICENCES/e2fsprogs.txt" || true
         CSV+="\ne2fsprogs,GNU GPLv2 & LGPLv2,e2fsprogs.txt"
     fi
 
     if [ "$ID" == "shork-486" ] &&
        $FIX_EXTLINUX &&
-       [ -f "${CURR_DIR}/build/syslinux/COPYING" ]; then
+        [ -f "${CURR_DIR}/build/syslinux/COPYING" ]; then
         cp "${CURR_DIR}/build/syslinux/COPYING" "${DESTDIR}/LICENCES/extlinux.txt" || true
         CSV+="\nEXTLINUX,GNU GPLv2,extlinux.txt"
     fi
 
     if $INCLUDE_FILE && 
-       [ -f "${CURR_DIR}/build/file/COPYING" ]; then
+        [ -f "${CURR_DIR}/build/file/COPYING" ]; then
         cp "${CURR_DIR}/build/file/COPYING" "${DESTDIR}/LICENCES/file.txt" || true
         CSV+="\nfile,BSD 2-Clause,file.txt"
     fi
 
+    if $INCLUDE_FREEDOS; then
+        wget -qO "${DESTDIR}/LICENCES/freedos.txt" "https://raw.githubusercontent.com/FDOS/kernel/refs/heads/master/COPYING" || true
+        CSV+="\nFreeDOS,GNU GPLv2,freedos.txt"
+    fi
+
     if $INCLUDE_GCC &&
-       [ -f "../../COPYING" ]; then
+        [ -f "../../COPYING" ]; then
         cp "../../COPYING" "${DESTDIR}/LICENCES/gcc.txt" || true
         wget -qO "${DESTDIR}/LICENCES/gcc-exception.txt" "https://raw.githubusercontent.com/gcc-mirror/gcc/master/COPYING.RUNTIME" || true
         CSV+="\nGCC,GNU GPLv3,gcc.txt"
@@ -7165,159 +7216,159 @@ copy_licences()
     fi
 
     if $INCLUDE_GIT && 
-       [ -f "${CURR_DIR}/build/git/COPYING" ]; then
+        [ -f "${CURR_DIR}/build/git/COPYING" ]; then
         cp "${CURR_DIR}/build/git/COPYING" "${DESTDIR}/LICENCES/git.txt" || true
         CSV+="\nGit,GNU GPLv2,git.txt"
     fi
 
     if $INCLUDE_GNUPG && 
-       [ -f "${CURR_DIR}/build/gnupg-$GNUPG_VER/COPYING" ]; then
+        [ -f "${CURR_DIR}/build/gnupg-$GNUPG_VER/COPYING" ]; then
         cp "${CURR_DIR}/build/gnupg-$GNUPG_VER/COPYING" "${DESTDIR}/LICENCES/gnupg.txt" || true
         CSV+="\nGnuPG & pinentry,GNU GPLv3,gnupg.txt"
     fi
 
     if $INCLUDE_HTOP && 
-       [ -f "${CURR_DIR}/build/htop/COPYING" ]; then
+        [ -f "${CURR_DIR}/build/htop/COPYING" ]; then
         cp "${CURR_DIR}/build/htop/COPYING" "${DESTDIR}/LICENCES/htop.txt" || true
         CSV+="\nhtop,GNU GPLv2,htop.txt"
     fi
 
     if [ -f "${DESTDIR}/usr/share/fonts/opentype/ibm-plex-mono/IBMPlexMono-Regular.otf" ] && 
-       [ -f "${CURR_DIR}/build/plex/LICENSE.txt" ]; then
+        [ -f "${CURR_DIR}/build/plex/LICENSE.txt" ]; then
         cp "${CURR_DIR}/build/plex/LICENSE.txt" "${DESTDIR}/LICENCES/ibm-plex.txt" || true
         CSV+="\nIBM Plex,OFL 1.1,ibm-plex.txt"
     fi
 
     if [ "$ID" == "shork-disc" ] &&
        $FIX_EXTLINUX &&
-       [ -f "${CURR_DIR}/build/syslinux/COPYING" ]; then
+        [ -f "${CURR_DIR}/build/syslinux/COPYING" ]; then
         cp "${CURR_DIR}/build/syslinux/COPYING" "${DESTDIR}/LICENCES/isolinux.txt" || true
         CSV+="\nISOLINUX,GNU GPLv2,isolinux.txt"
     fi
 
     if $INCLUDE_INDENT && 
-       [ -f "${CURR_DIR}/build/indent-${INDENT_VER}/COPYING" ]; then
+        [ -f "${CURR_DIR}/build/indent-${INDENT_VER}/COPYING" ]; then
         cp "${CURR_DIR}/build/indent-${INDENT_VER}/COPYING" "${DESTDIR}/LICENCES/indent.txt" || true
         CSV+="\nIndent,GNU GPLv3,indent.txt"
     fi
 
     if $INCLUDE_JOE && 
-       [ -f "${CURR_DIR}/build/joe/COPYING" ]; then
+        [ -f "${CURR_DIR}/build/joe/COPYING" ]; then
         cp "${CURR_DIR}/build/joe/COPYING" "${DESTDIR}/LICENCES/joe.txt" || true
         CSV+="\nJoe's Own Editor,GNU GPLv2,joe.txt"
     fi
 
     if [ -f "${DESTDIR}/usr/local/bin/lapifetch" ] && 
-       [ -f "${CURR_DIR}/build/lapifetch/LICENSE" ]; then
+        [ -f "${CURR_DIR}/build/lapifetch/LICENSE" ]; then
         cp "${CURR_DIR}/build/lapifetch/LICENSE" "${DESTDIR}/LICENCES/lapifetch.txt" || true
         CSV+="\nlapitfetch,MIT,lapifetch.txt"
     fi
 
     if $NEED_LIBASSUAN && 
-       [ -f "${CURR_DIR}/build/libassuan-${LIBASSUAN_VER}/COPYING" ]; then
+        [ -f "${CURR_DIR}/build/libassuan-${LIBASSUAN_VER}/COPYING" ]; then
         cp "${CURR_DIR}/build/libassuan-${LIBASSUAN_VER}/COPYING" "${DESTDIR}/LICENCES/libassuan.txt" || true
         CSV+="\nlibassuan,GNU GPLv3,libassuan.txt"
     fi
 
     if $NEED_LIBAO && 
-       [ -f "${CURR_DIR}/build/libao/COPYING" ]; then
+        [ -f "${CURR_DIR}/build/libao/COPYING" ]; then
         cp "${CURR_DIR}/build/libao/COPYING" "${DESTDIR}/LICENCES/libao.txt" || true
         CSV+="\nlibao,GNU GPLv2,libao.txt"
     fi
 
     if $INCLUDE_E2FSPROGS &&
-       [ -f "${CURR_DIR}/build/e2fsprogs-$E2FSPROGS_VER/lib/et/com_err.c" ]; then
+        [ -f "${CURR_DIR}/build/e2fsprogs-$E2FSPROGS_VER/lib/et/com_err.c" ]; then
         sed -n '/^ \* Copyright/,/warranty\.$/p' "${CURR_DIR}/build/e2fsprogs-$E2FSPROGS_VER/lib/et/com_err.c" | sed 's/^ \* \{0,1\}//' > "${DESTDIR}/LICENCES/libcom_err.txt"
         CSV+="\nlibcom_err,MIT SIPB,libcom_err.txt"
     fi
 
     if $NEED_LIBEVENT && 
-       [ -f "${CURR_DIR}/build/libevent/LICENSE" ]; then
+        [ -f "${CURR_DIR}/build/libevent/LICENSE" ]; then
         cp "${CURR_DIR}/build/libevent/LICENSE" "${DESTDIR}/LICENCES/libevent.txt" || true
         CSV+="\nlibevent,BSD 3-Clause,libevent.txt"
     fi
 
     if $NEED_LIBGCRYPT && 
-       [ -f "${CURR_DIR}/build/libgcrypt-${LIBGCRYPT_VER}/COPYING" ]; then
+        [ -f "${CURR_DIR}/build/libgcrypt-${LIBGCRYPT_VER}/COPYING" ]; then
         cp "${CURR_DIR}/build/libgcrypt-${LIBGCRYPT_VER}/COPYING" "${DESTDIR}/LICENCES/libgcrypt.txt" || true
         CSV+="\nlibgcrypt,GNU GPLv3,libgcrypt.txt"
     fi
 
     if $NEED_LIBGPG_ERROR && 
-       [ -f "${CURR_DIR}/build/libgpg-error-${LIBGPG_ERROR_VER}/COPYING" ]; then
+        [ -f "${CURR_DIR}/build/libgpg-error-${LIBGPG_ERROR_VER}/COPYING" ]; then
         cp "${CURR_DIR}/build/libgpg-error-${LIBGPG_ERROR_VER}/COPYING" "${DESTDIR}/LICENCES/libgpg-error.txt" || true
         CSV+="\nlibgpg-error,GNU GPLv3,libgpg-error.txt"
     fi
 
     if $NEED_LIBID3TAG && 
-       [ -f "${CURR_DIR}/build/libid3tag/COPYING" ]; then
+        [ -f "${CURR_DIR}/build/libid3tag/COPYING" ]; then
         cp "${CURR_DIR}/build/libid3tag/COPYING" "${DESTDIR}/LICENCES/libid3tag.txt" || true
         CSV+="\nlibid3tag,GNU GPLv2,libid3tag.txt"
     fi
 
     if $NEED_LIBKSBA && 
-       [ -f "${CURR_DIR}/build/libksba-${LIBKSBA_VER}/COPYING" ]; then
+        [ -f "${CURR_DIR}/build/libksba-${LIBKSBA_VER}/COPYING" ]; then
         cp "${CURR_DIR}/build/libksba-${LIBKSBA_VER}/COPYING" "${DESTDIR}/LICENCES/libksba.txt" || true
         CSV+="\nlibksba,GNU GPLv3,libksba.txt"
     fi
 
     if $NEED_LIBMAD && 
-       [ -f "${CURR_DIR}/build/libmad/COPYING" ]; then
+        [ -f "${CURR_DIR}/build/libmad/COPYING" ]; then
         cp "${CURR_DIR}/build/libmad/COPYING" "${DESTDIR}/LICENCES/libmad.txt" || true
         CSV+="\nlibmad,GNU GPLv2,libmad.txt"
     fi
 
     if $NEED_NPTH && 
-       [ -f "${CURR_DIR}/build/npth-${NPTH_VER}/COPYING.LIB" ]; then
+        [ -f "${CURR_DIR}/build/npth-${NPTH_VER}/COPYING.LIB" ]; then
         cp "${CURR_DIR}/build/npth-${NPTH_VER}/COPYING.LIB" "${DESTDIR}/LICENCES/npth.txt" || true
         CSV+="\nnPth,GNU LGPLv2.1,npth.txt"
     fi
 
     if $INCLUDE_E2FSPROGS &&
-    [ -f "${CURR_DIR}/build/e2fsprogs-$E2FSPROGS_VER/lib/ss/data.c" ]; then
+        [ -f "${CURR_DIR}/build/e2fsprogs-$E2FSPROGS_VER/lib/ss/data.c" ]; then
         sed -n '/^ \* Copyright/,/warranty\.$/p' "${CURR_DIR}/build/e2fsprogs-$E2FSPROGS_VER/lib/ss/data.c" | sed 's/^ \* \{0,1\}//' > "${DESTDIR}/LICENCES/libss.txt"
         CSV+="\nlibss,MIT SIPB,libss.txt"
     fi
 
     # TODO: $NEED_LIBUUID
     if $INCLUDE_E2FSPROGS && 
-       [ -f "${CURR_DIR}/build/e2fsprogs-$E2FSPROGS_VER/lib/uuid/COPYING" ]; then
+        [ -f "${CURR_DIR}/build/e2fsprogs-$E2FSPROGS_VER/lib/uuid/COPYING" ]; then
         cp "${CURR_DIR}/build/e2fsprogs-$E2FSPROGS_VER/lib/uuid/COPYING" "${DESTDIR}/LICENCES/libuuid.txt" || true
         CSV+="\nlibuuid,BSD 3-Clause,libuuid.txt"
     fi
 
     if $NEED_LIBXLSXWRITER && 
-       [ -f "${CURR_DIR}/build/libxlsxwriter/License.txt" ]; then
+        [ -f "${CURR_DIR}/build/libxlsxwriter/License.txt" ]; then
         cp "${CURR_DIR}/build/libxlsxwriter/License.txt" "${DESTDIR}/LICENCES/libxlsxwriter.txt" || true
         CSV+="\nlibxlsxwriter,BSD 2-Clause,libxlsxwriter.txt"
     fi
 
     if $NEED_LIBXML2 && 
-       [ -f "${CURR_DIR}/build/libxml2/Copyright" ]; then
+        [ -f "${CURR_DIR}/build/libxml2/Copyright" ]; then
         cp "${CURR_DIR}/build/libxml2/Copyright" "${DESTDIR}/LICENCES/libxml2.txt" || true
         CSV+="\nlibxml2,MIT,libxml2.txt"
     fi
 
     if $NEED_LIBZIP && 
-       [ -f "${CURR_DIR}/build/libzip/LICENSE" ]; then
+        [ -f "${CURR_DIR}/build/libzip/LICENSE" ]; then
         cp "${CURR_DIR}/build/libzip/LICENSE" "${DESTDIR}/LICENCES/libzip.txt" || true
         CSV+="\nlibzip,BSD 3-Clause,libzip.txt"
     fi
 
     if $INCLUDE_LUA && 
-       [ -f "${CURR_DIR}/build/lua/lua.h" ]; then
+        [ -f "${CURR_DIR}/build/lua/lua.h" ]; then
         sed -n '/^\* Copyright/,/^\* SOFTWARE/p' "${CURR_DIR}/build/lua/lua.h" | sed 's/^\* \{0,1\}//' > "${DESTDIR}/LICENCES/lua.txt"
         CSV+="\nLua,MIT,lua.txt"
     fi
 
     if $INCLUDE_LYNX && 
-       [ -f "${CURR_DIR}/build/lynx-snapshots/COPYING" ]; then
+        [ -f "${CURR_DIR}/build/lynx-snapshots/COPYING" ]; then
         cp "${CURR_DIR}/build/lynx-snapshots/COPYING" "${DESTDIR}/LICENCES/lynx.txt" || true
         CSV+="\nLynx,GNU GPLv2,lynx.txt"
     fi
 
     if [ -f "${DESTDIR}/usr/local/musl/lib/libc.so" ] &&
-       [ -f "${CURR_DIR}/build/musl-$MUSL_VER/COPYRIGHT" ]; then
+        [ -f "${CURR_DIR}/build/musl-$MUSL_VER/COPYRIGHT" ]; then
         cp "${CURR_DIR}/build/musl-$MUSL_VER/COPYRIGHT" "${DESTDIR}/LICENCES/musl.txt" || true
         CSV+="\nmusl,MIT,musl.txt"
     elif $INCLUDE_GCC; then
@@ -7326,67 +7377,67 @@ copy_licences()
     fi
 
     if $INCLUDE_MAKE && 
-       [ -f "${CURR_DIR}/build/make-${MAKE_VER}/COPYING" ]; then
+        [ -f "${CURR_DIR}/build/make-${MAKE_VER}/COPYING" ]; then
         cp "${CURR_DIR}/build/make-${MAKE_VER}/COPYING" "${DESTDIR}/LICENCES/make.txt" || true
         CSV+="\nMake,GNU GPLv3,make.txt"
     fi
 
     if $INCLUDE_MEMTESTER && 
-       [ -f "${CURR_DIR}/build/memtester-${MEMTESTER_VER}/COPYING" ]; then
+        [ -f "${CURR_DIR}/build/memtester-${MEMTESTER_VER}/COPYING" ]; then
         cp "${CURR_DIR}/build/memtester-${MEMTESTER_VER}/COPYING" "${DESTDIR}/LICENCES/memtester.txt" || true
         CSV+="\nmemtester,GNU GPLv2,memtester.txt"
     fi
 
     if $INCLUDE_MG && 
-       [ -f "${CURR_DIR}/build/mg/UNLICENSE" ]; then
+        [ -f "${CURR_DIR}/build/mg/UNLICENSE" ]; then
         cp "${CURR_DIR}/build/mg/UNLICENSE" "${DESTDIR}/LICENCES/mg.txt" || true
         CSV+="\nMg,unlicense,mg.txt"
     fi
 
     if $INCLUDE_MICROPYTHON && 
-       [ -f "${CURR_DIR}/build/micropython/LICENSE" ]; then
+        [ -f "${CURR_DIR}/build/micropython/LICENSE" ]; then
         cp "${CURR_DIR}/build/micropython/LICENSE" "${DESTDIR}/LICENCES/micropython.txt" || true
         CSV+="\nMicroPython,MIT,micropython.txt"
     fi
 
     if $INCLUDE_MPG321 && 
-       [ -f "${CURR_DIR}/build/mpg321/COPYING" ]; then
+        [ -f "${CURR_DIR}/build/mpg321/COPYING" ]; then
         cp "${CURR_DIR}/build/mpg321/COPYING" "${DESTDIR}/LICENCES/mpg321.txt" || true
         CSV+="\nmpg321,GNU GPLv2,mpg321.txt"
     fi
 
     if $INCLUDE_MT_ST && 
-       [ -f "${CURR_DIR}/build/mt-st/COPYING" ]; then
+        [ -f "${CURR_DIR}/build/mt-st/COPYING" ]; then
         cp "${CURR_DIR}/build/mt-st/COPYING" "${DESTDIR}/LICENCES/mt-st.txt" || true
         CSV+="\nmt-st,GNU GPLv2,mt-st.txt"
     fi
 
     if $INCLUDE_NANO && 
-       [ -f "${CURR_DIR}/build/nano-$NANO_VER/COPYING" ]; then
+        [ -f "${CURR_DIR}/build/nano-$NANO_VER/COPYING" ]; then
         cp "${CURR_DIR}/build/nano-$NANO_VER/COPYING" "${DESTDIR}/LICENCES/nano.txt" || true
         CSV+="\nnano,GNU GPLv3,nano.txt"
     fi
 
     if $INCLUDE_NASM && 
-       [ -f "${CURR_DIR}/build/nasm/LICENSE" ]; then
+        [ -f "${CURR_DIR}/build/nasm/LICENSE" ]; then
         cp "${CURR_DIR}/build/nasm/LICENSE" "${DESTDIR}/LICENCES/nasm.txt" || true
         CSV+="\nNASM,BSD 2-Clause,nasm.txt"
     fi
 
     if $INCLUDE_NCDU && 
-       [ -f "${CURR_DIR}/build/ncdu-$NCDU_VER/COPYING" ]; then
+        [ -f "${CURR_DIR}/build/ncdu-$NCDU_VER/COPYING" ]; then
         cp "${CURR_DIR}/build/ncdu-$NCDU_VER/COPYING" "${DESTDIR}/LICENCES/ncdu.txt" || true
         CSV+="\nNcdu,MIT,ncdu.txt"
     fi
 
     if [ -f "${PREFIX}/lib/libncursesw.a" ] && 
-       [ -f "${CURR_DIR}/build/ncurses/COPYING" ]; then
+        [ -f "${CURR_DIR}/build/ncurses/COPYING" ]; then
         cp "${CURR_DIR}/build/ncurses/COPYING" "${DESTDIR}/LICENCES/ncurses.txt" || true
         CSV+="\nncurses,MIT,ncurses.txt"
     fi
 
     if [ -f "${DESTDIR}/usr/bin/nedit" ] && 
-       [ -f "${CURR_DIR}/build/nedit/COPYRIGHT" ]; then
+        [ -f "${CURR_DIR}/build/nedit/COPYRIGHT" ]; then
         cp "${CURR_DIR}/build/nedit/COPYRIGHT" "${DESTDIR}/LICENCES/nedit.txt" || true
         CSV+="\nNEdit,GNU GPLv2,nedit.txt"
     fi
@@ -7397,19 +7448,19 @@ copy_licences()
     fi
 
     if $NEED_CURL || $NEED_OPENSSL && 
-       [ -f "${CURR_DIR}/build/openssl/LICENSE.txt" ]; then
+        [ -f "${CURR_DIR}/build/openssl/LICENSE.txt" ]; then
         cp "${CURR_DIR}/build/openssl/LICENSE.txt" "${DESTDIR}/LICENCES/openssl.txt" || true
         CSV+="\nOpenSSL,Apache 2.0,openssl.txt"
     fi
 
     if $INCLUDE_PATCHELF && 
-       [ -f "${CURR_DIR}/build/patchelf-$PATCHELF_VER/COPYING" ]; then
+        [ -f "${CURR_DIR}/build/patchelf-$PATCHELF_VER/COPYING" ]; then
         cp "${CURR_DIR}/build/patchelf-$PATCHELF_VER/COPYING" "${DESTDIR}/LICENCES/patchelf.txt" || true
         CSV+="\nPatchELF,GNU GPLv3,patchelf.txt"
     fi
 
     if $INCLUDE_PCI_IDS && 
-       [ -f "../../COPYING" ]; then
+        [ -f "../../COPYING" ]; then
         {
             printf "The pci.ids file is distributed with SHORK under the GNU General Public License\nv3. The PCI ID database is a compilation of factual data, and as such the\ncopyright only covers the aggregation and formatting. The copyright is held by\nMartin Mares and Albert Pool.\n\n--------------------------------------------------------------------------------\n\n"
             cat "../../COPYING"
@@ -7418,110 +7469,110 @@ copy_licences()
     fi
 
     if $INCLUDE_SC_IM && \
-       [ -f "${CURR_DIR}/build/sc-im/LICENSE" ]; then
+        [ -f "${CURR_DIR}/build/sc-im/LICENSE" ]; then
         cp "${CURR_DIR}/build/sc-im/LICENSE" "${DESTDIR}/LICENCES/sc-im.txt" || true
         CSV+="\nsc-im,BSD 4-Clause,sc-im.txt"
     fi
 
     if $INCLUDE_SHORKTAINMENT &&
-       [ -f "${CURR_DIR}/build/shorkmines/LICENSE" ]; then
+        [ -f "${CURR_DIR}/build/shorkmines/LICENSE" ]; then
         cp "${CURR_DIR}/build/shorkmines/LICENSE" "${DESTDIR}/LICENCES/shorkmines.txt" || true
         CSV+="\nSHORKMINES,MIT,shorkmines.txt"
     fi
 
     if [ -f "${DESTDIR}/usr/bin/st" ] && 
-       [ -f "${CURR_DIR}/build/st/LICENSE" ]; then
+        [ -f "${CURR_DIR}/build/st/LICENSE" ]; then
         cp "${CURR_DIR}/build/st/LICENSE" "${DESTDIR}/LICENCES/st.txt" || true
         CSV+="\nst,MIT,st.txt"
     fi
 
     if $INCLUDE_STRACE && 
-       [ -f "${CURR_DIR}/build/strace/COPYING" ]; then
+        [ -f "${CURR_DIR}/build/strace/COPYING" ]; then
         cp "${CURR_DIR}/build/strace/COPYING" "${DESTDIR}/LICENCES/strace.txt" || true
         CSV+="\nstrace,GNU LGPLv2.1,strace.txt"
     fi
 
     if $INCLUDE_SUDO && 
-       [ -f "${CURR_DIR}/build/sudo-$SUDO_VER/LICENSE.md" ]; then
+        [ -f "${CURR_DIR}/build/sudo-$SUDO_VER/LICENSE.md" ]; then
         cp "${CURR_DIR}/build/sudo-$SUDO_VER/LICENSE.md" "${DESTDIR}/LICENCES/sudo.txt" || true
         CSV+="\nsudo,ISC + BSD 2-Clause + BSD 3-Clause + zlib,sudo.txt"
     fi
 
     if [ "$ID" == "shork-diskette" ] &&
        $FIX_EXTLINUX &&
-       [ -f "${CURR_DIR}/build/syslinux/COPYING" ]; then
+        [ -f "${CURR_DIR}/build/syslinux/COPYING" ]; then
         cp "${CURR_DIR}/build/syslinux/COPYING" "${DESTDIR}/LICENCES/syslinux.txt" || true
         CSV+="\nSYSLINUX,GNU GPLv2,syslinux.txt"
     fi
 
     if $INCLUDE_TCC && 
-       [ -f "${CURR_DIR}/build/tinycc-mirror-repository/COPYING" ]; then
+        [ -f "${CURR_DIR}/build/tinycc-mirror-repository/COPYING" ]; then
         cp "${CURR_DIR}/build/tinycc-mirror-repository/COPYING" "${DESTDIR}/LICENCES/tcc.txt" || true
         CSV+="\nTiny C Compiler,GNU LGPLv2.1,tcc.txt"
     fi
 
     if $INCLUDE_CON_FONTS && 
-       [ -f "${CURR_DIR}/build/terminus-font-4.49.1.tar.gz" ]; then
+        [ -f "${CURR_DIR}/build/terminus-font-4.49.1.tar.gz" ]; then
         tar -xzf "${CURR_DIR}/build/terminus-font-4.49.1.tar.gz" -O terminus-font-4.49.1/OFL.TXT > "${DESTDIR}"/LICENCES/terminus.txt
         CSV+="\nTerminus,OFL 1.1,terminus.txt"
     fi
 
     if [ -f "${DESTDIR}/usr/bin/tic" ] && 
-       [ -f "${CURR_DIR}/build/ncurses/COPYING" ]; then
+        [ -f "${CURR_DIR}/build/ncurses/COPYING" ]; then
         cp "${CURR_DIR}/build/ncurses/COPYING" "${DESTDIR}/LICENCES/ncurses.txt" || true
         CSV+="\ntic,MIT,ncurses.txt"
     fi
 
     if $INCLUDE_TILDE && 
-       [ -f "${CURR_DIR}/build/tilde-$TILDE_VER/COPYING" ]; then
+        [ -f "${CURR_DIR}/build/tilde-$TILDE_VER/COPYING" ]; then
         cp "${CURR_DIR}/build/tilde-$TILDE_VER/COPYING" "${DESTDIR}/LICENCES/tilde.txt" || true
         CSV+="\nTilde,GNU GPLv3,tilde.txt"
     fi
 
     if [ -f "${DESTDIR}/usr/bin/Xfbdev" ] &&
-       [ -f "${CURR_DIR}/build/tinyx/COPYING" ]; then
+        [ -f "${CURR_DIR}/build/tinyx/COPYING" ]; then
         cp "${CURR_DIR}/build/tinyx/COPYING" "${DESTDIR}/LICENCES/tinyx.txt" || true
         CSV+="\nTinyX,GNU GPLv3,tinyx.txt"
     fi
 
     if $INCLUDE_TMUX && 
-       [ -f "${CURR_DIR}/build/tmux/COPYING" ]; then
+        [ -f "${CURR_DIR}/build/tmux/COPYING" ]; then
         cp "${CURR_DIR}/build/tmux/COPYING" "${DESTDIR}/LICENCES/tmux.txt" || true
         CSV+="\ntmux,ISC,tmux.txt"
     fi
 
     if $INCLUDE_TN5250 && 
-       [ -f "${CURR_DIR}/build/tn5250/COPYING" ]; then
+        [ -f "${CURR_DIR}/build/tn5250/COPYING" ]; then
         cp "${CURR_DIR}/build/tn5250/COPYING" "${DESTDIR}/LICENCES/tn5250.txt" || true
         CSV+="\ntn5250,GNU LGPLv2.1,tn5250.txt"
     fi
 
     if $INCLUDE_TNFTP && 
-       [ -f "${CURR_DIR}/build/tnftp-$TNFTP_VER/COPYING" ]; then
+        [ -f "${CURR_DIR}/build/tnftp-$TNFTP_VER/COPYING" ]; then
         cp "${CURR_DIR}/build/tnftp-$TNFTP_VER/COPYING" "${DESTDIR}/LICENCES/tnftp.txt" || true
         CSV+="\ntnftp,BSD 2-Clause,tnftp.txt"
     fi
 
     if [ -f "${DESTDIR}/usr/bin/twm" ] && 
-       [ -f "${CURR_DIR}/build/twm/COPYING" ]; then
+        [ -f "${CURR_DIR}/build/twm/COPYING" ]; then
         cp "${CURR_DIR}/build/twm/COPYING" "${DESTDIR}/LICENCES/twm.txt" || true
         CSV+="\nTWM,MIT,twm.txt"
     fi
 
     if $INCLUDE_CTAGS && 
-       [ -f "${CURR_DIR}/build/ctags/COPYING" ]; then
+        [ -f "${CURR_DIR}/build/ctags/COPYING" ]; then
         cp "${CURR_DIR}/build/ctags/COPYING" "${DESTDIR}/LICENCES/ctags.txt" || true
         CSV+="\nUniversal Ctags,GPLv2,ctags.txt"
     fi
 
     if $INCLUDE_UTIL_LINUX && 
-       [ -f "${CURR_DIR}/build/util-linux/COPYING" ]; then
+        [ -f "${CURR_DIR}/build/util-linux/COPYING" ]; then
         cp "${CURR_DIR}/build/util-linux/COPYING" "${DESTDIR}/LICENCES/util-linux.txt" || true
         CSV+="\nutil-linux,GNU GPLv2,util-linux.txt"
     fi
 
     if $INCLUDE_VIM && 
-       [ -f "${CURR_DIR}/build/vim/LICENSE" ]; then
+        [ -f "${CURR_DIR}/build/vim/LICENSE" ]; then
         cp "${CURR_DIR}/build/vim/LICENSE" "${DESTDIR}/LICENCES/vim.txt" || true
         CSV+="\nVim,Vim License,vim.txt"
     fi
@@ -7529,25 +7580,25 @@ copy_licences()
     # TODO: $NEED_X86EMU
 
     if [ -f "${DESTDIR}/usr/bin/xli" ] && 
-       [ -f "${CURR_DIR}/build/xli/LICENSE" ]; then
+        [ -f "${CURR_DIR}/build/xli/LICENSE" ]; then
         cp "${CURR_DIR}/build/xli/LICENSE" "${DESTDIR}/LICENCES/xli.txt" || true
         CSV+="\nxli,MIT,xli.txt"
     fi
 
     if [ -f "${DESTDIR}/usr/bin/xload" ] && 
-       [ -f "${CURR_DIR}/build/xload-1.2.0/COPYING" ]; then
+        [ -f "${CURR_DIR}/build/xload-1.2.0/COPYING" ]; then
         cp "${CURR_DIR}/build/xload-1.2.0/COPYING" "${DESTDIR}/LICENCES/xload.txt" || true
         CSV+="\nxload,MIT,xload.txt"
     fi
 
     if [ -f "${DESTDIR}/usr/bin/xset" ] && 
-       [ -f "${CURR_DIR}/build/xset-1.2.5/COPYING" ]; then
+        [ -f "${CURR_DIR}/build/xset-1.2.5/COPYING" ]; then
         cp "${CURR_DIR}/build/xset-1.2.5/COPYING" "${DESTDIR}/LICENCES/xset.txt" || true
         CSV+="\nxset,MIT,xset.txt"
     fi
 
     if $NEED_ZLIB && 
-       [ -f "${CURR_DIR}/build/zlib/LICENSE" ]; then
+        [ -f "${CURR_DIR}/build/zlib/LICENSE" ]; then
         cp "${CURR_DIR}/build/zlib/LICENSE" "${DESTDIR}/LICENCES/zlib.txt" || true
         CSV+="\nzlib,zlib,zlib.txt"
     fi
@@ -9359,6 +9410,7 @@ if $INCLUDE_DOSEMU2; then
         false \
         "/usr" \
         "--sysconfdir=/etc --disable-x --disable-sdl --disable-fdpp --disable-dj64 --disable-alsa --disable-libao --disable-ladspa --disable-fluidsynth --disable-midimisc --disable-dlplugins"
+    make_swap_wrap "${DESTDIR}/usr/bin/dosemu.bin"
 fi
 if $INCLUDE_DOSFSTOOLS; then
     get_prog_git \
@@ -9409,6 +9461,9 @@ if $INCLUDE_EMACS; then
 fi
 if $INCLUDE_FILE; then
     get_file
+fi
+if $INCLUDE_FREEDOS; then
+    get_freedos
 fi
 if $INCLUDE_GIT; then
     get_git
