@@ -1,3 +1,14 @@
+############################################################################
+## 7.1.x_restore-no-pci-devices.patch                                     ##
+############################################################################
+## This patch is a derivative work of the Linux kernel. It is licensed    ##
+## separately under the terms of the GNU GPLv2 licence, and is            ##
+## distributed as part of the SHORK project. See the accompanying COPYING ##
+## file in the parent directory for details.                              ##
+############################################################################
+## Kali (links.sharktastica.co.uk)                                        ##
+############################################################################
+
 diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
 index b63cd0c31..eaa4a3d66 100644
 --- a/drivers/pci/probe.c

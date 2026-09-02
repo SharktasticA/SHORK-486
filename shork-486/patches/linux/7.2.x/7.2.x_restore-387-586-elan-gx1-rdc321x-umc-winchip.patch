@@ -1,3 +1,14 @@
+############################################################################
+## 7.2.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.patch               ##
+############################################################################
+## This patch is a derivative work of the Linux kernel. It is licensed    ##
+## separately under the terms of the GNU GPLv2 licence, and is            ##
+## distributed as part of the SHORK project. See the accompanying COPYING ##
+## file in the parent directory for details.                              ##
+############################################################################
+## Kali (links.sharktastica.co.uk)                                        ##
+############################################################################
+
 diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
 index b5493a7f8..bcc3ad4d2 100644
 --- a/Documentation/admin-guide/kernel-parameters.txt

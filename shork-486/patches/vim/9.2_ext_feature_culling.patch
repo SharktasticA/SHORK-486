@@ -1,3 +1,14 @@
+############################################################################
+## 9.2_ext_feature_culling.patch                                          ##
+############################################################################
+## This patch is a derivative work of Vim. It is licensed separately      ##
+## under the terms of the Vim licence, and is distributed as part of the  ##
+## SHORK project. See the accompanying LICENSE file in this directory for ##
+## details.                                                               ##
+############################################################################
+## Kali (links.sharktastica.co.uk)                                        ##
+############################################################################
+
 #CULL="FEAT_MULTI_LANG FEAT_TERMGUICOLORS STARTUPTIME FEAT_MOUSE_NET FEAT_MOUSE_DEC FEAT_MOUSE_URXVT"
 #for FEAT in $CULL; do
 #    sed -i -E "s/^([[:space:]]*#+[[:space:]]*define[[:space:]]+${FEAT})[[:space:]]*\$/\/\/ \1/" src/feature.h

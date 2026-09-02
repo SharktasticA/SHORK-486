@@ -1,3 +1,14 @@
+############################################################################
+## 1.38.0_lsblk_swap.patch                                                ##
+############################################################################
+## This patch is a derivative work of BusyBox. It is licensed separately  ##
+## under the terms of the GNU GPLv2 licence, and is distributed as part   ##
+## of the SHORK project. See the accompanying LICENSE file in this        ##
+## directory for details.                                                 ##
+############################################################################
+## Kali (links.sharktastica.co.uk)                                        ##
+############################################################################
+
 --- busybox-1.38.0_clean/util-linux/lsblk.c	2026-02-06 07:45:29.000000000 +0000
 +++ busybox-1.38.0/util-linux/lsblk.c	2026-06-08 23:14:39.227995755 +0100
 @@ -133,6 +133,46 @@

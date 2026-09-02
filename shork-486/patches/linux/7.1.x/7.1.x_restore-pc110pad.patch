@@ -1,3 +1,14 @@
+############################################################################
+## 7.1.x_restore-pc110pad.patch                                           ##
+############################################################################
+## This patch is a derivative work of the Linux kernel. It is licensed    ##
+## separately under the terms of the GNU GPLv2 licence, and is            ##
+## distributed as part of the SHORK project. See the accompanying COPYING ##
+## file in the parent directory for details.                              ##
+############################################################################
+## Kali (links.sharktastica.co.uk)                                        ##
+############################################################################
+
 diff --git a/drivers/input/mouse/Kconfig b/drivers/input/mouse/Kconfig
 index 074130d88..04d56f40e 100644
 --- a/drivers/input/mouse/Kconfig

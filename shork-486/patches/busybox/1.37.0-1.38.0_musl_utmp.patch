@@ -1,3 +1,14 @@
+############################################################################
+## 1.37.0-1.38.0_musl_utmp.patch                                          ##
+############################################################################
+## This patch is a derivative work of BusyBox. It is licensed separately  ##
+## under the terms of the GNU GPLv2 licence, and is distributed as part   ##
+## of the SHORK project. See the accompanying LICENSE file in this        ##
+## directory for details.                                                 ##
+############################################################################
+## Kali (links.sharktastica.co.uk)                                        ##
+############################################################################
+
 diff --git a/coreutils/who.c b/coreutils/who.c
 index 6f96f7243..3f6dfde5e 100644
 --- a/coreutils/who.c

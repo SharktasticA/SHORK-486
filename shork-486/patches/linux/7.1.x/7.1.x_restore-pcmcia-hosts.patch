@@ -1,3 +1,14 @@
+############################################################################
+## 7.1.x_restore-pcmcia-hosts.patch                                       ##
+############################################################################
+## This patch is a derivative work of the Linux kernel. It is licensed    ##
+## separately under the terms of the GNU GPLv2 licence, and is            ##
+## distributed as part of the SHORK project. See the accompanying COPYING ##
+## file in the parent directory for details.                              ##
+############################################################################
+## Kali (links.sharktastica.co.uk)                                        ##
+############################################################################
+
 --- b/arch/mips/configs/mtx1_defconfig
 +++ a/arch/mips/configs/mtx1_defconfig
 @@ -15,6 +15,7 @@

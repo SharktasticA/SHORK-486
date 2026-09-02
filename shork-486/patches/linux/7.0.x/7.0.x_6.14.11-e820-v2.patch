@@ -1,3 +1,14 @@
+############################################################################
+## 7.0.x_6.14.11-e820-v2.patch                                            ##
+############################################################################
+## This patch is a derivative work of the Linux kernel. It is licensed    ##
+## separately under the terms of the GNU GPLv2 licence, and is            ##
+## distributed as part of the SHORK project. See the accompanying COPYING ##
+## file in the parent directory for details.                              ##
+############################################################################
+## Kali (links.sharktastica.co.uk)                                        ##
+############################################################################
+
 diff --git a/arch/x86/kernel/e820.c b/arch/x86/kernel/e820.c
 index 2a9992758..1f968b483 100644
 --- a/arch/x86/kernel/e820.c

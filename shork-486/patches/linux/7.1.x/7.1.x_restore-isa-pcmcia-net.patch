@@ -1,3 +1,14 @@
+############################################################################
+## 7.1.x_restore-isa-pcmcia-net.patch                                     ##
+############################################################################
+## This patch is a derivative work of the Linux kernel. It is licensed    ##
+## separately under the terms of the GNU GPLv2 licence, and is            ##
+## distributed as part of the SHORK project. See the accompanying COPYING ##
+## file in the parent directory for details.                              ##
+############################################################################
+## Kali (links.sharktastica.co.uk)                                        ##
+############################################################################
+
 diff --git a/Documentation/.renames.txt b/Documentation/.renames.txt
 index aa7e5aa4a..df4db1121 100644
 --- a/Documentation/.renames.txt

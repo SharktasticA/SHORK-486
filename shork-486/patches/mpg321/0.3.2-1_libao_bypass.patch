@@ -1,3 +1,14 @@
+############################################################################
+## 0.3.2-1_libao_bypass.patch                                             ##
+############################################################################
+## This patch is a derivative work of mpg321. It is licensed separately   ##
+## under the terms of the GNU GPLv2 licence, and is distributed as part   ##
+## of the SHORK project. See the accompanying COPYING file in this        ##
+## directory for details.                                                 ##
+############################################################################
+## Kali (links.sharktastica.co.uk)                                        ##
+############################################################################
+
 diff --git a/ao.c b/ao.c
 index 4d9fc42..ee77e75 100644
 --- a/ao.c
