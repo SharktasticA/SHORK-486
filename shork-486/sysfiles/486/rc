@@ -6,11 +6,12 @@
 ## System init script executed during boot that     ##
 ## mounts core file systems, ensures essential      ##
 ## device nodes exist, sets hostname and            ##
-## environment, configures basic networking,        ##
-## displays a welcome message, and begins a sync    ##
-## loop to help prevent data loss on hard reboots   ##
+## environment, enacts settings configured by       ##
+## SHORKSET such as font, Linux modules to load,    ##
+## network interfaces to activate and system volume ##
+## level, and displays a welcome message.           ##
 ######################################################
-## Kali (sharktastica.co.uk)                        ##
+## Kali (links.sharktastica.co.uk)                  ##
 ######################################################
 
 
@@ -44,7 +45,15 @@ fi
 [ -c /dev/tty0 ] || mknod -m 620 /dev/tty0 c 4 0
 [ -c /dev/tty1 ] || mknod -m 620 /dev/tty1 c 4 1
 
+# Generate module.dep if present and empty
+KRN_VER="$(uname -r)"
+if [ -f "/lib/modules/$KRN_VER/modules.dep" ] && [ ! -s "/lib/modules/$KRN_VER/modules.dep" ]; then
+    depmod -b / "$KRN_VER" 2>/dev/null
+fi
+
 [ -r /etc/hostname ] && hostname "$(cat /etc/hostname)"
+
+export ENV=/etc/profile
 
 if [ -x "/usr/libexec/shorkset" ]; then
     # Remount /dev to allow exec (needed for SHORKSET VM86 features)
@@ -64,39 +73,37 @@ if [ -x "/usr/libexec/shorkset" ]; then
             loadkmap < "/usr/share/keymaps/$KEYMAP.kmap.bin"
         fi
 
+        # Load desired modules
+        if [ -n "$MODULES" ]; then
+            OLD_IFS="$IFS"
+            IFS=","
+            for MOD in $MODULES; do
+                modprobe "$MOD" 2>/dev/null
+            done
+            IFS="$OLD_IFS"
+        fi
+
+        # Set up networking
+        if [ "$NET_ENABLED" -eq 1 ]; then
+            # Activate desired interfaces
+            if [ -n "$NET_IFS" ]; then
+                OLD_IFS="$IFS"
+                IFS=","
+                for IF in $NET_IFS; do
+                    if [ -d "/sys/class/net/$IF" ] && [ -e "/sys/class/net/$IF/device" ]; then
+                        ifconfig "$IF" up
+                        if ifconfig "$IF" 2>/dev/null | grep -q "UP"; then
+                            udhcpc -i "$IF" -n -t 3 -T 2 -s /usr/share/udhcpc/default.script > /dev/null 2>&1 &
+                        fi
+                    fi
+                done
+            fi
+        fi
+
         # Load system volume
         if [ -c /dev/dsp ] && [ "$VOLUME" -ge 0 ] 2>/dev/null && [ "$VOLUME" -le 100 ] 2>/dev/null; then
             /usr/libexec/shorkset -vl=$VOLUME
         fi
-    fi
-fi
-
-export ENV=/etc/profile
-
-# Generate module.dep if present and empty
-KRN_VER="$(uname -r)"
-if [ -f "/lib/modules/$KRN_VER/modules.dep" ] && [ ! -s "/lib/modules/$KRN_VER/modules.dep" ]; then
-    depmod -b / "$KRN_VER" 2>/dev/null
-fi
-
-# Load modules listed in shorkset.conf
-if [ -f /etc/shorkset.conf ]; then
-    . /etc/shorkset.conf
-    if [ -n "$MODULES" ]; then
-        OLD_IFS="$IFS"
-        IFS=","
-        for MOD in $MODULES; do
-            modprobe "$MOD" 2>/dev/null
-        done
-        IFS="$OLD_IFS"
-    fi
-fi
-
-# Set up networking
-if [ -d /sys/class/net/eth0 ] && [ -e /sys/class/net/eth0/device ]; then
-    ifconfig eth0 up
-    if ifconfig eth0 2>/dev/null | grep -q "UP"; then
-        udhcpc -i eth0 -n -t 3 -T 2 -s /usr/share/udhcpc/default.script > /dev/null 2>&1 &
     fi
 fi
 
