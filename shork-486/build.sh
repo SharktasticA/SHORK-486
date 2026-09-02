@@ -768,7 +768,7 @@ if [[ ! "$VERSION" =~ [0-9] ]]; then
     fi
     if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
         COMMIT=$(git rev-parse --short=7 HEAD)
-        VER="$VERSION $COMMIT"
+        VERSION="$VERSION $COMMIT"
     fi
 fi
 
@@ -7771,13 +7771,13 @@ build_filesystem()
     fi
 
     if $INCLUDE_GIT; then
-        echo -e "${GREEN}Copying predefined Git settings...${RESET}"
+        echo -e "${GREEN}Copying pre-defined Git settings...${RESET}"
         sudo mkdir -p "${DESTDIR}"/usr/etc
         copy_sysfile "${CURR_DIR}"/sysfiles/gitconfig "${DESTDIR}"/usr/etc/gitconfig
     fi
 
     if $INCLUDE_GNUPG; then
-        echo -e "${GREEN}Copying predefined GnuPG settings...${RESET}"
+        echo -e "${GREEN}Copying pre-defined GnuPG settings...${RESET}"
         sudo mkdir -p "${DESTDIR}"/etc/gnupg
         copy_sysfile "${CURR_DIR}"/sysfiles/gpg-agent.conf "${DESTDIR}"/etc/gnupg/gpg-agent.conf
     fi
@@ -7795,7 +7795,7 @@ build_filesystem()
     fi
 
     if $INCLUDE_MG; then
-        echo -e "${GREEN}Copying predefined Mg settings...${RESET}"
+        echo -e "${GREEN}Copying pre-defined Mg settings...${RESET}"
         copy_sysfile "${CURR_DIR}"/sysfiles/mg "${DESTDIR}"/etc/mg
     fi
 
@@ -7864,7 +7864,7 @@ build_filesystem()
     fi
 
     if $INCLUDE_NANO; then
-        echo -e "${GREEN}Copying predefined nano settings...${RESET}"
+        echo -e "${GREEN}Copying pre-defined nano settings...${RESET}"
         sudo mkdir -p "${DESTDIR}"/usr/etc
         copy_sysfile "${CURR_DIR}"/sysfiles/nanorc "${DESTDIR}"/usr/etc/nanorc
     fi
@@ -7885,6 +7885,11 @@ build_filesystem()
 
     if $INCLUDE_TESTS; then
         copy_tests
+    fi
+
+    if $INCLUDE_TMUX; then
+        echo -e "${GREEN}Copying pre-defined tmux settings...${RESET}"
+        copy_sysfile "${CURR_DIR}"/sysfiles/tmux.conf "${DESTDIR}"/etc/tmux.conf
     fi
 
     if $NEED_OPENSSL; then
