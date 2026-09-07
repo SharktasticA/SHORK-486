@@ -942,7 +942,7 @@ install_debian_prerequisites()
     sudo dpkg --add-architecture i386
     sudo apt-get update
 
-    PACKAGES="autopoint bc bison bzip2 e2fsprogs extlinux fdisk flex genisoimage git kpartx libtool libtool-bin make pkg-config python3 python-is-python3 qemu-utils wget xz-utils"
+    PACKAGES="autopoint bc bison bzip2 e2fsprogs extlinux fdisk flex genisoimage git kpartx libncurses-dev libtool libtool-bin libxcb1-dev make pkg-config python3 python-is-python3 qemu-utils wget xz-utils"
 
     if $FIX_EXTLINUX; then
         PACKAGES+=" nasm uuid-dev"
@@ -6007,7 +6007,7 @@ get_memtester()
     
     DIR="memtester-${MEMTESTER_VER}"
     ARC="${DIR}.tar.gz"
-    URI="${MEMTESTER_SRC}/${NANO_ARC}"
+    URI="${MEMTESTER_SRC}/${ARC}"
 
     # Download source
     [ -f $ARC ] || wget $URI
