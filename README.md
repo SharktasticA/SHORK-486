@@ -231,7 +231,7 @@ _Not included with SHORK 486 Micro, SHORK 486 Mini and SHORK DISKETTE_
 
 SHORK 486 _can_ be used on some newer hardware if you so desire, but there are some considerations.
 
-* SHORK 486 can work with newer x86 processors, although a default SHORK 486 build will not recognise more than 1 core/thread. The "smp" configuration option is available to enable symmetric multiprocessing support. Whilst SHORK 486 can work on an x86-64 processor, the system is still limited to supporting 32-bit software.
+* SHORK 486 can work with newer x86 processors, although a default SHORK 486 build will not recognise more than 1 core/thread. The "Symmetric Multiprocessing Support" configuration option is available to enable symmetric multiprocessing support. Whilst SHORK 486 can work on an x86-64 processor, the system is still limited to supporting 32-bit software.
 
 * A default SHORK 486 system will not recognise more than ~875MiB of memory. The "highmem" configuration option is available to address this, though the minimum system memory requirement is raised to 24MiB/16MiB + 8MiB swap.
 
@@ -362,17 +362,23 @@ When running the SHORK 486 Build Configurator, you will be prompted to select th
 
 * Build environment (Arch native, Debian native/Dockerised or Fedora native)
 * Target distribution (SHORK 486, SHORK DISC or SHORK DISKETTE)
-* Linux kernel version (7.3-rc2, 7.2.3, 7.1.13 or 7.0.14)
 * _If SHORK 486:_
     * Build type (default, max, plus, writer, offline, mini, micro or custom)
     * Target disk size (size in MiB)
     * Swap partition size (size in MiB)
 * _If SHORK DISKETTE:_
     * Target diskette size (1.44MB or 2.88MB)
+* Linux kernel version (7.3-rc2, 7.2.3, 7.1.13 or 7.0.14)
 * Keyboard scancode set (skip, set 2 or set 3)
 * _If SHORK 486:_
     * __If not "Micro" or "Mini" build type selected:__
         * Keyboard layout (keymap) (single choice)
+    * Get symmetric multiprocessing support (yes/no)
+    * __If "Custom" build type selected:__
+        * Ethernet networking support (yes/no)
+* _If SHORK DISKETTE:_
+    * Hard Drive, CD-ROM & DVD-ROM support (yes/no)
+* Patched [EXT/ISO/SYS]LINUX (yes/no)
 * Hostname (text input)
 * _If SHORK 486:_
     * __If not "Micro" or "Mini" build type selected:__
@@ -380,10 +386,6 @@ When running the SHORK 486 Build Configurator, you will be prompted to select th
             * Root password (text input)
     * Serial console mode (yes/no)
         * Serial console port (text input)
-    * __If "Custom" build type selected:__
-        * Ethernet networking support (yes/no)
-* Patched EXTLINUX/SYSLINUX (yes/no)
-* _If SHORK 486:_
     * __If "Custom" build type selected:__
         * Bundled software (multiple choice)
         * Options (all other configuration) (multiple choice)
@@ -403,9 +405,9 @@ Allows you to specify an IBM scancode set for SHORK 486 to request. For most AT 
 
 
 
-#### Multi-User Support
+#### Symmetric Multiprocessing Support
 
-Selecting "Yes" here will enable multi-user and password-protected user support in SHORK 486. BusyBox will include implementations for the `addgroup`, `adduser`, `chgrp`, `chown`, `chpasswd`, `chroot`, `cryptpw`, `delgroup`, `deluser`, `getty`, `id`, `login`, `logname`, `mkpasswd`, `passwd`, `su`, `sulogin`, `users`, `w` and `who` commands, and the sudo package (`sudo`, `sudoedit` and `visudo`) will be included. You will be asked to input a root password in the following prompt.
+Selecting "Yes" here will enable symmetric multiprocessing (SMP) support in SHORK 486. It allows SHORK 486 to take advantage of multi-socket, multi-core and/or multi-threaded systems, useful if you intend to run SHORK 486 on a multi-socket Intel Pentium system or on much newer hardware. It may add ~1-2MiB to idle memory usage, meaning SHORK 486's physical memory requirement should be considered raised by ~2MiB unless the same amount or more swap memory is present. SHORK 486 with SMP support can still run on single-thread systems.
 
 
 
@@ -415,7 +417,13 @@ Selecting "Yes" here will enable ethernet networking support in SHORK 486. BusyB
 
 
 
-#### Patched EXTLINUX/ISOLINUX/SYSLINUX
+#### Multi-User Support
+
+Selecting "Yes" here will enable multi-user and password-protected user support in SHORK 486. BusyBox will include implementations for the `addgroup`, `adduser`, `chgrp`, `chown`, `chpasswd`, `chroot`, `cryptpw`, `delgroup`, `deluser`, `getty`, `id`, `login`, `logname`, `mkpasswd`, `passwd`, `su`, `sulogin`, `users`, `w` and `who` commands, and the sudo package (`sudo`, `sudoedit` and `visudo`) will be included. You will be asked to input a root password in the following prompt.
+
+
+
+#### Patched [EXT/ISO/SYS]LINUX
 
 EXTLINUX (SHORK 486), ISOLINUX (SHORK DISC) and SYSLINUX (SHORK DISKETTE) are the default bootloaders used for the SHORK 486 family. Selecting "Yes" here will tell the build script to use [my forked SYSLINUX repository](https://github.com/SharktasticA/syslinux) instead of your host Linux distribution's maintained packaged version. This version addresses a memory detection error to resolve the "Booting kernel failed: Invalid argument" or boot menu looping issue that the stock EXTLINUX/SYSLINUX may encounter with some BIOSes when attempting to boot the kernel with.
 
@@ -468,8 +476,6 @@ EXTLINUX (SHORK 486), ISOLINUX (SHORK DISC) and SYSLINUX (SHORK DISKETTE) are th
 * **pcmcia**: Adds kernel-level CardBus/PCMCIA/PC Card support. It is primarily needed to support PCMCIA-based network controllers for laptops or unique desktop PCs like the IBM PS/2 E. For most desktop PCs, it is safe to exclude it.
 
 * **sata**: Adds kernel-level SATA AHCI support. This is provided in case someone wanted to try SHORK 486 on a more modern system with SATA devices, or has installed a PCI-based SATA controller in a '90s system. **It is not needed for most '90s hardware**. Its RAM requirements are 24MiB with no swap partition or 16MiB with 8MiB swap.
-
-* **smp**: Adds kernel-level symmetric multiprocessing (e.g., multi-core) support. This is provided in case someone wanted to try SHORK 486 on a more modern system with a multi-core processor. **It is not needed for any '90s hardware**. It may add ~1-2MiB to idle RAM usage.
 
 * **usb**: Adds kernel-level USB and HID support and enables BusyBox's `lsusb` implementation. This is provided in case someone wanted to try SHORK 486 on a system with USB peripherals and/or mass storage devices.
 

@@ -270,6 +270,10 @@ set_mini_vars()
     if [ -z "$2" ] || [ "$2" = false ]; then
         ENABLE_MULTIUSER_REAL=false
     fi
+    # Third argument =true bypasses resetting ENABLE_SMP
+    if [ -z "$2" ] || [ "$2" = false ]; then
+        ENABLE_SMP=false
+    fi
     ENABLE_NET_ETH=false
     INCLUDE_C3270=false
     INCLUDE_CSCOPE=false
@@ -327,7 +331,6 @@ set_mini_vars()
     ENABLE_SATA=false
     ENABLE_SCSI_EXP=false
     ENABLE_SOUND=false
-    ENABLE_SMP=false
     ENABLE_SWAP_WRAP=false
     ENABLE_USB=false
     ENABLE_ZSWAP=false
@@ -335,7 +338,7 @@ set_mini_vars()
 
 set_default_vars()
 {
-    set_mini_vars true true
+    set_mini_vars true true true
     ENABLE_NET_ETH=true
     INCLUDE_DIALOG=true
     INCLUDE_DOSFSTOOLS=true
@@ -387,7 +390,7 @@ set_offline_vars()
 
 set_writer_vars()
 {
-    set_mini_vars true true
+    set_mini_vars true true true
     INCLUDE_HTOP=true
     INCLUDE_JOE=true
     INCLUDE_LSB_RELEASE_MIN=true
@@ -554,25 +557,6 @@ else
         fi
     fi
     ID="$CHOICE"
-fi
-
-
-
-# Get Linux kernel version (all)
-LINUX_VER=$(dialog --clear \
-    --backtitle "SHORK 486 Build Configurator" \
-    --title "Linux Kernel Version" \
-    --cancel-label "Quit" \
-    --default-item "$LINUX_VER" \
-    --menu "Please select which Linux kernel version you wish to use. It is generally safe to use the newest major version that isn't \"-rc\", but if you experience hardware compatibility issues, try building with an older kernel to see if that resolves them. If so, please report it as an issue on the SHORK 486 GitHub repository. Only select a \"-rc\" kernel if you know what you're doing." 15 $WIDTH 5 \
-    "7.3-rc2"   "7.3-rc2 (2026-09-06, testing)" \
-    "7.2.3"     "7.2.3 (2026-09-02, stable)" \
-    "7.1.13"    "7.1.13 (2026-09-02, EOL)" \
-    "7.0.14"    "7.0.14 (2026-06-27, EOL)" \
-    3>&1 1>&2 2>&3)
-
-if [[ ! -n "$LINUX_VER" ]]; then
-    exit 0
 fi
 
 
@@ -777,6 +761,25 @@ fi
 
 
 
+# Get Linux kernel version (all)
+LINUX_VER=$(dialog --clear \
+    --backtitle "SHORK 486 Build Configurator" \
+    --title "Linux Kernel Version" \
+    --cancel-label "Quit" \
+    --default-item "$LINUX_VER" \
+    --menu "Please select which Linux kernel version you wish to use. It is generally safe to use the newest major version that isn't \"-rc\", but if you experience hardware compatibility issues, try building with an older kernel to see if that resolves them. If so, please report it as an issue on the SHORK 486 GitHub repository. Only select a \"-rc\" kernel if you know what you're doing." 15 $WIDTH 5 \
+    "7.3-rc2"   "7.3-rc2 (2026-09-06, testing)" \
+    "7.2.3"     "7.2.3 (2026-09-02, stable)" \
+    "7.1.13"    "7.1.13 (2026-09-02, EOL)" \
+    "7.0.14"    "7.0.14 (2026-06-27, EOL)" \
+    3>&1 1>&2 2>&3)
+
+if [[ ! -n "$LINUX_VER" ]]; then
+    exit 0
+fi
+
+
+
 # Get keyboard scancode set choice (all)
 case $SCANCODE_SET in
     2)  CHOICE_DEFAULT="2" ;;
@@ -803,7 +806,7 @@ esac
 
 
 
-# Get desired keymap (486)
+# Get keyboard layout choice (486 sans Micro/Mini)
 if [ "$BUILD_TYPE" != "mini" ] && [ "$BUILD_TYPE" != "micro" ] &&
    [ "$ID" == "shork-486" ]; then
     KEYMAP_ITEMS=()
@@ -824,7 +827,63 @@ fi
 
 
 
-# Get CD-ROM & DVD-ROM support choice (DISKETTE)
+# Get symmetric multiprocessing support choice (486)
+if [ "$ID" == "shork-486" ]; then
+    DEFAULT_FLAG=""
+    if ! $ENABLE_SMP; then
+        DEFAULT_FLAG="--defaultno"
+    fi
+
+    dialog --clear \
+        --backtitle "SHORK 486 Build Configurator" \
+        --title "Symmetric Multiprocessing Support" \
+        $DEFAULT_FLAG \
+        --yesno "Do you want to build SHORK 486 with symmetric multiprocessing (SMP) support? This allows you to take advantage of extra processing cores and threads if you are running SHORK 486 on a multi-socket Intel Pentium system, or wanting to use SHORK 486 on much newer hardware. In turn, SMP raises physical memory requirements by ~2MiB if no swap memory is available. SHORK 486 with SMP support can still run on single-thread systems." \
+        10 $WIDTH
+
+    CHOICE=$?
+
+    if [[ $CHOICE -eq 0 ]]; then
+        ENABLE_SMP=true
+    else
+        ENABLE_SMP=false
+    fi
+fi
+
+
+
+# Get ethernet networking support choice (486 custom)
+if [ "$ID" == "shork-486" ] && [ "$BUILD_TYPE" == "custom" ]; then
+    DEFAULT_FLAG=""
+    if ! $ENABLE_NET_ETH; then
+        DEFAULT_FLAG="--defaultno"
+    fi
+
+    dialog --clear \
+        --backtitle "SHORK 486 Build Configurator" \
+        --title "Ethernet Networking Support" \
+        $DEFAULT_FLAG \
+        --yesno "Do you want to enable ethernet networking support in SHORK 486? It includes kernel-level ethernet networking support and BusyBox's networking-related utilities, and you will be able to choose software that requires an internet connection in the next prompt." \
+        8 $WIDTH
+
+    CHOICE=$?
+
+    if [[ $CHOICE -eq 0 ]]; then
+        ENABLE_NET_ETH=true
+    elif [[ $CHOICE -eq 1 ]]; then
+        ENABLE_NET_ETH=false
+        INCLUDE_CURL=false
+        INCLUDE_DROPBEAR=false
+        INCLUDE_GIT=false
+        INCLUDE_LYNX=false
+        INCLUDE_TN5250=false
+        INCLUDE_TNFTP=false
+    fi
+fi
+
+
+
+# Get Hard Drive, CD-ROM & DVD-ROM support choice (DISKETTE)
 if [ "$ID" == "shork-diskette" ] && [ "$TARGET_DISK" -eq 2 ]; then
     DEFAULT_FLAG=""
     if ! $ENABLE_CDROM; then
@@ -849,6 +908,38 @@ fi
 
 
 
+# Get patched *LINUX choice (all)
+DEFAULT_FLAG=""
+if ! $FIX_EXTLINUX; then
+    DEFAULT_FLAG="--defaultno"
+fi
+
+VARIANT="*LINUX"
+if [ "$ID" == "shork-486" ]; then
+    VARIANT="EXTLINUX"
+elif [ "$ID" == "shork-disc" ]; then
+    VARIANT="ISOLINUX"
+elif [ "$ID" == "shork-diskette" ]; then
+    VARIANT="SYSLINUX"
+fi
+
+dialog --clear \
+    --backtitle "SHORK 486 Build Configurator" \
+    --title "Patched $VARIANT" \
+    $DEFAULT_FLAG \
+    --yesno "Do you want to use SHORK's patched fork of the $VARIANT bootloader, instead of your host distribution's maintained package version? The patched fork fixes a memory detection issue that *may* prevent booting with certain old BIOS implementations. It is recommended to say \"Yes\" but it will increase build time.\n\nKnown computers that require this: Chicony NB5/derivatives, HP OmniBook 800CT, IBM 2625 ThinkPad 365E/365ED and IBM 6381 PS/ValuePoint" \
+    12 $WIDTH
+
+CHOICE=$?
+
+if [[ $CHOICE -eq 0 ]]; then
+    FIX_EXTLINUX=true
+elif [[ $CHOICE -eq 1 ]]; then
+    FIX_EXTLINUX=false
+fi
+
+
+
 # Get hostname (all)
 HOSTNAME=$(dialog --clear \
     --backtitle "SHORK 486 Build Configurator" \
@@ -860,7 +951,7 @@ HOSTNAME=$(dialog --clear \
 
 
 
-# Get multi-user support choice (486)
+# Get multi-user support choice (486 sans Micro/Mini) and root password (ENABLE_MULTIUSER_REAL=true)
 if [ "$BUILD_TYPE" != "mini" ] && [ "$BUILD_TYPE" != "micro" ] &&
    [ "$ID" == "shork-486" ]; then
     DEFAULT_FLAG="--defaultno"
@@ -886,9 +977,6 @@ if [ "$BUILD_TYPE" != "mini" ] && [ "$BUILD_TYPE" != "micro" ] &&
         ROOT_PASSWD=""
     fi
 
-
-
-    # Get root password (ENABLE_MULTIUSER_REAL=true)
     if [ "$ENABLE_MULTIUSER_REAL" == true ]; then
         while true; do
             # If root password has already been set, offer to reuse it...
@@ -964,13 +1052,13 @@ fi
 
 
 
+# Get serial console mode choice (486) and serial console port (ENABLE_SERIAL_CON=true)
 if [ "$ID" == "shork-486" ]; then
     DEFAULT_FLAG=""
     if ! $ENABLE_SERIAL_CON; then
         DEFAULT_FLAG="--defaultno"
     fi
 
-    # Get serial console mode choice (486)
     dialog --clear \
         --backtitle "SHORK 486 Build Configurator" \
         --title "Serial Console Mode" \
@@ -988,9 +1076,6 @@ if [ "$ID" == "shork-486" ]; then
         SERIAL_CON_PORT="ttyS0"
     fi
 
-
-
-    # Get serial console port (ENABLE_SERIAL_CON=true)
     if [ "$ENABLE_SERIAL_CON" == true ]; then
         while true; do
             SERIAL_CON_PORT_TMP=$(dialog --clear \
@@ -1021,69 +1106,6 @@ if [ "$ID" == "shork-486" ]; then
             break
         done
     fi
-
-
-
-    # Get networking support choice (486)
-    if [ "$BUILD_TYPE" == "custom" ]; then
-        DEFAULT_FLAG=""
-        if ! $ENABLE_NET_ETH; then
-            DEFAULT_FLAG="--defaultno"
-        fi
-
-        dialog --clear \
-            --backtitle "SHORK 486 Build Configurator" \
-            --title "Ethernet Networking Support" \
-            $DEFAULT_FLAG \
-            --yesno "Do you want to enable ethernet networking support in SHORK 486? It includes kernel-level ethernet networking support and BusyBox's networking-related utilities, and you will be able to choose software that requires an internet connection in the next prompt." \
-            8 $WIDTH
-
-        CHOICE=$?
-
-        if [[ $CHOICE -eq 0 ]]; then
-            ENABLE_NET_ETH=true
-        elif [[ $CHOICE -eq 1 ]]; then
-            ENABLE_NET_ETH=false
-            INCLUDE_CURL=false
-            INCLUDE_DROPBEAR=false
-            INCLUDE_GIT=false
-            INCLUDE_LYNX=false
-            INCLUDE_TN5250=false
-            INCLUDE_TNFTP=false
-        fi
-    fi
-fi
-
-
-
-# Get patched *LINUX choice (all)
-DEFAULT_FLAG=""
-if ! $FIX_EXTLINUX; then
-    DEFAULT_FLAG="--defaultno"
-fi
-
-VARIANT="*LINUX"
-if [ "$ID" == "shork-486" ]; then
-    VARIANT="EXTLINUX"
-elif [ "$ID" == "shork-disc" ]; then
-    VARIANT="ISOLINUX"
-elif [ "$ID" == "shork-diskette" ]; then
-    VARIANT="SYSLINUX"
-fi
-
-dialog --clear \
-    --backtitle "SHORK 486 Build Configurator" \
-    --title "Patched $VARIANT" \
-    $DEFAULT_FLAG \
-    --yesno "Do you want to use SHORK's patched fork of the $VARIANT bootloader, instead of your host distribution's maintained package version? The patched fork fixes a memory detection issue that *may* prevent booting with certain old BIOS implementations. It is recommended to say \"Yes\" but it will increase build time.\n\nKnown computers that require this: Chicony NB5/derivatives, HP OmniBook 800CT, IBM 2625 ThinkPad 365E/365ED and IBM 6381 PS/ValuePoint" \
-    12 $WIDTH
-
-CHOICE=$?
-
-if [[ $CHOICE -eq 0 ]]; then
-    FIX_EXTLINUX=true
-elif [[ $CHOICE -eq 1 ]]; then
-    FIX_EXTLINUX=false
 fi
 
 
@@ -1263,7 +1285,6 @@ OPTIONS=$(dialog --clear \
     "sata"          "†Kernel-level SATA support"                                $(val $ENABLE_SATA) \
     "scsi-exp"      "*Kernel-level SCSI media changer & tape drive support"     $(val $ENABLE_SCSI_EXP) \
     "sound"         "Kernel-level sound support"                                $(val $ENABLE_SOUND) \
-    "smp"           "†Kernel-level SMP support"                                 $(val $ENABLE_SMP) \
     "usb"           "Kernel-level USB & HID support & lsusb (0.2MiB)"          $(val $ENABLE_USB) \
     "zswap"         "*Kernel-level zswap support"                               $(val $ENABLE_ZSWAP) \
     2>&1 >/dev/tty)
@@ -1290,7 +1311,6 @@ else
     if [[ $OPTIONS =~ "sata" ]];            then ENABLE_SATA=true;          else ENABLE_SATA=false;             fi
     if [[ $OPTIONS =~ "scsi-exp" ]];        then ENABLE_SCSI_EXP=true;      else ENABLE_SCSI_EXP=false;         fi
     if [[ $OPTIONS =~ "sound" ]];           then ENABLE_SOUND=true;         else ENABLE_SOUND=false;            fi
-    if [[ $OPTIONS =~ "smp" ]];             then ENABLE_SMP=true;           else ENABLE_SMP=false;              fi
     if [[ $OPTIONS =~ "usb" ]];             then ENABLE_USB=true;           else ENABLE_USB=false;              fi
     if [[ $OPTIONS =~ "zswap" ]];           then ENABLE_ZSWAP=true;         else ENABLE_ZSWAP=false;            fi
 fi
