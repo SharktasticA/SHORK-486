@@ -182,6 +182,8 @@ INDENT_SRC="https://ftp.gnu.org/gnu/indent"
 INDENT_VER="2.2.13"
 JOE_SRC="https://github.com/joe-editor/joe.git"
 JOE_VER="4.8"
+JQ_SRC="https://github.com/jqlang/jq.git"
+JQ_VER="1.8.2"
 LIBAO_SRC="https://github.com/xiph/libao.git"
 LIBAO_VER="1.2.2"
 LIBASSUAN_SRC="https://gnupg.org/ftp/gcrypt/libassuan"
@@ -356,6 +358,7 @@ INCLUDE_HTOP=false
 INCLUDE_HWINFO=false
 INCLUDE_INDENT=false
 INCLUDE_JOE=false
+INCLUDE_JQ=false
 INCLUDE_KEYMAPS=false
 INCLUDE_KSHARK=false
 INCLUDE_LSB_RELEASE_MIN=false
@@ -5295,10 +5298,16 @@ get_prog_git()
         git clone --branch "$VER" $SRC
         cd "$GIT_DIR"
     fi
+    git submodule update --init || true
 
+
+
+    # Apply any desired patches
     if [ -n "$PATCH_FILE" ]; then
         patch -p1 < "${PATCHES_DIR}/${PATCH_FILE}"
     fi
+
+
 
     # Compile program
     echo -e "${GREEN}Compiling $NAME...${RESET}"
@@ -7121,6 +7130,18 @@ trim_fat()
         sudo rm -rf "${DESTDIR}/usr/share/applications/joe.desktop"
     fi
 
+    if $INCLUDE_JQ && ! $INCLUDE_GCC; then
+        sudo rm -rf "${DESTDIR}/usr/bin/onig-config"
+        sudo rm -rf "${DESTDIR}/usr/include/jq.h"
+        sudo rm -rf "${DESTDIR}/usr/include/jv.h"
+        sudo rm -rf "${DESTDIR}/usr/include/oniggnu.h"
+        sudo rm -rf "${DESTDIR}/usr/include/oniguruma.h"
+        sudo rm -rf "${DESTDIR}/usr/lib/libjq.a"
+        sudo rm -rf "${DESTDIR}/usr/lib/libjq.la"
+        sudo rm -rf "${DESTDIR}/usr/lib/libonig.a"
+        sudo rm -rf "${DESTDIR}/usr/lib/libonig.la"
+    fi
+
     if $INCLUDE_LYNX; then
         sudo sed -i '/^#/d' "${DESTDIR}"/usr/etc/lynx.lss
         sudo sed -i '/^#/d' "${DESTDIR}"/usr/etc/lynx.cfg
@@ -7162,7 +7183,7 @@ trim_fat()
 }
 
 # Copies all licences for included software
-# TODO: GCC, GRUB, xcalc, xclock, xeyes
+# TODO: GRUB, xcalc, xclock, xeyes
 copy_licences()
 {
     cd "${CURR_DIR}/build"
@@ -7303,10 +7324,16 @@ copy_licences()
         CSV+="\nIndent,GNU GPLv3,indent.txt"
     fi
 
-    if $INCLUDE_JOE && 
+    if $INCLUDE_JOE &&
         [ -f "${CURR_DIR}/build/joe/COPYING" ]; then
         cp "${CURR_DIR}/build/joe/COPYING" "${DESTDIR}/LICENCES/joe.txt" || true
         CSV+="\nJoe's Own Editor,GNU GPLv2,joe.txt"
+    fi
+
+    if $INCLUDE_JQ &&
+        [ -f "${CURR_DIR}/build/jq/COPYING" ]; then
+        cp "${CURR_DIR}/build/jq/COPYING" "${DESTDIR}/LICENCES/jq.txt" || true
+        CSV+="\njq,MIT + CC BY 3.0 + ICU,jq.txt"
     fi
 
     if [ -f "${DESTDIR}/usr/local/bin/lapifetch" ] && 
@@ -9048,6 +9075,7 @@ get_installed_progs_feats()
         check_installed_file "memtester ${MEMTESTER_VER}" "/usr/bin/memtester"
         check_installed_file "PatchELF ${PATCHELF_VER}" "/usr/bin/patchelf"
         check_installed_file "lsb-release-minimal ${LSB_RELEASE_MIN_VER}" "/usr/bin/lsb_release"
+        check_installed_file "jq ${JQ_VER}" "/usr/bin/jq"
     fi
     if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
         check_installed_file "util-linux ${UTIL_LINUX_VER}" "/usr/bin/whereis"
@@ -9294,6 +9322,7 @@ if ! $SKIP_KRN; then
     get_kernel
 fi
 
+# Compile prerequisites
 if $NEED_ZLIB; then
     get_zlib
 fi
@@ -9382,6 +9411,7 @@ if $NEED_GLIB; then
     get_glib
 fi
 
+# Compile SHORKGUI
 if $INCLUDE_GUI; then
     prepare_x11
     get_tinyx
@@ -9402,6 +9432,7 @@ if $INCLUDE_CON_FONTS; then
     get_console_fonts
 fi
 
+# Compile bunlded programs
 if $INCLUDE_C3270; then
     get_prog_git \
         "usr/bin" \
@@ -9604,6 +9635,20 @@ fi
 if $INCLUDE_JOE; then
     get_joe
 fi
+if $INCLUDE_JQ; then
+    get_prog_git \
+        "usr/bin" \
+        "jq" \
+        "jq" \
+        "jq" \
+        "$JQ_SRC" \
+        "jq-$JQ_VER" \
+        "" \
+        false \
+        true \
+        "/usr" \
+        "--with-oniguruma=builtin"
+fi
 if $INCLUDE_LSB_RELEASE_MIN; then
     get_lsb_release_minimal
 fi
@@ -9622,7 +9667,7 @@ if $INCLUDE_LYNX; then
         false \
         false \
         "/usr" \
-        "-with-ssl --with-ssl-dir=\"$SYSROOT\" --with-openssl LIBS=\"-lncursesw -ltinfo -latomic\""
+        "--with-ssl --with-ssl-dir=\"$SYSROOT\" --with-openssl LIBS=\"-lncursesw -ltinfo -latomic\""
 fi
 if $INCLUDE_MAKE; then
     get_prog_tar \

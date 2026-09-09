@@ -39,6 +39,7 @@ REPOS=(
     "llvm/llvm-project"
     "deepin-community/lsb-release-minimal"
     "lua/lua"
+    "jqlang/jq"
     "ThomasDickey/lynx-snapshots"
     "troglobit/mg"
     "micro-editor/MICRO"

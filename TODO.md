@@ -23,7 +23,6 @@
     * Already successfully compiled - streamlining/pruning extraneous files
 * GPM
 * IRC client (exact one TBD)
-* jq
 * libtool
 * m4
 * pkg-config

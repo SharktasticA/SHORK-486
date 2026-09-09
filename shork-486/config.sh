@@ -195,6 +195,7 @@ save_env()
         echo "INCLUDE_HTOP=$INCLUDE_HTOP"
         echo "INCLUDE_INDENT=$INCLUDE_INDENT"
         echo "INCLUDE_JOE=$INCLUDE_JOE"
+        echo "INCLUDE_JQ=$INCLUDE_JQ"
         echo "INCLUDE_LSB_RELEASE_MIN=$INCLUDE_LSB_RELEASE_MIN"
         echo "INCLUDE_LUA=$INCLUDE_LUA"
         echo "INCLUDE_LYNX=$INCLUDE_LYNX"
@@ -290,6 +291,7 @@ set_mini_vars()
     INCLUDE_HTOP=false
     INCLUDE_INDENT=false
     INCLUDE_JOE=false
+    INCLUDE_JQ=false
     INCLUDE_LSB_RELEASE_MIN=false
     INCLUDE_LUA=false
     INCLUDE_LYNX=false
@@ -425,6 +427,7 @@ set_plus_vars()
     INCLUDE_GNUPG=true
     INCLUDE_INDENT=true
     INCLUDE_JOE=true
+    INCLUDE_JQ=true
     INCLUDE_MAKE=true
     INCLUDE_MPG321=true
     INCLUDE_NASM=true
@@ -1137,6 +1140,7 @@ if [ "$ENABLE_NET_ETH" == true ]; then
         "htop"              "*Interactive process viewer (0.6MiB)"                  "$(val "$INCLUDE_HTOP")"
         "indent"            "C code formatter (0.1MiB)"                             "$(val "$INCLUDE_INDENT")"
         "joe"               "WordStar & Emacs-blend text editor (1.9MiB)"           "$(val "$INCLUDE_JOE")"
+        "jq"                "Command-line JSON processor (0.9MiB)"                  "$(val "$INCLUDE_JQ")"
         "lsb-release-min"   "*LSB/distribution info reporter (0.03MiB)"             "$(val "$INCLUDE_LSB_RELEASE_MIN")"
         "lua"               "*Embedded scripting & extensions language (0.4MiB)"    "$(val "$INCLUDE_LUA")"
         "lynx"              "*Terminal web browser (7.3MiB)"                        "$(val "$INCLUDE_LYNX")"
@@ -1175,6 +1179,7 @@ else
         "htop"              "*Interactive process viewer (0.6MiB)"                  "$(val "$INCLUDE_HTOP")"
         "indent"            "C code formatter (0.1MiB)"                             "$(val "$INCLUDE_INDENT")"
         "joe"               "WordStar & Emacs-blend text editor (1.9MiB)"           "$(val "$INCLUDE_JOE")"
+        "jq"                "Command-line JSON processor (0.9MiB)"                  "$(val "$INCLUDE_JQ")"
         "lsb-release-min"   "*LSB/distribution info reporter (0.03MiB)"             "$(val "$INCLUDE_LSB_RELEASE_MIN")"
         "lua"              "*Embedded scripting & extensions language (0.4MiB)"     "$(val "$INCLUDE_LUA")"
         "make"              "Build automation tool (0.3MiB)"                        "$(val "$INCLUDE_MAKE")"
@@ -1228,6 +1233,7 @@ else
     if [[ $BUNDLED =~ "htop" ]];            then INCLUDE_HTOP=true;             else INCLUDE_HTOP=false;            fi
     if [[ $BUNDLED =~ "indent" ]]           then INCLUDE_INDENT=true;           else INCLUDE_INDENT=false;          fi
     if [[ $BUNDLED =~ "joe" ]];             then INCLUDE_JOE=true;              else INCLUDE_JOE=false;             fi
+    if [[ $BUNDLED =~ "jq" ]];              then INCLIDE_JQ=true;               else INCLIDE_JQ=false;              fi
     if [[ $BUNDLED =~ "lsb-release-min" ]]; then INCLUDE_LSB_RELEASE_MIN=true;  else INCLUDE_LSB_RELEASE_MIN=false; fi
     if [[ $BUNDLED =~ "lua" ]];             then INCLUDE_LUA=true;              else INCLUDE_LUA=false;             fi
     if [[ $BUNDLED =~ "lynx" ]];            then INCLUDE_LYNX=true;             else INCLUDE_LYNX=false;            fi
