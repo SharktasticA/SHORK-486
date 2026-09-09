@@ -117,7 +117,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [Lua](https://www.lua.org/) | `lua` | 5.5.1 | Embedded scripting & extensions language | MIT |*|**\***||*|
 | [Lynx](https://github.com/ThomasDickey/lynx-snapshots) | `lynx` | 2-9-3a | Terminal web browser | GPLv2 |*|**\***|||
 | [memtester](https://pyropus.ca./software/memtester/) | `memtester` | 4.7.1 | Userspace memory subsystem fault tester | GPLv2 |*|**\***|*|*|
-| [Mg](https://github.com/troglobit/mg) | `mg` | 4.0 | Emacs-style text editor | Unlicense |*|**\***|*|*|
+| [Mg](https://github.com/troglobit/mg) | `mg` | 4.1 | Emacs-style text editor | Unlicense |*|**\***|*|*|
 | [MicroPython](https://github.com/micropython/micropython) | `micropython` | 1.29.0 | Python 3.4-syntax intepreter | MIT |*|**\***||*|
 | [mpg321](https://mpg321.sourceforge.net/)† | `mpg321` | 0.3.2-1 | MP3 player | GPLv2 |*||||
 | [mt-st](https://github.com/iustin/mt-st) | `mt`, `stinit` | 1.8 | Tape drive tools | GPLv2 |*|**\***||*|
@@ -132,7 +132,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [tmux](https://github.com/tmux/tmux) | `tmux` | 3.7c | Terminal multiplexer | ISC |*|**\***|*|*|
 | [tn5250](https://github.com/tn5250/tn5250)† | `tn5250` | 0.18.0 | TCP/IP 5250 terminal emulator | LGPLv2.1 |*||||
 | [tnftp](https://ftp.netbsd.org/pub/NetBSD/misc/tnftp/) | `ftp` | 20260211 | FTP client | BSD 2-Clause |*|**\***|||
-| [Universal Ctags](https://ctags.io/) | `ctags`, `readtags` | 6.2.20260823.0 | Source code object indexing | GPLv2 |*||||
+| [Universal Ctags](https://ctags.io/) | `ctags`, `readtags` | 6.2.1 | Source code object indexing | GPLv2 |*||||
 | [util-linux](https://github.com/util-linux/util-linux) | `cfdisk`, `fdisk`\*, `lscpu`, `partx`, `sfdisk`, `whereis` | 2.42.2 | Extra Linux utilities | GPLv2 |*|**\***||*|
 | [Vim](https://www.vim.org/)† | `ex`, `view`, `rvim`, `rview`, `vim`, `vimdiff`, `vimtutor`, `xxd`\* | 9.2.0785 | Vi IMproved text editor | Vim |*||*||
 | [x3270](https://github.com/pmattes/x3270)† | `c3270` | 4.5ga6 | 3270 terminal emulator | BSD 3-Clause |*||||
@@ -147,7 +147,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 
 | Name | Version | For | Licence(s) |
 |------|---------|-----|------------|
-| [Compiler-RT](https://github.com/llvm/llvm-project/tree/main/compiler-rt) (libsoftfp) | 23.1.0 | GnuPG | Apache 2.0 w/ LLVM Exceptions |
+| [Compiler-RT](https://github.com/llvm/llvm-project/tree/main/compiler-rt) (libsoftfp) | 23.1.1 | GnuPG | Apache 2.0 w/ LLVM Exceptions |
 | [libao](https://github.com/xiph/libao) | 1.2.2 | mpg321 | GPLv2 |
 | [libassuan](https://www.gnupg.org/software/libassuan/index.html) | 3.0.2 | GnuPG | GPLv3 |
 | libcom_err | 1.47.4 | e2fsprogs | MIT SIPB |
@@ -167,13 +167,13 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [libunistring](https://ftp.gnu.org/gnu/libunistring/) | 1.4.2 | Tilde | GPLv3 |
 | libuuid | 1.47.4 | e2fsprogs | BSD 3-Clause |
 | [libxlsxwriter](https://github.com/jmcnamara/libxlsxwriter) | 1.2.4 | sc-im | BSD 2-Clause |
-| [libxml2](https://github.com/gnome/libxml2) | 2.15.3 | sc-im, Universal Ctags | MIT |
+| [libxml2](https://github.com/gnome/libxml2) | 2.15.4 | sc-im, Universal Ctags | MIT |
 | [libzip](https://github.com/nih-at/libzip) | 1.11.4 | sc-im | BSD 3-Clause |
 | [musl](somethhttps://musl.libc.org/) | 1.2.6 | GCC, Tiny C Compiler | MIT |
 | [ncurses](https://github.com/mirror/ncurses) | 6.4 | htop, Lynx, nano, sc-im, tic, tmux, tn5250, util-linux, x3270 | MIT |
 | [nPth](https://www.gnupg.org/software/npth/index.html) | 1.8 | GnuPG | LGPLv2.1 |
 | [OpenSSL](https://github.com/openssl/openssl) | 3.6.4 | curl, Git, Lynx, tn5250 | Apache 2.0 |
-| [PCRE2](https://pcre2project.github.io/pcre2/) | 10.47 | Tilde | BSD 3-Clause w/ PCRE2 exception |
+| [PCRE2](https://pcre2project.github.io/pcre2/) | 10.48 | Tilde | BSD 3-Clause w/ PCRE2 exception |
 | [zlib](https://github.com/madler/zlib) | 1.3.2 | Git, GnuPG, libzip | zlib |
 
 ### SHORK Utilities (SHORKUTILS)
@@ -195,37 +195,6 @@ _Not included with SHORK 486 Micro, SHORK 486 Mini and SHORK DISKETTE_
 * **[shorkmatrix](https://github.com/SharktasticA/shorkmatrix)** - A quick, blue-themed take on the [CMatrix](https://github.com/abishekvashok/cmatrix) "digital rain" vertical scrolling text screensaver. Available as `cmatrix` and `shorkmatrix`.
 * **[shorkmines](https://github.com/SharktasticA/shorkmines)** - A terminal-based minesweeper game based on [terminal-mines](https://github.com/joelekstrom/terminal-mines). Available as `shorkmines` and `terminal-mines`.
 * **[shorksay](https://github.com/SharktasticA/shorksay)** - A shark-themed take on [cowsay](https://github.com/cowsay-org/cowsay), a "simple and silly" program that outputs an ASCII art shark and speech bubble containing a message of your choice. Available as `shorksay` and `cowsay`.
-
-### Todo, planned & under consideration
-
-#### SHORKUTILS & SHORKTAINMENT
-
-* shorkchess (chess game)
-* shorkdisk (disk mounting, unmounting and ejecting)
-* shorknet (network connection management)
-* shorksnek (snake-like game)
-* shorkvader (space invaders-like game)
-
-#### Bundled software
-
-* BASIC interpreter (exact one TBD)
-* bison
-* cmake
-* dosemu2
-    * Already successfully compiled - working out teething issues
-* flex
-* GDB
-* GNU Autotools (especially automake and autoreconf)
-* GNU Emacs
-    * Already successfully compiled - streamlining/pruning extraneous files
-* GPM
-* IRC client (exact one TBD)
-* libtool
-* m4
-* pkg-config
-* SWIG
-* tshark (Wireshark)
-* w3m
 
 ### SHORK 486 on modern hardware
 

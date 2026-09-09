@@ -9,3 +9,4 @@ shork-486/payload/*
 !shork-486/payload/notice.txt
 shork-486/release/images/
 shork-486/.env
+shork-486/ght.env
