@@ -29,6 +29,7 @@ REPOS=(
     "mkj/dropbear"
     "file/file"
     "git/git"
+    "telmich/gpm"
     "htop-dev/htop"
     "joe-editor/joe"
     "xiph/libao"

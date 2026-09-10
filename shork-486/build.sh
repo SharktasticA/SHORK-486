@@ -180,6 +180,8 @@ GLIBC_SRC="https://ftp.gnu.org/gnu/glibc"
 GLIBC_VER="2.44"
 GNUPG_SRC="https://gnupg.org/ftp/gcrypt/gnupg"
 GNUPG_VER="2.5.21"
+GPM_SRC="https://github.com/telmich/gpm.git"
+GPM_VER="1.20.7"
 HTOP_SRC="https://github.com/htop-dev/htop.git"
 HTOP_VER="3.5.3"
 HWINFO_SRC="https://github.com/opensuse/hwinfo.git"
@@ -324,12 +326,13 @@ ENABLE_HIGHMEM=false
 ENABLE_LOOP=false
 ENABLE_MENU=false
 ENABLE_MODULES=false
-ENABLE_NO_VDS032=true
+ENABLE_MOUSE=false
 ENABLE_MULTIUSER_KRN=false
 ENABLE_MULTIUSER_REAL=false
 ENABLE_NET_BASE=false
 ENABLE_NET_ETH=false
 ENABLE_NET_PCMCIA=false
+ENABLE_NO_VDS032=true
 ENABLE_PCMCIA=false
 ENABLE_SATA=false
 ENABLE_SCSI_EXP=false
@@ -359,6 +362,7 @@ INCLUDE_FREEDOS=false
 INCLUDE_GCC=false
 INCLUDE_GIT=false
 INCLUDE_GNUPG=false
+INCLUDE_GPM=false
 INCLUDE_GUI=false
 INCLUDE_HTOP=false
 INCLUDE_HWINFO=false
@@ -534,30 +538,9 @@ else
     INCLUDE_TNFTP=false
 fi
 
-# Ensure MULTIUSER_KRN is enabled with MULTIUSER_REAL
-if [ "$ENABLE_MULTIUSER_REAL" = true ]; then
-    ENABLE_MULTIUSER_KRN=true
-fi
-
-# Ensure MODULES is enabled SOUND 
-if [ "$ENABLE_SOUND" = true ]; then
-    ENABLE_MODULES=true
-fi
-
-# Ensure USE_GRUB is disabled with FIX_EXTLINUX
-if [ "$FIX_EXTLINUX" = true ]; then
-    USE_GRUB=false
-fi
-
-# Ensure MULTIUSER_KRN and VM86 is enabled with DOSEMU2
-if [ "$INCLUDE_DOSEMU2" = true ]; then
-    ENABLE_MULTIUSER_KRN=true
-    ENABLE_VM86=true
-fi
-
-# Ensure FREEDOS is excluded without DOSEMU2
-if [ "$INCLUDE_DOSEMU2" = false ] && [ "$INCLUDE_FREEDOS" = true ]; then
-    INCLUDE_FREEDOS=false
+# Ensure EPOLL is enabled with MICRO
+if [ "$INCLUDE_MICRO" = true ]; then
+    ENABLE_EPOLL=true
 fi
 
 # Ensure FB_VBE is enabled with GUI, NCDU or UTIL_LINUX
@@ -566,23 +549,14 @@ if [ "$INCLUDE_GUI" = true ] || [ "$INCLUDE_NCDU" = true ] ||
     ENABLE_FB_VBE=true
 fi
 
-# Ensure MULTIUSER_KRN and TASKSTATS are enabled with HTOP
-if [ "$INCLUDE_HTOP" = true ]; then
-    ENABLE_MULTIUSER_KRN=true
-    ENABLE_TASKSTATS=true
+# Ensure FREEDOS is excluded without DOSEMU2
+if [ "$INCLUDE_DOSEMU2" = false ] && [ "$INCLUDE_FREEDOS" = true ]; then
+    INCLUDE_FREEDOS=false
 fi
 
-# Ensure NET_BASE is enabled with DOSEMU2, GNUPG, HTOP, SUDO, TMUX or
-# NET_ETH
-if [ "$INCLUDE_DOSEMU2" = true ] || [ "$INCLUDE_GNUPG" = true ] || 
-    [ "$INCLUDE_HTOP" = true ] || [ "$INCLUDE_SUDO" = true ] || 
-    [ "$INCLUDE_TMUX" = true ] || [ "$ENABLE_NET_ETH" = true ]; then
-    ENABLE_NET_BASE=true
-fi
-
-# Ensure EPOLL is enabled with MICRO
-if [ "$INCLUDE_MICRO" = true ]; then
-    ENABLE_EPOLL=true
+# Ensure MODULES is enabled with SOUND
+if [ "$ENABLE_SOUND" = true ]; then
+    ENABLE_MODULES=true
 fi
 
 # Ensure MODULES, SOUND and SYSVIPC are enabled with MPG321
@@ -592,9 +566,45 @@ if [ "$INCLUDE_MPG321" = true ]; then
     ENABLE_SYSVIPC=true
 fi
 
+# Ensure MOUSE is enabled with GPM or GUI
+if [ "$INCLUDE_GPM" = true ] || [ "$INCLUDE_GUI" = true ]; then
+    ENABLE_MOUSE=true
+fi
+
+# Ensure MULTIUSER_KRN is enabled with MULTIUSER_REAL
+if [ "$ENABLE_MULTIUSER_REAL" = true ]; then
+    ENABLE_MULTIUSER_KRN=true
+fi
+
+# Ensure MULTIUSER_KRN and TASKSTATS are enabled with HTOP
+if [ "$INCLUDE_HTOP" = true ]; then
+    ENABLE_MULTIUSER_KRN=true
+    ENABLE_TASKSTATS=true
+fi
+
+# Ensure MULTIUSER_KRN and VM86 is enabled with DOSEMU2
+if [ "$INCLUDE_DOSEMU2" = true ]; then
+    ENABLE_MULTIUSER_KRN=true
+    ENABLE_VM86=true
+fi
+
+# Ensure NET_BASE is enabled with DOSEMU2, GNUPG, GPM, HTOP, NET_ETH, SUDO
+# or TMUX
+if [ "$INCLUDE_DOSEMU2" = true ] || [ "$INCLUDE_GNUPG" = true ] || 
+    [ "$INCLUDE_GPM" = true ] || [ "$INCLUDE_HTOP" = true ] ||
+    [ "$INCLUDE_SUDO" = true ] ||  [ "$INCLUDE_TMUX" = true ] ||
+    [ "$ENABLE_NET_ETH" = true ]; then
+    ENABLE_NET_BASE=true
+fi
+
 # Ensure SCSI_EXT is enabled with MT_ST
 if [ "$INCLUDE_MT_ST" = true ]; then
     ENABLE_SCSI_EXP=true
+fi
+
+# Ensure USE_GRUB is disabled with FIX_EXTLINUX
+if [ "$FIX_EXTLINUX" = true ]; then
+    USE_GRUB=false
 fi
 
 
@@ -1190,10 +1200,14 @@ get_ncurses()
             --without-cxx \
             --enable-widec \
             --enable-pc-files \
+            --without-dlsym \
+            --enable-gpm \
+            --with-gpm \
             --with-pkg-config-libdir="${SYSROOT}/lib/pkgconfig" \
             CC="${CC_STATIC}" \
             CFLAGS="-fPIC" \
-            CPPFLAGS="-D_XOPEN_SOURCE=600"
+            CPPFLAGS="-D_XOPEN_SOURCE=600 -I${PREFIX}/include" \
+            LDFLAGS="-static -L${PREFIX}/lib"
         make -j$(nproc)
         make install
     fi
@@ -2188,6 +2202,7 @@ get_libt3widget()
         RANLIB="${RANLIB}" \
         LIBTOOL="${PREFIX}/bin/i486-linux-musl-libtool" \
         CFLAGS="--sysroot=${SYSROOT} -I${SYSROOT}/usr/include -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
+        CXXFLAGS="-I${PREFIX}/include -I${SYSROOT}/usr/include" \
         LDFLAGS="--sysroot=${SYSROOT} -L${SYSROOT}/usr/lib -L${PREFIX}/lib"
 
     # Fix "library was moved" error on Arch
@@ -2391,9 +2406,9 @@ get_libtranscript()
     fi
 
     # Copy needed .ltc codec plugins
-    mkdir -p "${DESTDIR}/usr/lib/transcript1"
-    for codec in ascii.ltc iso88591.ltc utf8.ltc iso885921999.ltc iso8859131998.ltc iso8859151999.ltc; do
-        cp "$SYSROOT/usr/lib/transcript1/$codec" "${DESTDIR}/usr/lib/transcript1/"
+    sudo mkdir -p "${DESTDIR}/usr/lib/transcript1"
+    for CODEC in ascii.ltc iso88591.ltc utf8.ltc iso885921999.ltc iso8859131998.ltc iso8859151999.ltc; do
+        sudo cp "$SYSROOT/usr/lib/transcript1/$CODEC" "${DESTDIR}/usr/lib/transcript1/"
     done
 }
 
@@ -3213,6 +3228,11 @@ configure_kernel()
         if $ENABLE_MODULES; then
             echo -e "${GREEN}Enabling kernel-level modules support...${RESET}"
             FRAGS+="${CONFIGS_DIR}/linux/linux.config.modules.frag "
+        fi
+
+        if $ENABLE_MOUSE; then
+            echo -e "${GREEN}Enabling kernel-level mouse support...${RESET}"
+            FRAGS+="${CONFIGS_DIR}/linux/linux.config.mouse.frag "
         fi
 
         if $ENABLE_MULTIUSER_KRN; then
@@ -5342,6 +5362,9 @@ get_prog_git()
     local AUTORECONF=$9
     local CONFIGURE_PREFIX="${10}" 
     local CONFIGURE="${11}"
+    local EXTRA_CFLAGS="${12}"
+    local EXTRA_LDFLAGS="${13}"
+    local LIBS="${14}"
 
     if [ -n "$CONFIGURE_PREFIX" ]; then
         CONFIGURE_PREFIX=("--prefix=${CONFIGURE_PREFIX}")
@@ -5399,9 +5422,10 @@ get_prog_git()
             AS="${AS}" \
             RANLIB="${RANLIB}" \
             STRIP="${STRIP}" \
-            CFLAGS="-Os -march=${ARCH} -mno-fancy-math-387 -ffunction-sections -fdata-sections -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
+            CFLAGS="-Os -march=${ARCH} -mno-fancy-math-387 -ffunction-sections -fdata-sections -I${PREFIX}/include -I${PREFIX}/include/ncursesw ${EXTRA_CFLAGS}" \
             CPPFLAGS="-I${SYSROOT}/include -I${PREFIX}/include -I${PREFIX}/include/ncursesw -DHAVE_FORKPTY" \
-            LDFLAGS="-static -Wl,--gc-sections -s -L${PREFIX}/lib" \
+            LDFLAGS="-static -Wl,--gc-sections -s -L${PREFIX}/lib ${EXTRA_LDFLAGS}" \
+            LIBS="${LIBS}" \
             LIBEVENT_CFLAGS="-I${PREFIX}/include" \
             LIBEVENT_LIBS="-L${PREFIX}/lib -levent" \
             CURSES_CFLAGS="-I${PREFIX}/include/ncursesw -I${PREFIX}/include" \
@@ -6379,16 +6403,29 @@ get_nano()
     find . -name config.cache -delete
     export ac_cv_search_tigetstr='-lncursesw'
     export ac_cv_lib_tinfo_tigetstr='no'
-    export LIBS="-lncursesw"
+    export LIBS="-lncursesw -lgpm"
 
-    ./configure --cache-file=/dev/null --host="${HOST}" --prefix=/usr --enable-utf8 --enable-color --disable-nls --disable-speller --disable-browser --disable-libmagic --disable-justify --disable-wrapping CC="${CC}" CFLAGS="-Os -march=${ARCH} -mno-fancy-math-387 -I${PREFIX}/include -I${PREFIX}/include/ncursesw" LDFLAGS="-static -L${PREFIX}/lib"
+    ./configure \
+        --cache-file=/dev/null \
+        --host="${HOST}" \
+        --prefix=/usr \
+        --enable-utf8 \
+        --enable-color \
+        --disable-nls \
+        --disable-speller \
+        --disable-browser \
+        --disable-libmagic \
+        CC="${CC}" \
+        CFLAGS="-Os -march=${ARCH} -mno-fancy-math-387 -I${PREFIX}/include -I${PREFIX}/include/ncursesw -fno-pie -no-pie" \
+        LDFLAGS="-static -L${PREFIX}/lib -fno-pie -no-pie"
 
     # In case "cannot find -ltinfo" error 
     grep -rl "\-ltinfo" . | xargs -r sed -i 's/-ltinfo//g' 2>/dev/null || true
     grep -rl "TINFO_LIBS" . | xargs -r sed -i 's/TINFO_LIBS.*/TINFO_LIBS = /' 2>/dev/null || true
 
-    make TINFO_LIBS="" -j$(nproc)
+    make TINFO_LIBS="" LIBS="-lncursesw -lgpm" -j$(nproc)
     sudo make DESTDIR="$DESTDIR" install
+    nm "${DESTDIR}/usr/bin/nano" 2>/dev/null | grep -i gpm
 }
 
 # Download and compile NASM
@@ -7204,6 +7241,15 @@ trim_fat()
         sudo rm -f "${DESTDIR}/usr/bin/gpgscm"
     fi
 
+    if $INCLUDE_GPM; then
+        sudo rm -f "${DESTDIR}/usr/lib/libgpm.so.2"
+        sudo rm -f "${DESTDIR}/usr/lib/libgpm.so.2.1.0"
+        if ! $INCLUDE_GCC; then
+            sudo rm -f "${DESTDIR}/usr/include/gpm.h"
+            sudo rm -f "${DESTDIR}/usr/lib/libgpm.a"
+        fi
+    fi
+
     if $INCLUDE_GUI && ! $ENABLE_MULTIUSER_REAL; then
         sudo rm -rf "${DESTDIR}/home"
     fi
@@ -7379,6 +7425,12 @@ copy_licences()
         [ -f "${CURR_DIR}/build/gnupg-$GNUPG_VER/COPYING" ]; then
         cp "${CURR_DIR}/build/gnupg-$GNUPG_VER/COPYING" "${DESTDIR}/LICENCES/gnupg.txt" || true
         CSV+="\nGnuPG & pinentry,GNU GPLv3,gnupg.txt"
+    fi
+
+    if $INCLUDE_GPM && 
+        [ -f "${CURR_DIR}/build/gpm/COPYING" ]; then
+        cp "${CURR_DIR}/build/gpm/COPYING" "${DESTDIR}/LICENCES/gpm.txt" || true
+        CSV+="\ngpm,GNU GPLv2,gpm.txt"
     fi
 
     if $INCLUDE_HTOP && 
@@ -7808,7 +7860,7 @@ build_filesystem()
     cd "${DESTDIR}"
 
     echo -e "${GREEN}Creating required directories...${RESET}"
-    sudo mkdir -p {dev,proc,etc/init.d,sys,tmp,usr/share,usr/libexec,banners,mnt}
+    sudo mkdir -p {dev,proc,etc/init.d,sys,tmp,usr/share,usr/libexec,banners,mnt,var/run}
 
     echo -e "${GREEN}Configure permissions...${RESET}"
     chmod +x "${CURR_DIR}"/sysfiles/*/rc
@@ -7849,7 +7901,7 @@ build_filesystem()
         copy_sysfile "${CURR_DIR}"/sysfiles/diskette/welcome "${DESTDIR}"/banners/welcome
     fi
 
-    if $ENABLE_FB_VBE; then
+    if [ "$BUILD_TYPE" != "micro" ] && [ "$BUILD_TYPE" != "mini" ]; then
         echo -e "${GREEN}Copying and compiling terminfo database...${RESET}"
         sudo mkdir -p "${DESTDIR}"/usr/share/terminfo/src/
         sudo cp "${CURR_DIR}"/sysfiles/terminfo.src "${DESTDIR}"/usr/share/terminfo/src/
@@ -8976,6 +9028,18 @@ get_installed_progs_feats()
             EXCLUDED_FEATURES+=("kernel-level loopback device support")
         fi
 
+        if $ENABLE_MODULES; then
+            INCLUDED_FEATURES+=("kernel-level modules support")
+        else
+            EXCLUDED_FEATURES+=("kernel-level modules support")
+        fi
+
+        if $ENABLE_MOUSE; then
+            INCLUDED_FEATURES+=("kernel-level mouse support")
+        else
+            EXCLUDED_FEATURES+=("kernel-level mouse support")
+        fi
+
         if $ENABLE_MULTIUSER_KRN; then
             INCLUDED_FEATURES+=("kernel-level multi-user support")
         else
@@ -9158,6 +9222,7 @@ get_installed_progs_feats()
         check_installed_file "PatchELF ${PATCHELF_VER}" "/usr/bin/patchelf"
         check_installed_file "lsb-release-minimal ${LSB_RELEASE_MIN_VER}" "/usr/bin/lsb_release"
         check_installed_file "jq ${JQ_VER}" "/usr/bin/jq"
+        check_installed_file "gpm ${GPM_VER}" "/usr/sbin/gpm"
     fi
     if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
         check_installed_file "util-linux ${UTIL_LINUX_VER}" "/usr/bin/whereis"
@@ -9390,8 +9455,27 @@ if ! $SKIP_BB; then
     get_busybox
 fi
 
+if $INCLUDE_GPM; then
+    export ac_cv_path_emacs=no
+    get_prog_git \
+        "usr/sbin" \
+        "gpm" \
+        "gpm" \
+        "gpm" \
+        "$GPM_SRC" \
+        "$GPM_VER" \
+        "gpm/1.20.7_static_posix_headers.patch" \
+        true \
+        false \
+        "/usr" \
+        "" \
+        "-fcommon"
+    cp "${CURR_DIR}/build/gpm/src/headers/gpm.h" "${PREFIX}/include/gpm.h"
+    cp "${CURR_DIR}/build/gpm/src/lib/libgpm.a" "${PREFIX}/lib/libgpm.a"
+fi
+
 get_ncurses
-if $ENABLE_FB_VBE; then
+if [ "$BUILD_TYPE" != "micro" ] && [ "$BUILD_TYPE" != "mini" ]; then
     get_tic
 fi
 
