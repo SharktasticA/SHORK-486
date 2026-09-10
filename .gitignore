@@ -2,6 +2,7 @@ __pycache__
 recovered/
 shork-486/build/
 shork-486/images/
+shork-486/packages/
 shork-486/patches/*.py
 shork-486/patches/*.txt
 shork-486/patches/tmp*

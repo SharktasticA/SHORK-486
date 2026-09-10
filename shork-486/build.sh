@@ -70,6 +70,7 @@ echo -e "${BLUE}========================${RESET}"
 # General global vars
 BOOTLDR_USED=""
 BOUNDARY_ALIGN=2
+BUILD_PKGS=false
 BUILD_TYPE="mini"
 DEFAULT_TARGET_DISK=8
 DEFAULT_TARGET_SWAP=0
@@ -116,6 +117,7 @@ DESTDIR="${CURR_DIR}/build/root"
 HOST="${ARCH}-linux-musl"
 LD="${PREFIX}/bin/${ARCH}-linux-musl-ld"
 RANLIB="${PREFIX}/bin/${ARCH}-linux-musl-ranlib"
+STAGE_DIR="${CURR_DIR}/build/stage"
 STRIP="${PREFIX}/bin/${ARCH}-linux-musl-strip"
 SYSROOT="${PREFIX}/${ARCH}-linux-musl"
 
@@ -165,8 +167,12 @@ GCC_SRC="https://more.musl.cc/11/i686-linux-musl"
 GCC_VER="11.2.1"
 GCCGO_SRC="https://ftp.gnu.org/gnu/gcc"
 GCCGO_VER="16.2.0"
+
+GIT_LICENCE="GNU GPLv2"
 GIT_SRC="https://github.com/git/git.git"
 GIT_VER="2.55.0"
+GIT_VER_DATE="2026-06-29"
+
 GLIB_SRC="https://download.gnome.org/sources/glib"
 GLIB_DIST="2.89"
 GLIB_VER="2.89.4"
@@ -892,6 +898,70 @@ copy_sysfile()
         -e "s|@VERSION_CODENAME@|$VERSION_CODENAME|g" \
         -e "s|@VERSION_ID@|$VERSION_ID|g" \
         "$DST"
+}
+
+make_pkg()
+{
+    local NAME="$1"
+    local SRC="$2"
+    local DESC="$3"
+    local LICENCE="$4"
+    local VERSION="$5"
+    local VERSION_DATE="$6"
+    local NON_ESSENTIAL="$7"
+
+    local NAME_LOW="${NAME,,}"
+    NAME_LOW="${NAME_SLUG// /-}"
+
+    # Clean up permissions
+    HOST_GID=${HOST_GID:-1000}
+    HOST_UID=${HOST_UID:-1000}
+    if [ -d "${STAGE_DIR}" ]; then
+        sudo chown -R "$HOST_UID:$HOST_GID" "${STAGE_DIR}" || true
+        sudo chmod 755 "${STAGE_DIR}" || true
+    fi
+
+    # TODO: copy licence file
+
+    COMPILE_DATETIME="$(date +"%Y-%m-%d %H:%M:%S")"
+    SIZE="$(du -sb "${STAGE_DIR}" | awk '{print $1}')"
+    FILES=""
+    HASHES=""
+
+    local REL_FILES
+    mapfile -d '' REL_FILES < <(cd "${STAGE_DIR}" && find . -type f ! -name manifest -print0 | sort -z)
+    if [ "${#REL_FILES[@]}" -gt 0 ]; then
+        FILES=$(printf '/%s\n' "${REL_FILES[@]#./}")
+        HASHES=$(cd "${STAGE_DIR}" && md5sum "${REL_FILES[@]}" | awk '{print $1}')
+    fi
+    FILES="${FILES//$'\n'/\\$'\n'}"
+    HASHES="${HASHES//$'\n'/\\$'\n'}"
+
+    # Copy manifest template
+    cp "${CURR_DIR}/sysfiles/manifest" "${STAGE_DIR}/manifest"
+
+    # Fill out manifest
+    sed -i \
+        -e "s|@ARCH@|$ARCH|g" \
+        -e "s|@NAME@|$NAME|g" \
+        -e "s|@SRC@|$SRC|g" \
+        -e "s|@DESC@|$DESC|g" \
+        -e "s|@LICENCE@|$LICENCE|g" \
+        -e "s|@VERSION@|$VERSION|g" \
+        -e "s|@VERSION_DATE@|$VERSION_DATE|g" \
+        -e "s|@COMPILE_DATETIME@|$COMPILE_DATETIME|g" \
+        -e "s|@SIZE@|$SIZE|g" \
+        -e "s|@FILES@|$FILES|g" \
+        -e "s|@HASHES@|$HASHES|g" \
+        -e "s|@NON_ESSENTIAL@|$NON_ESSENTIAL|g" \
+        "${STAGE_DIR}/manifest"
+
+    # Compress into package
+    tar -C "${STAGE_DIR}" -czf "${CURR_DIR}/packages/${ARCH}-${NAME_LOW}-${VERSION}.tar.gz" ./*
+
+    # Recreate an empty STAGE_DIR
+    rm -rf "${STAGE_DIR}"
+    mkdir -p "${STAGE_DIR}"
 }
 
 
@@ -5685,7 +5755,19 @@ get_git()
         LDFLAGS="-static -L${PREFIX}/lib"
     sudo cp "$CONFIGS_DIR"/git.config.mak config.mak
     make NO_RUST=1 -j$(nproc)
-    sudo make NO_RUST=1 DESTDIR="$DESTDIR" install
+    if $BUILD_PKGS; then
+        sudo make NO_RUST=1 DESTDIR="$STAGE_DIR" install
+        make_pkg \
+            "Git" \
+            "$GIT_SRC" \
+            "TODO" \
+            "$GIT_LICENCE" \
+            "$GIT_VER" \
+            "$GIT_VER_DATE" \
+            "TODO"
+    else
+        sudo make NO_RUST=1 DESTDIR="$DESTDIR" install
+    fi
 }
 
 # Download and compile htop
@@ -9286,6 +9368,8 @@ generate_report()
 fix_perms
 
 mkdir -p images
+mkdir -p packages
+mkdir -p "$STAGE_DIR"
 
 if ! $DONT_DEL_ROOT; then
     delete_root_dir
