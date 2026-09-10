@@ -111,7 +111,6 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [GNU Make](https://www.gnu.org/software/make/) | `make` | 4.4.1 | Build automation tool | GPLv3 |*||||
 | [GNU nano](https://www.nano-editor.org/) | `nano` | 9.2 | Pico-style text editor | GPLv3 |*|**\***|*|*|
 | [GnuPG & pinentry](https://gnupg.org/)  | e.g. `gpg`, `gpg-agent`, `gpgconf`, `kbxutil`, `pinentry`, `watchgnupg` | 2.5.21 & 1.3.3 | OpenPGP-compliant encryption & signing | GPLv3 |*||||
-| [gpm](https://www.nico.schottelius.org/software/gpm/)  | `gpm` | 1.20.7 | Virtual console mouse | GPLv2 |*|*|*|*|
 | [htop](https://github.com/htop-dev/htop) | `htop` | 3.5.3 | Interactive process viewer | GPLv2 |*|**\***|*|*|
 | [Joe's Own Editor](https://github.com/joe-editor/joe) | `joe` | 4.8 | WordStar & Emacs-blend text editor | GPLv2 |*||*||
 | [jq](https://jqlang.org/) | `jq` | 1.8.2 | Command-line JSON processor | MIT + CC BY 3.0 + ICU |*||||
@@ -236,7 +235,7 @@ SHORK DISC is a specialised version of the SHORK 486 Operating System that can b
 | [dosfstools](https://github.com/dosfstools/dosfstools/) | e.g. `dosfsck`, `mkdosfs` | 4.2 | FAT family filesystem utilities | GPLv3 |
 | [e2fsprogs](https://e2fsprogs.sourceforge.net/)| e.g. `blkid`, `fsck`, `mke2fs`, `resize2fs`, `tune2fs`, `uuidgen` | 1.47.4 | ext2/3/4 filesystem utilities | GPLv2 + LGPLv2 |
 | [file](https://github.com/file/file) | `file` | 5_48 | File identification | BSD 2-Clause |
-| [strace](https://github.com/strace/strace) | `strace` | 7.2 | System calls & signals tracer | LGPLv2.1 |
+| [strace](https://github.com/strace/strace) | `strace` | 7.1 | System calls & signals tracer | LGPLv2.1 |
 | [util-linux](https://github.com/util-linux/util-linux) | `cfdisk`, `fdisk`, `lscpu`, `partx`, `sfdisk`, `whereis` | 2.42.2 | Extra Linux utilities | GPLv2 |
 
 #### Libraries & prerequisites

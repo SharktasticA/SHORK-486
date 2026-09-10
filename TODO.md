@@ -4,7 +4,6 @@
 
 * SHORKCHESS (chess game)
 * SHORKDISK (disk mounting, unmounting and ejecting)
-* SHORKFORTUNE
 * SHORKNET (network connection management)
     * Currently being folded into SHORKSET instead
 * SHORKSNEK (snake-like game)
@@ -22,6 +21,7 @@
 * GNU Autotools (especially automake and autoreconf)
 * GNU Emacs
     * Already successfully compiled - streamlining/pruning extraneous files
+* GPM
 * IRC client (exact one TBD)
 * libtool
 * m4
