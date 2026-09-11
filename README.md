@@ -98,7 +98,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | Name | Command(s) | Version | Purpose | Licence(s) |P|D|W|O|
 |------|------------|---------|---------|------------|-|-|-|-|
 | [Cscope](https://cscope.sourceforge.net/) | `cscope` | 15.9 | C/C++ code browser | BSD 3-Clause |*||||
-| [cURL](https://curl.se/) | `curl` | 8.21.0 | HTTP client & transfer utility | MIT |*||||
+| [cURL](https://curl.se/) | `curl` | 8.22.0 | HTTP client & transfer utility | MIT |*||||
 | [dialog](https://invisible-mirror.net/dialog/dialog.html) | `dialog` | 1.3-20260721 | Shell script TUI widgets | LGPLv2.1 |*|**\***||*|
 | [dosfstools](https://github.com/dosfstools/dosfstools/) | e.g. `dosfsck`, `mkdosfs`\* | 4.2 | FAT family filesystem utilities | GPLv3 |*|**\***||*|
 | [Dropbear](https://github.com/mkj/dropbear) | `scp`, `ssh` | 2026.94 | SCP and SSH clients | MIT + BSD 2-Clause |*|**\***|||
@@ -155,7 +155,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [libassuan](https://www.gnupg.org/software/libassuan/index.html) | 3.0.2 | GnuPG | GPLv3 |
 | libcom_err | 1.47.4 | e2fsprogs | MIT SIPB |
 | [libevent](https://github.com/libevent/libevent) | 2.1.13 | tmux | BSD 3-Clause |
-| [libgcrypt](https://www.gnupg.org/software/libgcrypt/index.html) | 1.12.3 | GnuPG | GPLv3 |
+| [libgcrypt](https://www.gnupg.org/software/libgcrypt/index.html) | 1.12.4 | GnuPG | GPLv3 |
 | [libgpg-error](https://www.gnupg.org/software/libgpg-error/index.html) | 1.61 | GnuPG | GPLv3 |
 | [libid3tag](https://github.com/markjeee/libid3tag) | 0.15.1b | mpg321 | GPLv2 |
 | [libksba](https://www.gnupg.org/software/libksba/index.html) | 1.8.1 | GnuPG | GPLv3 |

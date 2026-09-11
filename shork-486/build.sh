@@ -145,7 +145,7 @@ CSCOPE_VER="15.9"
 CTAGS_SRC="https://github.com/universal-ctags/ctags.git"
 CTAGS_VER="6.2.1"
 CURL_SRC="https://curl.se/download"
-CURL_VER="8.21.0"
+CURL_VER="8.22.0"
 BINUTILS_TEST_SRC="https://ftp.gnu.org/gnu/binutils"
 BINUTILS_TEST_VER="2.47"
 BINUTILS_VER="2.37"
@@ -174,8 +174,8 @@ GIT_VER="2.55.0"
 GIT_VER_DATE="2026-06-29"
 
 GLIB_SRC="https://download.gnome.org/sources/glib"
-GLIB_DIST="2.89"
-GLIB_VER="2.89.4"
+GLIB_DIST="2.90"
+GLIB_VER="2.90.0"
 GLIBC_SRC="https://ftp.gnu.org/gnu/glibc"
 GLIBC_VER="2.44"
 GNUPG_SRC="https://gnupg.org/ftp/gcrypt/gnupg"
@@ -199,7 +199,7 @@ LIBASSUAN_VER="3.0.2"
 LIBEVENT_SRC="https://github.com/libevent/libevent.git"
 LIBEVENT_VER="release-2.1.13-stable"
 LIBGCRYPT_SRC="https://gnupg.org/ftp/gcrypt/libgcrypt"
-LIBGCRYPT_VER="1.12.3"
+LIBGCRYPT_VER="1.12.4"
 LIBGPG_ERROR_SRC="https://gnupg.org/ftp/gcrypt/libgpg-error"
 LIBGPG_ERROR_VER="1.61"
 LIBID3TAG_SRC="https://github.com/markjeee/libid3tag.git"
@@ -247,7 +247,7 @@ MPG321_SRC="https://github.com/GiterMirror/mpg321.git"
 MPG321_VER="a41a9397d10576d3aee39c2ed7628a78c285714d"
 MT_ST_SRC="https://github.com/iustin/mt-st.git"
 MT_ST_VER="1.8"
-MUSL_SRC="https://musl.libc.org/releases"
+MUSL_SRC="https://fossies.org/linux/misc"
 MUSL_VER="1.2.6"
 NANO_SRC="https://www.nano-editor.org/dist"
 NANO_DIST="v9"
@@ -9847,7 +9847,7 @@ if $INCLUDE_LUA; then
 fi
 if $INCLUDE_LYNX; then
     get_prog_git \
-        "usr/bidn" \
+        "usr/bin" \
         "lynx" \
         "lynx" \
         "lynx-snapshots" \
