@@ -70,6 +70,7 @@ INCLUDE_FILE=false
 INCLUDE_GCC=false
 INCLUDE_GIT=false
 INCLUDE_GNUPG=false
+INCLUDE_GPM=false
 INCLUDE_HTOP=false
 INCLUDE_INDENT=false
 INCLUDE_JOE=false
@@ -192,6 +193,7 @@ save_env()
         echo "INCLUDE_GCC=$INCLUDE_GCC"
         echo "INCLUDE_GIT=$INCLUDE_GIT"
         echo "INCLUDE_GNUPG=$INCLUDE_GNUPG"
+        echo "INCLUDE_GPM=$INCLUDE_GPM"
         echo "INCLUDE_HTOP=$INCLUDE_HTOP"
         echo "INCLUDE_INDENT=$INCLUDE_INDENT"
         echo "INCLUDE_JOE=$INCLUDE_JOE"
@@ -288,6 +290,7 @@ set_mini_vars()
     INCLUDE_GCC=false
     INCLUDE_GIT=false
     INCLUDE_GNUPG=false
+    INCLUDE_GPM=false
     INCLUDE_HTOP=false
     INCLUDE_INDENT=false
     INCLUDE_JOE=false
@@ -348,6 +351,7 @@ set_default_vars()
     INCLUDE_E2FSPROGS=true
     INCLUDE_FILE=true
     INCLUDE_GIT=true
+    INCLUDE_GPM=true
     INCLUDE_HTOP=true
     INCLUDE_LSB_RELEASE_MIN=true
     INCLUDE_LUA=true
@@ -394,6 +398,7 @@ set_writer_vars()
 {
     set_mini_vars true true true
     INCLUDE_HTOP=true
+    INCLUDE_GPM=true
     INCLUDE_JOE=true
     INCLUDE_LSB_RELEASE_MIN=true
     INCLUDE_MEMTESTER=true
@@ -1137,6 +1142,7 @@ if [ "$ENABLE_NET_ETH" == true ]; then
         "gcc"               "†GCC + binutils + musl (215MiB)"                       "$(val "$INCLUDE_GCC")"
         "git"               "*Source control client (19MiB)"                        "$(val "$INCLUDE_GIT")"
         "gnupg"             "OpenPGP-compliant encryption & signing (25MiB)"        "$(val "$INCLUDE_GNUPG")"
+        "gpm"               "*Virtual console mouse (0.6MiB)"                       "$(val "$INCLUDE_GPM")"
         "htop"              "*Interactive process viewer (0.6MiB)"                  "$(val "$INCLUDE_HTOP")"
         "indent"            "C code formatter (0.1MiB)"                             "$(val "$INCLUDE_INDENT")"
         "joe"               "WordStar & Emacs-blend text editor (1.9MiB)"           "$(val "$INCLUDE_JOE")"
@@ -1176,6 +1182,7 @@ else
         "file"              "*†File type identification (10MiB)"                    "$(val "$INCLUDE_FILE")"
         "gcc"               "†GCC + binutils + musl (215MiB)"                       "$(val "$INCLUDE_GCC")"
         "gnupg"             "OpenPGP-compliant encryption & signing (25MiB)"        "$(val "$INCLUDE_GNUPG")"
+        "gpm"               "*Virtual console mouse (0.6MiB)"                       "$(val "$INCLUDE_GPM")"
         "htop"              "*Interactive process viewer (0.6MiB)"                  "$(val "$INCLUDE_HTOP")"
         "indent"            "C code formatter (0.1MiB)"                             "$(val "$INCLUDE_INDENT")"
         "joe"               "WordStar & Emacs-blend text editor (1.9MiB)"           "$(val "$INCLUDE_JOE")"
@@ -1230,10 +1237,11 @@ else
     if [[ $BUNDLED =~ "gcc" ]];             then INCLUDE_GCC=true;              else INCLUDE_GCC=false;             fi
     if [[ $BUNDLED =~ "git" ]];             then INCLUDE_GIT=true;              else INCLUDE_GIT=false;             fi
     if [[ $BUNDLED =~ "gnupg" ]];           then INCLUDE_GNUPG=true;            else INCLUDE_GNUPG=false;           fi
+    if [[ $BUNDLED =~ "gpm" ]];             then INCLUDE_GPM=true;              else INCLUDE_GPM=false;             fi
     if [[ $BUNDLED =~ "htop" ]];            then INCLUDE_HTOP=true;             else INCLUDE_HTOP=false;            fi
     if [[ $BUNDLED =~ "indent" ]]           then INCLUDE_INDENT=true;           else INCLUDE_INDENT=false;          fi
     if [[ $BUNDLED =~ "joe" ]];             then INCLUDE_JOE=true;              else INCLUDE_JOE=false;             fi
-    if [[ $BUNDLED =~ "jq" ]];              then INCLIDE_JQ=true;               else INCLIDE_JQ=false;              fi
+    if [[ $BUNDLED =~ "jq" ]];              then INCLUDE_JQ=true;               else INCLUDE_JQ=false;              fi
     if [[ $BUNDLED =~ "lsb-release-min" ]]; then INCLUDE_LSB_RELEASE_MIN=true;  else INCLUDE_LSB_RELEASE_MIN=false; fi
     if [[ $BUNDLED =~ "lua" ]];             then INCLUDE_LUA=true;              else INCLUDE_LUA=false;             fi
     if [[ $BUNDLED =~ "lynx" ]];            then INCLUDE_LYNX=true;             else INCLUDE_LYNX=false;            fi

@@ -110,6 +110,11 @@ fi
 # Flush any ttyx seen flags
 rm -f /tmp/.tty*_seen
 
+# Flush gpm.pid
+if [ -f /var/run/gpm.pid ]; then
+    rm -f /var/run/gpm.pid
+fi
+
 # Flush any orphaned swap files created by swap-wrap
 for SWAP_FILE in /var/tmp/.*_ramswap.*; do
     [ -e "$SWAP_FILE" ] || continue

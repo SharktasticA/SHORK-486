@@ -109,14 +109,15 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [GNU Binutils](https://musl.cc/)‡ | e.g. `ar`\*, `as`, `gprof`, `ld`, `nm`, `objdump`, `ranlib`,`readelf`, `strings`\*, `strip` | 2.37 | Binary tools to compliment GCC | GPLv3 |*||||
 | [GNU Indent](https://www.gnu.org/software/indent/) | `indent` | 2.2.13 | C code formatter | GPLv3 |*||||
 | [GNU Make](https://www.gnu.org/software/make/) | `make` | 4.4.1 | Build automation tool | GPLv3 |*||||
-| [GNU nano](https://www.nano-editor.org/) | `nano` | 9.2 | Pico-style text editor | GPLv3 |*|**\***|*|*|
+| [GNU nano](https://www.nano-editor.org/)¶ | `nano` | 9.2 | Pico-style text editor | GPLv3 |*|**\***|*|*|
 | [GnuPG & pinentry](https://gnupg.org/)  | e.g. `gpg`, `gpg-agent`, `gpgconf`, `kbxutil`, `pinentry`, `watchgnupg` | 2.5.21 & 1.3.3 | OpenPGP-compliant encryption & signing | GPLv3 |*||||
-| [htop](https://github.com/htop-dev/htop) | `htop` | 3.5.3 | Interactive process viewer | GPLv2 |*|**\***|*|*|
+| [gpm](https://www.nico.schottelius.org/software/gpm/) | `gpm` | 1.20.7 | Virtual console mouse | GPLv2 |*|*|*|*|
+| [htop](https://github.com/htop-dev/htop)¶ | `htop` | 3.5.3 | Interactive process viewer | GPLv2 |*|**\***|*|*|
 | [Joe's Own Editor](https://github.com/joe-editor/joe) | `joe` | 4.8 | WordStar & Emacs-blend text editor | GPLv2 |*||*||
 | [jq](https://jqlang.org/) | `jq` | 1.8.2 | Command-line JSON processor | MIT + CC BY 3.0 + ICU |*||||
 | [lsb-release-minimal](https://github.com/deepin-community/lsb-release-minimal) | `lsb_release` | 12.0-2 | Linux Standard Base/distribution info reporter | ISC |*|**\***|*|*|
 | [Lua](https://www.lua.org/) | `lua` | 5.5.1 | Embedded scripting & extensions language | MIT |*|**\***||*|
-| [Lynx](https://github.com/ThomasDickey/lynx-snapshots) | `lynx` | 2-9-3a | Terminal web browser | GPLv2 |*|**\***|||
+| [Lynx](https://github.com/ThomasDickey/lynx-snapshots)¶ | `lynx` | 2-9-3a | Terminal web browser | GPLv2 |*|**\***|||
 | [memtester](https://pyropus.ca./software/memtester/) | `memtester` | 4.7.1 | Userspace memory subsystem fault tester | GPLv2 |*|**\***|*|*|
 | [Mg](https://github.com/troglobit/mg) | `mg` | 4.1 | Emacs-style text editor | Unlicense |*|**\***|*|*|
 | [MicroPython](https://github.com/micropython/micropython) | `micropython` | 1.29.0 | Python 3.4-syntax intepreter | MIT |*|**\***||*|
@@ -128,14 +129,14 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [sc-im](https://github.com/andmarti1424/sc-im) | `sc-im` | 0.8.5 | Terminal spreadsheet editor | BSD 4-Clause |*|**\***|*|*|
 | [strace](https://github.com/strace/strace) | `strace` | 7.2 | System calls & signals tracer | LGPLv2.1 |*|**\***||*|
 | [sudo](https://www.sudo.ws/)‖ | `sudo`, `sudoedit`, `visudo` | 1.9.17p2 | Run command as root/substitute user | ISC + BSD 2-Clause + BSD 3-Clause + zlib |*|**\***|*|*|
-| [Tilde](https://os.ghalkes.nl/tilde/) | `tilde` | 1.1.3 | GUI-like text editor | GPLv3 |*||*||
+| [Tilde](https://os.ghalkes.nl/tilde/)¶ | `tilde` | 1.1.3 | GUI-like text editor | GPLv3 |*||*||
 | [Tiny C Compiler](https://bellard.org/tcc/)§ | `tcc` | `e5eedc0` | C compiler | LGPLv2.1 |*|**\***||*|
 | [tmux](https://github.com/tmux/tmux) | `tmux` | 3.7c | Terminal multiplexer | ISC |*|**\***|*|*|
 | [tn5250](https://github.com/tn5250/tn5250)† | `tn5250` | 0.18.0 | TCP/IP 5250 terminal emulator | LGPLv2.1 |*||||
 | [tnftp](https://ftp.netbsd.org/pub/NetBSD/misc/tnftp/) | `ftp` | 20260211 | FTP client | BSD 2-Clause |*|**\***|||
 | [Universal Ctags](https://ctags.io/) | `ctags`, `readtags` | 6.2.1 | Source code object indexing | GPLv2 |*||||
 | [util-linux](https://github.com/util-linux/util-linux) | `cfdisk`, `fdisk`\*, `lscpu`, `partx`, `sfdisk`, `whereis` | 2.42.2 | Extra Linux utilities | GPLv2 |*|**\***||*|
-| [Vim](https://www.vim.org/)† | `ex`, `view`, `rvim`, `rview`, `vim`, `vimdiff`, `vimtutor`, `xxd`\* | 9.2.0785 | Vi IMproved text editor | Vim |*||*||
+| [Vim](https://www.vim.org/)†¶ | `ex`, `view`, `rvim`, `rview`, `vim`, `vimdiff`, `vimtutor`, `xxd`\* | 9.2.0785 | Vi IMproved text editor | Vim |*||*||
 | [x3270](https://github.com/pmattes/x3270)† | `c3270` | 4.5ga6 | 3270 terminal emulator | BSD 3-Clause |*||||
 
 * _\* Replaces a BusyBox version of the same utility_
@@ -143,6 +144,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 * _‡ GCC and GNU Binutils are separate projects but are bundled together as one complete toolchain_
 * _§ Includes musl for their libc_
 * _‖ Only included with multi-user configurations_
+* _¶ Supports mouse input with gpm_
 
 #### Libraries & prerequisites
 
@@ -171,7 +173,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [libxml2](https://github.com/gnome/libxml2) | 2.15.4 | sc-im, Universal Ctags | MIT |
 | [libzip](https://github.com/nih-at/libzip) | 1.11.4 | sc-im | BSD 3-Clause |
 | [musl](somethhttps://musl.libc.org/) | 1.2.6 | GCC, Tiny C Compiler | MIT |
-| [ncurses](https://github.com/mirror/ncurses) | 6.4 | htop, Lynx, nano, sc-im, tic, tmux, tn5250, util-linux, x3270 | MIT |
+| [ncurses](https://github.com/mirror/ncurses) | 6.4 | Cscope, dialog, htop, Lynx, nano, Ncdu, sc-im, SHORKMINES, tic, tmux, tn5250, util-linux, x3270 | MIT |
 | [nPth](https://www.gnupg.org/software/npth/index.html) | 1.8 | GnuPG | LGPLv2.1 |
 | [OpenSSL](https://github.com/openssl/openssl) | 3.6.4 | curl, Git, Lynx, tn5250 | Apache 2.0 |
 | [PCRE2](https://pcre2project.github.io/pcre2/) | 10.48 | Tilde | BSD 3-Clause w/ PCRE2 exception |
@@ -235,7 +237,7 @@ SHORK DISC is a specialised version of the SHORK 486 Operating System that can b
 | [dosfstools](https://github.com/dosfstools/dosfstools/) | e.g. `dosfsck`, `mkdosfs` | 4.2 | FAT family filesystem utilities | GPLv3 |
 | [e2fsprogs](https://e2fsprogs.sourceforge.net/)| e.g. `blkid`, `fsck`, `mke2fs`, `resize2fs`, `tune2fs`, `uuidgen` | 1.47.4 | ext2/3/4 filesystem utilities | GPLv2 + LGPLv2 |
 | [file](https://github.com/file/file) | `file` | 5_48 | File identification | BSD 2-Clause |
-| [strace](https://github.com/strace/strace) | `strace` | 7.1 | System calls & signals tracer | LGPLv2.1 |
+| [strace](https://github.com/strace/strace) | `strace` | 7.2 | System calls & signals tracer | LGPLv2.1 |
 | [util-linux](https://github.com/util-linux/util-linux) | `cfdisk`, `fdisk`, `lscpu`, `partx`, `sfdisk`, `whereis` | 2.42.2 | Extra Linux utilities | GPLv2 |
 
 #### Libraries & prerequisites

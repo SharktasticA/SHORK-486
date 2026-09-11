@@ -1,0 +1,88 @@
+############################################################################
+## 1.20.7_static_posix_headers.patch                                      ##
+############################################################################
+## This patch is a derivative work of gpm. It is licensed separately      ##
+## under the terms of the GNU GPLv2 licence, and is distributed as part   ##
+## of the SHORK project. See the accompanying COPYING file in this        ##
+## directory for details.                                                 ##
+############################################################################
+## Kali (links.sharktastica.co.uk)                                        ##
+############################################################################
+
+diff --git a/src/Makefile.in b/src/Makefile.in
+index d3b1dcd..a6894ed 100644
+--- a/src/Makefile.in
++++ b/src/Makefile.in
+@@ -151,12 +151,12 @@ prog/gpm-root.c:	$(srcdir)/prog/gpm-root.y
+ # gpm-root needs an own rule, because gpm-root.c is not in $(srcdir)
+ prog/gpm-root: prog/gpm-root.c lib/libgpm.so.@abi_lev@
+ 	$(CC) -I. @CPPFLAGS@ $(CPPFLAGS) @CFLAGS@ $(CFLAGS) -c -o $@.o $<
+-	$(CC) @LDFLAGS@ $(LDFLAGS) -o $@ $@.o @LIBS@ $(LIBS) lib/libgpm.so.@abi_lev@
++	$(CC) @LDFLAGS@ $(LDFLAGS) -o $@ $@.o @LIBS@ $(LIBS) lib/libgpm.a
+ 
+ prog/mouse-test:	prog/mouse-test.o mice.o twiddler.o synaptics.o prog/open_console.o
+ 	$(CC) @LDFLAGS@ $(LDFLAGS) -o $@ $^ @LIBS@ $(LIBS) -lm
+ 
+-$(PROG):	lib/libgpm.so.@abi_lev@
++$(PROG):	lib/libgpm.a
+ 
+ # Subdirectory lib/
+ lib/libgpm.a:	$(LOBJ)
+diff --git a/src/daemon/open_console.c b/src/daemon/open_console.c
+index 98297c9..f7df875 100644
+--- a/src/daemon/open_console.c
++++ b/src/daemon/open_console.c
+@@ -22,6 +22,7 @@
+ #include <fcntl.h>                  /* open and co.      */
+ #include <sys/stat.h>               /* stat()            */
+ #include <sys/ioctl.h>              /* ioctl             */
++#include <sys/sysmacros.h>          /* major()           */
+ 
+ /* Linux specific (to be outsourced in gpm2 */
+ #include <linux/serial.h>           /* for serial console check */
+diff --git a/src/prog/display-buttons.c b/src/prog/display-buttons.c
+index de8e5b2..b975997 100644
+--- a/src/prog/display-buttons.c
++++ b/src/prog/display-buttons.c
+@@ -36,6 +36,7 @@
+ #include <stdio.h>            /* printf()             */
+ #include <time.h>             /* time()               */
+ #include <errno.h>            /* errno                */
++#include <sys/select.h>       /* fd_set, FD_*, select */
+ #include <gpm.h>              /* gpm information      */
+ 
+ /* display resulting data */
+diff --git a/src/prog/display-coords.c b/src/prog/display-coords.c
+index ed15c8a..81f56ec 100644
+--- a/src/prog/display-coords.c
++++ b/src/prog/display-coords.c
+@@ -37,6 +37,7 @@
+ #include <stdio.h>            /* printf()             */
+ #include <time.h>             /* time()               */
+ #include <errno.h>            /* errno                */
++#include <sys/select.h>       /* fd_set, FD_*, select */
+ #include <gpm.h>              /* gpm information      */
+ 
+ /* display resulting data */
+diff --git a/src/prog/gpm-root.y b/src/prog/gpm-root.y
+index 069d801..c1cefb3 100644
+--- a/src/prog/gpm-root.y
++++ b/src/prog/gpm-root.y
+@@ -1196,12 +1196,12 @@ int main(int argc, char **argv)
+                                                         LOG_DAEMON : LOG_USER);
+    /* reap your zombies */
+    childaction.sa_handler=reap_children;
+-#if defined(__GLIBC__)
+-   __sigemptyset(&childaction.sa_mask);
+-#else /* __GLIBC__ */
+-   childaction.sa_mask=0;
+-#endif /* __GLIBC__ */
++   sigemptyset(&childaction.sa_mask);
++#if defined(SA_INTERRUPT)
+    childaction.sa_flags=SA_INTERRUPT; /* need to break the select() call */
++#else /* SA_INTERRUPT */
++   childaction.sa_flags=0; /* slow syscalls aren't auto-restarted by default here */
++#endif /* SA_INTERRUPT */
+    sigaction(SIGCHLD,&childaction,NULL);
+ 
+    /*....................................... Connect and get your buffer */

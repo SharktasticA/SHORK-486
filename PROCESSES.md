@@ -15,6 +15,7 @@
 5. If the program installs files that you deem non-essential, you may add to `trim_fat()` to move/remove them.
 6. Add an entry to `copy_licences()` to copy the program's licence file and include it in `manifest.csv`.
 7. Add an entry to `get_installed_progs_feats()` so that the program shows up in the after-build report.
+8. Add an entry to `get-vers.sh` so that script can let us know what the latest version of the software is.
 
 ### `config.sh`
 
