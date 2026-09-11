@@ -288,7 +288,7 @@ TWM_VER="1.0.13.1"
 UTIL_LINUX_SRC="https://github.com/util-linux/util-linux.git"
 UTIL_LINUX_VER="2.42.2"
 VIM_SRC="https://github.com/vim/vim.git"
-VIM_VER="9.2.0785"
+VIM_VER="9.2.1071"
 WIRESHARK_SRC="https://www.wireshark.org/download/src"
 WIRESHARK_VER="4.7.2"
 X86EMU_SRC="https://github.com/wfeldt/libx86emu.git"
@@ -6558,7 +6558,7 @@ get_tcc()
     sudo make DESTDIR="$DESTDIR" install
 }
 
-# Download and compile tilde
+# Download and compile Tilde
 get_tilde()
 {
     cd "${CURR_DIR}/build"
@@ -6720,6 +6720,73 @@ get_tnftp()
     make -j$(nproc)
     sudo make DESTDIR="$DESTDIR" install
     ln -sf tnftp "${DESTDIR}/usr/bin/ftp"
+}
+
+# Download and compile Vim
+# TODO: consider removing --disable-cscope, --disable-terminal
+get_vim()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ -f "${DESTDIR}/usr/bin/vim" ]; then
+        echo -e "${LIGHT_RED}Vim already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d "vim" ]; then
+        echo -e "${YELLOW}Vim source already present, resetting & cleaning...${RESET}"
+        cd "vim"
+        git config --global --add safe.directory "${CURR_DIR}/build/vim"
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading Vim...${RESET}"
+        git clone --branch "v$VIM_VER" $VIM_SRC
+        cd "vim"
+    fi
+
+    # Compile program
+    echo -e "${GREEN}Compiling Vim...${RESET}"
+    PKG_CONFIG=false \
+    ./configure \
+        --host="${HOST}" \
+        --prefix=/usr \
+        --with-features=normal \
+        --disable-gui \
+        --without-x \
+        --disable-nls \
+        --disable-channel \
+        --disable-netbeans \
+        --disable-terminal \
+        --disable-python3interp \
+        --disable-perlinterp \
+        --disable-rubyinterp \
+        --disable-luainterp \
+        --disable-tclinterp \
+        --disable-cscope \
+        --disable-acl \
+        --disable-selinux \
+        --disable-canberra \
+        --without-wayland \
+        --disable-libsodium \
+        --disable-smack \
+        --disable-print-pango \
+        --with-curses-dir="${PREFIX}" \
+        --with-ncursesw \
+        CC="${CC_STATIC}" \
+        AR="${AR}" \
+        AS="${AS}" \
+        RANLIB="${RANLIB}" \
+        STRIP="${STRIP}" \
+        CFLAGS="-Os -march=${ARCH} -mno-fancy-math-387 -ffunction-sections -fdata-sections -I${PREFIX}/include" \
+        CPPFLAGS="-I${SYSROOT}/include -I${PREFIX}/include -DHAVE_FORKPTY" \
+        LDFLAGS="-static -Wl,--gc-sections -s -L${PREFIX}/lib"
+    make -j$(nproc)
+    sudo make DESTDIR="$DESTDIR" install
+
+    make_swap_wrap "${DESTDIR}/usr/bin/vim"
 }
 
 
@@ -10004,19 +10071,7 @@ if $INCLUDE_TNFTP; then
     get_tnftp
 fi
 if $INCLUDE_VIM; then
-    get_prog_git \
-        "usr/bin" \
-        "vim" \
-        "vim" \
-        "vim" \
-        "$VIM_SRC" \
-        "v$VIM_VER" \
-        "vim/9.2_ext_feature_culling.patch" \
-        false \
-        false \
-        "/usr" \
-        "--with-features=normal --disable-gui --without-x --disable-nls --disable-channel --disable-netbeans --disable-terminal --disable-python3interp --disable-perlinterp --disable-rubyinterp --disable-luainterp --disable-tclinterp --disable-cscope --disable-acl --disable-selinux --disable-canberra --without-wayland --disable-libsodium --disable-smack"
-    make_swap_wrap "${DESTDIR}/usr/bin/vim"
+    get_vim
 fi
 if $INCLUDE_GCC; then
     get_gcc

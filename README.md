@@ -136,7 +136,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [tnftp](https://ftp.netbsd.org/pub/NetBSD/misc/tnftp/) | `ftp` | 20260211 | FTP client | BSD 2-Clause |*|**\***|||
 | [Universal Ctags](https://ctags.io/) | `ctags`, `readtags` | 6.2.1 | Source code object indexing | GPLv2 |*||||
 | [util-linux](https://github.com/util-linux/util-linux) | `cfdisk`, `fdisk`\*, `lscpu`, `partx`, `sfdisk`, `whereis` | 2.42.2 | Extra Linux utilities | GPLv2 |*|**\***||*|
-| [Vim](https://www.vim.org/)†¶ | `ex`, `view`, `rvim`, `rview`, `vim`, `vimdiff`, `vimtutor`, `xxd`\* | 9.2.0785 | Vi IMproved text editor | Vim |*||*||
+| [Vim](https://www.vim.org/)†¶ | `ex`, `view`, `rvim`, `rview`, `vim`, `vimdiff`, `vimtutor`, `xxd`\* | 9.2.1071 | Vi IMproved text editor | Vim |*||*||
 | [x3270](https://github.com/pmattes/x3270)† | `c3270` | 4.5ga6 | 3270 terminal emulator | BSD 3-Clause |*||||
 
 * _\* Replaces a BusyBox version of the same utility_
