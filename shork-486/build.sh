@@ -176,8 +176,10 @@ GIT_VER_DATE="2026-06-29"
 GLIB_SRC="https://download.gnome.org/sources/glib"
 GLIB_DIST="2.90"
 GLIB_VER="2.90.0"
+
 GLIBC_SRC="https://ftp.gnu.org/gnu/glibc"
 GLIBC_VER="2.44"
+
 GNUPG_SRC="https://gnupg.org/ftp/gcrypt/gnupg"
 GNUPG_VER="2.5.21"
 GPM_SRC="https://github.com/telmich/gpm.git"
@@ -198,6 +200,10 @@ LIBASSUAN_SRC="https://gnupg.org/ftp/gcrypt/libassuan"
 LIBASSUAN_VER="3.0.2"
 LIBEVENT_SRC="https://github.com/libevent/libevent.git"
 LIBEVENT_VER="release-2.1.13-stable"
+
+LIBFFI_SRC="https://github.com/libffi/libffi.git"
+LIBFFI_VER="3.8.0"
+
 LIBGCRYPT_SRC="https://gnupg.org/ftp/gcrypt/libgcrypt"
 LIBGCRYPT_VER="1.12.4"
 LIBGPG_ERROR_SRC="https://gnupg.org/ftp/gcrypt/libgpg-error"
@@ -208,6 +214,10 @@ LIBKSBA_SRC="https://gnupg.org/ftp/gcrypt/libksba"
 LIBKSBA_VER="1.8.1"
 LIBMAD_SRC="https://github.com/markjeee/libmad.git"
 LIBMAD_VER="c2f96fa4166446ac99449bdf6905f4218fb7d6b5"
+
+LIBSSH2_SRC="https://github.com/libssh2/libssh2.git"
+LIBSSH2_VER="1.11.1"
+
 LIBT3_SRC="https://os.ghalkes.nl/dist"
 LIBT3CONFIG_VER="1.0.0"
 LIBT3HIGHLIGHT_VER="0.5.0"
@@ -243,6 +253,10 @@ MICRO_SRC="https://github.com/micro-editor/MICRO.git"
 MICRO_VER="2.0.15"
 MICROPYTHON_SRC="https://github.com/micropython/micropython.git"
 MICROPYTHON_VER="1.29.0"
+
+MIDNIGHT_CMDR_SRC="https://github.com/MidnightCommander/mc.git"
+MIDNIGHT_CMDR_VER="4.8.33"
+
 MPG321_SRC="https://github.com/GiterMirror/mpg321.git"
 MPG321_VER="a41a9397d10576d3aee39c2ed7628a78c285714d"
 MT_ST_SRC="https://github.com/iustin/mt-st.git"
@@ -379,6 +393,7 @@ INCLUDE_MEMTESTER=false
 INCLUDE_MG=false
 INCLUDE_MICRO=false
 INCLUDE_MICROPYTHON=false
+INCLUDE_MIDNIGHT_CMDR=false
 INCLUDE_MPG321=false
 INCLUDE_MT_ST=false
 INCLUDE_NANO=false
@@ -672,12 +687,14 @@ NEED_GLIB=false
 NEED_LIBAO=false
 NEED_LIBASSUAN=false
 NEED_LIBEVENT=false
+NEED_LIBFFI=false
 NEED_LIBGCRYPT=false
 NEED_LIBGPG_ERROR=false
 NEED_LIBID3TAG=false
 NEED_LIBKSBA=false
 NEED_LIBMAD=false
 NEED_LIBSOFTFP=false
+NEED_LIBSSH2=false
 NEED_LIBT3CONFIG=false
 NEED_LIBT3HIGHLIGHT=false
 NEED_LIBT3KEY=false
@@ -744,6 +761,11 @@ if $INCLUDE_MICRO; then
     NEED_GCCGO=true
 fi
 
+if $INCLUDE_MIDNIGHT_CMDR; then
+    NEED_GLIB=true
+    NEED_LIBSSH2=true
+fi
+
 if $INCLUDE_MPG321; then
     NEED_ZLIB=true
     NEED_LIBID3TAG=true
@@ -776,6 +798,18 @@ fi
 
 if [ -n "$USED_WM" ]; then
     NEED_ZLIB=true
+fi
+
+# Check what prerequisites the prerequisites need
+if $NEED_GLIB; then
+    NEED_LIBFFI=true
+    NEED_PCRE2=true
+    NEED_ZLIB=true
+    NEED_LIBSOFTFP=true
+fi
+
+if $NEED_LIBSSH2; then
+    NEED_OPENSSL=true
 fi
 
 
@@ -1166,8 +1200,63 @@ get_musl_cross()
     [ -d "${CROSS}" ] || tar xvf "${CROSS}.tgz"
 }
 
-# Download and compile ncurses (required for c3270, htop, Lynx, nano, Ncdu,
-# sc-im, T3* stack, tic, Tilde, tmux, tn5250 and util-linux)
+# Download and compile gpm for ncurses mouse support
+get_gpm()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ "$INCLUDE_GPM" = true ] && [ -f "${DESTDIR}/usr/sbin/gpm" ] && [ -f "${PREFIX}/include/gpm.h" ]; then
+        echo -e "${LIGHT_RED}gpm already compiled, skipping...${RESET}"
+        return
+    elif [ "$INCLUDE_GPM" = false ] && [ -f "${PREFIX}/include/gpm.h" ]; then
+        echo -e "${LIGHT_RED}gpm already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d "gpm" ]; then
+        echo -e "${YELLOW}gpm source already present, resetting & cleaning...${RESET}"
+        cd "gpm"
+        git config --global --add safe.directory "${CURR_DIR}/build/gpm"
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading gpm...${RESET}"
+        git clone --branch "$GPM_VER" $GPM_SRC
+        cd "gpm"
+    fi
+
+    patch -p1 < "${PATCHES_DIR}/gpm/1.20.7_static_posix_headers.patch"
+    export ac_cv_path_emacs=no
+    ./autogen.sh
+
+    # Compile program
+    echo -e "${GREEN}Compiling gpm...${RESET}"
+    ./configure \
+        --host="${HOST}" \
+        --prefix=/usr \
+        CC="${CC_STATIC}" \
+        AR="${AR}" \
+        AS="${AS}" \
+        RANLIB="${RANLIB}" \
+        STRIP="${STRIP}" \
+        CFLAGS="-Os -march=${ARCH} -mno-fancy-math-387 -ffunction-sections -fdata-sections -I${PREFIX}/include -fcommon" \
+        CPPFLAGS="-I${SYSROOT}/include -I${PREFIX}/include -DHAVE_FORKPTY" \
+        LDFLAGS="-static -Wl,--gc-sections -s -L${PREFIX}/lib"
+    make -j$(nproc)
+    if $INCLUDE_GPM; then
+        sudo make DESTDIR="$DESTDIR" install
+    fi
+
+    cp "${CURR_DIR}/build/gpm/src/headers/gpm.h" "${PREFIX}/include/gpm.h"
+    cp "${CURR_DIR}/build/gpm/src/lib/libgpm.a" "${PREFIX}/lib/libgpm.a"
+    fix_perms
+}
+
+# Download and compile ncurses (required for c3270, GNU Midnight Commander, 
+# htop, Lynx, nano, Ncdu, sc-im, T3* stack, tic, Tilde, tmux, tn5250 and
+# util-linux)
 get_ncurses()
 {
     cd "${CURR_DIR}/build"
@@ -1305,18 +1394,18 @@ get_curl()
     fi
 }
 
-# Download and compile glib (required for kshark)
+# Download and compile GLib (required for GNU Midnight Commander and kshark)
 get_glib()
 {
     cd "${CURR_DIR}/build"
 
     # Skip if already compiled
-    #if [ -f "$SYSROOT/usr/lib/TODO.a" ]; then
-    #    echo -e "${LIGHT_RED}glib already compiled, skipping...${RESET}"
-    #    return
-    #fi
+    if [ -f "$SYSROOT/usr/lib/libglib-2.0.a" ]; then
+        echo -e "${LIGHT_RED}GLib already compiled, skipping...${RESET}"
+        return
+    fi
 
-    echo -e "${GREEN}Downloading glib...${RESET}"
+    echo -e "${GREEN}Downloading GLib...${RESET}"
     DIR="glib-${GLIB_VER}"
     ARC="${DIR}.tar.xz"
     URI="${GLIB_SRC}/${GLIB_DIST}/${ARC}"
@@ -1326,23 +1415,29 @@ get_glib()
 
     # Extract source
     if [ -d $DIR ]; then
-        echo -e "${YELLOW}glib's source archive is already present, re-extracting before proceeding...${RESET}"
+        echo -e "${YELLOW}GLib's source archive is already present, re-extracting before proceeding...${RESET}"
         rm -rf $DIR
     fi
     tar xf $ARC
     cd $DIR
 
     copy_config "${CURR_DIR}/compilation/meson-cross.ini" "${CURR_DIR}/build/${DIR}/meson-cross.ini"
+    export PKG_CONFIG_LIBDIR="${SYSROOT}/usr/lib/pkgconfig"
+    export PKG_CONFIG_PATH="${SYSROOT}/usr/lib/pkgconfig"
+    export PKG_CONFIG_SYSROOT_DIR="${SYSROOT}"
 
     # Compile and install
-    echo -e "${GREEN}Compiling glib...${RESET}"
+    echo -e "${GREEN}Compiling GLib...${RESET}"
     meson setup _build \
         --prefix=/usr \
         --cross-file meson-cross.ini \
         --default-library=static \
         -Dtests=false \
         -Dintrospection=disabled \
-        -Dman=false
+        -Dman-pages=disabled \
+        -Dselinux=disabled \
+        -Dlibelf=disabled \
+        -Dsysprof=disabled
     ninja -C _build
     DESTDIR="${SYSROOT}" ninja -C _build install
 }
@@ -1644,6 +1739,48 @@ get_libevent()
     make install
 }
 
+# Download and compile libffi (required for glib)
+get_libffi()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/libffi.a" ]; then
+        echo -e "${LIGHT_RED}libffi already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d libffi ]; then
+        echo -e "${YELLOW}libffi source already present, resetting...${RESET}"
+        cd libffi
+        git config --global --add safe.directory "${CURR_DIR}"/build/libffi
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading libffi...${RESET}"
+        git clone --depth=1 --branch "v$LIBFFI_VER" $LIBFFI_SRC
+        cd libffi
+    fi
+
+    ./autogen.sh
+
+    # Compile and install
+    echo -e "${GREEN}Compiling libffi...${RESET}"
+    ./configure \
+        --host="$HOST" \
+        --prefix=/usr \
+        --enable-static \
+        --disable-shared \
+        CC="$CC_STATIC" \
+        AR="$AR" \
+        RANLIB="$RANLIB" \
+        CFLAGS="-Os -march=${ARCH} -I${PREFIX}/include" \
+        LDFLAGS="-static -L${SYSROOT}/lib"
+    make -j$(nproc)
+    make DESTDIR="$SYSROOT" install
+}
+
 # Download and compile libgcrypt (required for GnuPG)
 get_libgcrypt()
 {
@@ -1738,52 +1875,6 @@ get_libgpg_error()
     make DESTDIR="${SYSROOT}" install
 }
 
-# Download and compile libmad (required for mpg321) 
-get_libmad()
-{
-    cd "${CURR_DIR}/build"
-
-    # Skip if already compiled
-    if [ -f "$SYSROOT/usr/lib/libmad.a" ]; then
-        echo -e "${LIGHT_RED}libmad already compiled, skipping...${RESET}"
-        return
-    fi
-
-    # Download source
-    if [ -d libmad ]; then
-        echo -e "${YELLOW}libmad source already present, resetting...${RESET}"
-        cd libmad
-        git reset --hard
-        git clean -fdx
-    else
-        echo -e "${GREEN}Downloading libmad...${RESET}"
-        git clone $LIBMAD_SRC libmad
-        cd libmad
-        git checkout $LIBMAD_VER
-    fi
-
-    # Its config.sub is too old to recognise musl
-    cp "${CURR_DIR}/compilation/config.guess" config.guess
-    cp "${CURR_DIR}/compilation/config.sub" config.sub
-
-    local CFLAGS="-static -O2 -march=i486 -mtune=i486 -fomit-frame-pointer -I$SYSROOT/usr/include"
-
-    # Compile and install
-    echo -e "${GREEN}Compiling libmad...${RESET}"
-    ./configure \
-        --host="$HOST" \
-        --prefix=/usr \
-        --enable-static \
-        --disable-shared \
-        AR="$AR" \
-        CC="$CC_STATIC" \
-        RANLIB="$RANLIB" \
-        CFLAGS="${CFLAGS}" \
-        LDFLAGS="-static -L$SYSROOT/usr/lib"
-    make CFLAGS="${CFLAGS}" -j$(nproc)
-    make DESTDIR="$SYSROOT" install
-}
-
 # Download and compile libid3tag (required for mpg321) 
 get_libid3tag()
 {
@@ -1876,6 +1967,52 @@ get_libksba()
     make DESTDIR="${SYSROOT}" install
 }
 
+# Download and compile libmad (required for mpg321) 
+get_libmad()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/libmad.a" ]; then
+        echo -e "${LIGHT_RED}libmad already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d libmad ]; then
+        echo -e "${YELLOW}libmad source already present, resetting...${RESET}"
+        cd libmad
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading libmad...${RESET}"
+        git clone $LIBMAD_SRC libmad
+        cd libmad
+        git checkout $LIBMAD_VER
+    fi
+
+    # Its config.sub is too old to recognise musl
+    cp "${CURR_DIR}/compilation/config.guess" config.guess
+    cp "${CURR_DIR}/compilation/config.sub" config.sub
+
+    local CFLAGS="-static -O2 -march=i486 -mtune=i486 -fomit-frame-pointer -I$SYSROOT/usr/include"
+
+    # Compile and install
+    echo -e "${GREEN}Compiling libmad...${RESET}"
+    ./configure \
+        --host="$HOST" \
+        --prefix=/usr \
+        --enable-static \
+        --disable-shared \
+        AR="$AR" \
+        CC="$CC_STATIC" \
+        RANLIB="$RANLIB" \
+        CFLAGS="${CFLAGS}" \
+        LDFLAGS="-static -L$SYSROOT/usr/lib"
+    make CFLAGS="${CFLAGS}" -j$(nproc)
+    make DESTDIR="$SYSROOT" install
+}
+
 # Compile our own static library of C software floating-point routines from
 ## LLVM
 get_libsoftfp()
@@ -1944,6 +2081,55 @@ get_libsoftfp()
     ${AR} rcs libsoftfp.a *.o
     ${RANLIB} libsoftfp.a
     sudo install -m644 libsoftfp.a "${PREFIX}"/lib/
+}
+
+# Download and compile libssh2 (required for GNU Midnight Commander)
+get_libssh2()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/libssh2.a" ]; then
+        echo -e "${LIGHT_RED}libssh2 already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d libssh2 ]; then
+        echo -e "${YELLOW}libssh2 source already present, resetting...${RESET}"
+        cd libssh2
+        git config --global --add safe.directory "${CURR_DIR}"/build/libssh2
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading libssh2...${RESET}"
+        git clone --depth=1 --branch "libssh2-$LIBSSH2_VER" $LIBSSH2_SRC
+        cd libssh2
+    fi
+
+    autoreconf -fi
+
+    # Compile and install
+    echo -e "${GREEN}Compiling libssh2...${RESET}"
+    ./configure \
+        --host="$HOST" \
+        --prefix=/usr \
+        --enable-static \
+        --disable-shared \
+        --disable-examples-build \
+        --with-crypto=openssl \
+        --with-libssl-prefix=${SYSROOT} \
+        CC="$CC_STATIC" \
+        AR="$AR" \
+        RANLIB="$RANLIB" \
+        CFLAGS="-Os -march=${ARCH} -I${PREFIX}/include" \
+        LDFLAGS="-static -L${SYSROOT}/lib" \
+        LIBS="-lssl -lcrypto"
+    make -j$(nproc)
+    make DESTDIR="$SYSROOT" install
+
+    # Fix "library was moved" error
+    find "$SYSROOT/usr/lib" -name "*.la" -exec sed -i "s|^libdir=.*|libdir='${SYSROOT}/usr/lib'|" {} \;
 }
 
 # Download and compile libt3config (required for Tilde)
@@ -2669,7 +2855,8 @@ get_npth()
     make DESTDIR="${SYSROOT}" install
 }
 
-# Download and compile OpenSSL (required for curl, Git, Lynx and tn5250)
+# Download and compile OpenSSL (required for cURL, Git, libssh2, Lynx and
+# tn5250)
 get_openssl()
 {
     cd "${CURR_DIR}/build"
@@ -2705,7 +2892,7 @@ get_openssl()
     make install_sw
 }
 
-# Download and compile PCRE2 (required for T3* stack)
+# Download and compile PCRE2 (required for glib and T3* stack)
 get_pcre2()
 {
     cd "${CURR_DIR}/build"
@@ -5404,6 +5591,10 @@ get_prog_git()
 
 
 
+    export PKG_CONFIG_LIBDIR="${SYSROOT}/usr/lib/pkgconfig:${SYSROOT}/lib/pkgconfig"
+    export PKG_CONFIG_PATH=""
+    export PKG_CONFIG_SYSROOT_DIR="${SYSROOT}"
+
     # Compile program
     echo -e "${GREEN}Compiling $NAME...${RESET}"
     if $AUTOGEN; then
@@ -5427,12 +5618,19 @@ get_prog_git()
             CFLAGS="-Os -march=${ARCH} -mno-fancy-math-387 -ffunction-sections -fdata-sections -I${PREFIX}/include -I${PREFIX}/include/ncursesw ${EXTRA_CFLAGS}" \
             CPPFLAGS="-I${SYSROOT}/include -I${PREFIX}/include -I${PREFIX}/include/ncursesw -DHAVE_FORKPTY" \
             LDFLAGS="-static -Wl,--gc-sections -s -L${PREFIX}/lib ${EXTRA_LDFLAGS}" \
-            LIBS="-Wl,--start-group ${EXTRA_LIBS}" \
+            LIBS="${EXTRA_LIBS}" \
             LIBEVENT_CFLAGS="-I${PREFIX}/include" \
             LIBEVENT_LIBS="-L${PREFIX}/lib -levent" \
             CURSES_CFLAGS="-I${PREFIX}/include/ncursesw -I${PREFIX}/include" \
-            CURSES_LIBS="-L${PREFIX}/lib -lncursesw -Wl,--end-group"
+            CURSES_LIBS="-L${PREFIX}/lib -lncursesw"
     fi
+
+    # Fix glib/libtool pulling shared libatomic instead of static
+    LIBATOMIC_A="$($CC -print-file-name=libatomic.a)"
+    LIBATOMIC_LA="${SYSROOT}/lib/libatomic.la"
+    find . -name '*.la' -exec sed -i  -e "s|-latomic|${LIBATOMIC_A}|g" -e "s|${LIBATOMIC_LA}|${LIBATOMIC_A}|g" {} +
+    find . -name 'Makefile' -exec sed -i -e "s|-latomic|${LIBATOMIC_A}|g" {} +
+
     make -j$(nproc)
     sudo make DESTDIR="$DESTDIR" install
 }
@@ -5501,7 +5699,8 @@ get_prog_tar()
 
 
 
-    export PKG_CONFIG_LIBDIR="${PREFIX}/lib/pkgconfig"
+    export PKG_CONFIG_LIBDIR="${SYSROOT}/usr/lib/pkgconfig:${SYSROOT}/lib/pkgconfig"
+    export PKG_CONFIG_PATH=""
     export PKG_CONFIG_SYSROOT_DIR="${SYSROOT}"
 
     # Compile program
@@ -7500,6 +7699,36 @@ copy_licences()
         CSV+="\nGit,GNU GPLv2,git.txt"
     fi
 
+    if $NEED_GLIB && 
+        [ -f "${CURR_DIR}/build/glib-${GLIB_VER}/COPYING" ]; then
+        cp "${CURR_DIR}/build/glib-${GLIB_VER}/COPYING" "${DESTDIR}/LICENCES/glib.txt" || true
+        CSV+="\nGLib,GNU LGPLv2.1,glib.txt"
+    fi
+
+    if $INCLUDE_INDENT && 
+        [ -f "${CURR_DIR}/build/indent-${INDENT_VER}/COPYING" ]; then
+        cp "${CURR_DIR}/build/indent-${INDENT_VER}/COPYING" "${DESTDIR}/LICENCES/indent.txt" || true
+        CSV+="\nGNU Indent,GNU GPLv3,indent.txt"
+    fi
+
+    if $INCLUDE_MAKE && 
+        [ -f "${CURR_DIR}/build/make-${MAKE_VER}/COPYING" ]; then
+        cp "${CURR_DIR}/build/make-${MAKE_VER}/COPYING" "${DESTDIR}/LICENCES/make.txt" || true
+        CSV+="\nGNU Make,GNU GPLv3,make.txt"
+    fi
+
+    if $INCLUDE_MIDNIGHT_CMDR && 
+        [ -f "${CURR_DIR}/build/mc/doc/COPYING" ]; then
+        cp "${CURR_DIR}/build/mc/doc/COPYING" "${DESTDIR}/LICENCES/mc.txt" || true
+        CSV+="\nGNU Midnight Commander,GNU GPLv3,mc.txt"
+    fi
+
+    if $INCLUDE_NANO && 
+        [ -f "${CURR_DIR}/build/nano-$NANO_VER/COPYING" ]; then
+        cp "${CURR_DIR}/build/nano-$NANO_VER/COPYING" "${DESTDIR}/LICENCES/nano.txt" || true
+        CSV+="\nGNU nano,GNU GPLv3,nano.txt"
+    fi
+
     if $INCLUDE_GNUPG && 
         [ -f "${CURR_DIR}/build/gnupg-$GNUPG_VER/COPYING" ]; then
         cp "${CURR_DIR}/build/gnupg-$GNUPG_VER/COPYING" "${DESTDIR}/LICENCES/gnupg.txt" || true
@@ -7529,12 +7758,6 @@ copy_licences()
         [ -f "${CURR_DIR}/build/syslinux/COPYING" ]; then
         cp "${CURR_DIR}/build/syslinux/COPYING" "${DESTDIR}/LICENCES/isolinux.txt" || true
         CSV+="\nISOLINUX,GNU GPLv2,isolinux.txt"
-    fi
-
-    if $INCLUDE_INDENT && 
-        [ -f "${CURR_DIR}/build/indent-${INDENT_VER}/COPYING" ]; then
-        cp "${CURR_DIR}/build/indent-${INDENT_VER}/COPYING" "${DESTDIR}/LICENCES/indent.txt" || true
-        CSV+="\nIndent,GNU GPLv3,indent.txt"
     fi
 
     if $INCLUDE_JOE &&
@@ -7579,6 +7802,12 @@ copy_licences()
         CSV+="\nlibevent,BSD 3-Clause,libevent.txt"
     fi
 
+    if $NEED_LIBFFI && 
+        [ -f "${CURR_DIR}/build/libffi/LICENSE" ]; then
+        cp "${CURR_DIR}/build/libffi/LICENSE" "${DESTDIR}/LICENCES/libffi.txt" || true
+        CSV+="\nlibffi,MIT,libffi.txt"
+    fi
+
     if $NEED_LIBGCRYPT && 
         [ -f "${CURR_DIR}/build/libgcrypt-${LIBGCRYPT_VER}/COPYING" ]; then
         cp "${CURR_DIR}/build/libgcrypt-${LIBGCRYPT_VER}/COPYING" "${DESTDIR}/LICENCES/libgcrypt.txt" || true
@@ -7609,16 +7838,16 @@ copy_licences()
         CSV+="\nlibmad,GNU GPLv2,libmad.txt"
     fi
 
-    if $NEED_NPTH && 
-        [ -f "${CURR_DIR}/build/npth-${NPTH_VER}/COPYING.LIB" ]; then
-        cp "${CURR_DIR}/build/npth-${NPTH_VER}/COPYING.LIB" "${DESTDIR}/LICENCES/npth.txt" || true
-        CSV+="\nnPth,GNU LGPLv2.1,npth.txt"
-    fi
-
     if $INCLUDE_E2FSPROGS &&
         [ -f "${CURR_DIR}/build/e2fsprogs-$E2FSPROGS_VER/lib/ss/data.c" ]; then
         sed -n '/^ \* Copyright/,/warranty\.$/p' "${CURR_DIR}/build/e2fsprogs-$E2FSPROGS_VER/lib/ss/data.c" | sed 's/^ \* \{0,1\}//' > "${DESTDIR}/LICENCES/libss.txt"
         CSV+="\nlibss,MIT SIPB,libss.txt"
+    fi
+
+    if $NEED_LIBSSH2 && 
+        [ -f "${CURR_DIR}/build/libssh2/COPYING" ]; then
+        cp "${CURR_DIR}/build/libssh2/COPYING" "${DESTDIR}/LICENCES/libssh2.txt" || true
+        CSV+="\nlibssh2,BSD 3-Clause,libssh2.txt"
     fi
 
     # TODO: $NEED_LIBUUID
@@ -7673,12 +7902,6 @@ copy_licences()
         CSV+="\nmusl,MIT,musl.txt"
     fi
 
-    if $INCLUDE_MAKE && 
-        [ -f "${CURR_DIR}/build/make-${MAKE_VER}/COPYING" ]; then
-        cp "${CURR_DIR}/build/make-${MAKE_VER}/COPYING" "${DESTDIR}/LICENCES/make.txt" || true
-        CSV+="\nMake,GNU GPLv3,make.txt"
-    fi
-
     if $INCLUDE_MEMTESTER && 
         [ -f "${CURR_DIR}/build/memtester-${MEMTESTER_VER}/COPYING" ]; then
         cp "${CURR_DIR}/build/memtester-${MEMTESTER_VER}/COPYING" "${DESTDIR}/LICENCES/memtester.txt" || true
@@ -7709,12 +7932,6 @@ copy_licences()
         CSV+="\nmt-st,GNU GPLv2,mt-st.txt"
     fi
 
-    if $INCLUDE_NANO && 
-        [ -f "${CURR_DIR}/build/nano-$NANO_VER/COPYING" ]; then
-        cp "${CURR_DIR}/build/nano-$NANO_VER/COPYING" "${DESTDIR}/LICENCES/nano.txt" || true
-        CSV+="\nnano,GNU GPLv3,nano.txt"
-    fi
-
     if $INCLUDE_NASM && 
         [ -f "${CURR_DIR}/build/nasm/LICENSE" ]; then
         cp "${CURR_DIR}/build/nasm/LICENSE" "${DESTDIR}/LICENCES/nasm.txt" || true
@@ -7737,6 +7954,12 @@ copy_licences()
         [ -f "${CURR_DIR}/build/nedit/COPYRIGHT" ]; then
         cp "${CURR_DIR}/build/nedit/COPYRIGHT" "${DESTDIR}/LICENCES/nedit.txt" || true
         CSV+="\nNEdit,GNU GPLv2,nedit.txt"
+    fi
+
+    if $NEED_NPTH && 
+        [ -f "${CURR_DIR}/build/npth-${NPTH_VER}/COPYING.LIB" ]; then
+        cp "${CURR_DIR}/build/npth-${NPTH_VER}/COPYING.LIB" "${DESTDIR}/LICENCES/npth.txt" || true
+        CSV+="\nnPth,GNU LGPLv2.1,npth.txt"
     fi
 
     if [ -f "${DESTDIR}/usr/bin/oneko" ]; then
@@ -9302,6 +9525,7 @@ get_installed_progs_feats()
         check_installed_file "lsb-release-minimal ${LSB_RELEASE_MIN_VER}" "/usr/bin/lsb_release"
         check_installed_file "jq ${JQ_VER}" "/usr/bin/jq"
         check_installed_file "gpm ${GPM_VER}" "/usr/sbin/gpm"
+        check_installed_file "GNU Midnight Commander ${MIDNIGHT_CMDR_VER}" "/usr/bin/mc"
     fi
     if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
         check_installed_file "util-linux ${UTIL_LINUX_VER}" "/usr/bin/whereis"
@@ -9534,26 +9758,7 @@ if ! $SKIP_BB; then
     get_busybox
 fi
 
-if $INCLUDE_GPM; then
-    export ac_cv_path_emacs=no
-    get_prog_git \
-        "usr/sbin" \
-        "gpm" \
-        "gpm" \
-        "gpm" \
-        "$GPM_SRC" \
-        "$GPM_VER" \
-        "gpm/1.20.7_static_posix_headers.patch" \
-        true \
-        false \
-        "/usr" \
-        "" \
-        "-fcommon"
-    cp "${CURR_DIR}/build/gpm/src/headers/gpm.h" "${PREFIX}/include/gpm.h"
-    cp "${CURR_DIR}/build/gpm/src/lib/libgpm.a" "${PREFIX}/lib/libgpm.a"
-    fix_perms
-fi
-
+get_gpm
 get_ncurses
 if [ "$BUILD_TYPE" != "micro" ] && [ "$BUILD_TYPE" != "mini" ]; then
     get_tic
@@ -9655,8 +9860,14 @@ fi
 if $NEED_LIBKSBA; then
     get_libksba
 fi
+if $NEED_LIBFFI; then
+    get_libffi
+fi
 if $NEED_GLIB; then
     get_glib
+fi
+if $NEED_LIBSSH2; then
+    get_libssh2
 fi
 
 # Compile SHORKGUI
@@ -9955,6 +10166,24 @@ if $INCLUDE_MICRO; then
 fi
 if $INCLUDE_MICROPYTHON; then
     get_micropython
+fi
+if $INCLUDE_MIDNIGHT_CMDR; then
+    LIBATOMIC_A="$($CC -print-file-name=libatomic.a)"
+    get_prog_git \
+        "usr/bin" \
+        "mc" \
+        "mc" \
+        "mc" \
+        "$MIDNIGHT_CMDR_SRC" \
+        "$MIDNIGHT_CMDR_VER" \
+        "" \
+        true \
+        false \
+        "/usr" \
+        "--with-screen=ncurses --without-x --disable-mclib --enable-vfs-sftp " \
+        "-I${SYSROOT}/usr/include -I${PREFIX}/include" \
+        "-L${SYSROOT}/usr/lib -L${PREFIX}/lib" \
+        "-Wl,--start-group -lssh2 -lsoftfp -lpcre2-8 -Wl,-Bstatic ${LIBATOMIC_A} -lncursesw -ltinfo -lgpm -Wl,--end-group"
 fi
 if $INCLUDE_MPG321; then
     get_mpg321

@@ -109,6 +109,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [GNU Binutils](https://musl.cc/)‡ | e.g. `ar`\*, `as`, `gprof`, `ld`, `nm`, `objdump`, `ranlib`,`readelf`, `strings`\*, `strip` | 2.37 | Binary tools to compliment GCC | GPLv3 |*||||
 | [GNU Indent](https://www.gnu.org/software/indent/) | `indent` | 2.2.13 | C code formatter | GPLv3 |*||||
 | [GNU Make](https://www.gnu.org/software/make/) | `make` | 4.4.1 | Build automation tool | GPLv3 |*||||
+| [GNU Midnight Commander](https://midnight-commander.org/)¶ | `mc`, `mcdiff`, `mcedit`, `mcview` | 4.8.33 | Norton Commander-style file manager | GPLv3 |*||||
 | [GNU nano](https://www.nano-editor.org/)¶ | `nano` | 9.2 | Pico-style text editor | GPLv3 |*|**\***|*|*|
 | [GnuPG & pinentry](https://gnupg.org/)  | e.g. `gpg`, `gpg-agent`, `gpgconf`, `kbxutil`, `pinentry`, `watchgnupg` | 2.5.21 & 1.3.3 | OpenPGP-compliant encryption & signing | GPLv3 |*||||
 | [gpm](https://www.nico.schottelius.org/software/gpm/) | `gpm` | 1.20.7 | Virtual console mouse | GPLv2 |*|*|*|*|
@@ -150,17 +151,20 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 
 | Name | Version | For | Licence(s) |
 |------|---------|-----|------------|
-| [Compiler-RT](https://github.com/llvm/llvm-project/tree/main/compiler-rt) (libsoftfp) | 23.1.1 | GnuPG | Apache 2.0 w/ LLVM Exceptions |
+| [Compiler-RT](https://github.com/llvm/llvm-project/tree/main/compiler-rt) (libsoftfp) | 23.1.1 | GLib, GnuPG | Apache 2.0 w/ LLVM Exceptions |
+| [GLib](https://download.gnome.org/sources/glib/) | 2.90.0 | Midnight Commander | LGPLv2.1 |
 | [libao](https://github.com/xiph/libao) | 1.2.2 | mpg321 | GPLv2 |
 | [libassuan](https://www.gnupg.org/software/libassuan/index.html) | 3.0.2 | GnuPG | GPLv3 |
 | libcom_err | 1.47.4 | e2fsprogs | MIT SIPB |
 | [libevent](https://github.com/libevent/libevent) | 2.1.13 | tmux | BSD 3-Clause |
+| [libffi](https://github.com/libffi/libffi) | 3.8.0 | GLib | MIT |
 | [libgcrypt](https://www.gnupg.org/software/libgcrypt/index.html) | 1.12.4 | GnuPG | GPLv3 |
 | [libgpg-error](https://www.gnupg.org/software/libgpg-error/index.html) | 1.61 | GnuPG | GPLv3 |
 | [libid3tag](https://github.com/markjeee/libid3tag) | 0.15.1b | mpg321 | GPLv2 |
 | [libksba](https://www.gnupg.org/software/libksba/index.html) | 1.8.1 | GnuPG | GPLv3 |
 | [libmad](https://github.com/markjeee/libmad) | 0.15.1b | mpg321 | GPLv2 |
 | libss | 1.47.4 | e2fsprogs | MIT SIPB |
+| [libssh2](https://github.com/libssh2/libssh2) | 1.11.1 | Midnight Commander | BSD 3-Clause |
 | [libt3config](https://os.ghalkes.nl/t3/libt3config.html) | 1.0.0 | Tilde | GPLv3 |
 | [libt3highlight](https://os.ghalkes.nl/t3/libt3highlight.html) | 0.5.0 | Tilde | GPLv3 |
 | [libt3key](https://os.ghalkes.nl/t3/libt3key.html) | 0.2.11 | Tilde | GPLv3 |
@@ -173,11 +177,11 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [libxml2](https://github.com/gnome/libxml2) | 2.15.4 | sc-im, Universal Ctags | MIT |
 | [libzip](https://github.com/nih-at/libzip) | 1.11.4 | sc-im | BSD 3-Clause |
 | [musl](somethhttps://musl.libc.org/) | 1.2.6 | GCC, Tiny C Compiler | MIT |
-| [ncurses](https://github.com/mirror/ncurses) | 6.4 | Cscope, dialog, htop, Lynx, nano, Ncdu, sc-im, SHORKMINES, tic, tmux, tn5250, util-linux, x3270 | MIT |
+| [ncurses](https://github.com/mirror/ncurses) | 6.4 | Cscope, dialog, htop, Lynx, Midnight Commander, nano, Ncdu, sc-im, SHORKMINES, tic, tmux, tn5250, util-linux, x3270 | MIT |
 | [nPth](https://www.gnupg.org/software/npth/index.html) | 1.8 | GnuPG | LGPLv2.1 |
-| [OpenSSL](https://github.com/openssl/openssl) | 3.6.4 | curl, Git, Lynx, tn5250 | Apache 2.0 |
-| [PCRE2](https://pcre2project.github.io/pcre2/) | 10.48 | Tilde | BSD 3-Clause w/ PCRE2 exception |
-| [zlib](https://github.com/madler/zlib) | 1.3.2 | Git, GnuPG, libzip | zlib |
+| [OpenSSL](https://github.com/openssl/openssl) | 3.6.4 | cURL, Git, Lynx, Midnight Commander, tn5250 | Apache 2.0 |
+| [PCRE2](https://pcre2project.github.io/pcre2/) | 10.48 | GLib, Tilde | BSD 3-Clause w/ PCRE2 exception |
+| [zlib](https://github.com/madler/zlib) | 1.3.2 | Git, GLib, GnuPG, libzip | zlib |
 
 ### SHORK Utilities (SHORKUTILS)
 
@@ -420,6 +424,8 @@ EXTLINUX (SHORK 486), ISOLINUX (SHORK DISC) and SYSLINUX (SHORK DISKETTE) are th
 
 * **gcc**: Adds the GCC's C, C++ and Fortran compiler, musl C standard library and GNU Bintuils. Using `g++` requires more system memory than usual, hence it is not included by default. Memory requirements are ideally 32MiB system memory if no swap partition, 24MiB with 8MiB swap or 16MiB with 16MiB swap.
     * **Note:** If included, BusyBox's `ar` and `strings` implementations will be disabled in favour of GNU Binutils'.
+
+* **midnight-cmdr**: Adds the GNU Midnight Commander file manager. It presently has a hard dependency on networking, but making this optional is planned. Memory requirements are ideally 16MiB with 8MiB swap.
 
 * **shorktainment**: Includes the SHORK Entertainment programs bundle: shorklocomotive, shorkmatrix, shorkmines, and shorksay.
 

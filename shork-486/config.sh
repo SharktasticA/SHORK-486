@@ -81,6 +81,7 @@ INCLUDE_MAKE=false
 INCLUDE_MEMTESTER=false
 INCLUDE_MG=false
 INCLUDE_MICROPYTHON=false
+INCLUDE_MIDNIGHT_CMDR=false
 INCLUDE_MPG321=false
 INCLUDE_MT_ST=false
 INCLUDE_NANO=false
@@ -205,6 +206,7 @@ save_env()
         echo "INCLUDE_MEMTESTER=$INCLUDE_MEMTESTER"
         echo "INCLUDE_MG=$INCLUDE_MG"
         echo "INCLUDE_MICROPYTHON=$INCLUDE_MICROPYTHON"
+        echo "INCLUDE_MIDNIGHT_CMDR=$INCLUDE_MIDNIGHT_CMDR"
         echo "INCLUDE_MPG321=$INCLUDE_MPG321"
         echo "INCLUDE_MT_ST=$INCLUDE_MT_ST"
         echo "INCLUDE_NANO=$INCLUDE_NANO"
@@ -302,6 +304,7 @@ set_mini_vars()
     INCLUDE_MEMTESTER=false
     INCLUDE_MG=false
     INCLUDE_MICROPYTHON=false
+    INCLUDE_MIDNIGHT_CMDR=false
     INCLUDE_MPG321=false
     INCLUDE_MT_ST=false
     INCLUDE_NANO=false
@@ -434,6 +437,7 @@ set_plus_vars()
     INCLUDE_JOE=true
     INCLUDE_JQ=true
     INCLUDE_MAKE=true
+    INCLUDE_MIDNIGHT_CMDR=true
     INCLUDE_MPG321=true
     INCLUDE_NASM=true
     INCLUDE_PATCHELF=true
@@ -1154,6 +1158,7 @@ if [ "$ENABLE_NET_ETH" == true ]; then
         "memtester"         "*Userspace memory subsystem fault tester (0.05MiB)"    "$(val "$INCLUDE_MEMTESTER")"
         "mg"                "*Emacs-style text editor (0.3MiB)"                     "$(val "$INCLUDE_MG")"
         "micropython"       "*Python 3.4-syntax intepreter (0.7MiB)"                "$(val "$INCLUDE_MICROPYTHON")"
+        "midnight-cmdr"     "†Norton Commander-style file manager (9MiB)"           "$(val "$INCLUDE_MIDNIGHT_CMDR")"
         "mpg321"            "MP3 player (0.4MiB)"                                   "$(val "$INCLUDE_MPG321")"
         "mt-st"             "*Tape drive tools (0.2MiB)"                            "$(val "$INCLUDE_MT_ST")"
         "nano"              "*Pico-style text editor (0.8MiB)"                      "$(val "$INCLUDE_NANO")"
@@ -1249,12 +1254,13 @@ else
     if [[ $BUNDLED =~ "memtester" ]];       then INCLUDE_MEMTESTER=true;        else INCLUDE_MEMTESTER=false;       fi
     if [[ $BUNDLED =~ "mg" ]];              then INCLUDE_MG=true;               else INCLUDE_MG=false;              fi
     if [[ $BUNDLED =~ "micropython" ]];     then INCLUDE_MICROPYTHON=true;      else INCLUDE_MICROPYTHON=false;     fi
+    if [[ $BUNDLED =~ "midnight-cmdr" ]];   then INCLUDE_MIDNIGHT_CMDR=true;    else INCLUDE_MIDNIGHT_CMDR=false;   fi
     if [[ $BUNDLED =~ "mpg321" ]];          then INCLUDE_MPG321=true;           else INCLUDE_MPG321=false;          fi
     if [[ $BUNDLED =~ "mt-st" ]];           then INCLUDE_MT_ST=true;            else INCLUDE_MT_ST=false;           fi
     if [[ $BUNDLED =~ "nano" ]];            then INCLUDE_NANO=true;             else INCLUDE_NANO=false;            fi
     if [[ $BUNDLED =~ "nasm" ]];            then INCLUDE_NASM=true;             else INCLUDE_NASM=false;            fi
     if [[ $BUNDLED =~ "ncdu" ]];            then INCLUDE_NCDU=true;             else INCLUDE_NCDU=false;            fi
-    if [[ $BUNDLED =~ "patchelf" ]];        then INCLUDE_PATCHELF=true;         else INCLUDE_PATCHELF=false;            fi
+    if [[ $BUNDLED =~ "patchelf" ]];        then INCLUDE_PATCHELF=true;         else INCLUDE_PATCHELF=false;        fi
     if [[ $BUNDLED =~ "sc-im" ]];           then INCLUDE_SC_IM=true;            else INCLUDE_SC_IM=false;           fi
     if [[ $BUNDLED =~ "shorktainment" ]];   then INCLUDE_SHORKTAINMENT=true;    else INCLUDE_SHORKTAINMENT=false;   fi
     if [[ $BUNDLED =~ "strace" ]];          then INCLUDE_STRACE=true;           else INCLUDE_STRACE=false;          fi
