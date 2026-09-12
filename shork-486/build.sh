@@ -1108,7 +1108,7 @@ install_fedora_prerequisites()
 {
     echo -e "${GREEN}Installing prerequisite packages for a Fedora-based system...${RESET}"
 
-    PACKAGES="autoconf automake bison dialog docbook2pdf docbook2X flex gcc genisoimage gettext git libtool make patch perl python3 qemu-img"
+    PACKAGES="autoconf automake bison dialog docbook2pdf docbook2X flex gcc genisoimage gettext git libtool make meson ninja-build patch perl python3 qemu-img"
 
     if $FIX_EXTLINUX; then
         PACKAGES+=" libuuid-devel nasm"
