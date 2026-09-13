@@ -7,6 +7,9 @@
 * SHORKFORTUNE
 * SHORKNET (network connection management)
     * Currently being folded into SHORKSET instead
+        * static IP support
+        * domain suffix appending
+        * custom routes
 * SHORKSNEK (snake-like game)
 * SHORKVADER (space invaders-like game)
 
