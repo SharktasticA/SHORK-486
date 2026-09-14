@@ -1,0 +1,77 @@
+diff --git a/lib/error.h b/lib/error.h
+index 3318ace..b7759b5 100644
+--- a/lib/error.h
++++ b/lib/error.h
+@@ -22,7 +22,7 @@
+ #ifdef yyerror
+ #undef yyerror
+ #endif
+-#define yyerror(msg)	smiyyerror(msg, parserPtr)
++#define yyerror(p, msg) smiyyerror(msg, p)
+ 
+ 
+ extern int smiErrorLevel;	/* Higher levels produce more warnings */
+diff --git a/lib/parser-smi.h b/lib/parser-smi.h
+index 8c7b3a2..3b41cbd 100644
+--- a/lib/parser-smi.h
++++ b/lib/parser-smi.h
+@@ -24,7 +24,7 @@
+ 
+ 
+ 
+-extern int smiparse();
++extern int smiparse(struct Parser *parserPtr);
+ 
+ 
+ 
+diff --git a/lib/parser-smi.y b/lib/parser-smi.y
+index d7ff04f..aa6101b 100644
+--- a/lib/parser-smi.y
++++ b/lib/parser-smi.y
+@@ -1,3 +1,6 @@
++%parse-param { struct Parser *parserPtr }
++%lex-param { struct Parser *parserPtr }
++
+ /*
+  * parser-smi.y --
+  *
+@@ -46,7 +49,6 @@
+ /*
+  * These arguments are passed to yyparse() and yylex().
+  */
+-#define YYPARSE_PARAM parserPtr
+ #define YYLEX_PARAM   parserPtr
+ 
+     
+diff --git a/lib/parser-sming.h b/lib/parser-sming.h
+index ed78780..0087440 100644
+--- a/lib/parser-sming.h
++++ b/lib/parser-sming.h
+@@ -24,7 +24,7 @@
+ 
+ 
+ 
+-extern int smingparse();
++extern int smingparse(struct Parser *parserPtr);
+ 
+ 
+ 
+diff --git a/lib/parser-sming.y b/lib/parser-sming.y
+index 555e570..f14d925 100644
+--- a/lib/parser-sming.y
++++ b/lib/parser-sming.y
+@@ -1,3 +1,6 @@
++%parse-param { struct Parser *parserPtr }
++%lex-param { struct Parser *parserPtr }
++
+ /*
+  * parser-sming.y --
+  *
+@@ -51,7 +54,6 @@
+ /*
+  * These arguments are passed to yyparse() and yylex().
+  */
+-#define YYPARSE_PARAM parserPtr
+ #define YYLEX_PARAM   parserPtr
+ 
+     

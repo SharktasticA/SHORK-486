@@ -138,8 +138,15 @@ SHORKFETCH_SRC="https://github.com/SharktasticA/shorkfetch.git"
 SHORKFETCH_VER="0.6.3"
 SHORKMINES_SRC="https://github.com/SharktasticA/shorkmines.git"
 
+BROTLI_SRC="https://github.com/google/brotli.git"
+BROTLI_VER="1.2.0"
+
 C3270_SRC="https://github.com/pmattes/x3270.git"
 C3270_VER="4.5ga6"
+
+CARES_SRC="https://github.com/c-ares/c-ares.git"
+CARES_VER="1.34.8"
+
 CSCOPE_SRC="https://git.code.sf.net/p/cscope/cscope cscope-cscope"
 CSCOPE_VER="15.9"
 CTAGS_SRC="https://github.com/universal-ctags/ctags.git"
@@ -180,8 +187,16 @@ GLIB_VER="2.90.0"
 GLIBC_SRC="https://ftp.gnu.org/gnu/glibc"
 GLIBC_VER="2.44"
 
+GMP_SRC="https://gmplib.org/download/gmp"
+GMP_VER="6.3.0"
+
 GNUPG_SRC="https://gnupg.org/ftp/gcrypt/gnupg"
 GNUPG_VER="2.5.21"
+
+GNUTLS_SRC="https://www.gnupg.org/ftp/gcrypt/gnutls"
+GNUTLS_DIST="v3.8"
+GNUTLS_VER="3.8.13"
+
 GPM_SRC="https://github.com/telmich/gpm.git"
 GPM_VER="1.20.7"
 HTOP_SRC="https://github.com/htop-dev/htop.git"
@@ -194,10 +209,19 @@ JOE_SRC="https://github.com/joe-editor/joe.git"
 JOE_VER="4.8"
 JQ_SRC="https://github.com/jqlang/jq.git"
 JQ_VER="1.8.2"
+
+KRB5_SRC="https://kerberos.org/dist/krb5"
+KRB5_DIST="1.22"
+KRB5_VER="1.22.2"
+
 LIBAO_SRC="https://github.com/xiph/libao.git"
 LIBAO_VER="1.2.2"
 LIBASSUAN_SRC="https://gnupg.org/ftp/gcrypt/libassuan"
 LIBASSUAN_VER="3.0.2"
+
+LIBCAP_SRC="https://git.kernel.org/pub/scm/libs/libcap/libcap.git"
+LIBCAP_VER="1.2.78"
+
 LIBEVENT_SRC="https://github.com/libevent/libevent.git"
 LIBEVENT_VER="release-2.1.13-stable"
 
@@ -210,10 +234,30 @@ LIBGPG_ERROR_SRC="https://gnupg.org/ftp/gcrypt/libgpg-error"
 LIBGPG_ERROR_VER="1.61"
 LIBID3TAG_SRC="https://github.com/markjeee/libid3tag.git"
 LIBID3TAG_VER="7929736a334804dc5670b203c9129cac2708d31c"
+
+LIBIDN2_SRC="https://ftp.gnu.org/gnu/libidn"
+LIBIDN2_VER="2.3.8"
+
 LIBKSBA_SRC="https://gnupg.org/ftp/gcrypt/libksba"
 LIBKSBA_VER="1.8.1"
+
+LIBLUA_SRC="https://www.lua.org/ftp"
+LIBLUA_VER="5.5.1"
+
 LIBMAD_SRC="https://github.com/markjeee/libmad.git"
 LIBMAD_VER="c2f96fa4166446ac99449bdf6905f4218fb7d6b5"
+
+LIBNL_SRC="https://github.com/thom311/libnl.git"
+LIBNL_VER="3.12.0"
+
+LIBPCAP_SRC="https://www.tcpdump.org/release"
+LIBPCAP_VER="1.10.7"
+
+LIBSMI_SRC="https://github.com/gitzone83/libsmi.git"
+LIBSMI_VER="import/0.4.8+dfsg2-16.1build1"
+
+LIBSSH_SRC="https://gitlab.com/libssh/libssh-mirror.git"
+LIBSSH_VER="0.12.2"
 
 LIBSSH2_SRC="https://github.com/libssh2/libssh2.git"
 LIBSSH2_VER="1.11.1"
@@ -224,6 +268,10 @@ LIBT3HIGHLIGHT_VER="0.5.0"
 LIBT3KEY_VER="0.2.11"
 LIBT3WIDGET_VER="1.2.2"
 LIBT3WINDOW_VER="0.4.2"
+
+LIBTASN1_SRC="https://ftp.gnu.org/gnu/libtasn1"
+LIBTASN1_VER="4.21.0"
+
 LIBTOOL_SRC="https://ftp.gnu.org/gnu/libtool"
 LIBTOOL_VER="2.6.2"
 LIBTRANSCRIPT_VER="0.3.4"
@@ -243,6 +291,10 @@ LUA_SRC="https://github.com/lua/lua.git"
 LUA_VER="5.5.1"
 LYNX_SRC="https://github.com/ThomasDickey/lynx-snapshots.git"
 LYNX_VER="2-9-3a"
+
+LZ4_SRC="https://github.com/lz4/lz4.git"
+LZ4_VER="1.10.0"
+
 MAKE_SRC="https://ftp.gnu.org/gnu/make"
 MAKE_VER="4.4.1"
 MEMTESTER_SRC="https://fossies.org/linux/misc"
@@ -272,6 +324,10 @@ NCDU_SRC="https://dev.yorhel.nl/download"
 NCDU_VER="1.22"
 NCURSES_SRC="https://github.com/mirror/ncurses.git"
 NCURSES_VER="6.4"
+
+NETTLE_SRC="https://ftp.gnu.org/gnu/nettle"
+NETTLE_VER="4.0"
+
 NPTH_SRC="https://gnupg.org/ftp/gcrypt/npth"
 NPTH_VER="1.8"
 OPENSSL_SRC="https://github.com/openssl/openssl.git"
@@ -284,6 +340,10 @@ PINENTRY_SRC="https://www.gnupg.org/ftp/gcrypt/pinentry"
 PINENTRY_VER="1.3.3"
 SC_IM_SRC="https://github.com/andmarti1424/sc-im.git"
 SC_IM_VER="0.8.5"
+
+SNAPPY_SRC="https://github.com/google/snappy.git"
+SNAPPY_VER="1.2.2"
+
 STRACE_SRC="https://github.com/strace/strace.git"
 STRACE_VER="7.2"
 SUDO_SRC="https://www.sudo.ws/dist"
@@ -307,8 +367,15 @@ WIRESHARK_SRC="https://www.wireshark.org/download/src"
 WIRESHARK_VER="4.7.2"
 X86EMU_SRC="https://github.com/wfeldt/libx86emu.git"
 X86EMU_VER="3.7"
+
+XXHASH_SRC="https://github.com/Cyan4973/xxHash.git"
+XXHASH_VER="0.8.3"
+
 ZLIB_SRC="https://github.com/madler/zlib.git"
 ZLIB_VER="1.3.2"
+
+ZSTD_SRC="https://github.com/facebook/zstd.git"
+ZSTD_VER="1.5.7"
 
 # MBR binary
 MBR_BIN=""
@@ -384,7 +451,6 @@ INCLUDE_INDENT=false
 INCLUDE_JOE=false
 INCLUDE_JQ=false
 INCLUDE_KEYMAPS=false
-INCLUDE_KSHARK=false
 INCLUDE_LSB_RELEASE_MIN=false
 INCLUDE_LUA=false
 INCLUDE_LYNX=false
@@ -412,6 +478,7 @@ INCLUDE_TILDE=false
 INCLUDE_TMUX=false
 INCLUDE_TN5250=false
 INCLUDE_TNFTP=false
+INCLUDE_TSHARK=false
 INCLUDE_UTIL_LINUX=false
 INCLUDE_VIM=false
 
@@ -681,25 +748,38 @@ fi
 
 
 # Check what other prerequisites we need
+NEED_BROTLI=false
+NEED_CARES=false
 NEED_CURL=false
 NEED_GCCGO=false
 NEED_GLIB=false
+NEED_GMP=false
+NEED_GNUTLS=false
+NEED_KRB5=false
 NEED_LIBAO=false
 NEED_LIBASSUAN=false
+NEED_LIBCAP=false
 NEED_LIBEVENT=false
 NEED_LIBFFI=false
 NEED_LIBGCRYPT=false
 NEED_LIBGPG_ERROR=false
 NEED_LIBID3TAG=false
+NEED_LIBIDN2=false
 NEED_LIBKSBA=false
+NEED_LIBLUA=false
 NEED_LIBMAD=false
+NEED_LIBNL=false
+NEED_LIBPCAP=false
+NEED_LIBSMI=false
 NEED_LIBSOFTFP=false
+NEED_LIBSSH=false
 NEED_LIBSSH2=false
 NEED_LIBT3CONFIG=false
 NEED_LIBT3HIGHLIGHT=false
 NEED_LIBT3KEY=false
 NEED_LIBT3WIDGET=false
 NEED_LIBT3WINDOW=false
+NEED_LIBTASN1=false
 NEED_LIBTOOL=false
 NEED_LIBTRANSCRIPT=false
 NEED_LIBUNISTRING=false
@@ -707,11 +787,16 @@ NEED_LIBUUID=false
 NEED_LIBXLSXWRITER=false
 NEED_LIBXML2=false
 NEED_LIBZIP=false
+NEED_LZ4=false
+NEED_NETTLE=false
 NEED_NPTH=false
 NEED_PCRE2=false
 NEED_OPENSSL=false
+NEED_SNAPPY=false
 NEED_X86EMU=false
+NEED_XXHASH=false
 NEED_ZLIB=false
+NEED_ZSTD=false
 
 # NOT NEEDED YET
 #if $ENABLE_FB_VBE; then
@@ -745,12 +830,6 @@ fi
 if $INCLUDE_HWINFO; then
     NEED_LIBUUID=true
     NEED_X86EMU=true
-fi
-
-if $INCLUDE_KSHARK; then
-    NEED_GLIB=true
-    NEED_LIBSOFTFP=true
-    NEED_ZLIB=true
 fi
 
 if $INCLUDE_LYNX; then
@@ -796,6 +875,26 @@ if $INCLUDE_TMUX; then
     NEED_LIBEVENT=true
 fi
 
+if $INCLUDE_TSHARK; then
+    NEED_GLIB=true
+    NEED_LIBGCRYPT=true
+    NEED_LIBGPG_ERROR=true
+    NEED_CARES=true
+    NEED_LIBXML2=true
+    NEED_LIBSSH=true
+    NEED_LIBPCAP=true
+    NEED_LIBSMI=true
+    NEED_GNUTLS=true
+    NEED_KRB5=true
+    NEED_XXHASH=true
+    NEED_LZ4=true
+    NEED_SNAPPY=true
+    NEED_LIBLUA=true
+    NEED_LIBNL=true
+    NEED_LIBCAP=true
+    NEED_LIBSOFTFP=true
+fi
+
 if [ -n "$USED_WM" ]; then
     NEED_ZLIB=true
 fi
@@ -806,6 +905,21 @@ if $NEED_GLIB; then
     NEED_PCRE2=true
     NEED_ZLIB=true
     NEED_LIBSOFTFP=true
+fi
+
+if $NEED_GNUTLS; then
+    NEED_GMP=true
+    NEED_LIBUNISTRING=true
+    NEED_NETTLE=true
+    NEED_LIBTASN1=true
+    NEED_BROTLI=true
+    NEED_ZSTD=true
+    NEED_LIBIDN2=true
+fi
+
+if $NEED_LIBSSH; then
+    NEED_ZLIB=true
+    NEED_LIBGCRYPT=true
 fi
 
 if $NEED_LIBSSH2; then
@@ -1340,6 +1454,90 @@ get_tic()
     sudo install -D progs/tic "${DESTDIR}/usr/bin/tic"
 }
 
+# Download and compile Brotli (required for GnuTLS and tshark)
+get_brotli()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/libbrotlicommon.a" ]; then
+        echo -e "${LIGHT_RED}Brotli already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d brotli ]; then
+        echo -e "${YELLOW}Brotli source already present, resetting...${RESET}"
+        cd brotli
+        git config --global --add safe.directory "${CURR_DIR}"/build/brotli
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading Brotli...${RESET}"
+        git clone --depth=1 --branch "v$BROTLI_VER" $BROTLI_SRC
+        cd brotli
+    fi
+
+    # Compile and install
+    echo -e "${GREEN}Compiling Brotli...${RESET}"
+    cmake -B build -S . \
+        -DCMAKE_SYSTEM_NAME=Linux \
+        -DCMAKE_SYSTEM_PROCESSOR=x86 \
+        -DCMAKE_C_COMPILER="${CC_STATIC}" \
+        -DCMAKE_AR="${AR}" \
+        -DCMAKE_RANLIB="${RANLIB}" \
+        -DCMAKE_STRIP="${STRIP}" \
+        -DCMAKE_C_FLAGS="-Os -march=${ARCH}" \
+        -DCMAKE_BUILD_TYPE=MinSizeRel \
+        -DCMAKE_INSTALL_PREFIX=/usr \
+        -DBUILD_SHARED_LIBS=OFF \
+        -DBROTLI_DISABLE_TESTS=ON
+    cmake --build build -j$(nproc)
+    sudo cmake --install build --prefix "${SYSROOT}/usr"
+}
+
+# Download and compile c-ares (required for tshark)
+get_cares()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/libcares.a" ]; then
+        echo -e "${LIGHT_RED}c-ares already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d c-ares ]; then
+        echo -e "${YELLOW}c-ares source already present, resetting...${RESET}"
+        cd c-ares
+        git config --global --add safe.directory "${CURR_DIR}"/build/c-ares
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading c-ares...${RESET}"
+        git clone --depth=1 --branch "v$CARES_VER" $CARES_SRC
+        cd c-ares
+    fi
+
+    autoreconf -fi
+
+    # Compile and install
+    echo -e "${GREEN}Compiling c-ares...${RESET}"
+    ./configure \
+        --host="$HOST" \
+        --prefix=/usr \
+        --enable-static \
+        --disable-shared \
+        CC="$CC_STATIC" \
+        AR="$AR" \
+        RANLIB="$RANLIB" \
+        CFLAGS="-Os -march=${ARCH} -I${PREFIX}/include" \
+        LDFLAGS="-static -L${SYSROOT}/lib"
+    make -j$(nproc)
+    make DESTDIR="$SYSROOT" install
+}
+
 # Download and compile cURL (required for cURL itself or Git)
 get_curl()
 {
@@ -1392,54 +1590,6 @@ get_curl()
         echo -e "${GREEN}Installing cURL for system...${RESET}"
         sudo install -D -m 755 "$SYSROOT/bin/curl" "${DESTDIR}/usr/bin/curl"
     fi
-}
-
-# Download and compile GLib (required for GNU Midnight Commander and kshark)
-get_glib()
-{
-    cd "${CURR_DIR}/build"
-
-    # Skip if already compiled
-    if [ -f "$SYSROOT/usr/lib/libglib-2.0.a" ]; then
-        echo -e "${LIGHT_RED}GLib already compiled, skipping...${RESET}"
-        return
-    fi
-
-    echo -e "${GREEN}Downloading GLib...${RESET}"
-    DIR="glib-${GLIB_VER}"
-    ARC="${DIR}.tar.xz"
-    URI="${GLIB_SRC}/${GLIB_DIST}/${ARC}"
-
-    # Download source
-    [ -f $ARC ] || wget $URI
-
-    # Extract source
-    if [ -d $DIR ]; then
-        echo -e "${YELLOW}GLib's source archive is already present, re-extracting before proceeding...${RESET}"
-        rm -rf $DIR
-    fi
-    tar xf $ARC
-    cd $DIR
-
-    copy_config "${CURR_DIR}/compilation/meson-cross.ini" "${CURR_DIR}/build/${DIR}/meson-cross.ini"
-    export PKG_CONFIG_LIBDIR="${SYSROOT}/usr/lib/pkgconfig"
-    export PKG_CONFIG_PATH="${SYSROOT}/usr/lib/pkgconfig"
-    export PKG_CONFIG_SYSROOT_DIR="${SYSROOT}"
-
-    # Compile and install
-    echo -e "${GREEN}Compiling GLib...${RESET}"
-    meson setup _build \
-        --prefix=/usr \
-        --cross-file meson-cross.ini \
-        --default-library=static \
-        -Dtests=false \
-        -Dintrospection=disabled \
-        -Dman-pages=disabled \
-        -Dselinux=disabled \
-        -Dlibelf=disabled \
-        -Dsysprof=disabled
-    ninja -C _build
-    DESTDIR="${SYSROOT}" ninja -C _build install
 }
 
 # Download and compile GNU Binutils and GCC for Go (required for micro)
@@ -1606,6 +1756,195 @@ get_gccgo()
     cd "${CURR_DIR}/build"
 }
 
+# Download and compile GLib (required for GNU Midnight Commander and tshark)
+get_glib()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/libglib-2.0.a" ]; then
+        echo -e "${LIGHT_RED}GLib already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading GLib...${RESET}"
+    DIR="glib-${GLIB_VER}"
+    ARC="${DIR}.tar.xz"
+    URI="${GLIB_SRC}/${GLIB_DIST}/${ARC}"
+
+    # Download source
+    [ -f $ARC ] || wget $URI
+
+    # Extract source
+    if [ -d $DIR ]; then
+        echo -e "${YELLOW}GLib's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -rf $DIR
+    fi
+    tar xf $ARC
+    cd $DIR
+
+    copy_config "${CURR_DIR}/compilation/meson-cross.ini" "${CURR_DIR}/build/${DIR}/meson-cross.ini"
+    export PKG_CONFIG_LIBDIR="${SYSROOT}/usr/lib/pkgconfig"
+    export PKG_CONFIG_PATH="${SYSROOT}/usr/lib/pkgconfig"
+    export PKG_CONFIG_SYSROOT_DIR="${SYSROOT}"
+
+    # Compile and install
+    echo -e "${GREEN}Compiling GLib...${RESET}"
+    meson setup _build \
+        --prefix=/usr \
+        --cross-file meson-cross.ini \
+        --default-library=static \
+        -Dtests=false \
+        -Dintrospection=disabled \
+        -Dman-pages=disabled \
+        -Dselinux=disabled \
+        -Dlibelf=disabled \
+        -Dsysprof=disabled
+    ninja -C _build
+    DESTDIR="${SYSROOT}" ninja -C _build install
+}
+
+# Download and compile GMP (required for GnuTLS)
+get_gmp()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/libgmp.a" ]; then
+        echo -e "${LIGHT_RED}GMP already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading GMP...${RESET}"
+    DIR="gmp-${GMP_VER}"
+    ARC="${DIR}.tar.xz"
+    URI="${GMP_SRC}/${ARC}"
+
+    # Download source
+    [ -f $ARC ] || wget $URI
+
+    # Extract source
+    if [ -d $DIR ]; then
+        echo -e "${YELLOW}GMP's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -rf $DIR
+    fi
+    tar xf $ARC
+    cd $DIR
+
+    # Compile and install
+    echo -e "${GREEN}Compiling GMP...${RESET}"
+    ./configure \
+        --host="$HOST" \
+        --prefix=/usr \
+        --enable-static \
+        --disable-shared \
+        CC="$CC_STATIC" \
+        AR="$AR" \
+        RANLIB="$RANLIB" \
+        CFLAGS="-Os -march=${ARCH} -I${PREFIX}/include" \
+        LDFLAGS="-static -L${SYSROOT}/lib"
+    make -j$(nproc)
+    make DESTDIR="${SYSROOT}" install
+}
+
+# Download and compile GnuTLS (required for tshark)
+get_gnutls()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/libgnutls.a" ]; then
+        echo -e "${LIGHT_RED}GnuTLS already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading GnuTLS...${RESET}"
+    DIR="gnutls-${GNUTLS_VER}"
+    ARC="${DIR}.tar.xz"
+    URI="${GNUTLS_SRC}/${GNUTLS_DIST}/${ARC}"
+
+    # Download source
+    [ -f $ARC ] || wget $URI
+
+    # Extract source
+    if [ -d $DIR ]; then
+        echo -e "${YELLOW}GnuTLS' source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -rf $DIR
+    fi
+    tar xf $ARC
+    cd $DIR
+
+    export PKG_CONFIG_PATH=""
+    export PKG_CONFIG_LIBDIR="${SYSROOT}/usr/lib/pkgconfig:${SYSROOT}/usr/share/pkgconfig"
+    export PKG_CONFIG_SYSROOT_DIR="${SYSROOT}"
+    export PKG_CONFIG="pkg-config --static"
+
+    # TODO: find a better solution - perhaps change all prefix to $SYSROOT/usr?
+    LIBUNISTRING_LA="${SYSROOT}/usr/lib/libunistring.a"
+    sed -i "s|/usr/lib/libunistring\.la|${LIBUNISTRING_LA}|g" "${SYSROOT}/usr/lib/libidn2.la"
+
+    # Compile and install
+    echo -e "${GREEN}Compiling GnuTLS...${RESET}"
+    ./configure \
+        --host="$HOST" \
+        --prefix=/usr \
+        --enable-static \
+        --disable-shared \
+        --without-p11-kit \
+        CC="$CC_STATIC" \
+        AR="$AR" \
+        RANLIB="$RANLIB" \
+        CFLAGS="-Os -march=${ARCH} -I${PREFIX}/include" \
+        LDFLAGS="-static -L${SYSROOT}/lib"
+    make -j$(nproc)
+    make DESTDIR="${SYSROOT}" install
+}
+
+# Download and compile Kerberos (required for tshark)
+get_krb5()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/libkrb5.a" ]; then
+        echo -e "${LIGHT_RED}Kerberos already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading Kerberos...${RESET}"
+    DIR="krb5-${KRB5_VER}"
+    ARC="${DIR}.tar.gz"
+    URI="${KRB5_SRC}/${KRB5_DIST}/${ARC}"
+
+    # Download source
+    [ -f $ARC ] || wget $URI
+
+    # Extract source
+    if [ -d $DIR ]; then
+        echo -e "${YELLOW}Kerberos' source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -rf $DIR
+    fi
+    tar xf $ARC
+    cd "${DIR}/src"
+
+    # Compile and install
+    echo -e "${GREEN}Compiling Kerberos...${RESET}"
+    ./configure \
+        --host="$HOST" \
+        --prefix=/usr \
+        --enable-static \
+        --disable-shared \
+        --without-tcl \
+        --without-ldap \
+        CC="$CC_STATIC" \
+        AR="$AR" \
+        RANLIB="$RANLIB" \
+        CFLAGS="-Os -march=${ARCH} -I${PREFIX}/include -fcommon" \
+        LDFLAGS="-static -L${SYSROOT}/lib"
+    make -j$(nproc)
+    make DESTDIR="${SYSROOT}" install
+}
+
 # Download and compile libao (required for mpg321) 
 get_libao()
 {
@@ -1709,6 +2048,50 @@ get_libassuan()
     make DESTDIR="${SYSROOT}" install
 }
 
+# Download and compile libcap (required for tshark)
+get_libcap()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/libcap.a" ]; then
+        echo -e "${LIGHT_RED}libcap already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d libcap ]; then
+        echo -e "${YELLOW}libcap source already present, resetting...${RESET}"
+        cd libcap
+        git config --global --add safe.directory "${CURR_DIR}"/build/libcap
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading libcap...${RESET}"
+        git clone --depth=1 --branch "v$LIBCAP_VER" $LIBCAP_SRC
+        cd libcap
+    fi
+
+    # Compile and install
+    echo -e "${GREEN}Compiling libcap...${RESET}"
+    make -j$(nproc) \
+        CC="${CC_STATIC}" \
+        AR="${AR}" \
+        RANLIB="${RANLIB}" \
+        CFLAGS="-Os -march=${ARCH}" \
+        BUILD_CC=cc \
+        lib=lib \
+        SHARED=no \
+        -C libcap
+    make \
+        DESTDIR="${SYSROOT}" \
+        prefix=/usr \
+        lib=lib \
+        SHARED=no \
+        -C libcap \
+        install
+}
+
 # Download and compile libevent (required for tmux)
 get_libevent()
 {
@@ -1781,7 +2164,7 @@ get_libffi()
     make DESTDIR="$SYSROOT" install
 }
 
-# Download and compile libgcrypt (required for GnuPG)
+# Download and compile libgcrypt (required for GnuPG, libssh and tshark)
 get_libgcrypt()
 {
     cd "${CURR_DIR}/build"
@@ -1829,7 +2212,7 @@ get_libgcrypt()
     make DESTDIR="${SYSROOT}" install
 }
 
-# Download and compile libgpg-error (required for GnuPG)
+# Download and compile libgpg-error (required for GnuPG and tshark)
 get_libgpg_error()
 {
     cd "${CURR_DIR}/build"
@@ -1919,6 +2302,49 @@ get_libid3tag()
     make DESTDIR="$SYSROOT" install
 }
 
+# Download and compile libidn2 (required for GnuTLS)
+get_libidn2()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/libidn2.a" ]; then
+        echo -e "${LIGHT_RED}libidn2 already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading libidn2...${RESET}"
+    DIR="libidn2-${LIBIDN2_VER}"
+    ARC="${DIR}.tar.gz"
+    URI="${LIBIDN2_SRC}/${ARC}"
+
+    # Download source
+    [ -f $ARC ] || wget $URI
+
+    # Extract source
+    if [ -d $DIR ]; then
+        echo -e "${YELLOW}libidn2's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -rf $DIR
+    fi
+    tar xf $ARC
+    cd $DIR
+
+    # Compile and install
+    echo -e "${GREEN}Compiling libidn2...${RESET}"
+    ./configure \
+        --host="$HOST" \
+        --prefix=/usr \
+        --enable-static \
+        --disable-shared \
+        CC="$CC_STATIC" \
+        AR="$AR" \
+        RANLIB="$RANLIB" \
+        CFLAGS="-Os -march=${ARCH} -I${PREFIX}/include" \
+        LDFLAGS="-static -L${SYSROOT}/lib"
+    make -j$(nproc)
+    make DESTDIR="${SYSROOT}" install
+}
+
 # Download and compile libksba (required for GnuPG)
 get_libksba()
 {
@@ -1967,6 +2393,43 @@ get_libksba()
     make DESTDIR="${SYSROOT}" install
 }
 
+# Download and compile liblua (required for tshark)
+get_liblua()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/liblua.a" ]; then
+        echo -e "${LIGHT_RED}liblua already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading liblua...${RESET}"
+    DIR="lua-${LIBLUA_VER}"
+    ARC="${DIR}.tar.gz"
+    URI="${LIBLUA_SRC}/${ARC}"
+
+    # Download source
+    [ -f $ARC ] || wget $URI
+
+    # Extract source
+    if [ -d $DIR ]; then
+        echo -e "${YELLOW}liblua's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -rf $DIR
+    fi
+    tar xf $ARC
+    cd $DIR
+
+    # Compile and install
+    echo -e "${GREEN}Compiling liblua...${RESET}"
+    make -j$(nproc) linux \
+        CC="${CC_STATIC}" \
+        AR="${AR} rcu" \
+        RANLIB="${RANLIB}" \
+        MYCFLAGS="-Os -march=${ARCH}"
+    make INSTALL_TOP="${SYSROOT}/usr" install
+}
+
 # Download and compile libmad (required for mpg321) 
 get_libmad()
 {
@@ -2010,6 +2473,145 @@ get_libmad()
         CFLAGS="${CFLAGS}" \
         LDFLAGS="-static -L$SYSROOT/usr/lib"
     make CFLAGS="${CFLAGS}" -j$(nproc)
+    make DESTDIR="$SYSROOT" install
+}
+
+# Download and compile libnl (required for tshark)
+get_libnl()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/libnl-3.a" ]; then
+        echo -e "${LIGHT_RED}libnl already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d libnl ]; then
+        echo -e "${YELLOW}libnl source already present, resetting...${RESET}"
+        cd libnl
+        git config --global --add safe.directory "${CURR_DIR}"/build/libnl
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading libnl...${RESET}"
+        LIBNL_TAG="libnl${LIBNL_VER//./_}"
+        git clone --depth=1 --branch "$LIBNL_TAG" $LIBNL_SRC
+        cd libnl
+    fi
+
+    ./autogen.sh
+
+    # Compile and install
+    echo -e "${GREEN}Compiling libnl...${RESET}"
+    ./configure \
+        --host="${HOST}" \
+        --prefix=/usr \
+        --enable-static \
+        --disable-shared \
+        CC="${CC_STATIC}" \
+        AR="${AR}" \
+        RANLIB="${RANLIB}" \
+        CFLAGS="-Os -march=${ARCH}"
+    make -j$(nproc)
+    make DESTDIR="${SYSROOT}" install
+}
+
+# Download and compile libpcap (required for tshark)
+get_libpcap()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/libpcap.a" ]; then
+        echo -e "${LIGHT_RED}libpcap already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading libpcap...${RESET}"
+    DIR="libpcap-${LIBPCAP_VER}"
+    ARC="${DIR}.tar.xz"
+    URI="${LIBPCAP_SRC}/${ARC}"
+
+    # Download source
+    [ -f $ARC ] || wget $URI
+
+    # Extract source
+    if [ -d $DIR ]; then
+        echo -e "${YELLOW}libpcap's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -rf $DIR
+    fi
+    tar xf $ARC
+    cd $DIR
+
+    # Compile and install
+    echo -e "${GREEN}Compiling libpcap...${RESET}"
+    ./configure \
+        --host="$HOST" \
+        --prefix=/usr \
+        --enable-static \
+        --disable-shared \
+        --disable-examples-build \
+        --with-crypto=openssl \
+        --with-libssl-prefix=${SYSROOT} \
+        CC="$CC_STATIC" \
+        AR="$AR" \
+        RANLIB="$RANLIB" \
+        CFLAGS="-Os -march=${ARCH} -I${PREFIX}/include" \
+        LDFLAGS="-static -L${SYSROOT}/lib"
+    make -j$(nproc)
+    make DESTDIR="${SYSROOT}" install
+}
+
+# Download and compile libsmi (required for tshark)
+get_libsmi()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/libsmi.a" ]; then
+        echo -e "${LIGHT_RED}libsmi already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d libsmi ]; then
+        echo -e "${YELLOW}libsmi source already present, resetting...${RESET}"
+        cd libsmi
+        git config --global --add safe.directory "${CURR_DIR}"/build/libsmi
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading libsmi...${RESET}"
+        git clone --depth=1 --branch "$LIBSMI_VER" $LIBSMI_SRC
+        cd libsmi
+    fi
+
+    # Its config.sub is too old to recognise musl
+    cp "${CURR_DIR}/compilation/config.guess" config.guess
+    cp "${CURR_DIR}/compilation/config.sub" config.sub
+
+    # Patch support for Bison 3.x.x
+    patch -p1 < "${PATCHES_DIR}/libsmi/0.4.8_bison_3.patch"
+
+    # Compile and install
+    echo -e "${GREEN}Compiling libsmi...${RESET}"
+    ./configure \
+        --host="$HOST" \
+        --prefix=/usr \
+        --enable-static \
+        --disable-shared \
+        --disable-examples-build \
+        --with-crypto=openssl \
+        --with-libssl-prefix=${SYSROOT} \
+        CC="$CC_STATIC" \
+        AR="$AR" \
+        RANLIB="$RANLIB" \
+        CFLAGS="-Os -march=${ARCH} -I${PREFIX}/include" \
+        LDFLAGS="-static -L${SYSROOT}/lib" \
+        YACC="bison -y"
+    make -j$(nproc)
     make DESTDIR="$SYSROOT" install
 }
 
@@ -2081,6 +2683,60 @@ get_libsoftfp()
     ${AR} rcs libsoftfp.a *.o
     ${RANLIB} libsoftfp.a
     sudo install -m644 libsoftfp.a "${PREFIX}"/lib/
+}
+
+# Download and compile libssh (required for tshark)
+get_libssh()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/libssh.a" ]; then
+        echo -e "${LIGHT_RED}libssh already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d libssh-mirror ]; then
+        echo -e "${YELLOW}libssh source already present, resetting...${RESET}"
+        cd libssh-mirror
+        git config --global --add safe.directory "${CURR_DIR}"/build/libssh-mirror
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading libssh...${RESET}"
+        git clone --depth=1 --branch "libssh-$LIBSSH_VER" $LIBSSH_SRC
+        cd libssh-mirror
+    fi
+
+    # Compile and install
+    echo -e "${GREEN}Compiling libssh...${RESET}"
+        cmake -B build -S . \
+        -DCMAKE_SYSTEM_NAME=Linux \
+        -DCMAKE_SYSTEM_PROCESSOR=x86 \
+        -DCMAKE_C_COMPILER="${CC_STATIC}" \
+        -DCMAKE_AR="${AR}" \
+        -DCMAKE_RANLIB="${RANLIB}" \
+        -DCMAKE_STRIP="${STRIP}" \
+        -DCMAKE_FIND_ROOT_PATH="${SYSROOT}" \
+        -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
+        -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
+        -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
+        -DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=ONLY \
+        -DCMAKE_C_FLAGS="-Os -march=${ARCH}" \
+        -DCMAKE_BUILD_TYPE=MinSizeRel \
+        -DCMAKE_INSTALL_PREFIX=/usr \
+        -DBUILD_SHARED_LIBS=OFF \
+        -DWITH_STATIC_LIB=ON \
+        -DWITH_EXAMPLES=OFF \
+        -DUNIT_TESTING=OFF \
+        -DWITH_SERVER=OFF \
+        -DWITH_GSSAPI=OFF \
+        -DWITH_ZLIB=ON \
+        -DWITH_GCRYPT=ON \
+        -DWITH_SFTP=ON
+    cmake --build build -j$(nproc)
+    sudo cmake --install build --prefix "${SYSROOT}/usr"
 }
 
 # Download and compile libssh2 (required for GNU Midnight Commander)
@@ -2468,7 +3124,51 @@ get_libt3window()
     "${RANLIB}" "$SYSROOT/usr/lib/libt3window.a"
 }
 
-# Download and compile libtool and libltdl (required for T3* stack and Tilde)
+# Download and compile libtasn1 (required for GnuTLS)
+get_libtasn1()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/libtasn1.a" ]; then
+        echo -e "${LIGHT_RED}libtasn1 already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading libtasn1...${RESET}"
+    DIR="libtasn1-${LIBTASN1_VER}"
+    ARC="${DIR}.tar.gz"
+    URI="${LIBTASN1_SRC}/${ARC}"
+
+    # Download source
+    [ -f $ARC ] || wget $URI
+
+    # Extract source
+    if [ -d $DIR ]; then
+        echo -e "${YELLOW}libtasn1's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -rf $DIR
+    fi
+    tar xf $ARC
+    cd $DIR
+
+    # Compile and install
+    echo -e "${GREEN}Compiling libtasn1...${RESET}"
+    ./configure \
+        --host="$HOST" \
+        --prefix=/usr \
+        --enable-static \
+        --disable-shared \
+        CC="$CC_STATIC" \
+        AR="$AR" \
+        RANLIB="$RANLIB" \
+        CFLAGS="-Os -march=${ARCH} -I${PREFIX}/include" \
+        LDFLAGS="-static -L${SYSROOT}/lib"
+    make -j$(nproc)
+    make DESTDIR="${SYSROOT}" install
+}
+
+# Download and compile libtool and libltdl (required for T3* stack and
+# Tilde)
 get_libtool()
 {
     cd "${CURR_DIR}/build"
@@ -2598,7 +3298,7 @@ get_libtranscript()
     done
 }
 
-# Download and compile libunistring (required for T3* stack)
+# Download and compile libunistring (required for T3* stack and tshark)
 get_libunistring()
 {
     cd "${CURR_DIR}/build"
@@ -2725,7 +3425,7 @@ get_libxlsxwriter()
     cp src/libxlsxwriter.a "$PREFIX/lib/"
 }
 
-# Download and compile libxml2 (required for ctags and sc-im)
+# Download and compile libxml2 (required for ctags, sc-im and tshark)
 get_libxml2()
 {
     cd "${CURR_DIR}/build"
@@ -2758,6 +3458,11 @@ get_libxml2()
         CC="${CC_STATIC}"
     make -j$(nproc)
     make install
+
+    mkdir -p "${SYSROOT}/usr/lib/pkgconfig" "${SYSROOT}/usr/include"
+    ln -sf "${PREFIX}/lib/libxml2.a" "${SYSROOT}/usr/lib/libxml2.a"
+    ln -sf "${PREFIX}/include/libxml2" "${SYSROOT}/usr/include/libxml2"
+    ln -sf "${PREFIX}/lib/pkgconfig/libxml-2.0.pc" "${SYSROOT}/usr/lib/pkgconfig/libxml-2.0.pc"
 }
 
 # Download and compile libzip (required for sc-im)
@@ -2807,6 +3512,93 @@ get_libzip()
     cp lib/libzip.a "${PREFIX}/lib/"
     cp zipconf.h "${PREFIX}/include/"
     cp lib/zip.h "${PREFIX}/include/"
+}
+
+# Download and compile LZ4 (required for tshark)
+get_lz4()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/liblz4.a" ]; then
+        echo -e "${LIGHT_RED}LZ4 already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d lz4 ]; then
+        echo -e "${YELLOW}LZ4 source already present, resetting...${RESET}"
+        cd lz4
+        git config --global --add safe.directory "${CURR_DIR}"/build/lz4
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading LZ4...${RESET}"
+        git clone --depth=1 --branch "v$LZ4_VER" $LZ4_SRC
+        cd lz4
+    fi
+
+    # Compile and install
+    echo -e "${GREEN}Compiling LZ4...${RESET}"
+    make -j$(nproc) \
+        CC="${CC_STATIC}" \
+        AR="${AR}" \
+        RANLIB="${RANLIB}" \
+        CFLAGS="-Os -march=${ARCH}" \
+        BUILD_SHARED=no \
+        BUILD_STATIC=yes \
+        lib
+    make DESTDIR="${SYSROOT}" PREFIX=/usr \
+        CC="${CC_STATIC}" \
+        AR="${AR}" \
+        RANLIB="${RANLIB}" \
+        CFLAGS="-Os -march=${ARCH}" \
+        BUILD_SHARED=no \
+        BUILD_STATIC=yes \
+        -C lib install
+}
+
+# Download and compile Nettle (required for GnuTLS)
+get_nettle()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/libnettle.a" ]; then
+        echo -e "${LIGHT_RED}Nettle already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading Nettle...${RESET}"
+    DIR="nettle-${NETTLE_VER}"
+    ARC="${DIR}.tar.gz"
+    URI="${NETTLE_SRC}/${ARC}"
+
+    # Download source
+    [ -f $ARC ] || wget $URI
+
+    # Extract source
+    if [ -d $DIR ]; then
+        echo -e "${YELLOW}Nettle's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -rf $DIR
+    fi
+    tar xf $ARC
+    cd $DIR
+
+    # Compile and install
+    echo -e "${GREEN}Compiling Nettle...${RESET}"
+    ./configure \
+        --host="$HOST" \
+        --prefix=/usr \
+        --enable-static \
+        --disable-shared \
+        CC="$CC_STATIC" \
+        AR="$AR" \
+        RANLIB="$RANLIB" \
+        CFLAGS="-Os -march=${ARCH} -I${PREFIX}/include" \
+        LDFLAGS="-static -L${SYSROOT}/lib"
+    make -j$(nproc)
+    make DESTDIR="${SYSROOT}" install
 }
 
 # Download and compile nPth (required for GnuPG)
@@ -2937,14 +3729,98 @@ get_pcre2()
     make DESTDIR="${SYSROOT}" install
 }
 
-# Download and compile zlib (required for Git, kshark, libzip and TWM)
+# Download and compile Snappy (required for tshark)
+get_snappy()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/libsnappy.a" ]; then
+        echo -e "${LIGHT_RED}Snappy already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d snappy ]; then
+        echo -e "${YELLOW}Snappy source already present, resetting...${RESET}"
+        cd snappy
+        git config --global --add safe.directory "${CURR_DIR}"/build/snappy
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading Snappy...${RESET}"
+        git clone --depth=1 --branch "$SNAPPY_VER" $SNAPPY_SRC
+        cd snappy
+    fi
+
+    # Compile and install
+    echo -e "${GREEN}Compiling Snappy...${RESET}"
+    cmake -B build -S . \
+        -DCMAKE_SYSTEM_NAME=Linux \
+        -DCMAKE_SYSTEM_PROCESSOR=x86 \
+        -DCMAKE_C_COMPILER="${CC_STATIC}" \
+        -DCMAKE_CXX_COMPILER="${CXX_STATIC}" \
+        -DCMAKE_AR="${AR}" \
+        -DCMAKE_RANLIB="${RANLIB}" \
+        -DCMAKE_STRIP="${STRIP}" \
+        -DCMAKE_C_FLAGS="-Os -march=${ARCH}" \
+        -DCMAKE_CXX_FLAGS="-Os -march=${ARCH}" \
+        -DCMAKE_BUILD_TYPE=MinSizeRel \
+        -DCMAKE_INSTALL_PREFIX=/usr \
+        -DBUILD_SHARED_LIBS=OFF \
+        -DSNAPPY_BUILD_TESTS=OFF \
+        -DSNAPPY_BUILD_BENCHMARKS=OFF
+    cmake --build build -j$(nproc)
+    sudo cmake --install build --prefix "${SYSROOT}/usr"
+}
+
+# Download and compile xxHash (required for tshark)
+get_xxhash()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/libxxhash.a" ]; then
+        echo -e "${LIGHT_RED}xxHash already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d xxHash ]; then
+        echo -e "${YELLOW}xxHash source already present, resetting...${RESET}"
+        cd xxHash
+        git config --global --add safe.directory "${CURR_DIR}"/build/xxHash
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading xxHash...${RESET}"
+        git clone --depth=1 --branch "v$XXHASH_VER" $XXHASH_SRC
+        cd xxHash
+    fi
+
+    # Compile and install
+    echo -e "${GREEN}Compiling xxHash...${RESET}"
+    make -j$(nproc) \
+        CC="${CC_STATIC}" \
+        AR="${AR}" \
+        CFLAGS="-Os -march=${ARCH}" \
+        libxxhash.a
+    make DESTDIR="${SYSROOT}" PREFIX=/usr \
+        CC="${CC_STATIC}" \
+        AR="${AR}" \
+        CFLAGS="-Os -march=${ARCH}" \
+        install
+}
+
+# Download and compile zlib and minizip (required for Git, tshark, libssh,
+# libzip and TWM)
 get_zlib()
 {
     cd "${CURR_DIR}/build"
 
     # Skip if already compiled
-    if [ -f "$SYSROOT/usr/lib/libz.a" ]; then
-        echo -e "${LIGHT_RED}zlib already compiled, skipping...${RESET}"
+    if [ -f "$SYSROOT/usr/lib/libz.a" ] && [ -f "$SYSROOT/usr/lib/libminizip.a" ]; then
+        echo -e "${LIGHT_RED}zlib/minizip already compiled, skipping...${RESET}"
         return
     fi
 
@@ -2963,12 +3839,73 @@ get_zlib()
     echo -e "${GREEN}Compiling zlib...${RESET}"
     CC="$CC_STATIC" \
     CFLAGS="-Os -march=${ARCH} -static --sysroot=$SYSROOT" \
-    ./configure  --static --prefix=/usr
+    ./configure \
+        --static \
+        --prefix=/usr
+    make -j$(nproc)
+    make DESTDIR="$SYSROOT" install
+
+    echo -e "${GREEN}Compiling minizip...${RESET}"
+    cd contrib/minizip
+    autoreconf -fi
+    CC="$CC_STATIC" \
+    CFLAGS="-Os -march=${ARCH} -static --sysroot=$SYSROOT -I${SYSROOT}/usr/include" \
+    LDFLAGS="-L${SYSROOT}/usr/lib" \
+    ./configure \
+        --host="${HOST}" \
+        --prefix=/usr \
+        --disable-shared \
+        --enable-static
     make -j$(nproc)
     make DESTDIR="$SYSROOT" install
 }
 
-# Download and compile x86emu (required for SHORKSET's VBE resolution detection)
+# Download and compile Zstandard (required for GnuTLS and tshark)
+get_zstd()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/libzstd.a" ]; then
+        echo -e "${LIGHT_RED}Zstandard already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d zstd ]; then
+        echo -e "${YELLOW}Zstandard source already present, resetting...${RESET}"
+        cd zstd
+        git config --global --add safe.directory "${CURR_DIR}"/build/zstd
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading Zstandard...${RESET}"
+        git clone --depth=1 --branch "v$ZSTD_VER" $ZSTD_SRC
+        cd zstd
+    fi
+
+    # Compile and install
+    echo -e "${GREEN}Compiling Zstandard...${RESET}"
+    cmake -B build -S build/cmake \
+        -DCMAKE_SYSTEM_NAME=Linux \
+        -DCMAKE_SYSTEM_PROCESSOR=x86 \
+        -DCMAKE_C_COMPILER="${CC_STATIC}" \
+        -DCMAKE_AR="${AR}" \
+        -DCMAKE_RANLIB="${RANLIB}" \
+        -DCMAKE_STRIP="${STRIP}" \
+        -DCMAKE_C_FLAGS="-Os -march=${ARCH}" \
+        -DCMAKE_BUILD_TYPE=MinSizeRel \
+        -DCMAKE_INSTALL_PREFIX=/usr \
+        -DZSTD_BUILD_SHARED=OFF \
+        -DZSTD_BUILD_STATIC=ON \
+        -DZSTD_BUILD_PROGRAMS=OFF \
+        -DZSTD_BUILD_TESTS=OFF
+    cmake --build build -j$(nproc)
+    sudo cmake --install build --prefix "${SYSROOT}/usr"
+}
+
+# Download and compile x86emu (required for SHORKSET's VBE resolution
+# detection)
 get_x86emu()
 {
     cd "${CURR_DIR}/build"
@@ -6113,116 +7050,6 @@ get_joe()
     sudo make DESTDIR="$DESTDIR" install
 }
 
-# Download and compile kshark
-get_kshark()
-{
-    cd "${CURR_DIR}/build"
-
-    # Skip if already compiled
-    #if [ -f "${DESTDIR}/usr/bin/kshark" ]; then
-    #    echo -e "${LIGHT_RED}kshark already compiled, skipping...${RESET}"
-    #    return
-    #fi
-
-    echo -e "${GREEN}Downloading Wireshark...${RESET}"
-    
-    DIR="wireshark-${WIRESHARK_VER}"
-    ARC="${DIR}.tar.xz"
-    URI="${WIRESHARK_SRC}/${ARC}"
-
-    # Download source
-    [ -f $ARC ] || wget $URI
-
-    # Extract source
-    if [ -d $DIR ]; then
-        echo -e "${YELLOW}Wireshark's source archive is already present, re-extracting before proceeding...${RESET}"
-        sudo rm -rf $DIR
-    fi
-    tar xf $ARC
-    cd $DIR
-
-    export PKG_CONFIG_PATH=""
-    export PKG_CONFIG_LIBDIR="${SYSROOT}/usr/lib/pkgconfig:${SYSROOT}/usr/share/pkgconfig"
-    export PKG_CONFIG_SYSROOT_DIR="${SYSROOT}"
-
-    # Compile program
-    echo -e "${GREEN}Compiling Wireshark...${RESET}"
-    cmake -B build -S . \
-        -DCMAKE_SYSTEM_NAME=Linux \
-        -DCMAKE_SYSTEM_PROCESSOR=x86 \
-        -DCMAKE_C_COMPILER="${CC}" \
-        -DCMAKE_CXX_COMPILER="${CXX}" \
-        -DCMAKE_AR="${AR}" \
-        -DCMAKE_RANLIB="${RANLIB}" \
-        -DCMAKE_STRIP="${STRIP}" \
-        -DCMAKE_FIND_ROOT_PATH="${SYSROOT}" \
-        -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
-        -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
-        -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
-        -DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=ONLY \
-        -DCMAKE_C_FLAGS="-m32 -march=i486 -mtune=i486 -mno-80387 -mno-fp-ret-in-387 -Os" \
-        -DCMAKE_CXX_FLAGS="-m32 -march=i486 -mtune=i486 -mno-80387 -mno-fp-ret-in-387 -Os" \
-        -DCMAKE_EXE_LINKER_FLAGS="-static" \
-        -DCMAKE_BUILD_TYPE=MinSizeRel \
-        -DCMAKE_INSTALL_PREFIX="${DESTDIR}" \
-        -DUSE_STATIC=ON \
-        -DBUILD_SHARED_LIBS=OFF \
-        -DENABLE_WERROR=OFF \
-        -DBUILD_wireshark=OFF \
-        -DBUILD_stratoshark=OFF \
-        -DBUILD_tshark=ON \
-        -DBUILD_dumpcap=ON \
-        -DBUILD_editcap=ON \
-        -DBUILD_rawshark=OFF \
-        -DBUILD_text2pcap=OFF \
-        -DBUILD_mergecap=OFF \
-        -DBUILD_reordercap=OFF \
-        -DBUILD_capinfos=OFF \
-        -DBUILD_captype=OFF \
-        -DBUILD_randpkt=OFF \
-        -DBUILD_dftest=OFF \
-        -DBUILD_dcerpcidl2wrs=OFF \
-        -DBUILD_androiddump=OFF \
-        -DBUILD_sshdump=OFF \
-        -DBUILD_ciscodump=OFF \
-        -DBUILD_dpauxmon=OFF \
-        -DBUILD_randpktdump=OFF \
-        -DBUILD_wifidump=OFF \
-        -DBUILD_sdjournal=OFF \
-        -DBUILD_udpdump=OFF \
-        -DBUILD_sharkd=OFF \
-        -DBUILD_mmdbresolve=OFF \
-        -DENABLE_PCAP=ON \
-        -DENABLE_CAP=OFF \
-        -DENABLE_ZLIB=ON \
-        -DENABLE_ZLIBNG=OFF \
-        -DENABLE_MINIZIP=OFF \
-        -DENABLE_MINIZIPNG=OFF \
-        -DENABLE_XXHASH=OFF \
-        -DENABLE_LZ4=OFF \
-        -DENABLE_BROTLI=OFF \
-        -DENABLE_SNAPPY=OFF \
-        -DENABLE_ZSTD=OFF \
-        -DENABLE_NGHTTP2=OFF \
-        -DENABLE_NGHTTP3=OFF \
-        -DENABLE_LUA=OFF \
-        -DENABLE_SMI=OFF \
-        -DENABLE_GNUTLS=OFF \
-        -DENABLE_PKCS11=OFF \
-        -DENABLE_NETLINK=OFF \
-        -DENABLE_KERBEROS=OFF \
-        -DENABLE_SBC=OFF \
-        -DENABLE_SPANDSP=OFF \
-        -DENABLE_BCG729=OFF \
-        -DENABLE_AMRNB=OFF \
-        -DENABLE_AMRWB=OFF \
-        -DENABLE_ILBC=OFF \
-        -DENABLE_OPUS=OFF \
-        -DENABLE_SINSP=OFF \
-        -DENABLE_CPUINFO=OFF
-    cmake --build build -j$(nproc)
-}
-
 # Download and compile lapifetch
 get_lapifetch()
 {
@@ -6919,6 +7746,124 @@ get_tnftp()
     make -j$(nproc)
     sudo make DESTDIR="$DESTDIR" install
     ln -sf tnftp "${DESTDIR}/usr/bin/ftp"
+}
+
+# Download and compile tshark
+get_tshark()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ -f "${DESTDIR}/usr/bin/tshark" ]; then
+        echo -e "${LIGHT_RED}tshark already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading Wireshark...${RESET}"
+    
+    DIR="wireshark-${WIRESHARK_VER}"
+    ARC="${DIR}.tar.xz"
+    URI="${WIRESHARK_SRC}/${ARC}"
+
+    # Download source
+    [ -f $ARC ] || wget $URI
+
+    # Extract source
+    if [ -d $DIR ]; then
+        echo -e "${YELLOW}Wireshark's source archive is already present, re-extracting before proceeding...${RESET}"
+        sudo rm -rf $DIR
+    fi
+    tar xf $ARC
+    cd $DIR
+
+    export PKG_CONFIG_PATH=""
+    export PKG_CONFIG_LIBDIR="${SYSROOT}/usr/lib/pkgconfig:${SYSROOT}/usr/share/pkgconfig"
+
+    # Stops forcing PIC/PIE globally
+    sed -i '673s/set(CMAKE_POSITION_INDEPENDENT_CODE ON)/set(CMAKE_POSITION_INDEPENDENT_CODE OFF)/' CMakeLists.txt
+    sed -i '1425s/.*/if(FALSE)/' CMakeLists.txt
+
+    # Compile program
+    echo -e "${GREEN}Compiling Wireshark...${RESET}"
+    cmake -B build -S . \
+        -DCMAKE_SYSTEM_NAME=Linux \
+        -DCMAKE_SYSTEM_PROCESSOR=x86 \
+        -DCMAKE_C_COMPILER="${CC}" \
+        -DCMAKE_CXX_COMPILER="${CXX}" \
+        -DCMAKE_AR="${AR}" \
+        -DCMAKE_RANLIB="${RANLIB}" \
+        -DCMAKE_STRIP="${STRIP}" \
+        -DCMAKE_FIND_ROOT_PATH="${SYSROOT}" \
+        -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
+        -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
+        -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
+        -DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=ONLY \
+        -DCMAKE_C_FLAGS="-m32 -march=i486 -mtune=i486 -mno-80387 -mno-fp-ret-in-387 -Os -mlong-double-64" \
+        -DCMAKE_CXX_FLAGS="-m32 -march=i486 -mtune=i486 -mno-80387 -mno-fp-ret-in-387 -Os -mlong-double-64" \
+        -DCMAKE_EXE_LINKER_FLAGS="-static -no-pie -Wl,--allow-multiple-definition -L${PREFIX}/lib" \
+        -DCMAKE_POSITION_INDEPENDENT_CODE=OFF \
+        -DCMAKE_C_STANDARD_LIBRARIES="-lsoftfp -lpcre2-8 -lstdc++ -lhogweed -lnettle -lgmp -ltasn1 -lidn2 -lunistring -lbrotlidec -lbrotlienc -lbrotlicommon" \
+        -DCMAKE_CXX_STANDARD_LIBRARIES="-lsoftfp -lpcre2-8 -lstdc++ -lhogweed -lnettle -lgmp -ltasn1 -lidn2 -lunistring -lbrotlidec -lbrotlienc -lbrotlicommon" \
+        -DCMAKE_BUILD_TYPE=MinSizeRel \
+        -DCMAKE_INSTALL_PREFIX="${DESTDIR}/usr" \
+        -DUSE_STATIC=ON \
+        -DBUILD_SHARED_LIBS=OFF \
+        -DENABLE_WERROR=OFF \
+        -DBUILD_wireshark=OFF \
+        -DBUILD_stratoshark=OFF \
+        -DBUILD_tshark=ON \
+        -DBUILD_dumpcap=ON \
+        -DBUILD_editcap=ON \
+        -DBUILD_rawshark=ON \
+        -DBUILD_text2pcap=ON \
+        -DBUILD_mergecap=ON \
+        -DBUILD_reordercap=ON \
+        -DBUILD_capinfos=ON \
+        -DBUILD_captype=ON \
+        -DBUILD_randpkt=ON \
+        -DBUILD_dftest=ON \
+        -DBUILD_dcerpcidl2wrs=OFF \
+        -DBUILD_androiddump=OFF \
+        -DBUILD_sshdump=ON \
+        -DBUILD_ciscodump=ON \
+        -DBUILD_dpauxmon=ON \
+        -DBUILD_randpktdump=ON \
+        -DBUILD_wifidump=OFF \
+        -DBUILD_sdjournal=OFF \
+        -DBUILD_udpdump=ON \
+        -DBUILD_sharkd=OFF \
+        -DBUILD_mmdbresolve=OFF \
+        -DENABLE_PCAP=ON \
+        -DENABLE_CAP=ON \
+        -DENABLE_ZLIB=ON \
+        -DENABLE_ZLIBNG=OFF \
+        -DENABLE_MINIZIP=ON \
+        -DENABLE_MINIZIPNG=OFF \
+        -DENABLE_XXHASH=ON \
+        -DENABLE_LZ4=ON \
+        -DENABLE_BROTLI=ON \
+        -DENABLE_SNAPPY=ON \
+        -DENABLE_ZSTD=ON \
+        -DENABLE_NGHTTP2=OFF \
+        -DENABLE_NGHTTP3=OFF \
+        -DENABLE_LUA=ON \
+        -DENABLE_SMI=ON \
+        -DENABLE_GNUTLS=ON \
+        -DENABLE_PKCS11=OFF \
+        -DENABLE_NETLINK=ON \
+        -DENABLE_KERBEROS=ON \
+        -DENABLE_SBC=OFF \
+        -DENABLE_SPANDSP=OFF \
+        -DENABLE_BCG729=OFF \
+        -DENABLE_AMRNB=OFF \
+        -DENABLE_AMRWB=OFF \
+        -DENABLE_ILBC=OFF \
+        -DENABLE_OPUS=OFF \
+        -DENABLE_SINSP=OFF \
+        -DENABLE_CPUINFO=OFF \
+        -DENABLE_PLUGINS=OFF
+    cmake --build build -j$(nproc)
+    cmake --install build
 }
 
 # Download and compile Vim
@@ -8789,9 +9734,14 @@ build_disk_img()
         # Calculate some overhead to take into account metadata, partition
         # alignment, bootloader structures, etc.
         OVERHEAD_BYTES=$((16 * 1024 * 1024))
-        if [ "$INCLUDE_GCC" = true ] || [ "$INCLUDE_GUI" = true ]; then
-            # We can assume these features demand more
-            OVERHEAD_BYTES=$((32 * 1024 * 1024))
+        # We can assume these features demand more
+        if [ "$INCLUDE_GCC" = true ] || [ "$INCLUDE_GUI" = true ] ||
+            [ "$INCLUDE_TSHARK" = true ]; then
+            if [ "$INCLUDE_TSHARK" = true ]; then
+                OVERHEAD_BYTES=$((48 * 1024 * 1024))
+            else
+                OVERHEAD_BYTES=$((32 * 1024 * 1024))
+            fi
         fi
         OVERHEAD_MIB=$(((OVERHEAD_BYTES + 1048575) / 1048576))
 
@@ -9937,6 +10887,60 @@ fi
 if $NEED_LIBSSH2; then
     get_libssh2
 fi
+if $NEED_CARES; then
+    get_cares
+fi
+if $NEED_LIBSSH; then
+    get_libssh
+fi
+if $NEED_LIBPCAP; then
+    get_libpcap
+fi
+if $NEED_LIBSMI; then
+    get_libsmi
+fi
+if $NEED_GMP; then
+    get_gmp
+fi
+if $NEED_NETTLE; then
+    get_nettle
+fi
+if $NEED_LIBTASN1; then
+    get_libtasn1
+fi
+if $NEED_BROTLI; then
+    get_brotli
+fi
+if $NEED_ZSTD; then
+    get_zstd
+fi
+if $NEED_LIBIDN2; then
+    get_libidn2
+fi
+if $NEED_GNUTLS; then
+    get_gnutls
+fi
+if $NEED_KRB5; then
+    get_krb5
+fi
+if $NEED_XXHASH; then
+    get_xxhash
+fi
+if $NEED_LZ4; then
+    get_lz4
+fi
+if $NEED_SNAPPY; then
+    get_snappy
+fi
+if $NEED_LIBLUA; then
+    get_liblua
+fi
+if $NEED_LIBNL; then
+    get_libnl
+fi
+if $NEED_LIBCAP; then
+    get_libcap
+fi
 
 # Compile SHORKGUI
 if $INCLUDE_GUI; then
@@ -10366,6 +11370,10 @@ if $INCLUDE_TN5250; then
 fi
 if $INCLUDE_TNFTP; then
     get_tnftp
+fi
+if $INCLUDE_TSHARK; then
+    get_tshark
+    make_swap_wrap "${DESTDIR}/usr/bin/tshark"
 fi
 if $INCLUDE_VIM; then
     get_vim

@@ -43,6 +43,8 @@ REPOS = [
     "joe-editor/joe",
     "xiph/libao",
     "libevent/libevent",
+    "libffi/libffi",
+    "libssh2/libssh2",
     "jmcnamara/libxlsxwriter",
     "gnome/libxml2",
     "nih-at/libzip",
@@ -51,6 +53,7 @@ REPOS = [
     "lua/lua",
     "jqlang/jq",
     "ThomasDickey/lynx-snapshots",
+    "MidnightCommander/mc"
     "troglobit/mg",
     "micro-editor/MICRO",
     "micropython/micropython",

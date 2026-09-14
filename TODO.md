@@ -22,6 +22,7 @@
     * Already successfully compiled - working out teething issues
 * flex
 * GDB
+* GNU Autoconf
 * GNU Autotools (especially automake and autoreconf)
 * GNU Emacs
     * Already successfully compiled - streamlining/pruning extraneous files
@@ -32,4 +33,5 @@
 * SQLite
 * SWIG
 * tshark (Wireshark)
+    * Already successfully compiled - high RAM usage and faults
 * w3m
