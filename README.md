@@ -344,7 +344,7 @@ When running the SHORK 486 Build Configurator, you will be prompted to select th
     * Swap partition size (size in MiB)
 * _If SHORK DISKETTE:_
     * Target diskette size (1.44MB or 2.88MB)
-* Linux kernel version (7.3-rc2, 7.2.5, 7.1.13 or 7.0.14)
+* Linux kernel version (7.3-rc3, 7.2.5, 7.1.13 or 7.0.14)
 * Keyboard scancode set (skip, set 2 or set 3)
 * _If SHORK 486:_
     * __If not "Micro" or "Mini" build type selected:__
