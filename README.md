@@ -72,7 +72,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 * IDE or SCSI disk: 
     * **Default: 100MiB**
     * Max: 540MiB
-    * Plus: 500MiB
+    * Plus: 504MiB
     * Writer: 100MiB
     * Offline: 60MiB
     * Mini: 8MiB

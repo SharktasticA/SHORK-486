@@ -35,7 +35,7 @@ MINI_MIN_DISK=8
 OFFLINE_DEF_SWAP=8
 OFFLINE_MIN_DISK=60
 PLUS_DEF_SWAP=16
-PLUS_MIN_DISK=500
+PLUS_MIN_DISK=504
 WRITER_DEF_SWAP=16
 WRITER_MIN_DISK=100
 
@@ -584,7 +584,7 @@ if [ "$ID" == "shork-486" ]; then
         --menu "Select the build type, presets for SHORK 486 feature levels. The minimum requirements for each are enclosed in brackets. The \"custom\" option will enable further prompts for software and feature selection." 17 $WIDTH 7 \
         "default"   "Typical experience (16MiB RAM, 8MiB swap, 100MiB disk)" \
         "max"       "Largest configuration (24MiB RAM, 16MiB swap, 540MiB disk)" \
-        "plus"      "Default w/ optional software (16MiB RAM, 16MiB swap, 500MiB disk)" \
+        "plus"      "Default w/ optional software (16MiB RAM, 16MiB swap, 504MiB disk)" \
         "writer"    "Writing focused (16MiB RAM, 16MiB swap, 100MiB disk)" \
         "offline"   "Default w/o networking (12MiB RAM, 8MiB swap, 60MiB disk)" \
         "mini"      "Small configuration (8MiB RAM, 8MiB disk)" \
@@ -677,7 +677,7 @@ if [ "$ID" == "shork-486" ]; then
             --backtitle "SHORK 486 Build Configurator" \
             --title "Target Disk Size" \
             --cancel-label "Skip" \
-            --inputbox "Enter a target disk size in mebibytes (between $CURR_MIN_DISK and 4096) to use when creating the disk image containing SHORK 486. Whilst the build script will try to honour this, it may be increased automatically to satisfy 4MiB alignment requirements, or if the combined kernel size, root partition size, optional swap partition size, and partition table overhead exceeds the target disk size." \
+            --inputbox "Enter a target disk size in mebibytes (between $CURR_MIN_DISK and 4096) to use when creating the disk image containing SHORK 486. Whilst the build script will try to honour this, it may be increased automatically to satisfy 2MiB alignment requirements, or if the combined kernel size, root partition size, optional swap partition size, and partition table overhead exceeds the target disk size." \
             12 $WIDTH "$TARGET_DISK" \
             2>&1 >/dev/tty)
 
