@@ -291,7 +291,7 @@ SHORK DISKETTE is a specialised version of the SHORK 486 Operating System that i
 
 ## Building
 
-SHORK 486, DISC and DISKETTE do not presently have released compilations or media, so it must be compiled. The result are raw disk, disc or diskette images you can write to real hardware or use as-is in emulation or virtualisation software. Building may require up to ~7GiB of disk space. Please read "Notice & disclaimers" at the end of this readme before proceeding. 
+SHORK 486, DISC and DISKETTE do not presently have released compilations or media, so it must be compiled. The result are raw disk, disc or diskette images you can write to real hardware or use as-is in emulation or virtualisation software. Building may require up to ~9GiB of disk space. Please read "Notice & disclaimers" at the end of this readme before proceeding. 
 
 ### Configuration
 

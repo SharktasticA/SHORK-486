@@ -8090,7 +8090,11 @@ get_shorkhelp()
     # Compile and install
     echo -e "${GREEN}Compiling shorkhelp...${RESET}"
     make clean
-    make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+    if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
+        make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+    elif [ "$ID" == "shork-diskette" ]; then
+        make EMBEDDED=1 -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+    fi
     sudo make DESTDIR="$DESTDIR" install
 
     # If SHORK DISKETTE, prune programs.csv of programs it never has
