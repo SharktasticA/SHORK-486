@@ -46,18 +46,21 @@ IS_ARCH=false
 IS_FEDORA=false
 IS_DEBIAN=true
 BUILD_TYPE="default"
-LINUX_VER="7.2.6"
 TARGET_DISK=100
+ENABLE_BOOT_PART=false
 TARGET_SWAP=8
+LINUX_VER="7.2.6"
 SCANCODE_SET=-1
 SET_KEYMAP="en_us"
+ENABLE_SMP=false
+ENABLE_NET_ETH=false
+ENABLE_CDROM=false
+FIX_EXTLINUX=true
 HOSTNAME="shork-486"
 ENABLE_MULTIUSER_REAL=false
 ROOT_PASSWD=""
 ENABLE_SERIAL_CON=false
 SERIAL_CON_PORT="ttyS0"
-ENABLE_NET_ETH=false
-FIX_EXTLINUX=true
 INCLUDE_C3270=false
 INCLUDE_CSCOPE=false
 INCLUDE_CTAGS=false
@@ -100,7 +103,6 @@ INCLUDE_TNFTP=false
 INCLUDE_TMUX=false
 INCLUDE_UTIL_LINUX=false
 INCLUDE_VIM=false
-ENABLE_CDROM=false
 INCLUDE_CON_FONTS=false
 ENABLE_FB_VBE=false
 USE_GRUB=false
@@ -116,7 +118,6 @@ ENABLE_PCMCIA=false
 ENABLE_SATA=false
 ENABLE_SCSI_EXP=false
 ENABLE_SOUND=false
-ENABLE_SMP=false
 ENABLE_SWAP_WRAP=false
 ENABLE_USB=false
 ENABLE_ZSWAP=false
@@ -170,18 +171,21 @@ save_env()
         echo "IS_DEBIAN=$IS_DEBIAN"
         echo "IS_FEDORA=$IS_FEDORA"
         printf 'BUILD_TYPE=%s\n' "$(printf '"%s"' "$BUILD_TYPE")"
-        printf 'LINUX_VER=%s\n' "$(printf '"%s"' "$LINUX_VER")"
         echo "TARGET_DISK=$TARGET_DISK"
+        echo "ENABLE_BOOT_PART=$ENABLE_BOOT_PART"
         echo "TARGET_SWAP=$TARGET_SWAP"
+        printf 'LINUX_VER=%s\n' "$(printf '"%s"' "$LINUX_VER")"
         echo "SCANCODE_SET=$SCANCODE_SET"
         printf 'SET_KEYMAP=%s\n' "$(printf '"%s"' "$SET_KEYMAP")"
+        echo "ENABLE_SMP=$ENABLE_SMP"
+        echo "ENABLE_NET_ETH=$ENABLE_NET_ETH"
+        echo "ENABLE_CDROM=$ENABLE_CDROM"
+        echo "FIX_EXTLINUX=$FIX_EXTLINUX"
         printf 'HOSTNAME=%s\n' "$(printf '"%s"' "$HOSTNAME")"
         echo "ENABLE_MULTIUSER_REAL=$ENABLE_MULTIUSER_REAL"
         printf 'ROOT_PASSWD=%s\n' "$(printf "'%s'" "$ROOT_PASSWD")"
         echo "ENABLE_SERIAL_CON=$ENABLE_SERIAL_CON"
         printf 'SERIAL_CON_PORT=%s\n' "$(printf '"%s"' "$SERIAL_CON_PORT")"
-        echo "ENABLE_NET_ETH=$ENABLE_NET_ETH"
-        echo "FIX_EXTLINUX=$FIX_EXTLINUX"
         echo "INCLUDE_C3270=$INCLUDE_C3270"
         echo "INCLUDE_CSCOPE=$INCLUDE_CSCOPE"
         echo "INCLUDE_CTAGS=$INCLUDE_CTAGS"
@@ -225,7 +229,6 @@ save_env()
         echo "INCLUDE_TMUX=$INCLUDE_TMUX"
         echo "INCLUDE_UTIL_LINUX=$INCLUDE_UTIL_LINUX"
         echo "INCLUDE_VIM=$INCLUDE_VIM"
-        echo "ENABLE_CDROM=$ENABLE_CDROM"
         echo "INCLUDE_CON_FONTS=$INCLUDE_CON_FONTS"
         echo "ENABLE_FB_VBE=$ENABLE_FB_VBE"
         echo "USE_GRUB=$USE_GRUB"
@@ -241,7 +244,6 @@ save_env()
         echo "ENABLE_SATA=$ENABLE_SATA"
         echo "ENABLE_SCSI_EXP=$ENABLE_SCSI_EXP"
         echo "ENABLE_SOUND=$ENABLE_SOUND"
-        echo "ENABLE_SMP=$ENABLE_SMP"
         echo "ENABLE_SWAP_WRAP=$ENABLE_SWAP_WRAP"
         echo "ENABLE_USB=$ENABLE_USB"
         echo "ENABLE_ZSWAP=$ENABLE_ZSWAP"
@@ -620,90 +622,120 @@ if [ "$ID" == "shork-486" ]; then
 
 
 
-    # Get target disk size (486)
-    CURR_MIN_DISK=0
-    if [ "$BUILD_TYPE" == "default" ]; then
-        CURR_MIN_DISK=$DEFAULT_MIN_DISK
-        if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
-            TARGET_DISK=$DEFAULT_MIN_DISK
-            TARGET_SWAP=$DEFAULT_DEF_SWAP
-        fi
-    elif [ "$BUILD_TYPE" == "max" ]; then
-        CURR_MIN_DISK=$MAX_MIN_DISK
-        if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
-            TARGET_DISK=$MAX_MIN_DISK
-            TARGET_SWAP=$MAX_DEF_SWAP
-        fi
-    elif [ "$BUILD_TYPE" == "plus" ]; then
-        CURR_MIN_DISK=$PLUS_MIN_DISK
-        if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
-            TARGET_DISK=$PLUS_MIN_DISK
-            TARGET_SWAP=$PLUS_DEF_SWAP
-        fi
-    elif [ "$BUILD_TYPE" == "writer" ]; then
-        CURR_MIN_DISK=$WRITER_MIN_DISK
-        if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
-            TARGET_DISK=$WRITER_MIN_DISK
-            TARGET_SWAP=$WRITER_DEF_SWAP
-        fi
-    elif [ "$BUILD_TYPE" == "offline" ]; then
-        CURR_MIN_DISK=$OFFLINE_MIN_DISK
-        if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
-            TARGET_DISK=$OFFLINE_MIN_DISK
-            TARGET_SWAP=$OFFLINE_DEF_SWAP
-        fi
-    elif [ "$BUILD_TYPE" == "mini" ]; then
-        CURR_MIN_DISK=$MINI_MIN_DISK
-        if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
-            TARGET_DISK=$MINI_MIN_DISK
-            TARGET_SWAP=$MINI_DEF_SWAP
-        fi
-    elif [ "$BUILD_TYPE" == "micro" ]; then
-        CURR_MIN_DISK=$MICRO_MIN_DISK
-        if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
-            TARGET_DISK=$MICRO_MIN_DISK
-            TARGET_SWAP=$MICRO_DEF_SWAP
-        fi
-    elif [ "$BUILD_TYPE" == "custom" ]; then
-        CURR_MIN_DISK=$CUSTOM_MIN_DISK
-        if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
-            TARGET_DISK=$CUSTOM_MIN_DISK
-            TARGET_SWAP=$CUSTOM_DEF_SWAP
-        fi
-    fi
-
     while true; do
-        TARGET_DISK_TMP=$(dialog --clear \
-            --backtitle "SHORK 486 Build Configurator" \
-            --title "Target Disk Size" \
-            --cancel-label "Skip" \
-            --inputbox "Enter a target disk size in mebibytes (between $CURR_MIN_DISK and 4096) to use when creating the disk image containing SHORK 486. Whilst the build script will try to honour this, it may be increased automatically to satisfy 2MiB alignment requirements, or if the combined kernel size, root partition size, optional swap partition size, and partition table overhead exceeds the target disk size." \
-            12 $WIDTH "$TARGET_DISK" \
-            2>&1 >/dev/tty)
+        # Get target disk size (486)
+        CURR_MIN_DISK=0
+        if [ "$BUILD_TYPE" == "default" ]; then
+            CURR_MIN_DISK=$DEFAULT_MIN_DISK
+            if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
+                TARGET_DISK=$DEFAULT_MIN_DISK
+                TARGET_SWAP=$DEFAULT_DEF_SWAP
+            fi
+        elif [ "$BUILD_TYPE" == "max" ]; then
+            CURR_MIN_DISK=$MAX_MIN_DISK
+            if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
+                TARGET_DISK=$MAX_MIN_DISK
+                TARGET_SWAP=$MAX_DEF_SWAP
+            fi
+        elif [ "$BUILD_TYPE" == "plus" ]; then
+            CURR_MIN_DISK=$PLUS_MIN_DISK
+            if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
+                TARGET_DISK=$PLUS_MIN_DISK
+                TARGET_SWAP=$PLUS_DEF_SWAP
+            fi
+        elif [ "$BUILD_TYPE" == "writer" ]; then
+            CURR_MIN_DISK=$WRITER_MIN_DISK
+            if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
+                TARGET_DISK=$WRITER_MIN_DISK
+                TARGET_SWAP=$WRITER_DEF_SWAP
+            fi
+        elif [ "$BUILD_TYPE" == "offline" ]; then
+            CURR_MIN_DISK=$OFFLINE_MIN_DISK
+            if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
+                TARGET_DISK=$OFFLINE_MIN_DISK
+                TARGET_SWAP=$OFFLINE_DEF_SWAP
+            fi
+        elif [ "$BUILD_TYPE" == "mini" ]; then
+            CURR_MIN_DISK=$MINI_MIN_DISK
+            if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
+                TARGET_DISK=$MINI_MIN_DISK
+                TARGET_SWAP=$MINI_DEF_SWAP
+            fi
+        elif [ "$BUILD_TYPE" == "micro" ]; then
+            CURR_MIN_DISK=$MICRO_MIN_DISK
+            if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
+                TARGET_DISK=$MICRO_MIN_DISK
+                TARGET_SWAP=$MICRO_DEF_SWAP
+            fi
+        elif [ "$BUILD_TYPE" == "custom" ]; then
+            CURR_MIN_DISK=$CUSTOM_MIN_DISK
+            if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
+                TARGET_DISK=$CUSTOM_MIN_DISK
+                TARGET_SWAP=$CUSTOM_DEF_SWAP
+            fi
+        fi
 
-        SKIPPED=$?
+        while true; do
+            TARGET_DISK_TMP=$(dialog --clear \
+                --backtitle "SHORK 486 Build Configurator" \
+                --title "Target Disk Size" \
+                --cancel-label "Skip" \
+                --inputbox "Enter a target disk size in mebibytes (between $CURR_MIN_DISK and 4096) to use when creating the disk image containing SHORK 486. Whilst the build script will try to honour this, it may be increased automatically to satisfy 2MiB alignment requirements, or if the combined kernel size, root partition size, optional swap partition size, and partition table overhead exceeds the target disk size." \
+                12 $WIDTH "$TARGET_DISK" \
+                2>&1 >/dev/tty)
 
-        if [[ $SKIPPED -eq 1 ]]; then
+            SKIPPED=$?
+
+            if [[ $SKIPPED -eq 1 ]]; then
+                break 2
+            fi
+
+            if ! [[ "$TARGET_DISK_TMP" =~ ^[0-9]+$ ]]; then
+                dialog --clear \
+                    --backtitle "SHORK 486 Build Configurator" \
+                    --title "Target Disk Size" \
+                    --msgbox "The value must be numeric and a whole number (integer)." 5 $WIDTH
+                continue
+            fi
+
+            if (( TARGET_DISK_TMP < $CURR_MIN_DISK || TARGET_DISK_TMP > 4096 )); then
+                dialog --clear \
+                    --backtitle "SHORK 486 Build Configurator" \
+                    --title "Target Disk Size" \
+                    --msgbox "The value must be between $CURR_MIN_DISK and 4096." 5 $WIDTH
+                continue
+            fi
+
+            TARGET_DISK=$TARGET_DISK_TMP
             break
-        fi
+        done
 
-        if ! [[ "$TARGET_DISK_TMP" =~ ^[0-9]+$ ]]; then
+
+
+        # Get boot partition choice (486 + TARGET_DISK>504)
+        if [ "$TARGET_DISK" -gt 504 ]; then
+            DEFAULT_FLAG=""
+            if ! $ENABLE_BOOT_PART; then
+                DEFAULT_FLAG="--defaultno"
+            fi
+
             dialog --clear \
                 --backtitle "SHORK 486 Build Configurator" \
-                --title "Target Disk Size" \
-                --msgbox "The value must be numeric and a whole number (integer)." 5 $WIDTH
-            continue
+                --title "Separate Boot Partition" \
+                $DEFAULT_FLAG \
+                --extra-button --extra-label "Back" \
+                --yesno "You have entered a target disk size greater than 504MiB. This means the resulting hard disk drive image will contain more than 1024 cylinders. The boot process relies on BIOS INT13h calls to read the bootloader and kernel image from the disk, and BIOSes from before the mid-'90s may not support reading beyond 1024 cylinders. To guarantee the bootloader and kernel image are within this limit, you can enable a small, separate boot partition placed at the start of the disk. Once loaded, Linux is not bound by the same limitation. Do you wish to include a separate boot partition, or go back to change the target disk size?" \
+                13 $WIDTH
+
+            CHOICE=$?
+
+            case "$CHOICE" in
+                0) ENABLE_BOOT_PART=true ;;
+                1) ENABLE_BOOT_PART=false ;;
+                3) continue ;;
+            esac
         fi
 
-        if (( TARGET_DISK_TMP < $CURR_MIN_DISK || TARGET_DISK_TMP > 4096 )); then
-            dialog --clear \
-                --backtitle "SHORK 486 Build Configurator" \
-                --title "Target Disk Size" \
-                --msgbox "The value must be between $CURR_MIN_DISK and 4096." 5 $WIDTH
-            continue
-        fi
-
-        TARGET_DISK=$TARGET_DISK_TMP
         break
     done
 

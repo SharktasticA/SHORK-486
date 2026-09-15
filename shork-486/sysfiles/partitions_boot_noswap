@@ -1,0 +1,4 @@
+label: dos
+unit: sectors
+1 : start=63, size=@BOOT_SIZE@, type=83, bootable
+2 : start=@ROOT_START@, size=@ROOT_SIZE@, type=83

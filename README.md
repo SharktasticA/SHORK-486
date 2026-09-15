@@ -341,6 +341,8 @@ When running the SHORK 486 Build Configurator, you will be prompted to select th
 * _If SHORK 486:_
     * Build type (default, max, plus, writer, offline, mini, micro or custom)
     * Target disk size (size in MiB)
+        * __If more than 504:__
+            * Separate boot partition (yes/back/no)
     * Swap partition size (size in MiB)
 * _If SHORK DISKETTE:_
     * Target diskette size (1.44MB or 2.88MB)

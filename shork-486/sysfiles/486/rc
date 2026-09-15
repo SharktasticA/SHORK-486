@@ -16,14 +16,21 @@
 
 
 
-# Activate swap if present
-if [ -f /etc/fstab ] && grep -q swap /etc/fstab; then
-    swapon -a 2>/dev/null || true
-fi
-
 # Mount core file systems
 mount -t proc  proc  /proc
 mount -t sysfs sysfs /sys
+
+if [ -f /etc/fstab ]; then
+    # Activate swap if present
+    if grep -q swap /etc/fstab; then
+        swapon -a 2>/dev/null || true
+    fi
+
+    # Mount /boot if configured
+    if grep -q '/boot' /etc/fstab; then
+        mount /boot 2>/dev/null || true
+    fi
+fi
 
 # Mount devpts for pseudo-terminals
 mkdir -p /dev/pts

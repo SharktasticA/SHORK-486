@@ -68,6 +68,8 @@ echo -e "${BLUE}========================${RESET}"
 ######################################################
 
 # General global vars
+BOOT_PART_SIZE=4
+BOOT_PART_GRUB_MULTI=4
 BOOTLDR_USED=""
 BOUNDARY_ALIGN=2
 BUILD_PKGS=false
@@ -396,6 +398,7 @@ SHORKUTILS_RECLONE=false
 SKIP_BB=false
 SKIP_KRN=false
 TARGET_DISK=$DEFAULT_TARGET_DISK
+ENABLE_BOOT_PART=false
 TARGET_SWAP=$DEFAULT_TARGET_SWAP
 USE_TORVALDS=false
 
@@ -687,6 +690,11 @@ fi
 # Ensure USE_GRUB is disabled with FIX_EXTLINUX
 if [ "$FIX_EXTLINUX" = true ]; then
     USE_GRUB=false
+fi
+
+# Ensure BOOT_PART_GRUB_MULTI is applied to BOOT_PART_SIZE if USE_GRUB
+if [ "$USE_GRUB" = true ]; then
+    BOOT_PART_SIZE=$(( BOOT_PART_SIZE * BOOT_PART_GRUB_MULTI ))
 fi
 
 
@@ -9468,16 +9476,47 @@ partition_disk_img()
 
     local ALIGNED_SECTORS="$1"
 
+    # If boot partition is enabled, calculate its sectors and push root
+    # partition back to match
+    if $ENABLE_BOOT_PART; then
+        BOOT_SIZE=$((BOOT_PART_SIZE * 2048))
+        ROOT_START=$((DISK_SECTORS_TRACK + BOOT_SIZE))
+    else
+        ROOT_START=$DISK_SECTORS_TRACK
+    fi
+
     if [ -n "$TARGET_SWAP" ] && [ "$TARGET_SWAP" -gt 0 ]; then
         echo -e "${GREEN}Setting up for root and swap partitions...${RESET}"
         SWAP_SIZE=$((TARGET_SWAP * 2048))
-        ROOT_SIZE=$((ALIGNED_SECTORS - DISK_SECTORS_TRACK - SWAP_SIZE))
-        SWAP_START=$((DISK_SECTORS_TRACK + ROOT_SIZE))
-        sed -e "s/@ROOT_SIZE@/${ROOT_SIZE}/g" -e "s/@SWAP_START@/${SWAP_START}/g" -e "s/@SWAP_SIZE@/${SWAP_SIZE}/g" "${CURR_DIR}/sysfiles/partitions_swap" | sudo sfdisk "${CURR_DIR}/images/${ID}.img"
+        ROOT_SIZE=$((ALIGNED_SECTORS - ROOT_START - SWAP_SIZE))
+        SWAP_START=$((ROOT_START + ROOT_SIZE))
+
+        if $ENABLE_BOOT_PART; then
+            sed -e "s/@BOOT_SIZE@/${BOOT_SIZE}/g" \
+                -e "s/@ROOT_START@/${ROOT_START}/g" \
+                -e "s/@ROOT_SIZE@/${ROOT_SIZE}/g" \
+                -e "s/@SWAP_START@/${SWAP_START}/g" \
+                -e "s/@SWAP_SIZE@/${SWAP_SIZE}/g" \
+                "${CURR_DIR}/sysfiles/partitions_boot_swap" | sudo sfdisk "${CURR_DIR}/images/${ID}.img"
+        else
+            sed -e "s/@ROOT_SIZE@/${ROOT_SIZE}/g" \
+                -e "s/@SWAP_START@/${SWAP_START}/g" \
+                -e "s/@SWAP_SIZE@/${SWAP_SIZE}/g" \
+                "${CURR_DIR}/sysfiles/partitions_swap" | sudo sfdisk "${CURR_DIR}/images/${ID}.img"
+        fi
     else
         echo -e "${GREEN}Setting up for just root partition (no swap)...${RESET}"
-        ROOT_SIZE=$((ALIGNED_SECTORS - DISK_SECTORS_TRACK))
-        sed "s/@ROOT_SIZE@/${ROOT_SIZE}/g" "${CURR_DIR}/sysfiles/partitions_noswap" | sudo sfdisk "${CURR_DIR}/images/$ID.img"
+        ROOT_SIZE=$((ALIGNED_SECTORS - ROOT_START))
+
+        if $ENABLE_BOOT_PART; then
+            sed -e "s/@BOOT_SIZE@/${BOOT_SIZE}/g" \
+                -e "s/@ROOT_START@/${ROOT_START}/g" \
+                -e "s/@ROOT_SIZE@/${ROOT_SIZE}/g" \
+                "${CURR_DIR}/sysfiles/partitions_boot_noswap" | sudo sfdisk "${CURR_DIR}/images/${ID}.img"
+        else
+            sed "s/@ROOT_SIZE@/${ROOT_SIZE}/g" \
+                "${CURR_DIR}/sysfiles/partitions_noswap" | sudo sfdisk "${CURR_DIR}/images/$ID.img"
+        fi
     fi
 
     ROOT_PART_SIZE=$((ROOT_SIZE / 2048))
@@ -9529,6 +9568,14 @@ install_extlinux_bootloader()
         copy_sysfile "${CURR_DIR}"/sysfiles/486/syslinux.cfg.boot  "/mnt/${ID}/boot/syslinux/syslinux.cfg"
     fi
 
+    if $ENABLE_BOOT_PART; then
+        sudo sed -i \
+            -e 's#/boot/syslinux/#/syslinux/#g' \
+            -e 's#/boot/bzImage#/bzImage#g' \
+            -e 's#root=/dev/sda1#root=/dev/sda2#g' \
+            "/mnt/${ID}/boot/syslinux/syslinux.cfg"
+    fi
+
     # If required, specify the target scancode set
     if [[ $SCANCODE_SET != -1 ]]; then
         sudo sed -i "s/atkbd.extra=1/atkbd.set=${SCANCODE_SET} atkbd.extra=1/" "/mnt/${ID}/boot/syslinux/syslinux.cfg"
@@ -9566,6 +9613,13 @@ install_grub_bootloader()
     else
         echo -e "${GREEN}Installing boot-only GRUB bootloader...${RESET}"
         copy_sysfile "${CURR_DIR}"/sysfiles/486/grub.cfg.boot "/mnt/${ID}/boot/grub/grub.cfg"
+    fi
+
+    if $ENABLE_BOOT_PART; then
+        sudo sed -i \
+            -e 's#/boot/bzImage#/bzImage#g' \
+            -e 's#root=/dev/sda1#root=/dev/sda2#g' \
+            "/mnt/${ID}/boot/grub/grub.cfg"
     fi
 
     # If required, specify the target scancode set
@@ -9689,6 +9743,9 @@ build_disk_img()
         set +e
 
         mountpoint="/mnt/${ID}"
+        if $ENABLE_BOOT_PART && mountpoint -q "${mountpoint}/boot" 2>/dev/null; then
+            sudo umount -lf "${mountpoint}/boot" || true
+        fi
         if mountpoint -q "$mountpoint" 2>/dev/null; then
             sudo umount -lf "$mountpoint" || true
         fi
@@ -9729,6 +9786,11 @@ build_disk_img()
         if [ "$TARGET_SWAP" -ne 0 ]; then
             TOTAL_DISK_SIZE=$((TOTAL_DISK_SIZE + TARGET_SWAP))
         fi
+
+        # Factor in boot partition size if enabled
+        if $ENABLE_BOOT_PART; then
+            TOTAL_DISK_SIZE=$((TOTAL_DISK_SIZE + BOOT_PART_SIZE))
+        fi
     # Everything else...
     else
         # Calculate some overhead to take into account metadata, partition
@@ -9751,6 +9813,11 @@ build_disk_img()
         # Factor in target swap if provided
         if [ "$TARGET_SWAP" -ne 0 ]; then
             TOTAL_MIB=$((TOTAL_MIB + TARGET_SWAP))
+        fi
+
+        # Factor in boot partition size if enabled
+        if $ENABLE_BOOT_PART; then
+            TOTAL_MIB=$((TOTAL_MIB + BOOT_PART_SIZE))
         fi
 
         # Use target disk value if provided and large enough
@@ -9799,24 +9866,47 @@ build_disk_img()
     # Expose partition
     loop=$(sudo losetup -f --show "../images/${ID}.img")
     sudo kpartx -av "$loop"
-    root_part="/dev/mapper/$(basename "$loop")p1"
-    if [ "$TARGET_SWAP" -ne 0 ]; then
-        swap_part="/dev/mapper/$(basename "$loop")p2"
+    if $ENABLE_BOOT_PART; then
+        boot_part="/dev/mapper/$(basename "$loop")p1"
+        root_part="/dev/mapper/$(basename "$loop")p2"
+        if [ "$TARGET_SWAP" -ne 0 ]; then
+            swap_part="/dev/mapper/$(basename "$loop")p3"
+        fi
+    else
+        root_part="/dev/mapper/$(basename "$loop")p1"
+        if [ "$TARGET_SWAP" -ne 0 ]; then
+            swap_part="/dev/mapper/$(basename "$loop")p2"
+        fi
     fi
 
-    # Create and populate root partition
+    # Create root partition
     echo -e "${GREEN}Creating root partition...${RESET}"
     sudo mkfs.ext4 -F -m 1 "$root_part"
     sudo mkdir -p "/mnt/${ID}"
     sudo mount "$root_part" "/mnt/${ID}"
-    sudo cp -a root//. "/mnt/${ID}"
     sudo mkdir -p /mnt/$ID/{dev,proc,sys,boot}
+
+    # Create boot partition if enabled
+    if $ENABLE_BOOT_PART; then
+        echo -e "${GREEN}Creating boot partition...${RESET}"
+        sudo mkfs.ext2 -F "$boot_part"
+        sudo mount "$boot_part" "/mnt/${ID}/boot"
+    fi
+
+    # Populate root partition
+    sudo cp -a root//. "/mnt/${ID}"
+
+    # Append boot partition's fstab entry after root/ has been copied
+    if $ENABLE_BOOT_PART; then
+        echo "/dev/sda1 /boot ext2 defaults 0 2" | sudo tee -a "/mnt/${ID}/etc/fstab"
+    fi
 
     # Create swap partition if enabled
     if [ "$TARGET_SWAP" -ne 0 ]; then
         echo -e "${GREEN}Creating swap partition...${RESET}"
         sudo mkswap "$swap_part"
-        echo "/dev/sda2 none swap sw 0 0" | sudo tee -a "/mnt/${ID}/etc/fstab"
+        SWAP_DEV=$($ENABLE_BOOT_PART && echo /dev/sda3 || echo /dev/sda2)
+        echo "$SWAP_DEV none swap sw 0 0" | sudo tee -a "/mnt/${ID}/etc/fstab"
     fi
 
 
@@ -9838,7 +9928,13 @@ build_disk_img()
 
     # Ensure file system is in a clean state
     echo -e "${GREEN}Unmounting file system...${RESET}"
+    if $ENABLE_BOOT_PART; then
+        sudo umount "/mnt/${ID}/boot"
+    fi
     sudo umount "/mnt/${ID}"
+    if $ENABLE_BOOT_PART; then
+        sudo fsck.ext2 -f -p "$boot_part"
+    fi
     sudo fsck.ext4 -f -p "$root_part"
 }
 
@@ -9851,7 +9947,12 @@ copy_report()
     {
         set +e
 
+        bootpoint="/mnt/${ID}/boot"
         mountpoint="/mnt/${ID}"
+
+        if $ENABLE_BOOT_PART && mountpoint -q "$bootpoint" 2>/dev/null; then
+            sudo umount -lf "$bootpoint" || true
+        fi
         if mountpoint -q "$mountpoint" 2>/dev/null; then
             sudo umount -lf "$mountpoint" || true
         fi
@@ -10609,8 +10710,13 @@ generate_report()
             ""
             "Est. minimum RAM:    ${EST_MIN_RAM}"
             "Total disk size:     ${TOTAL_DISK_SIZE}MiB"
-            "Root partition size: ${ROOT_PART_SIZE}MiB"
         )
+
+        if $ENABLE_BOOT_PART; then
+            lines+=("Boot partition size: ${BOOT_PART_SIZE}MiB")
+        fi
+
+        lines+=("Root partition size: ${ROOT_PART_SIZE}MiB")
 
         if [ "$TARGET_SWAP" -ne 0 ]; then
             lines+=("Swap partition size: ${TARGET_SWAP}MiB")
