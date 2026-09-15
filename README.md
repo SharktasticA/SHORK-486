@@ -181,7 +181,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [nPth](https://www.gnupg.org/software/npth/index.html) | 1.8 | GnuPG | LGPLv2.1 |
 | [OpenSSL](https://github.com/openssl/openssl) | 3.6.4 | cURL, Git, Lynx, Midnight Commander, tn5250 | Apache 2.0 |
 | [PCRE2](https://pcre2project.github.io/pcre2/) | 10.48 | GLib, Tilde | BSD 3-Clause w/ PCRE2 exception |
-| [zlib](https://github.com/madler/zlib) | 1.3.2 | Git, GLib, GnuPG, libzip | zlib |
+| [zlib](https://github.com/madler/zlib) | 1.3.2 | Dropbear, Git, GLib, GnuPG, libzip | zlib |
 
 ### SHORK Utilities (SHORKUTILS)
 

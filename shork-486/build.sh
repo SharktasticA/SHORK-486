@@ -821,6 +821,10 @@ if $INCLUDE_CURL || $INCLUDE_GIT; then
     NEED_ZLIB=true
 fi
 
+if $INCLUDE_DROPBEAR; then
+    NEED_ZLIB=true
+fi
+
 if $INCLUDE_EMACS; then
     NEED_LIBXML2=true
 fi
@@ -6785,7 +6789,7 @@ get_dropbear()
     cd "${CURR_DIR}/build"
 
     # Skip if already compiled
-    if [ -f "${DESTDIR}/usr/bin/ssh" ]; then
+    if [ -f "${DESTDIR}/usr/bin/dbclient" ] && [ -f "${DESTDIR}/usr/bin/scp" ]; then
         echo -e "${LIGHT_RED}Dropbear already compiled, skipping...${RESET}"
         return
     fi
@@ -6805,10 +6809,24 @@ get_dropbear()
     # Compile and install
     echo -e "${GREEN}Compiling Dropbear...${RESET}"
     unset LIBS
-    ./configure --host="${HOST}" --prefix=/usr --disable-zlib --disable-loginfunc --disable-syslog --disable-lastlog --disable-utmp --disable-utmpx --disable-wtmp --disable-wtmpx CC="${CC}" AR="${AR}" RANLIB="${RANLIB}" CFLAGS="-Os -march=${ARCH} -static" LDFLAGS="-static"
+    ./configure \
+        --host="${HOST}" \
+        --prefix=/usr \
+        --disable-loginfunc \
+        --disable-syslog \
+        --disable-lastlog \
+        --disable-utmp \
+        --disable-utmpx \
+        --disable-wtmp \
+        --disable-wtmpx \
+        CC="${CC}" \
+        AR="${AR}" \
+        RANLIB="${RANLIB}" \
+        CFLAGS="-Os -march=${ARCH} -static" \
+        LDFLAGS="-static"
     make PROGRAMS="dbclient scp" -j$(nproc)
     sudo make DESTDIR="$DESTDIR" install PROGRAMS="dbclient scp"
-    sudo mv "${DESTDIR}/usr/bin/dbclient" "${DESTDIR}/usr/bin/ssh"
+    sudo ln -sf dbclient "${DESTDIR}/usr/bin/ssh"
 }
 
 # Download FreeDOS for dosemu2
