@@ -4563,7 +4563,8 @@ compile_kernel()
         make ARCH=x86 modules -j$(nproc)
 
         echo -e "${GREEN}Installing Linux kernel modules...${RESET}"
-        sudo make ARCH=x86 modules_install INSTALL_MOD_PATH="${CURR_DIR}/build/root"
+        sudo make ARCH=x86 modules_install INSTALL_MOD_PATH="${DESTDIR}"
+        sudo "${DESTDIR}/sbin/depmod" -b "${DESTDIR}" "$KRN_BUILT_VER"
     fi
 }
 
