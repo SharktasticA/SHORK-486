@@ -1140,7 +1140,7 @@ install_arch_prerequisites()
 {
     echo -e "${GREEN}Installing prerequisite packages for an Arch-based system...${RESET}"
 
-    PACKAGES="autoconf bc base-devel bison bzip2 ca-certificates cdrtools cpio dosfstools e2fsprogs flex gettext git libtool make multipath-tools ncurses pciutils python qemu-img systemd texinfo util-linux wget xz"
+    PACKAGES="autoconf bc base-devel bison bzip2 ca-certificates cdrtools cpio dosfstools e2fsprogs flex gettext git libtool make meson multipath-tools ncurses ninja pciutils python qemu-img systemd texinfo util-linux wget xz"
 
     if $FIX_EXTLINUX; then
         PACKAGES+=" nasm"
