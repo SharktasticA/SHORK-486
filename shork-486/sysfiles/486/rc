@@ -16,29 +16,49 @@
 
 
 
+# Provides a systemd-style log message
+log()
+{
+    MSG="$1"
+    if [ -r /proc/uptime ]; then
+        UP="$(IFS=' '; set -- $(cat /proc/uptime); echo "$1")"
+    else
+        UP="0"
+    fi
+    printf "[%10s] %s\n" "$UP" "$MSG"
+}
+
+
+
 # Mount core file systems
+log "Mounting /proc"
 mount -t proc  proc  /proc
+log "Mounting /sys"
 mount -t sysfs sysfs /sys
 
 if [ -f /etc/fstab ]; then
     # Activate swap if present
     if grep -q swap /etc/fstab; then
+        log "Activating swap memory"
         swapon -a 2>/dev/null || true
     fi
 
     # Mount /boot if configured
     if grep -q '/boot' /etc/fstab; then
+        log "Mounting boot partition"
         mount /boot 2>/dev/null || true
     fi
 fi
 
 # Mount devpts for pseudo-terminals
+log "Mounting /dev/pts"
 mkdir -p /dev/pts
 mount -t devpts devpts /dev/pts
 chmod 666 /dev/pts
 
 # Create /var/run for utmp when multi-user
 if [ -d /home ]; then
+    log "Creating /var/run for utmp"
     mkdir -p /var/run /var/lock
     mount -t tmpfs tmpfs /var/run
     touch /var/run/utmp /var/run/wtmp
@@ -47,6 +67,7 @@ if [ -d /home ]; then
 fi
 
 # Required device nodes
+log "Creating required device nodes"
 [ -c /dev/ptmx ] || mknod -m 666 /dev/ptmx c 5 2
 [ -c /dev/tty ]  || mknod -m 666 /dev/tty  c 5 0
 [ -c /dev/tty0 ] || mknod -m 620 /dev/tty0 c 4 0
@@ -55,28 +76,38 @@ fi
 # Generate module.dep if present and empty
 KRN_VER="$(uname -r)"
 if [ -f "/lib/modules/$KRN_VER/modules.dep" ] && [ ! -s "/lib/modules/$KRN_VER/modules.dep" ]; then
+    log "Generating modules.dep"
     depmod -b / "$KRN_VER" 2>/dev/null
 fi
 
-[ -r /etc/hostname ] && hostname "$(cat /etc/hostname)"
+# Set hostname
+if [ -r /etc/hostname ]; then
+    HOSTNAME="$(cat /etc/hostname)"
+    log "Setting hostname: $HOSTNAME"
+    hostname "$HOSTNAME"
+fi
 
 export ENV=/etc/profile
 
 if [ -x "/usr/libexec/shorkset" ]; then
     # Remount /dev to allow exec (needed for SHORKSET VM86 features)
+    log "Remounting /dev to allow exec"
     mount -o remount,exec,dev /dev
 
     # Load SHORKSET settings
     if [ -f /etc/shorkset.conf ]; then
+        log "Loading SHORKSET configuration"
         . /etc/shorkset.conf
 
         # Load custom console font
         if [ "$FONT_PSF" != "default" ] && [ -c /dev/tty1 ]; then
+            log "Loading console font: $FONT_PSF"
             setfont -C /dev/tty1 $FONT_PSF
         fi
 
         # Load persistent keymap
         if [ "$KEYMAP" != "us" ] && [ -f "/usr/share/keymaps/$KEYMAP.kmap.bin" ]; then
+            log "Loading keymap: $KEYMAP"
             loadkmap < "/usr/share/keymaps/$KEYMAP.kmap.bin"
         fi
 
@@ -85,51 +116,73 @@ if [ -x "/usr/libexec/shorkset" ]; then
             OLD_IFS="$IFS"
             IFS=","
             for MOD in $MODULES; do
-                modprobe "$MOD" 2>/dev/null
+                log "Loading module: $MOD"
+                if ! modprobe "$MOD" 2>/dev/null; then
+                    log "WARNING: failed to load module: $MOD"
+                fi
             done
             IFS="$OLD_IFS"
         fi
 
         # Set up networking
         if [ "$NET_ENABLED" -eq 1 ]; then
+            log "Networking enabled"
             # Activate desired interfaces
             if [ -n "$NET_IFS" ]; then
                 OLD_IFS="$IFS"
                 IFS=","
+                IF_FOUND=0
                 for IF in $NET_IFS; do
                     if [ -d "/sys/class/net/$IF" ] && [ -e "/sys/class/net/$IF/device" ]; then
+                        IF_FOUND=1
+                        log "Bringing up interface: $IF"
                         ifconfig "$IF" up
                         if ifconfig "$IF" 2>/dev/null | grep -q "UP"; then
+                            log "Starting DHCP on $IF"
                             udhcpc -i "$IF" -n -t 3 -T 2 -s /usr/share/udhcpc/default.script > /dev/null 2>&1 &
+                        else
+                            log "WARNING: failed to bring up $IF"
                         fi
                     fi
                 done
+                IFS="$OLD_IFS"
+                if [ "$IF_FOUND" -eq 0 ]; then
+                    log "WARNING: no interfaces present"
+                fi
             fi
         fi
 
         # Load system volume
         if [ -c /dev/dsp ] && [ "$VOLUME" -ge 0 ] 2>/dev/null && [ "$VOLUME" -le 100 ] 2>/dev/null; then
+            log "Setting system volume: $VOLUME"
             /usr/libexec/shorkset -vl=$VOLUME
         fi
     fi
 fi
 
-# Flush any ttyx seen flags
-rm -f /tmp/.tty*_seen
+# Flush any ttyX_seen flags
+for FLAG in /tmp/.tty*_seen; do
+    [ -e "$FLAG" ] || continue
+    log "Flushing ttyX_seen flag: $FLAG"
+    rm -f "$FLAG"
+done
 
 # Flush gpm.pid
 if [ -f /var/run/gpm.pid ]; then
+    log "Flushing /var/run/gpm.pid"
     rm -f /var/run/gpm.pid
 fi
 
 # Flush any orphaned swap files created by swap-wrap
 for SWAP_FILE in /var/tmp/.*_ramswap.*; do
     [ -e "$SWAP_FILE" ] || continue
+    log "Flushing orphaned swap file: $SWAP_FILE"
     swapoff "$SWAP_FILE" 2>/dev/null
     rm -f "$SWAP_FILE"
 done
 
 # Prepare to show the welcome banner
+log "Showing welcome banner"
 clear
 
 # Show welcome banner, OS name and author name

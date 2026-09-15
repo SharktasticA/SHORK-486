@@ -1,28 +1,56 @@
 #!/bin/sh
 
+# Provides a systemd-style log message
+log()
+{
+    MSG="$1"
+    if [ -r /proc/uptime ]; then
+        UP="$(IFS=' '; set -- $(cat /proc/uptime); echo "$1")"
+    else
+        UP="0"
+    fi
+    printf "[%10s] %s\n" "$UP" "$MSG"
+}
+
+
+
 # Mount core file systems
+log "Mounting /proc"
 mount -t proc  proc  /proc
+log "Mounting /sys"
 mount -t sysfs sysfs /sys
 
 # Mount devpts for pseudo-terminals
+log "Mounting /dev/pts"
 mkdir -p /dev/pts
 mount -t devpts devpts /dev/pts
 chmod 666 /dev/pts
 
 # Required device nodes
+log "Creating required device nodes"
 [ -c /dev/ptmx ] || mknod -m 666 /dev/ptmx c 5 2
 [ -c /dev/tty ]  || mknod -m 666 /dev/tty  c 5 0
 [ -c /dev/tty0 ] || mknod -m 620 /dev/tty0 c 4 0
 [ -c /dev/tty1 ] || mknod -m 620 /dev/tty1 c 4 1
 
-[ -r /etc/hostname ] && hostname "$(cat /etc/hostname)"
+# Set hostname
+if [ -r /etc/hostname ]; then
+    HOSTNAME="$(cat /etc/hostname)"
+    log "Setting hostname: $HOSTNAME"
+    hostname "$HOSTNAME"
+fi
 
 export ENV=/etc/profile
 
-# Flush any ttyx seen flags
-rm -f /tmp/.tty*_seen
+# Flush any ttyX_seen flags
+for FLAG in /tmp/.tty*_seen; do
+    [ -e "$FLAG" ] || continue
+    log "Flushing ttyX_seen flag: $FLAG"
+    rm -f "$FLAG"
+done
 
 # Prepare to show the welcome banner
+log "Showing welcome banner"
 clear
 
 # Show welcome banner, OS name and author name
