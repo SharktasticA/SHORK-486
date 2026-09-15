@@ -341,8 +341,7 @@ When running the SHORK 486 Build Configurator, you will be prompted to select th
 * _If SHORK 486:_
     * Build type (default, max, plus, writer, offline, mini, micro or custom)
     * Target disk size (size in MiB)
-        * __If more than 504:__
-            * Separate boot partition (yes/back/no)
+    * Separate boot partition (yes/no)
     * Swap partition size (size in MiB)
 * _If SHORK DISKETTE:_
     * Target diskette size (1.44MB or 2.88MB)
@@ -369,6 +368,12 @@ When running the SHORK 486 Build Configurator, you will be prompted to select th
         * Options (all other configuration) (multiple choice)
 
 Below are further explanations for options that could not fit into the configurator itself.
+
+
+
+#### Separate Boot Partition
+
+Selecting "Yes" here will add a separate 4MiB (EXTLINUX) or 16MiB (GRUB) boot partition to the start of the resulting disk drive image, which is where the bootloader and the Linux kernel image will be installed to instead of into the root partition. Some BIOSes before the mid-1990s do not support reading beyond 1024 cylinders via their INT13h calls, which when given 16 heads and 63 sectors, results in a ~504MiB (~528MB) maximum readable disk size. The boot process relies on such calls to read the bootloader and kernel image from the disk, thus, it is important that both components are within the first 1024 cylinders in order to be read. When given just one large root partition, these components could be physically stored anywhere on the disk, including outside this boundary. Once loaded, Linux is not bound by the same limitation, as it uses its own disk drivers rather than BIOS calls. As such, if your target disk image is 505MiB or larger, it is recommended to say "yes" here.
 
 
 
@@ -438,7 +443,7 @@ EXTLINUX (SHORK 486), ISOLINUX (SHORK DISC) and SYSLINUX (SHORK DISKETTE) are th
 
 * **fb-vbe**: Adds kernel-level framebuffer and VESA BIOS Extensions (VBE) support. This allows `shorkhelp` to list and select VBE-style resolutions, which when used also creates a framebuffer device an X server can use.
 
-* **grub**: Uses a GRUB 2.x bootloader instead of EXTLINUX. The build script overrides this if you said "Yes" to using SHORK's patched fork of EXTLINUX.
+* **grub**: Uses a GRUB 2.x bootloader instead of EXTLINUX. GRUB may be more familiar to modern Linux users, but it requires approximately 12MiB more space than EXTLINUX. The build script overrides this option if you said "Yes" to using SHORK's patched fork of EXTLINUX.
 
 * **gui**: Includes SHORK 486's graphical environment ("SHORKGUI"). This includes the TinyX display server, TWM window manager, various supporting X11 utilities, st terminal emulator, and the `shorkgui` utility.
     * **SHORKGUI is an experimental feature - expect quirks and incompleteness!**

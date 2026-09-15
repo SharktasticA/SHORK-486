@@ -622,122 +622,114 @@ if [ "$ID" == "shork-486" ]; then
 
 
 
+    # Get target disk size (486)
+    CURR_MIN_DISK=0
+    if [ "$BUILD_TYPE" == "default" ]; then
+        CURR_MIN_DISK=$DEFAULT_MIN_DISK
+        if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
+            TARGET_DISK=$DEFAULT_MIN_DISK
+            TARGET_SWAP=$DEFAULT_DEF_SWAP
+        fi
+    elif [ "$BUILD_TYPE" == "max" ]; then
+        CURR_MIN_DISK=$MAX_MIN_DISK
+        if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
+            TARGET_DISK=$MAX_MIN_DISK
+            TARGET_SWAP=$MAX_DEF_SWAP
+        fi
+    elif [ "$BUILD_TYPE" == "plus" ]; then
+        CURR_MIN_DISK=$PLUS_MIN_DISK
+        if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
+            TARGET_DISK=$PLUS_MIN_DISK
+            TARGET_SWAP=$PLUS_DEF_SWAP
+        fi
+    elif [ "$BUILD_TYPE" == "writer" ]; then
+        CURR_MIN_DISK=$WRITER_MIN_DISK
+        if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
+            TARGET_DISK=$WRITER_MIN_DISK
+            TARGET_SWAP=$WRITER_DEF_SWAP
+        fi
+    elif [ "$BUILD_TYPE" == "offline" ]; then
+        CURR_MIN_DISK=$OFFLINE_MIN_DISK
+        if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
+            TARGET_DISK=$OFFLINE_MIN_DISK
+            TARGET_SWAP=$OFFLINE_DEF_SWAP
+        fi
+    elif [ "$BUILD_TYPE" == "mini" ]; then
+        CURR_MIN_DISK=$MINI_MIN_DISK
+        if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
+            TARGET_DISK=$MINI_MIN_DISK
+            TARGET_SWAP=$MINI_DEF_SWAP
+        fi
+    elif [ "$BUILD_TYPE" == "micro" ]; then
+        CURR_MIN_DISK=$MICRO_MIN_DISK
+        if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
+            TARGET_DISK=$MICRO_MIN_DISK
+            TARGET_SWAP=$MICRO_DEF_SWAP
+        fi
+    elif [ "$BUILD_TYPE" == "custom" ]; then
+        CURR_MIN_DISK=$CUSTOM_MIN_DISK
+        if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
+            TARGET_DISK=$CUSTOM_MIN_DISK
+            TARGET_SWAP=$CUSTOM_DEF_SWAP
+        fi
+    fi
+
     while true; do
-        # Get target disk size (486)
-        CURR_MIN_DISK=0
-        if [ "$BUILD_TYPE" == "default" ]; then
-            CURR_MIN_DISK=$DEFAULT_MIN_DISK
-            if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
-                TARGET_DISK=$DEFAULT_MIN_DISK
-                TARGET_SWAP=$DEFAULT_DEF_SWAP
-            fi
-        elif [ "$BUILD_TYPE" == "max" ]; then
-            CURR_MIN_DISK=$MAX_MIN_DISK
-            if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
-                TARGET_DISK=$MAX_MIN_DISK
-                TARGET_SWAP=$MAX_DEF_SWAP
-            fi
-        elif [ "$BUILD_TYPE" == "plus" ]; then
-            CURR_MIN_DISK=$PLUS_MIN_DISK
-            if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
-                TARGET_DISK=$PLUS_MIN_DISK
-                TARGET_SWAP=$PLUS_DEF_SWAP
-            fi
-        elif [ "$BUILD_TYPE" == "writer" ]; then
-            CURR_MIN_DISK=$WRITER_MIN_DISK
-            if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
-                TARGET_DISK=$WRITER_MIN_DISK
-                TARGET_SWAP=$WRITER_DEF_SWAP
-            fi
-        elif [ "$BUILD_TYPE" == "offline" ]; then
-            CURR_MIN_DISK=$OFFLINE_MIN_DISK
-            if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
-                TARGET_DISK=$OFFLINE_MIN_DISK
-                TARGET_SWAP=$OFFLINE_DEF_SWAP
-            fi
-        elif [ "$BUILD_TYPE" == "mini" ]; then
-            CURR_MIN_DISK=$MINI_MIN_DISK
-            if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
-                TARGET_DISK=$MINI_MIN_DISK
-                TARGET_SWAP=$MINI_DEF_SWAP
-            fi
-        elif [ "$BUILD_TYPE" == "micro" ]; then
-            CURR_MIN_DISK=$MICRO_MIN_DISK
-            if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
-                TARGET_DISK=$MICRO_MIN_DISK
-                TARGET_SWAP=$MICRO_DEF_SWAP
-            fi
-        elif [ "$BUILD_TYPE" == "custom" ]; then
-            CURR_MIN_DISK=$CUSTOM_MIN_DISK
-            if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
-                TARGET_DISK=$CUSTOM_MIN_DISK
-                TARGET_SWAP=$CUSTOM_DEF_SWAP
-            fi
+        TARGET_DISK_TMP=$(dialog --clear \
+            --backtitle "SHORK 486 Build Configurator" \
+            --title "Target Disk Size" \
+            --cancel-label "Skip" \
+            --inputbox "Enter a target disk size in mebibytes (between $CURR_MIN_DISK and 4096) to use when creating the disk image containing SHORK 486. Whilst the build script will try to honour this, it may be increased automatically to satisfy 2MiB alignment requirements, or if the combined kernel size, root partition size, optional swap partition size, and partition table overhead exceeds the target disk size." \
+            12 $WIDTH "$TARGET_DISK" \
+            2>&1 >/dev/tty)
+
+        SKIPPED=$?
+
+        if [[ $SKIPPED -eq 1 ]]; then
+            break
         fi
 
-        while true; do
-            TARGET_DISK_TMP=$(dialog --clear \
-                --backtitle "SHORK 486 Build Configurator" \
-                --title "Target Disk Size" \
-                --cancel-label "Skip" \
-                --inputbox "Enter a target disk size in mebibytes (between $CURR_MIN_DISK and 4096) to use when creating the disk image containing SHORK 486. Whilst the build script will try to honour this, it may be increased automatically to satisfy 2MiB alignment requirements, or if the combined kernel size, root partition size, optional swap partition size, and partition table overhead exceeds the target disk size." \
-                12 $WIDTH "$TARGET_DISK" \
-                2>&1 >/dev/tty)
-
-            SKIPPED=$?
-
-            if [[ $SKIPPED -eq 1 ]]; then
-                break 2
-            fi
-
-            if ! [[ "$TARGET_DISK_TMP" =~ ^[0-9]+$ ]]; then
-                dialog --clear \
-                    --backtitle "SHORK 486 Build Configurator" \
-                    --title "Target Disk Size" \
-                    --msgbox "The value must be numeric and a whole number (integer)." 5 $WIDTH
-                continue
-            fi
-
-            if (( TARGET_DISK_TMP < $CURR_MIN_DISK || TARGET_DISK_TMP > 4096 )); then
-                dialog --clear \
-                    --backtitle "SHORK 486 Build Configurator" \
-                    --title "Target Disk Size" \
-                    --msgbox "The value must be between $CURR_MIN_DISK and 4096." 5 $WIDTH
-                continue
-            fi
-
-            TARGET_DISK=$TARGET_DISK_TMP
-            break
-        done
-
-
-
-        # Get boot partition choice (486 + TARGET_DISK>504)
-        if [ "$TARGET_DISK" -gt 504 ]; then
-            DEFAULT_FLAG=""
-            if ! $ENABLE_BOOT_PART; then
-                DEFAULT_FLAG="--defaultno"
-            fi
-
+        if ! [[ "$TARGET_DISK_TMP" =~ ^[0-9]+$ ]]; then
             dialog --clear \
                 --backtitle "SHORK 486 Build Configurator" \
-                --title "Separate Boot Partition" \
-                $DEFAULT_FLAG \
-                --extra-button --extra-label "Back" \
-                --yesno "You have entered a target disk size greater than 504MiB. This means the resulting hard disk drive image will contain more than 1024 cylinders. The boot process relies on BIOS INT13h calls to read the bootloader and kernel image from the disk, and BIOSes from before the mid-'90s may not support reading beyond 1024 cylinders. To guarantee the bootloader and kernel image are within this limit, you can enable a small, separate boot partition placed at the start of the disk. Once loaded, Linux is not bound by the same limitation. Do you wish to include a separate boot partition, or go back to change the target disk size?" \
-                13 $WIDTH
-
-            CHOICE=$?
-
-            case "$CHOICE" in
-                0) ENABLE_BOOT_PART=true ;;
-                1) ENABLE_BOOT_PART=false ;;
-                3) continue ;;
-            esac
+                --title "Target Disk Size" \
+                --msgbox "The value must be numeric and a whole number (integer)." 5 $WIDTH
+            continue
         fi
 
+        if (( TARGET_DISK_TMP < $CURR_MIN_DISK || TARGET_DISK_TMP > 4096 )); then
+            dialog --clear \
+                --backtitle "SHORK 486 Build Configurator" \
+                --title "Target Disk Size" \
+                --msgbox "The value must be between $CURR_MIN_DISK and 4096." 5 $WIDTH
+            continue
+        fi
+
+        TARGET_DISK=$TARGET_DISK_TMP
         break
     done
+
+
+
+    # Get boot partition choice (486)
+    DEFAULT_FLAG=""
+    if ! $ENABLE_BOOT_PART; then
+        DEFAULT_FLAG="--defaultno"
+    fi
+
+    dialog --clear \
+        --backtitle "SHORK 486 Build Configurator" \
+        --title "Separate Boot Partition" \
+        $DEFAULT_FLAG \
+        --yesno "Would you like to create a small, separate boot partition at the start of the disk for SHORK 486's bootloader and Linux kernel image, rather than installing both into the root partition? Because some BIOSes before the mid-1990s do not support reading beyond 1024 cylinders (~504MiB), this can ensure the boot components stay within that limit when the target disk size is 505MiB or larger." \
+        10 $WIDTH
+
+    CHOICE=$?
+
+    case "$CHOICE" in
+        0) ENABLE_BOOT_PART=true ;;
+        1) ENABLE_BOOT_PART=false ;;
+    esac
 
 
 
