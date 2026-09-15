@@ -1319,21 +1319,21 @@ OPTIONS=$(dialog --clear \
     --cancel-label "Skip" \
     --checklist "Select what other options to include. Some of these are benign, some may increase the RAM and disk space requirement considerably, some are experimental.\n* This option would be included in a \"default\" build\n† This option can raise system memory requirements" $HEIGHT $WIDTH 9 \
     "cdrom"         "*Kernel-level CD-ROM & DVD-ROM support"                    $(val $ENABLE_CDROM) \
-    "con-fonts"     "*Console fonts pack (0.1MiB)"                             $(val $INCLUDE_CON_FONTS) \
+    "con-fonts"     "*Console fonts pack (0.6MiB)"                              $(val $INCLUDE_CON_FONTS) \
     "fb-vbe"        "*†Kernel-level framebuffer & VBE support"                  $(val $ENABLE_FB_VBE) \
-    "grub"          "GRUB 2.x instead of EXTLINUX (4MiB)"                      $(val $USE_GRUB) \
-    "gui"           "†SHORKGUI (46MiB, EXPERIMENTAL)"                          $(val $INCLUDE_GUI) \
+    "grub"          "GRUB 2.x instead of EXTLINUX (4MiB)"                       $(val $USE_GRUB) \
+    "gui"           "†SHORKGUI (46MiB, EXPERIMENTAL)"                           $(val $INCLUDE_GUI) \
     "help-verbose"  "*BusyBox verbose --help"                                   $(val $ENABLE_HELP_VERBOSE) \
     "highmem"       "†Kernel-level high memory support"                         $(val $ENABLE_HIGHMEM) \
     "loop"          "*Kernel-level loopback device support & losetup"           $(val $ENABLE_LOOP) \
-    "menu"          "*Menu-based bootloader (0.5MiB)"                          $(val $ENABLE_MENU) \
+    "menu"          "*Menu-based bootloader (0.5MiB)"                           $(val $ENABLE_MENU) \
     "no-vdso32"     "*Disable 32-bit vDSO & SEP usage"                          $(val $ENABLE_NO_VDS032) \
-    "pci.ids"       "*PCI IDs database (0.1MiB)"                               $(val $INCLUDE_PCI_IDS) \
+    "pci.ids"       "*PCI IDs database (0.1MiB)"                                $(val $INCLUDE_PCI_IDS) \
     "pcmcia"        "*Kernel-level PCMCIA support"                              $(val $ENABLE_PCMCIA) \
     "sata"          "†Kernel-level SATA support"                                $(val $ENABLE_SATA) \
     "scsi-exp"      "*Kernel-level SCSI media changer & tape drive support"     $(val $ENABLE_SCSI_EXP) \
     "sound"         "Kernel-level sound support"                                $(val $ENABLE_SOUND) \
-    "usb"           "Kernel-level USB & HID support & lsusb (0.2MiB)"          $(val $ENABLE_USB) \
+    "usb"           "Kernel-level USB & HID support & lsusb (0.2MiB)"           $(val $ENABLE_USB) \
     "zswap"         "*Kernel-level zswap support"                               $(val $ENABLE_ZSWAP) \
     2>&1 >/dev/tty)
     #"keymaps"   "Keymaps (0.06MiB)"             $(val $INCLUDE_KEYMAPS) \
