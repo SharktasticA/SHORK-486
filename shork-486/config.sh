@@ -711,25 +711,29 @@ if [ "$ID" == "shork-486" ]; then
 
 
 
-    # Get boot partition choice (486)
-    DEFAULT_FLAG=""
-    if ! $ENABLE_BOOT_PART; then
-        DEFAULT_FLAG="--defaultno"
+    # Get boot partition choice (486 + TARGET_DISK>=20MiB)
+    if [ "$TARGET_DISK" -gt 19 ]; then
+        DEFAULT_FLAG=""
+        if ! $ENABLE_BOOT_PART; then
+            DEFAULT_FLAG="--defaultno"
+        fi
+
+        dialog --clear \
+            --backtitle "SHORK 486 Build Configurator" \
+            --title "Separate Boot Partition" \
+            $DEFAULT_FLAG \
+            --yesno "Would you like to create a small, separate boot partition at the start of the disk for SHORK 486's bootloader and Linux kernel image, rather than installing both into the root partition? Because some BIOSes before the mid-1990s do not support reading beyond 1024 cylinders (~504MiB), this can ensure the boot components stay within that limit when the target disk size is 505MiB or larger." \
+            10 $WIDTH
+
+        CHOICE=$?
+
+        case "$CHOICE" in
+            0) ENABLE_BOOT_PART=true ;;
+            1) ENABLE_BOOT_PART=false ;;
+        esac
+    else
+        ENABLE_BOOT_PART=false
     fi
-
-    dialog --clear \
-        --backtitle "SHORK 486 Build Configurator" \
-        --title "Separate Boot Partition" \
-        $DEFAULT_FLAG \
-        --yesno "Would you like to create a small, separate boot partition at the start of the disk for SHORK 486's bootloader and Linux kernel image, rather than installing both into the root partition? Because some BIOSes before the mid-1990s do not support reading beyond 1024 cylinders (~504MiB), this can ensure the boot components stay within that limit when the target disk size is 505MiB or larger." \
-        10 $WIDTH
-
-    CHOICE=$?
-
-    case "$CHOICE" in
-        0) ENABLE_BOOT_PART=true ;;
-        1) ENABLE_BOOT_PART=false ;;
-    esac
 
 
 

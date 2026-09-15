@@ -12,8 +12,6 @@ log()
     printf "[%10s] %s\n" "$UP" "$MSG"
 }
 
-
-
 # Mount core file systems
 log "Mounting /proc"
 mount -t proc  proc  /proc
