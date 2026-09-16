@@ -149,6 +149,9 @@ C3270_VER="4.5ga6"
 CARES_SRC="https://github.com/c-ares/c-ares.git"
 CARES_VER="1.34.8"
 
+CON_DATA_SRC="http://deb.debian.org/debian/pool/main/c/console-data"
+CON_DATA_VER="1.12"
+
 CSCOPE_SRC="https://git.code.sf.net/p/cscope/cscope cscope-cscope"
 CSCOPE_VER="15.9"
 CTAGS_SRC="https://github.com/universal-ctags/ctags.git"
@@ -211,6 +214,9 @@ JOE_SRC="https://github.com/joe-editor/joe.git"
 JOE_VER="4.8"
 JQ_SRC="https://github.com/jqlang/jq.git"
 JQ_VER="1.8.2"
+
+KBD_SRC="https://git.kernel.org/pub/scm/linux/kernel/git/legion/kbd.git"
+KBD_VER="2.10.0"
 
 KRB5_SRC="https://kerberos.org/dist/krb5"
 KRB5_DIST="1.22"
@@ -393,7 +399,7 @@ PHYSICAL_START=""
 ROOT_PASSWD=""
 SCANCODE_SET=-1
 SERIAL_CON_PORT="ttyS0"
-SET_KEYMAP=""
+SET_KEYMAP="qwerty_en_us"
 SHORKUTILS_RECLONE=false
 SKIP_BB=false
 SKIP_KRN=false
@@ -745,14 +751,6 @@ else
     TARGET_SWAP=$DEFAULT_TARGET_SWAP
 fi
 
-# Set keymap existence check
-if [ -n "$SET_KEYMAP" ]; then
-    if [ ! -f "${CURR_DIR}/sysfiles/keymaps/$SET_KEYMAP.kmap.bin" ]; then
-        echo -e "${RED}ERROR: the set keymap value does not match a known included keymap${RESET}"
-        exit 1
-    fi
-fi
-
 
 
 # Check what other prerequisites we need
@@ -795,6 +793,7 @@ NEED_LIBUUID=false
 NEED_LIBXLSXWRITER=false
 NEED_LIBXML2=false
 NEED_LIBZIP=false
+NEED_LOADKEYS=false
 NEED_LZ4=false
 NEED_NETTLE=false
 NEED_NPTH=false
@@ -846,6 +845,10 @@ fi
 
 if $INCLUDE_LYNX; then
     NEED_OPENSSL=true
+fi
+
+if $INCLUDE_KEYMAPS; then
+    NEED_LOADKEYS=true
 fi
 
 if $INCLUDE_MICRO; then
@@ -1910,6 +1913,35 @@ get_gnutls()
         LDFLAGS="-static -L${SYSROOT}/lib"
     make -j$(nproc)
     make DESTDIR="${SYSROOT}" install
+}
+
+# Download and compile loadkeys from kbd (required for building keymaps)
+get_kbd()
+{
+    cd "${CURR_DIR}"/build
+
+    # Skip if already compiled
+    if [ -f "${CURR_DIR}/build/kbd/src/loadkeys" ]; then
+        echo -e "${LIGHT_RED}loadkeys already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ ! -d "kbd" ]; then
+        echo -e "${GREEN}Downloading kbd...${RESET}"
+        git clone --branch "v$KBD_VER" "$KBD_SRC"
+        git config --global --add safe.directory "${CURR_DIR}/build/kbd"
+    fi
+    cd "kbd"
+
+    # Compile loadkeys
+    echo -e "${GREEN}Compiling loadkeys...${RESET}"
+    ./autogen.sh
+    ./configure \
+        --disable-nls \
+        --disable-vlock \
+        --disable-tests
+    make -j"$(nproc)" -C src
 }
 
 # Download and compile Kerberos (required for tshark)
@@ -6406,7 +6438,7 @@ get_xset()
 
 
 ######################################################
-## Console cosmetics                                ##
+## Locale                                           ##
 ######################################################
 
 # Download and install console fonts
@@ -6553,6 +6585,116 @@ get_console_fonts()
     fi
 
     cd "${DESTDIR}"
+}
+
+# Download and install keymaps from kbd
+get_keymaps()
+{
+    KEYMAPS+=(
+        "azerty/be-latin1"                  "azerty_be"
+        #"azerty/fr-afnor"                   "azerty_fr_afnor"
+        "azerty/fr-latin1"                  "azerty_fr_lat1"
+        "azerty/fr-latin9"                  "azerty_fr_lat9"
+
+        "dvorak/dvorak-uk"                  "dvorak_en_gb"
+        "dvorak/ANSI-dvorak"                "dvorak_en_us"
+
+        "qwerty/by"                         "qwerty_be"
+        "qwerty/bg"                         "qwerty_bg"
+        "qwerty/bg-cp1251"                  "qwerty_bg_cp1251"
+        "qwerty/ca-multi"                   "qwerty_ca_multi"
+        "qwerty/cz-lat2"                    "qwerty_cz"
+        "qwerty/cz-lat2-prog"               "qwerty_cz_prog"
+        "qwerty/dk-latin1"                  "qwerty_dk"
+        "qwerty/gr"                         "qwerty_el"
+        "qwerty/uk"                         "qwerty_en_gb"
+        "qwerty/us"                         "qwerty_en_us"
+        "qwerty/es"                         "qwerty_es"
+        "qwerty/la-latin1"                  "qwerty_es_la"
+        "qwerty/et"                         "qwerty_et"
+        "qwerty/fa"                         "qwerty_fa"
+        "qwerty/fi"                         "qwerty_fi"
+        "qwerty/cf"                         "qwerty_fr_ca"
+        "qwerty/il"                         "qwerty_he"
+        #"qwerty/ie"                         "qwerty_ie"
+        "qwerty/is-latin1"                  "qwerty_is"
+        "qwerty/it"                         "qwerty_it"
+        "qwerty/jp106"                      "qwerty_jp"
+        "qwerty/pc110"                      "qwerty_jp_pc110"
+        #"qwerty/ge"                         "qwerty_ka"
+        #"qwerty/kazakh"                     "qwerty_kk"
+        #"qwerty/kyrgyz"                     "qwerty_ky"
+        "qwerty/lt"                         "qwerty_lt"
+        "qwerty/lv-latin4"                  "qwerty_lv_lat4"
+        "qwerty/lv-latin7"                  "qwerty_lv_lat7"
+        "qwerty/mk"                         "qwerty_mk"
+        "qwerty/nl"                         "qwerty_nl"
+        "qwerty/no-latin1"                  "qwerty_no"
+        "qwerty/pl1"                        "qwerty_pl"
+        "qwerty/pt-latin1"                  "qwerty_pt"
+        #"qwerty/pt-latin9"                  "qwerty_pt_lat9"
+        "qwerty/br-abnt2"                   "qwerty_pt_br"
+        "qwerty/ro"                         "qwerty_ro"
+        "qwerty/ru-cp1251"                  "qwerty_ru_cp1251"
+        "qwerty/ru1"                        "qwerty_ru_koi-8"
+        #"qwerty/sv-latin1"                  "qwerty_sv"
+        "fgGIod/trf"                        "qwerty_tr_f"
+        "qwerty/tr_q-latin5"                "qwerty_tr_q"
+        #"qwerty/ua-cp1251"                  "qwerty_ua_cp1251"
+        "qwerty/ua"                         "qwerty_ua_koi-8"
+
+        #"qwertz/cz"                         "qwertz_cz"
+        #"qwertz/de_CH-latin1"               "qwertz_de_ch"
+        "qwertz/de-latin1"                  "qwertz_de"
+        "qwertz/de-latin1-nodeadkeys"       "qwertz_de_prog"
+        "qwertz/fr_CH-latin1"               "qwertz_fr_ch"
+        "qwertz/croat"                      "qwertz_hr"
+        "qwertz/hu"                         "qwertz_hu"
+        "qwertz/pl-qwertz"                  "qwertz_pl"
+        "qwertz/sk-qwertz"                  "qwertz_sk"
+        "qwertz/sk-prog-qwertz"             "qwertz_sk_prog"
+        "qwertz/slovene"                    "qwertz_sl"
+        "qwertz/sr"                         "qwertz_sr"
+        #"qwertz/sr-latin"                   "qwertz_sr_lat"
+    )
+
+    cd "${CURR_DIR}"/build
+
+    echo -e "${GREEN}Downloading console-data...${RESET}"
+    DIR="console-data-${CON_DATA_VER}"
+    ARC="console-data_${CON_DATA_VER}.orig.tar.bz2"
+    URI="${CON_DATA_SRC}/${ARC}"
+
+    # Download source
+    [ -f $ARC ] || wget $URI
+
+    # Extract source
+    [ -d $DIR ] || tar xjf $ARC
+    cd $DIR
+
+    # Replace unsupported unicode keysyms
+    find "${CURR_DIR}/build/${DIR}/keymaps" -type f -name '*.kmap' -print0 | xargs -0 sed -i -E \
+        -e 's/U\+201[0-9A-Fa-f]/VoidSymbol/g' \
+        -e 's/U\+00A0/VoidSymbol/g' \
+        -e 's/U\+00AD/VoidSymbol/g' \
+        -e 's/U\+FDFC/VoidSymbol/Ig' \
+        -e 's/U\+[0-9A-F]{4,}/VoidSymbol/g' \
+        -e 's/\bquotedblbase\b/VoidSymbol/g' \
+        -e 's/\bquotesinglbase\b/VoidSymbol/g'
+
+    # Copy keymaps
+    sudo mkdir -p "${DESTDIR}"/usr/share/keymaps/
+    for ((i=0; i<${#KEYMAPS[@]}; i+=2)); do
+        DST="${DESTDIR}/usr/share/keymaps/${KEYMAPS[i+1]}.kmap.bin"
+        if [ ! -f "$DST" ]; then
+            echo -e "${GREEN}Copying keymap ${KEYMAPS[i+1]}...${RESET}"
+            SRC="${CURR_DIR}/build/${DIR}/keymaps/i386/${KEYMAPS[i]}.kmap"
+            sudo "${CURR_DIR}/build/kbd/src/loadkeys" -b "$SRC" | sudo tee "$DST" > /dev/null
+        else
+            echo -e "${LIGHT_RED}${KEYMAPS[i+1]} keymap already installed, skipping...${RESET}"
+        fi
+    done
+    sudo chmod 644 "${DESTDIR}/usr/share/keymaps/"*.kmap.bin
 }
 
 
@@ -8832,6 +8974,12 @@ copy_licences()
         CSV+="\nGNU Indent,GNU GPLv3,indent.txt"
     fi
 
+    if $INCLUDE_KEYMAPS &&
+        [ -f "${CURR_DIR}/build/kbd/LICENSE" ]; then
+        cp "${CURR_DIR}/build/kbd/LICENSE" "${DESTDIR}/LICENCES/kbd.txt" || true
+        CSV+="\nKBD keymaps,GNU GPLv2,kbd.txt"
+    fi
+
     if $INCLUDE_MAKE && 
         [ -f "${CURR_DIR}/build/make-${MAKE_VER}/COPYING" ]; then
         cp "${CURR_DIR}/build/make-${MAKE_VER}/COPYING" "${DESTDIR}/LICENCES/make.txt" || true
@@ -9360,11 +9508,7 @@ build_filesystem()
     fi
 
     if $INCLUDE_KEYMAPS; then
-        echo -e "${GREEN}Installing keymaps...${RESET}"
-        sudo mkdir -p "${DESTDIR}"/usr/share/keymaps/
-        sudo cp "${CURR_DIR}"/sysfiles/keymaps/*.kmap.bin "${DESTDIR}/usr/share/keymaps/"
-        sudo chmod 644 "${DESTDIR}/usr/share/keymaps/"*.kmap.bin
-
+        get_keymaps
         if [ -n "$SET_KEYMAP" ] && [ -f "${DESTDIR}/etc/shorkset.conf" ]; then
             echo -e "${GREEN}Setting default keymap...${RESET}"
             sudo sed -i "s|^KEYMAP=.*|KEYMAP=\"$SET_KEYMAP\"|" "${DESTDIR}/etc/shorkset.conf"
@@ -11139,6 +11283,9 @@ if $NEED_LIBNL; then
 fi
 if $NEED_LIBCAP; then
     get_libcap
+fi
+if $NEED_LOADKEYS; then
+    get_kbd
 fi
 
 # Compile SHORKGUI

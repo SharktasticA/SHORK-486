@@ -51,7 +51,7 @@ ENABLE_BOOT_PART=false
 TARGET_SWAP=8
 LINUX_VER="7.2.6"
 SCANCODE_SET=-1
-SET_KEYMAP="en_us"
+SET_KEYMAP="qwerty_en_us"
 ENABLE_SMP=false
 ENABLE_NET_ETH=false
 ENABLE_CDROM=false
@@ -125,32 +125,58 @@ ENABLE_ZSWAP=false
 keymap_name()
 {
     case "$1" in
-        cz)             echo "Czech" ;;
-        de)             echo "German" ;;
-        dk)             echo "Danish" ;;
-        en_gb)          echo "English (United Kingdom)" ;;
-        en_gb_dvorak)   echo "English (United Kingdom, Dvorak)" ;;
-        en_us)          echo "English (United States)" ;;
-        en_us_dvorak)   echo "English (United States, Dvorak)" ;;
-        es)             echo "Spanish" ;;
-        es_la)          echo "Spanish (Latin America)" ;;
-        fi)             echo "Finnish" ;;
-        fr)             echo "French" ;;
-        fr_ca)          echo "French (Canada)" ;;
-        hr)             echo "Croatian" ;;
-        hu)             echo "Hungarian" ;;
-        it)             echo "Italian" ;;
-        jp)             echo "Japanese" ;;
-        nl)             echo "Dutch" ;;
-        no)             echo "Norwegian" ;;
-        pl)             echo "Polish" ;;
-        pt)             echo "Portuguese" ;;
-        pt_br)          echo "Portuguese (Brazil)" ;;
-        ro)             echo "Romanian" ;;
-        rs)             echo "Serbian" ;;
-        se)             echo "Swedish" ;;
-        si)             echo "Slovenian" ;;
-        *)              echo "..." ;;
+        qwerty_by)          echo "Belarusian (QWERTY)" ;;
+        azerty_be)          echo "Begian (AZERTY)" ;;
+        qwerty_bg)          echo "Bulgarian (QWERTY)" ;;
+        qwerty_bg_cp1251)   echo "Bulgarian (QWERTY, cp1251)" ;;
+        qwertz_hr)          echo "Croatian (QWERTZ)" ;;
+        qwerty_cz)          echo "Czech (QWERTY)" ;;
+        qwerty_cz_prog)     echo "Czech (QWERTY, programmers)" ;;
+        qwerty_dk)          echo "Danish (QWERTY)" ;;
+        qwerty_nl)          echo "Dutch (QWERTY)" ;;
+        dvorak_en_gb)       echo "English (Dvorak, United Kingdom)" ;;
+        dvorak_en_us)       echo "English (Dvorak, United States)" ;;
+        qwerty_ca_multi)    echo "English (QWERTY, Canadian Multilingual)" ;;
+        qwerty_en_gb)       echo "English (QWERTY, United Kingdom)" ;;
+        qwerty_en_us)       echo "English (QWERTY, United States)" ;;
+        qwerty_et)          echo "Estonian (QWERTY)" ;;
+        qwerty_fa)          echo "Farsi (QWERTY)" ;;
+        qwerty_fi)          echo "Finnish/Swedish (QWERTY)" ;;
+        azerty_fr_lat1)     echo "French (AZERTY, France, Latin 1)" ;;
+        azerty_fr_lat9)     echo "French (AZERTY, France, Latin 9)" ;;
+        qwerty_fr_ca)       echo "French (QWERTY, Canada)" ;;
+        qwertz_fr_ch)       echo "French (QWERTZ, Swiss)" ;;
+        qwertz_de)          echo "German (QWERTZ)" ;;
+        qwertz_de_prog)     echo "German (QWERTZ, programmers)" ;;
+        qwerty_el)          echo "Greek (QWERTY)" ;;
+        qwerty_he)          echo "Hebrew (QWERTY)" ;;
+        qwertz_hu)          echo "Hugarian (QWERTZ)" ;;
+        qwerty_is)          echo "Icelandic (QWERTY)" ;;
+        qwerty_it)          echo "Italian (QWERTY)" ;;
+        qwerty_jp)          echo "Japanese (QWERTY)" ;;
+        qwerty_jp_pc110)    echo "Japanese (QWERTY, IBM PC110)" ;;
+        qwerty_lv_lat4)     echo "Latvian (QWERTY, Latin 4)" ;;
+        qwerty_lv_lat7)     echo "Latvian (QWERTY, Latin 7)" ;;
+        qwerty_lt)          echo "Lithuanian (QWERTY)" ;;
+        qwerty_mk)          echo "Macedonian (QWERTY)" ;;
+        qwerty_no)          echo "Norwegian (QWERTY)" ;;
+        qwerty_pl)          echo "Polish (QWERTY)" ;;
+        qwertz_pl)          echo "Polish (QWERTZ)" ;;
+        qwerty_pt_br)       echo "Portuguese (QWERTY, Brazil)" ;;
+        qwerty_pt)          echo "Portuguese (QWERTY, Portugal)" ;;
+        qwerty_ro)          echo "Romanian (QWERTY)" ;;
+        qwerty_ru_cp1251)   echo "Russian (QWERTY, cp1251)" ;;
+        qwerty_ru_koi-8)    echo "Russian (QWERTY, KOI-8)" ;;
+        qwertz_sr)          echo "Serbian (QWERTZ)" ;;
+        qwertz_sk)          echo "Slovak (QWERTZ)" ;;
+        qwertz_sk_prog)     echo "Slovak (QWERTZ, programmers)" ;;
+        qwertz_sl)          echo "Slovenian (QWERTZ)" ;;
+        qwerty_es_la)       echo "Spanish (QWERTY, Latin America)" ;;
+        qwerty_es)          echo "Spanish (QWERTY, Spain)" ;;
+        qwerty_tr_f)        echo "Turkish (QWERTY, F)" ;;
+        qwerty_tr_q)        echo "Turkish (QWERTY, Q)" ;;
+        qwerty_ua_koi-8)    echo "Ukrainian (QWERTY, KOI-8)" ;;
+        *)                  echo "..." ;;
     esac
 }
 
@@ -271,7 +297,7 @@ set_mini_vars()
 {
     # First argument =true bypasses resetting SET_KEYMAP
     if [ -z "$1" ] || [ "$1" = false ]; then
-        SET_KEYMAP="en_us"
+        SET_KEYMAP="qwerty_en_us"
     fi
     # Second argument =true bypasses resetting ENABLE_MULTIUSER_REAL
     if [ -z "$2" ] || [ "$2" = false ]; then
@@ -849,11 +875,59 @@ esac
 # Get keyboard layout choice (486 sans Micro/Mini)
 if [ "$BUILD_TYPE" != "mini" ] && [ "$BUILD_TYPE" != "micro" ] &&
    [ "$ID" == "shork-486" ]; then
-    KEYMAP_ITEMS=()
-    for f in "$CURR_DIR/sysfiles/keymaps/"*.kmap.bin; do
-        name=$(basename "$f" .kmap.bin)
-        KEYMAP_ITEMS+=("$name" "$(keymap_name $name)")
-    done
+    KEYMAP_ITEMS=(
+        "qwerty_by"         "Belarusian (QWERTY)"
+        "azerty_be"         "Begian (AZERTY)"
+        "qwerty_bg"         "Bulgarian (QWERTY)"
+        "qwerty_bg_cp1251"  "Bulgarian (QWERTY, cp1251)"
+        "qwertz_hr"         "Croatian (QWERTZ)"
+        "qwerty_cz"         "Czech (QWERTY)"
+        "qwerty_cz_prog"    "Czech (QWERTY, programmers)"
+        "qwerty_dk"         "Danish (QWERTY)"
+        "qwerty_nl"         "Dutch (QWERTY)"
+        "dvorak_en_gb"      "English (Dvorak, United Kingdom)"
+        "dvorak_en_us"      "English (Dvorak, United States)"
+        "qwerty_ca_multi"   "English (QWERTY, Canadian Multilingual)"
+        "qwerty_en_gb"      "English (QWERTY, United Kingdom)"
+        "qwerty_en_us"      "English (QWERTY, United States)"
+        "qwerty_et"         "Estonian (QWERTY)"
+        "qwerty_fa"         "Farsi (QWERTY)"
+        "qwerty_fi"         "Finnish/Swedish (QWERTY)"
+        "azerty_fr_lat1"    "French (AZERTY, France, Latin 1)"
+        "azerty_fr_lat9"    "French (AZERTY, France, Latin 9)"
+        "qwerty_fr_ca"      "French (QWERTY, Canada)"
+        "qwertz_fr_ch"      "French (QWERTZ, Swiss)"
+        "qwertz_de"         "German (QWERTZ)"
+        "qwertz_de_prog"    "German (QWERTZ, programmers)"
+        "qwerty_el"         "Greek (QWERTY)"
+        "qwerty_he"         "Hebrew (QWERTY)"
+        "qwertz_hu"         "Hugarian (QWERTZ)"
+        "qwerty_is"         "Icelandic (QWERTY)"
+        "qwerty_it"         "Italian (QWERTY)"
+        "qwerty_jp"         "Japanese (QWERTY)"
+        "qwerty_jp_pc110"   "Japanese (QWERTY, IBM PC110)"
+        "qwerty_lv_lat4"    "Latvian (QWERTY, Latin 4)"
+        "qwerty_lv_lat7"    "Latvian (QWERTY, Latin 7)"
+        "qwerty_lt"         "Lithuanian (QWERTY)"
+        "qwerty_mk"         "Macedonian (QWERTY)"
+        "qwerty_no"         "Norwegian (QWERTY)"
+        "qwerty_pl"         "Polish (QWERTY)"
+        "qwertz_pl"         "Polish (QWERTZ)"
+        "qwerty_pt_br"      "Portuguese (QWERTY, Brazil)"
+        "qwerty_pt"         "Portuguese (QWERTY, Portugal)"
+        "qwerty_ro"         "Romanian (QWERTY)"
+        "qwerty_ru_cp1251"  "Russian (QWERTY, cp1251)"
+        "qwerty_ru_koi-8"   "Russian (QWERTY, KOI-8)"
+        "qwertz_sr"         "Serbian (QWERTZ)"
+        "qwertz_sk"         "Slovak (QWERTZ)"
+        "qwertz_sk_prog"    "Slovak (QWERTZ, programmers)"
+        "qwertz_sl"         "Slovenian (QWERTZ)"
+        "qwerty_es_la"      "Spanish (QWERTY, Latin America)"
+        "qwerty_es"         "Spanish (QWERTY, Spain)"
+        "qwerty_tr_f"       "Turkish (QWERTY, F)"
+        "qwerty_tr_q"       "Turkish (QWERTY, Q)"
+        "qwerty_ua_koi-8"   "Ukrainian (QWERTY, KOI-8)"
+    )
 
     SET_KEYMAP=$(dialog --clear \
         --backtitle "SHORK 486 Build Configurator" \
