@@ -8977,7 +8977,7 @@ copy_licences()
     if $INCLUDE_KEYMAPS &&
         [ -f "${CURR_DIR}/build/kbd/LICENSE" ]; then
         cp "${CURR_DIR}/build/kbd/LICENSE" "${DESTDIR}/LICENCES/kbd.txt" || true
-        CSV+="\nKBD keymaps,GNU GPLv2,kbd.txt"
+        CSV+="\nKBD & console-data keymaps pack,GNU GPLv2,kbd.txt"
     fi
 
     if $INCLUDE_MAKE && 
@@ -10795,9 +10795,9 @@ get_installed_progs_feats()
         fi
 
         if [ -d "${DESTDIR}/usr/share/keymaps" ]; then
-            INCLUDED_FEATURES+=("keymaps")
+            INCLUDED_FEATURES+=("KBD ${KBD_VER} + console-data ${CON_DATA_VER} keymaps pack")
         else
-            EXCLUDED_FEATURES+=("keymaps")
+            EXCLUDED_FEATURES+=("KBD ${KBD_VER} + console-data ${CON_DATA_VER} keymaps pack")
         fi
 
         check_installed_file "musl for TCC ${MUSL_VER}" "/usr/local/musl/lib/libc.so"

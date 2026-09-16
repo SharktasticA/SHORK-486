@@ -41,6 +41,7 @@ REPOS = [
     "telmich/gpm",
     "htop-dev/htop",
     "joe-editor/joe",
+    "legionus/kbd"
     "xiph/libao",
     "libevent/libevent",
     "libffi/libffi",
