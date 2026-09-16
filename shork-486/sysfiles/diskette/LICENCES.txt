@@ -1,0 +1,9 @@
+Due to space constraints, the full licence texts for SHORK DISKETTE are not
+stored in the root file system. You may find them online:
+
+https://github.com/SharktasticA/SHORK-486#licences
+
+* SHORK: GNU GPLv3
+* Linux: GNU GPLv2
+* BusyBox: GNU GPLv2
+* SYSLINUX: GNU GPLv2

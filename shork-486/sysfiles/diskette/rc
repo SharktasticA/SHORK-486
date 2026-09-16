@@ -67,11 +67,10 @@ if [ -f /banners/welcome ]; then
 fi
 
 # Show welcome tip
-printf "Welcome! Please check out \033[32mshorkhelp\033[0m to learn more about SHORK and get started."
 # Public Test build disclaimer
 if grep -q "PT" /etc/issue 2>/dev/null; then
     printf "\nThis is a pre-release build for testing purposes only. See \033[32mshorkhelp\033[0m's \"Public\nTest 1\" guide for more information."
+    printf "\n\n"
 fi
-printf "\n\n"
 
 /bin/sh -l -m

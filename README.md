@@ -285,7 +285,6 @@ SHORK DISKETTE is a specialised version of the SHORK 486 Operating System that i
 ### SHORK Utilities (shorkutils)
 
 * **[shorkfetch](https://github.com/SharktasticA/shorkfetch)**
-* **[shorkhelp](https://github.com/SharktasticA/shorkhelp)**
 
 
 

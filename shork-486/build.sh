@@ -8154,7 +8154,8 @@ get_shorkfetch()
     if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
         make X86_ONLY=1 -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
     elif [ "$ID" == "shork-diskette" ]; then
-        make EMBEDDED=1 NO_STR_CLEANING=1 X86_ONLY=1 -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+        sed -i 's|,lip, ,clrs,|,lip, ,clba,|' src/main.c
+        make SHORK_DISKETTE=1 NO_STR_CLEANING=1 X86_ONLY=1 -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
     fi
     sudo make DESTDIR="$DESTDIR" install
 }
@@ -8190,11 +8191,6 @@ get_shorkhelp()
         make EMBEDDED=1 -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
     fi
     sudo make DESTDIR="$DESTDIR" install
-
-    # If SHORK DISKETTE, prune programs.csv of programs it never has
-    if [ "$ID" == "shork-diskette" ]; then
-        sudo sed -i '/,IsOptional,\|,0,busybox,\|,shorkutil,/!d' "${DESTDIR}/usr/share/shorkhelp/programs.csv"
-    fi
 }
 
 # Download and copy shorkoff
@@ -8714,6 +8710,11 @@ copy_licences()
 {
     cd "${CURR_DIR}/build"
 
+    if [ "$ID" == "shork-diskette" ]; then
+        cp "${CURR_DIR}/sysfiles/diskette/LICENCES.txt" "${DESTDIR}" || true
+        return
+    fi
+
     echo -e "${GREEN}Gathering & copying all needed licences for included software...${RESET}"
     mkdir -p "${DESTDIR}/LICENCES"
     CSV="Name,Type,File"
@@ -9136,13 +9137,6 @@ copy_licences()
         [ -f "${CURR_DIR}/build/sudo-$SUDO_VER/LICENSE.md" ]; then
         cp "${CURR_DIR}/build/sudo-$SUDO_VER/LICENSE.md" "${DESTDIR}/LICENCES/sudo.txt" || true
         CSV+="\nsudo,ISC + BSD 2-Clause + BSD 3-Clause + zlib,sudo.txt"
-    fi
-
-    if [ "$ID" == "shork-diskette" ] &&
-       $FIX_EXTLINUX &&
-        [ -f "${CURR_DIR}/build/syslinux/COPYING" ]; then
-        cp "${CURR_DIR}/build/syslinux/COPYING" "${DESTDIR}/LICENCES/syslinux.txt" || true
-        CSV+="\nSYSLINUX,GNU GPLv2,syslinux.txt"
     fi
 
     if $INCLUDE_TCC && 
@@ -11591,9 +11585,9 @@ if $INCLUDE_GCC; then
 fi
 
 if [ "$BUILD_TYPE" != "micro" ]; then
-    get_shorkhelp
     get_shorkfetch
     if [ "$ID" == "shork-486" ]; then
+        get_shorkhelp
         get_shorkcommon_sh
         get_shorkbin
         get_shorkdir
@@ -11601,6 +11595,7 @@ if [ "$BUILD_TYPE" != "micro" ]; then
         get_shorkset
     fi
     if [ "$ID" == "shork-disc" ]; then
+        get_shorkhelp
         if $INCLUDE_SHORKSTALL; then
             get_shorkstall
         fi
