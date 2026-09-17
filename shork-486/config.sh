@@ -17,7 +17,7 @@ fi
 
 
 CURR_DIR=$(pwd)
-WIDTH=80
+WIDTH=84
 HEIGHT=20
 
 
@@ -33,11 +33,13 @@ MICRO_MIN_DISK=4
 MINI_DEF_SWAP=0
 MINI_MIN_DISK=8
 OFFLINE_DEF_SWAP=8
-OFFLINE_MIN_DISK=60
+OFFLINE_MIN_DISK=70
 PLUS_DEF_SWAP=16
 PLUS_MIN_DISK=504
+TERM_DEF_SWAP=8
+TERM_MIN_DISK=70
 WRITER_DEF_SWAP=16
-WRITER_MIN_DISK=100
+WRITER_MIN_DISK=90
 
 ALWAYS_BUILD=true
 DIST="SHORK 486"
@@ -46,9 +48,9 @@ IS_ARCH=false
 IS_FEDORA=false
 IS_DEBIAN=true
 BUILD_TYPE="default"
-TARGET_DISK=100
+TARGET_DISK=8
 ENABLE_BOOT_PART=false
-TARGET_SWAP=8
+TARGET_SWAP=0
 LINUX_VER="7.2.6"
 SCANCODE_SET=-1
 SET_KEYMAP="qwerty_en_us"
@@ -307,7 +309,9 @@ set_mini_vars()
     if [ -z "$2" ] || [ "$2" = false ]; then
         ENABLE_SMP=false
     fi
+
     ENABLE_NET_ETH=false
+
     INCLUDE_C3270=false
     INCLUDE_CSCOPE=false
     INCLUDE_CTAGS=false
@@ -351,6 +355,7 @@ set_mini_vars()
     INCLUDE_TMUX=false
     INCLUDE_UTIL_LINUX=false
     INCLUDE_VIM=false
+
     ENABLE_CDROM=false
     INCLUDE_CON_FONTS=false
     ENABLE_FB_VBE=false
@@ -372,10 +377,69 @@ set_mini_vars()
     ENABLE_ZSWAP=false
 }
 
+set_terminal_vars()
+{
+    set_mini_vars true true true
+
+    ENABLE_NET_ETH=true
+
+    INCLUDE_CURL=true
+    INCLUDE_DROPBEAR=true
+    INCLUDE_GPM=true
+    INCLUDE_LSB_RELEASE_MIN=true
+    INCLUDE_MEMTESTER=true
+    INCLUDE_TMUX=true
+    INCLUDE_TN5250=true
+    INCLUDE_TNFTP=true
+
+    ENABLE_CDROM=true
+    INCLUDE_CON_FONTS=true
+    ENABLE_FB_VBE=true
+    ENABLE_HELP_VERBOSE=true
+    INCLUDE_KEYMAPS=true
+    ENABLE_LOOP=true
+    ENABLE_MENU=true
+    INCLUDE_PCI_IDS=true
+    ENABLE_PCMCIA=true
+    ENABLE_SWAP_WRAP=true
+    ENABLE_ZSWAP=true
+}
+
+set_writer_vars()
+{
+    set_mini_vars true true true
+
+    INCLUDE_HTOP=true
+    INCLUDE_GPM=true
+    INCLUDE_JOE=true
+    INCLUDE_LSB_RELEASE_MIN=true
+    INCLUDE_MEMTESTER=true
+    INCLUDE_MG=true
+    INCLUDE_NANO=true
+    INCLUDE_NCDU=true
+    INCLUDE_SC_IM=true
+    INCLUDE_TILDE=true
+    INCLUDE_TMUX=true
+    INCLUDE_VIM=true
+
+    ENABLE_CDROM=true
+    INCLUDE_CON_FONTS=true
+    ENABLE_FB_VBE=true
+    ENABLE_HELP_VERBOSE=true
+    INCLUDE_KEYMAPS=true
+    ENABLE_MENU=true
+    INCLUDE_PCI_IDS=true
+    ENABLE_SWAP_WRAP=true
+    ENABLE_ZSWAP=true
+}
+
 set_default_vars()
 {
     set_mini_vars true true true
+
     ENABLE_NET_ETH=true
+
+    INCLUDE_CURL=true
     INCLUDE_DIALOG=true
     INCLUDE_DOSFSTOOLS=true
     INCLUDE_DROPBEAR=true
@@ -400,6 +464,7 @@ set_default_vars()
     INCLUDE_TNFTP=true
     INCLUDE_TMUX=true
     INCLUDE_UTIL_LINUX=true
+
     ENABLE_CDROM=true
     INCLUDE_CON_FONTS=true
     ENABLE_FB_VBE=true
@@ -417,7 +482,10 @@ set_default_vars()
 set_offline_vars()
 {
     set_default_vars
+
     ENABLE_NET_ETH=false
+
+    INCLUDE_CURL=false
     INCLUDE_DROPBEAR=false
     INCLUDE_GIT=false
     INCLUDE_LYNX=false
@@ -425,36 +493,10 @@ set_offline_vars()
     INCLUDE_TNFTP=false
 }
 
-set_writer_vars()
-{
-    set_mini_vars true true true
-    INCLUDE_HTOP=true
-    INCLUDE_GPM=true
-    INCLUDE_JOE=true
-    INCLUDE_LSB_RELEASE_MIN=true
-    INCLUDE_MEMTESTER=true
-    INCLUDE_MG=true
-    INCLUDE_NANO=true
-    INCLUDE_NCDU=true
-    INCLUDE_SC_IM=true
-    INCLUDE_SHORKTAINMENT=true
-    INCLUDE_TILDE=true
-    INCLUDE_TMUX=true
-    INCLUDE_VIM=true
-    ENABLE_CDROM=true
-    INCLUDE_CON_FONTS=true
-    ENABLE_FB_VBE=true
-    ENABLE_HELP_VERBOSE=true
-    INCLUDE_KEYMAPS=true
-    ENABLE_MENU=true
-    INCLUDE_PCI_IDS=true
-    ENABLE_SWAP_WRAP=true
-    ENABLE_ZSWAP=true
-}
-
 set_plus_vars()
 {
     set_default_vars
+
     INCLUDE_C3270=true
     INCLUDE_CSCOPE=true
     INCLUDE_CTAGS=true
@@ -472,12 +514,14 @@ set_plus_vars()
     INCLUDE_TILDE=true
     INCLUDE_TN5250=true
     INCLUDE_VIM=true
+
     ENABLE_SOUND=true
 }
 
 set_max_vars()
 {
     set_plus_vars
+
     INCLUDE_GUI=true
     ENABLE_HIGHMEM=true
     ENABLE_SATA=true
@@ -609,14 +653,15 @@ if [ "$ID" == "shork-486" ]; then
         --title "Build Type" \
         --cancel-label "Quit" \
         --default-item "$BUILD_TYPE" \
-        --menu "Select the build type, presets for SHORK 486 feature levels. The minimum requirements for each are enclosed in brackets. The \"custom\" option will enable further prompts for software and feature selection." 17 $WIDTH 7 \
-        "default"   "Typical experience (16MiB RAM, 8MiB swap, 100MiB disk)" \
-        "max"       "Largest configuration (24MiB RAM, 16MiB swap, 540MiB disk)" \
-        "plus"      "Default w/ optional software (16MiB RAM, 16MiB swap, 504MiB disk)" \
-        "writer"    "Writing focused (16MiB RAM, 16MiB swap, 100MiB disk)" \
-        "offline"   "Default w/o networking (12MiB RAM, 8MiB swap, 60MiB disk)" \
-        "mini"      "Small configuration (8MiB RAM, 8MiB disk)" \
-        "micro"     "*EXPERIMENTAL* Extremely tiny configuration (7MiB RAM, 4MiB disk)" \
+        --menu "Select the build type, presets for SHORK 486 feature levels. The recommended minimum requirements for each are enclosed in brackets. The \"custom\" option will enable further prompts for software and feature selection." 18 $WIDTH 9 \
+        "default"   "Typical experience             (16MiB RAM, 8MiB swap, 100MiB disk)" \
+        "max"       "Largest configuration          (24MiB RAM, 16MiB swap, 540MiB disk)" \
+        "plus"      "Default w/ optional software   (16MiB RAM, 16MiB swap, 504MiB disk)" \
+        "writer"    "Writing focused                (16MiB RAM, 16MiB swap, 100MiB disk)" \
+        "terminal"  "Remote session & file transfer (16MiB RAM, 8MiB swap, 70MiB disk)" \
+        "offline"   "Default w/o networking         (12MiB RAM, 8MiB swap, 65MiB disk)" \
+        "mini"      "Small configuration            (8MiB RAM, 8MiB disk)" \
+        "micro"     "Extremely tiny configuration   (7MiB RAM, 4MiB disk)" \
         "custom"    "Requirements depend on subsequent choices" \
         3>&1 1>&2 2>&3)
 
@@ -636,6 +681,9 @@ if [ "$ID" == "shork-486" ]; then
     elif [ "$BUILD_TYPE" == "offline" ]; then
         set_offline_vars
         DIST="$DIST Offline"
+    elif [ "$BUILD_TYPE" == "terminal" ]; then
+        set_terminal_vars
+        DIST="$DIST Terminal"
     elif [ "$BUILD_TYPE" == "mini" ]; then
         set_mini_vars
         DIST="$DIST Mini"
@@ -679,6 +727,12 @@ if [ "$ID" == "shork-486" ]; then
         if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
             TARGET_DISK=$OFFLINE_MIN_DISK
             TARGET_SWAP=$OFFLINE_DEF_SWAP
+        fi
+    elif [ "$BUILD_TYPE" == "terminal" ]; then
+        CURR_MIN_DISK=$TERM_MIN_DISK
+        if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
+            TARGET_DISK=$TERM_MIN_DISK
+            TARGET_SWAP=$TERM_DEF_SWAP
         fi
     elif [ "$BUILD_TYPE" == "mini" ]; then
         CURR_MIN_DISK=$MINI_MIN_DISK
