@@ -152,6 +152,9 @@ CARES_VER="1.34.8"
 CON_DATA_SRC="http://deb.debian.org/debian/pool/main/c/console-data"
 CON_DATA_VER="1.12"
 
+CON_SETUP_SRC="http://deb.debian.org/debian/pool/main/c/console-setup"
+CON_SETUP_VER="1.249"
+
 CSCOPE_SRC="https://git.code.sf.net/p/cscope/cscope cscope-cscope"
 CSCOPE_VER="15.9"
 CTAGS_SRC="https://github.com/universal-ctags/ctags.git"
@@ -6446,127 +6449,31 @@ get_console_fonts()
 {
     cd "${CURR_DIR}"/build
 
+    # Skip if all keymaps are already compiled
+    CON_FONTS_COUNT=$(find "${DESTDIR}/usr/share/consolefonts" -maxdepth 1 -type f -name '*.psf' 2>/dev/null | wc -l)
+    if [ "$CON_FONTS_COUNT" -eq 103 ]; then
+        echo -e "${LIGHT_RED}All 103 console fonts are already installed, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading console-setup...${RESET}"
+    DIR="console-setup"
+    ARC="${DIR}_${CON_SETUP_VER}.tar.xz"
+    URI="${CON_SETUP_SRC}/${ARC}"
+
+    # Download source
+    [ -f $ARC ] || wget $URI
+
+    # Extract source
+    [ -d $DIR ] || tar xf $ARC
+    cd $DIR
+
+    sudo cp "${CURR_DIR}/configs/console-setup.Makefile" Makefile
+
+    echo -e "${GREEN}Compiling console fonts...${RESET}"
+    make
     echo -e "${GREEN}Installing console fonts...${RESET}"
-
-    FONTS+=(
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Arabic-Fixed15.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Arabic-Fixed16.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Armenian-Fixed13.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Armenian-Fixed14.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Armenian-Fixed16.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Armenian-Fixed18.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/CyrAsia-Fixed13.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/CyrAsia-Fixed14.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/CyrAsia-Fixed16.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/CyrAsia-Fixed18.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/CyrKoi-Fixed13.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/CyrKoi-Fixed14.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/CyrKoi-Fixed16.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/CyrKoi-Fixed18.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/CyrSlav-Fixed13.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/CyrSlav-Fixed14.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/CyrSlav-Fixed16.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/CyrSlav-Fixed18.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Greek-Fixed13.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Greek-Fixed14.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Greek-Fixed16.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Greek-Fixed18.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Georgian-Fixed13.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Georgian-Fixed14.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Georgian-Fixed16.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Georgian-Fixed18.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Hebrew-Fixed13.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Hebrew-Fixed14.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Hebrew-Fixed16.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Hebrew-Fixed18.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lao-Fixed14.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lao-Fixed16.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat2-Fixed13.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat2-Fixed14.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat2-Fixed16.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat2-Fixed18.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat7-Fixed13.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat7-Fixed14.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat7-Fixed16.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat7-Fixed18.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat15-Fixed13.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat15-Fixed14.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat15-Fixed16.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat15-Fixed18.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat38-Fixed13.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat38-Fixed14.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat38-Fixed16.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat38-Fixed18.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Thai-Fixed13.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Thai-Fixed14.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Thai-Fixed16.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Thai-Fixed18.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Vietnamese-Fixed13.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Vietnamese-Fixed14.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Vietnamese-Fixed16.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Vietnamese-Fixed18.psf"
-
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/CyrAsia-Terminus14.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/CyrAsia-Terminus16.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/CyrKoi-Terminus14.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/CyrKoi-Terminus16.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/CyrSlav-Terminus14.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/CyrSlav-Terminus16.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Greek-Terminus14.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Greek-Terminus16.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Hebrew-Terminus14.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Hebrew-Terminus16.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat2-Terminus14.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat2-Terminus16.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat7-Terminus14.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat7-Terminus16.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat15-Terminus14.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat15-Terminus16.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat38-Terminus14.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat38-Terminus16.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Vietnamese-Terminus14.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Vietnamese-Terminus16.psf"
-
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Arabic-VGA8.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Arabic-VGA14.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Arabic-VGA16.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/CyrKoi-VGA8.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/CyrKoi-VGA14.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/CyrKoi-VGA16.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/CyrSlav-VGA8.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/CyrSlav-VGA14.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/CyrSlav-VGA16.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Greek-VGA8.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Greek-VGA14.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Greek-VGA16.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Hebrew-VGA8.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Hebrew-VGA14.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Hebrew-VGA16.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat2-VGA8.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat2-VGA14.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat2-VGA16.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat7-VGA8.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat7-VGA14.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat7-VGA16.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat15-VGA8.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat15-VGA14.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat15-VGA16.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat38-VGA8.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat38-VGA14.psf"
-        "https://www.zap.org.au/projects/console-fonts-distributed/psftx-debian-13.4/Lat38-VGA16.psf"
-    )
-
-    mkdir -p "${DESTDIR}"/usr/share/consolefonts
-    for FONT in "${FONTS[@]}"; do
-        BASE="$(basename "$FONT")"
-        DEST="${DESTDIR}/usr/share/consolefonts/$BASE"
-
-        if [ -f "$DEST" ]; then
-            echo -e "${LIGHT_RED}$BASE font already installed, skipping...${RESET}"
-            continue
-        fi
-        sudo wget "$FONT" -O "$DEST"
-    done
+    make DESTDIR="$DESTDIR" install
 
     # Download Terminus' licence file
     TERMINUS_MIRRORS=(
@@ -8977,7 +8884,7 @@ copy_licences()
     if $INCLUDE_KEYMAPS &&
         [ -f "${CURR_DIR}/build/kbd/LICENSE" ]; then
         cp "${CURR_DIR}/build/kbd/LICENSE" "${DESTDIR}/LICENCES/kbd.txt" || true
-        CSV+="\nKBD & console-data keymaps pack,GNU GPLv2,kbd.txt"
+        CSV+="\nconsole-data & KBD keymaps pack,GNU GPLv2,kbd.txt"
     fi
 
     if $INCLUDE_MAKE && 
@@ -10788,16 +10695,16 @@ get_installed_progs_feats()
 
     # Misc features
     if [ "$ID" == "shork-486" ]; then
-        if [ -d "${DESTDIR}/usr/share/consolefonts" ]; then
-            INCLUDED_FEATURES+=("console fonts pack")
+        if [ -d "${DESTDIR}/usr/share/keymaps" ]; then
+            INCLUDED_FEATURES+=("console-data ${CON_DATA_VER} & KBD ${KBD_VER} keymaps pack")
         else
-            EXCLUDED_FEATURES+=("console fonts pack")
+            EXCLUDED_FEATURES+=("console-data ${CON_DATA_VER} & KBD ${KBD_VER} keymaps pack")
         fi
 
-        if [ -d "${DESTDIR}/usr/share/keymaps" ]; then
-            INCLUDED_FEATURES+=("KBD ${KBD_VER} + console-data ${CON_DATA_VER} keymaps pack")
+        if [ -d "${DESTDIR}/usr/share/consolefonts" ]; then
+            INCLUDED_FEATURES+=("console-setup ${CON_SETUP_VER} console fonts pack")
         else
-            EXCLUDED_FEATURES+=("KBD ${KBD_VER} + console-data ${CON_DATA_VER} keymaps pack")
+            EXCLUDED_FEATURES+=("console-setup ${CON_SETUP_VER} console fonts pack")
         fi
 
         check_installed_file "musl for TCC ${MUSL_VER}" "/usr/local/musl/lib/libc.so"

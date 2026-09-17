@@ -152,8 +152,9 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | Name | Version | For | Licence(s) |
 |------|---------|-----|------------|
 | [Compiler-RT](https://github.com/llvm/llvm-project/tree/main/compiler-rt) (libsoftfp) | 23.1.1 | GLib, GnuPG | Apache 2.0 w/ LLVM Exceptions |
+| [console-data](https://packages.debian.org/trixie/console-data) & [KBD](https://git.kernel.org/pub/scm/linux/kernel/git/legion/kbd.git) | 1.12-9 & 2.10.0  | Keymaps pack | GPLv2 |
+| [console-setup](https://packages.debian.org/trixie/console-setup) | 1.249 | Console fonts pack | Public domain (most), OFL 1.1 (Terminus) |
 | [GLib](https://download.gnome.org/sources/glib/) | 2.90.0 | Midnight Commander | LGPLv2.1 |
-| [KBD](https://git.kernel.org/pub/scm/linux/kernel/git/legion/kbd.git) & [console-data](https://packages.debian.org/trixie/console-data) | 2.10.0 & 1.12-9 | Keymaps pack | GPLv2 |
 | [libao](https://github.com/xiph/libao) | 1.2.2 | mpg321 | GPLv2 |
 | [libassuan](https://www.gnupg.org/software/libassuan/index.html) | 3.0.2 | GnuPG | GPLv3 |
 | libcom_err | 1.47.4 | e2fsprogs | MIT SIPB |
