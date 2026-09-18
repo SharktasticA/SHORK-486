@@ -6,7 +6,22 @@ A build configurator is available to alter the SHORK 486 Operating System to you
 
 <p align="center"><img alt="A photo of SHORK 486 running on an IBM ThinkPad 365ED after a cold boot" src="photos/20260223_365ed.jpg" width="512"></p>
 
-See [GALLERY](GALLERY.md) for more photos and screenshots!
+<table>
+    <tr>
+        <td>
+            <a href="GALLERY.md">SHORK 486 photo & screenshot gallery</a>
+        </td>
+        <td>
+            <a href="KERNEL.md">SHORK 486 Linux kernel patching</a>
+        </td>
+        <td>
+            <a href="PROCESSES.md">SHORK 486 development processes</a>
+        </td>
+        <td>
+            <a href="TODO.md">TODO, planned & under consideration</a>
+        </td>
+    </tr>
+</table>
 
 
 
