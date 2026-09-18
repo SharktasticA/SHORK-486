@@ -4546,6 +4546,9 @@ compile_kernel()
     
         echo -e "${GREEN}Applying 7.2.x_restore-arcnet-isa-pcmcia patch...${RESET}"
         patch -p1 < "${PATCHES_DIR}/linux/7.2.x/7.2.x_restore-arcnet-isa-pcmcia.patch"
+    
+        echo -e "${GREEN}Applying 7.3.x_restore-xircom-cardbus patch...${RESET}"
+        patch -p1 < "${PATCHES_DIR}/linux/7.3.x/7.3.x_restore-xircom-cardbus.patch"
     elif [[ "$LINUX_VER" == 7.2* ]]; then
         echo -e "${GREEN}Applying 7.2.x_restore-387-586-elan-gx1-rdc321x-umc-winchip...${RESET}"
         patch -p1 < "${PATCHES_DIR}/linux/7.2.x/7.2.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.patch"
