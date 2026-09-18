@@ -823,10 +823,6 @@ if $INCLUDE_CURL || $INCLUDE_GIT; then
     NEED_ZLIB=true
 fi
 
-if $INCLUDE_DROPBEAR; then
-    NEED_ZLIB=true
-fi
-
 if $INCLUDE_EMACS; then
     NEED_LIBXML2=true
 fi
@@ -6861,6 +6857,7 @@ get_dropbear()
     ./configure \
         --host="${HOST}" \
         --prefix=/usr \
+        --disable-zlib \
         --disable-loginfunc \
         --disable-syslog \
         --disable-lastlog \
