@@ -16,6 +16,11 @@
 
 
 
+# 16-bit PCMCIA bridges that may need seeding
+PCMCIA_BRIDGES="i82092 i82365 pd6729 tcic"
+
+
+
 # Provides a systemd-style log message
 log()
 {
@@ -26,6 +31,36 @@ log()
         UP="0"
     fi
     printf "[%10s] %s\n" "$UP" "$MSG"
+}
+
+# Assigns I/O port and physical memory ranges to a 16-bit PCMCIA socket so
+# connected cards can bind to them
+pcmcia_sock_seed()
+{
+    # Wait until the PCMCIA socket appears in sysfs
+    i=0
+    while [ ! -d /sys/class/pcmcia_socket ] && [ "$i" -lt 5 ]; do
+        sleep 1
+        i=$((i + 1))
+    done
+    # If nothing after 5 seconds, quit...
+    [ -d /sys/class/pcmcia_socket ] || return
+
+    for SOCK in /sys/class/pcmcia_socket/pcmcia_socket*; do
+        [ -d "$SOCK" ] || continue
+
+        # 32-bit PCMCIA probably don't expose the following nor need seeding
+        [ -f "$SOCK/available_resources_io" ] || continue
+
+        log "Seeding PCMCIA socket: $SOCK"
+
+        # Host I/O port range this socket can hand out
+        echo "0x0100 - 0x04ff" > "$SOCK/available_resources_io"  2>/dev/null
+        # Host memory this socket can hand out
+        echo "0x000d0000 - 0x000dffff" > "$SOCK/available_resources_mem" 2>/dev/null
+        # Confirm setup is complete
+        echo 1 > "$SOCK/available_resources_setup_done" 2>/dev/null
+    done
 }
 
 
@@ -117,7 +152,11 @@ if [ -x "/usr/libexec/shorkset" ]; then
             IFS=","
             for MOD in $MODULES; do
                 log "Loading module: $MOD"
-                if ! modprobe "$MOD" 2>/dev/null; then
+                if modprobe "$MOD" 2>/dev/null; then
+                    case " $PCMCIA_BRIDGES " in
+                        *" $MOD "*) pcmcia_sock_seed ;;
+                    esac
+                else
                     log "WARNING: failed to load module: $MOD"
                 fi
             done
