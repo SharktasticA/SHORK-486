@@ -6851,6 +6851,13 @@ get_dropbear()
         cd dropbear
     fi
 
+    sed -i \
+        -e '/^#define DROPBEAR_SMALL_CODE/c\#define DROPBEAR_SMALL_CODE 0' \
+        -e '/^#define DROPBEAR_SNTRUP761/c\#define DROPBEAR_SNTRUP761 0' \
+        -e '/^#define DROPBEAR_MLKEM768/c\#define DROPBEAR_MLKEM768 0' \
+        -e '/^#define DROPBEAR_CLI_IMMEDIATE_AUTH/c\#define DROPBEAR_CLI_IMMEDIATE_AUTH 1' \
+        src/default_options.h
+
     # Compile and install
     echo -e "${GREEN}Compiling Dropbear...${RESET}"
     unset LIBS
