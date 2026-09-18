@@ -10117,10 +10117,14 @@ copy_report()
 
     echo -e "${GREEN}Copying after-build report to disk image...${RESET}"
 
-    # Expose the partition(s) in the existing image
+    # Expose the partition in the existing image
     loop=$(sudo losetup -f --show "../images/${ID}.img")
     sudo kpartx -av "$loop"
-    root_part="/dev/mapper/$(basename "$loop")p1"
+    if $ENABLE_BOOT_PART; then
+        root_part="/dev/mapper/$(basename "$loop")p2"
+    else
+        root_part="/dev/mapper/$(basename "$loop")p1"
+    fi
 
     # Mount root partition and copy the report in
     sudo mkdir -p "/mnt/${ID}"

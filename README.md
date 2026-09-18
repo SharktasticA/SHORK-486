@@ -14,7 +14,7 @@ See [GALLERY](GALLERY.md) for more photos and screenshots!
 
 ### Origin & inspirations
 
-In December 2025, [Action Retro](https://www.youtube.com/@ActionRetro) posted a [video on FLOPPINUX](https://www.youtube.com/watch?v=SiHZbnFrHOY), something that turned out to be a very accessible means for me to learn how to make a working Linux system. It foremost inspired me to chase my dream of building a viable modern Linux system for my old IBM ThinkPads. SHORK began as an automated build script based on [FLOPPINUX](https://github.com/w84death/floppinux)'s build instructions, but adapted for producing fixed disk images instead of diskette images. After that, more Linux kernel and BusyBox features were enabled, and other software was compiled to help fulfil that dream. Other inspirations from similar efforts include [Gray386linux](https://github.com/marmolak/gray386linux) and [Ocawesome101's blog post](https://ocawesome101.github.io/486-linux.html) on running Linux on a 486SX.
+In December 2025, [Action Retro](https://www.youtube.com/@ActionRetro) posted a [video on FLOPPINUX](https://www.youtube.com/watch?v=SiHZbnFrHOY), something that turned out to be a very accessible means for me to learn how to make a working Linux system. It foremost inspired me to chase my dream of building a viable modern Linux system for my old IBM ThinkPads. SHORK 486 began as an automated build script based on [FLOPPINUX](https://github.com/w84death/floppinux)'s build instructions, but adapted for producing fixed disk images instead of diskette images. After that, more Linux kernel and BusyBox features were enabled, and other software was compiled to help fulfil that dream. Other inspirations from similar efforts include [Gray386linux](https://github.com/marmolak/gray386linux) and [Ocawesome101's blog post](https://ocawesome101.github.io/486-linux.html) on running Linux on a 486SX.
 
 ### Architecture
 
@@ -48,11 +48,9 @@ In the temporary lieu of a package manager, SHORK 486 can be made as one of seve
 
 * **Micro (EXPERIMENTAL):** SHORK 486 in its smallest configuration. It's designed to provide a basic Linux system in just 4MiB, but not much else. All the cutbacks of Mini apply, but the BusyBox configuration is now also reduced, especially regarding file archiving, file compression and disk management/partitioning, and no SHORK Utilities are included.
 
-
-
 ### Licences
 
-SHORK 486 is a free and open-source operating system. Its core is made up of [GPLv3](COPYING) (SHORK, SHORK Utilities, most of SHORK Entertainment), [GPLv2](https://docs.kernel.org/process/license-rules.html) (Linux kernel, BusyBox, SYSLINUX), and [MIT](https://github.com/SharktasticA/shorkmines?tab=MIT-1-ov-file) (SHORKMINES) components. SHORK 486 can also contain bundled software licensed under various permissive, copyleft, and even public-domain-equivalent licences. You can look at the bundled software list later in this README, or at the "Licences" portal in `shorkhelp` when running SHORK 486, to see their licences. The subdirectories in `shork-486/patches` are also licensed separately since they are derived from the source code of the programs being patched, and a copy of their licence is stored in the relevant subdirectories.
+SHORK 486 is a free and open-source operating system. Its core is made up of [GPLv3](COPYING) (SHORK, SHORK Utilities, most of SHORK Entertainment), [GPLv2](https://docs.kernel.org/process/license-rules.html) (Linux kernel, BusyBox, SYSLINUX), and [MIT](https://github.com/SharktasticA/shorkmines?tab=MIT-1-ov-file) (SHORKMINES) components. SHORK 486 can also contain bundled software licensed under various permissive, copyleft, and even public-domain-equivalent licences. You can look at the bundled software list later in this README, or at the "Licences" portal in `shorkhelp` when running SHORK 486, to see individual licences. The subdirectories in `shork-486/patches` are also licensed separately since they are derived from the source code of the programs being patched, and a copy of their licence is stored in the relevant subdirectories.
 
 
 
