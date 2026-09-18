@@ -37,7 +37,7 @@ log()
 # connected cards can bind to them
 pcmcia_sock_seed()
 {
-    # Wait until the PCMCIA socket appears in sysfs
+    # Wait until PCMCIA socket(s) appears in sysfs
     i=0
     while [ ! -d /sys/class/pcmcia_socket ] && [ "$i" -lt 5 ]; do
         sleep 1
@@ -55,9 +55,11 @@ pcmcia_sock_seed()
         log "Seeding PCMCIA socket: $SOCK"
 
         # Host I/O port range this socket can hand out
-        echo "0x0100 - 0x04ff" > "$SOCK/available_resources_io"  2>/dev/null
+        echo "0x0100 - 0x04ff" > \
+            "$SOCK/available_resources_io"  2>/dev/null
         # Host memory this socket can hand out
-        echo "0x000d0000 - 0x000dffff" > "$SOCK/available_resources_mem" 2>/dev/null
+        echo "0x000d0000 - 0x000dffff" > \
+            "$SOCK/available_resources_mem" 2>/dev/null
         # Confirm setup is complete
         echo 1 > "$SOCK/available_resources_setup_done" 2>/dev/null
     done
