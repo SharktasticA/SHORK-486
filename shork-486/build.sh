@@ -1415,6 +1415,7 @@ get_ncurses()
             --without-shared \
             --without-debug \
             --without-cxx \
+            --without-ada \
             --enable-widec \
             --enable-pc-files \
             --without-dlsym \
