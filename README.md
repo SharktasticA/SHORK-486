@@ -211,7 +211,7 @@ _Only partially included with SHORK 486 Mini, SHORK DISC and SHORK DISKETTE; not
 * **[shorkfetch](https://github.com/SharktasticA/shorkfetch)** - Displays basic system and environment information. Similar to fastfetch, neofetch, etc.
 * **[shorkhelp](https://github.com/SharktasticA/shorkhelp)** - Informs of SHORK 486's capabilities and provides guidance.
 * **[shorkoff](https://github.com/SharktasticA/shorkoff)** - A shutdown helper that safely brings the system to a controlled halt before a manual power off.
-* **[shorkset](https://github.com/SharktasticA/shorkset)** - A settings program for changing display resolution (VGA, and if compatible, VBE), network and sound device drivers, keyboard layout (keymap), system sound volume, the terminal's PSF font, the terminal's font colour, and network settings.
+* **[shorkset](https://github.com/SharktasticA/shorkset)** - A settings program for changing display resolution, drivers (Linux modules), keyboard layout (keymap), font colour and style, mouse (gpm), network, and volume.
 
 ### SHORK Entertainment (SHORKTAINMENT)
 
