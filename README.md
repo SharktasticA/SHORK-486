@@ -128,7 +128,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [GNU Make](https://www.gnu.org/software/make/) | `make` | 4.4.1 | Build automation tool | GPLv3 |✓|||||
 | [GNU Midnight Commander](https://midnight-commander.org/)¶ | `mc`, `mcdiff`, `mcedit`, `mcview` | 4.8.33 | Norton Commander-style file manager | GPLv3 |✓|||||
 | [GNU nano](https://www.nano-editor.org/)¶ | `nano` | 9.2 | Pico-style text editor | GPLv3 |✓|**✓**|✓||✓|
-| [GnuPG & pinentry](https://gnupg.org/)  | e.g. `gpg`, `gpg-agent`, `gpgconf`, `kbxutil`, `pinentry`, `watchgnupg` | 2.5.21 & 1.3.3 | OpenPGP-compliant encryption & signing | GPLv3 |✓|||||
+| [GnuPG & pinentry](https://gnupg.org/)  | e.g. `gpg`, `gpg-agent`, `gpgconf`, `kbxutil`, `pinentry`, `watchgnupg` | 2.5.22 & 1.3.3 | OpenPGP-compliant encryption & signing | GPLv3 |✓|||||
 | [gpm](https://www.nico.schottelius.org/software/gpm/) | `gpm` | 1.20.7 | Virtual console mouse | GPLv2 |✓|✓|✓|✓|✓|
 | [htop](https://github.com/htop-dev/htop)¶ | `htop` | 3.5.3 | Interactive process viewer | GPLv2 |✓|**✓**|✓||✓|
 | [Joe's Own Editor](https://github.com/joe-editor/joe) | `joe` | 4.8 | WordStar & Emacs-blend text editor | GPLv2 |✓||✓|||
@@ -196,7 +196,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [libxml2](https://github.com/gnome/libxml2) | 2.15.4 | sc-im, Universal Ctags | MIT |
 | [libzip](https://github.com/nih-at/libzip) | 1.11.4 | Midnight Commander, sc-im | BSD 3-Clause |
 | [musl](somethhttps://musl.libc.org/) | 1.2.6 | GCC, Tiny C Compiler | MIT |
-| [ncurses](https://github.com/mirror/ncurses) | 6.4 | Cscope, dialog, htop, Lynx, Midnight Commander, nano, Ncdu, sc-im, SHORKMINES, tic, tmux, tn5250, util-linux, x3270 | MIT |
+| [ncurses](https://invisible-island.net/ncurses/) | 6.6 | Cscope, dialog, htop, Lynx, Midnight Commander, nano, Ncdu, sc-im, SHORKMINES, tic, tmux, tn5250, util-linux, x3270 | MIT |
 | [nPth](https://www.gnupg.org/software/npth/index.html) | 1.8 | GnuPG | LGPLv2.1 |
 | [OpenSSL](https://github.com/openssl/openssl) | 3.6.4 | cURL, Git, Lynx, Midnight Commander, tn5250 | Apache 2.0 |
 | [PCRE2](https://pcre2project.github.io/pcre2/) | 10.48 | GLib, Tilde | BSD 3-Clause w/ PCRE2 exception |

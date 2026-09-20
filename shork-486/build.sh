@@ -68,6 +68,7 @@ echo -e "${BLUE}========================${RESET}"
 ######################################################
 
 # General global vars
+ARCH_TARGET="486SX"
 BOOT_PART_SIZE=4
 BOOT_PART_GRUB_MULTI=4
 BOOTLDR_USED=""
@@ -199,7 +200,7 @@ GMP_SRC="https://gmplib.org/download/gmp"
 GMP_VER="6.3.0"
 
 GNUPG_SRC="https://gnupg.org/ftp/gcrypt/gnupg"
-GNUPG_VER="2.5.21"
+GNUPG_VER="2.5.22"
 
 GNUTLS_SRC="https://www.gnupg.org/ftp/gcrypt/gnutls"
 GNUTLS_DIST="v3.8"
@@ -262,7 +263,7 @@ LIBNL_SRC="https://github.com/thom311/libnl.git"
 LIBNL_VER="3.12.0"
 
 LIBPCAP_SRC="https://www.tcpdump.org/release"
-LIBPCAP_VER="1.10.7"
+LIBPCAP_VER="1.11.0"
 
 LIBSMI_SRC="https://github.com/gitzone83/libsmi.git"
 LIBSMI_VER="import/0.4.8+dfsg2-16.1build1"
@@ -333,8 +334,8 @@ NASM_SRC="https://github.com/netwide-assembler/nasm.git"
 NASM_VER="3.02"
 NCDU_SRC="https://dev.yorhel.nl/download"
 NCDU_VER="1.22"
-NCURSES_SRC="https://github.com/mirror/ncurses.git"
-NCURSES_VER="6.4"
+NCURSES_SRC="https://ftp.gnu.org/gnu/ncurses"
+NCURSES_VER="6.6"
 
 NETTLE_SRC="https://ftp.gnu.org/gnu/nettle"
 NETTLE_VER="4.0"
@@ -375,7 +376,7 @@ UTIL_LINUX_VER="2.42.2"
 VIM_SRC="https://github.com/vim/vim.git"
 VIM_VER="9.2.1071"
 WIRESHARK_SRC="https://www.wireshark.org/download/src"
-WIRESHARK_VER="4.7.2"
+WIRESHARK_VER="4.7.3"
 X86EMU_SRC="https://github.com/wfeldt/libx86emu.git"
 X86EMU_VER="3.7"
 
@@ -1084,7 +1085,7 @@ make_pkg()
     local NON_ESSENTIAL="$7"
 
     local NAME_LOW="${NAME,,}"
-    NAME_LOW="${NAME_SLUG// /-}"
+    NAME_LOW="${NAME_LOW// /-}"
 
     # Clean up permissions
     HOST_GID=${HOST_GID:-1000}
@@ -1105,17 +1106,15 @@ make_pkg()
     mapfile -d '' REL_FILES < <(cd "${STAGE_DIR}" && find . -type f ! -name manifest -print0 | sort -z)
     if [ "${#REL_FILES[@]}" -gt 0 ]; then
         FILES=$(printf '/%s\n' "${REL_FILES[@]#./}")
-        HASHES=$(cd "${STAGE_DIR}" && md5sum "${REL_FILES[@]}" | awk '{print $1}')
     fi
     FILES="${FILES//$'\n'/\\$'\n'}"
-    HASHES="${HASHES//$'\n'/\\$'\n'}"
 
     # Copy manifest template
     cp "${CURR_DIR}/sysfiles/manifest" "${STAGE_DIR}/manifest"
 
     # Fill out manifest
     sed -i \
-        -e "s|@ARCH@|$ARCH|g" \
+        -e "s|@ARCH@|$ARCH_TARGET|g" \
         -e "s|@NAME@|$NAME|g" \
         -e "s|@SRC@|$SRC|g" \
         -e "s|@DESC@|$DESC|g" \
@@ -1125,16 +1124,16 @@ make_pkg()
         -e "s|@COMPILE_DATETIME@|$COMPILE_DATETIME|g" \
         -e "s|@SIZE@|$SIZE|g" \
         -e "s|@FILES@|$FILES|g" \
-        -e "s|@HASHES@|$HASHES|g" \
         -e "s|@NON_ESSENTIAL@|$NON_ESSENTIAL|g" \
         "${STAGE_DIR}/manifest"
 
     # Compress into package
-    tar -C "${STAGE_DIR}" -czf "${CURR_DIR}/packages/${ARCH}-${NAME_LOW}-${VERSION}.tar.gz" ./*
+    #COMPILE_DATETIME="$(date +"%Y-%m-%d %H:%M:%S")"
+    tar -C "${STAGE_DIR}" -czf "${CURR_DIR}/packages/${ARCH_TARGET}-${NAME_LOW}-${VERSION}.tar.gz" .
 
     # Recreate an empty STAGE_DIR
-    rm -rf "${STAGE_DIR}"
-    mkdir -p "${STAGE_DIR}"
+    #rm -rf "${STAGE_DIR}"
+    #mkdir -p "${STAGE_DIR}"
 }
 
 
@@ -1394,17 +1393,21 @@ get_ncurses()
     if [ -f "${PREFIX}/lib/libncursesw.a" ]; then
         echo -e "${LIGHT_RED}ncurses already compiled, skipping...${RESET}"
     else
+        echo -e "${GREEN}Downloading ncurses...${RESET}"
+        DIR="ncurses-${NCURSES_VER}"
+        ARC="${DIR}.tar.gz"
+        URI="${NCURSES_SRC}/${ARC}"
+
         # Download source
-        if [ -d ncurses ]; then
-            echo -e "${YELLOW}ncurses source already present, resetting...${RESET}"
-            git config --global --add safe.directory "${CURR_DIR}"/build/ncurses
-            cd ncurses
-            git reset --hard
-        else
-            echo -e "${GREEN}Downloading ncurses...${RESET}"
-            git clone --branch v${NCURSES_VER} $NCURSES_SRC
-            cd ncurses
+        [ -f $ARC ] || wget $URI
+
+        # Extract source
+        if [ -d $DIR ]; then
+            echo -e "${YELLOW}ncurses' source archive is already present, re-extracting before proceeding...${RESET}"
+            rm -rf $DIR
         fi
+        tar xf $ARC
+        cd "${DIR}"
 
         # Compile and install
         echo -e "${GREEN}Compiling ncurses...${RESET}"
@@ -1446,7 +1449,7 @@ get_ncurses()
 # Compile tic (required for shorkset)
 get_tic()
 {
-    cd "${CURR_DIR}/build/ncurses"
+    cd "${CURR_DIR}/build/ncurses-${NCURSES_VER}"
 
     # Skip if already compiled
     if [ -f "${DESTDIR}/usr/bin/tic" ]; then
@@ -9130,8 +9133,8 @@ copy_licences()
     fi
 
     if [ -f "${PREFIX}/lib/libncursesw.a" ] && 
-        [ -f "${CURR_DIR}/build/ncurses/COPYING" ]; then
-        cp "${CURR_DIR}/build/ncurses/COPYING" "${DESTDIR}/LICENCES/ncurses.txt" || true
+        [ -f "${CURR_DIR}/build/ncurses-${NCURSES_VER}/COPYING" ]; then
+        cp "${CURR_DIR}/build/ncurses-${NCURSES_VER}/COPYING" "${DESTDIR}/LICENCES/ncurses.txt" || true
         CSV+="\nncurses,MIT,ncurses.txt"
     fi
 
@@ -9216,8 +9219,8 @@ copy_licences()
     fi
 
     if [ -f "${DESTDIR}/usr/bin/tic" ] && 
-        [ -f "${CURR_DIR}/build/ncurses/COPYING" ]; then
-        cp "${CURR_DIR}/build/ncurses/COPYING" "${DESTDIR}/LICENCES/ncurses.txt" || true
+        [ -f "${CURR_DIR}/build/ncurses-${NCURSES_VER}/COPYING" ]; then
+        cp "${CURR_DIR}/build/ncurses-${NCURSES_VER}/COPYING" "${DESTDIR}/LICENCES/ncurses.txt" || true
         CSV+="\ntic,MIT,ncurses.txt"
     fi
 
