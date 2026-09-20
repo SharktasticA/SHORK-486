@@ -5659,8 +5659,8 @@ get_fonts()
 
     cd "${CURR_DIR}/build"
 
-    BIT_FONT_DIR=$DESTDIR/usr/lib/X11/fonts/misc
-    OTF_FONT_DIR=$DESTDIR/usr/share/fonts/opentype
+    BIT_FONT_DIR="${DESTDIR}/usr/lib/X11/fonts/misc"
+    OTF_FONT_DIR="${DESTDIR}/usr/share/fonts/opentype"
 
     if [ -f "$BIT_FONT_DIR/fonts.dir" ]; then
         echo -e "${LIGHT_RED}Fonts already installed, skipping...${RESET}"
@@ -5684,7 +5684,7 @@ get_fonts()
     done
 
     echo -e "${GREEN}Installing bitmap fonts...${RESET}"
-    mkdir -p "$BIT_FONT_DIR"
+    sudo mkdir -p "$BIT_FONT_DIR"
     for f in 6x13.pcf.gz 7x14.pcf.gz 8x13.pcf.gz 9x15.pcf.gz cursor.pcf.gz; do
         if [ -f "$SYSROOT/usr/lib/X11/fonts/misc/$f" ]; then
             sudo cp "$SYSROOT"/usr/lib/X11/fonts/misc/$f "$BIT_FONT_DIR"
@@ -5692,9 +5692,9 @@ get_fonts()
     done
     echo "fixed -misc-fixed-medium-r-normal--14-130-75-75-c-70-iso10646-1" | sudo tee "$BIT_FONT_DIR/fonts.alias" > /dev/null
     cd "${DESTDIR}"/usr/lib/X11/fonts/misc
-    rm -f fonts.dir fonts.scale
-    mkfontscale .
-    mkfontdir .
+    sudo rm -f fonts.dir fonts.scale
+    sudo mkfontscale .
+    sudo mkfontdir .
 
 
 
@@ -5705,7 +5705,7 @@ get_fonts()
     IBMPM_ARC="${IBMPM}.zip"
     IBMPM_URI="https://github.com/IBM/plex/releases/download/%40ibm%2Fplex-mono%401.1.0/${IBMPM_ARC}"
 
-    mkdir -p "$OTF_FONT_DIR/$IBMPM"
+    sudo mkdir -p "$OTF_FONT_DIR/$IBMPM"
     [ -f $IBMPM_ARC ] || wget $IBMPM_URI
     unzip -oj "$IBMPM_ARC" "ibm-plex-mono/fonts/complete/otf/IBMPlexMono-Regular.otf" -d "${CURR_DIR}"/build/plex
     unzip -oj "$IBMPM_ARC" "ibm-plex-mono/LICENSE.txt" -d "${CURR_DIR}"/build/plex
