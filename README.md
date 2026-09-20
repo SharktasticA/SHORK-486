@@ -105,7 +105,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 
 #### Edition/option-dependent
 
-<p><code>addgroup, adduser, chgrp, chown, chpasswd, chroot, cryptpw, delgroup, deluser, depmod, ftpget, ftpput, getty, id, ifconfig, insmod, ip, login, logname, losetup, lsmod, lsusb, mkpasswd, modinfo, modprobe, nc, netcat, passwd, ping, rmmod, route, su, sulogin, telnet, traceroute, udhcpc, users, w, wget, who, whois</code></p>
+<p><code>addgroup, adduser, chgrp, chown, chpasswd, chroot, cryptpw, delgroup, deluser, depmod, dnsdomainname, ftpget, ftpput, getty, id, ifconfig, insmod, ip, ipcalc, login, logname, losetup, lsmod, lsusb, mkpasswd, modinfo, modprobe, nc, netcat, netstat, nslookup, passwd, ping, pscan, rmmod, route, su, sulogin, telnet, traceroute, udhcpc, users, w, wget, who, whois</code></p>
 
 ### Bundled software
 
@@ -415,7 +415,7 @@ Selecting "Yes" here will enable symmetric multiprocessing (SMP) support in SHOR
 
 #### Ethernet Networking Support
 
-Selecting "Yes" here will enable ethernet networking support in SHORK 486. BusyBox will include implementations for the `ftpget`, `ftpput`, `ifconfig`, `ip`, `nc`, `netcat`, `ping`, `route`, `telnet`, `traceroute`, `udhcpc`, `wget` and `whois` commands. You will be allowed to select bundled software and options that require an internet connection in the subsequent prompts.
+Selecting "Yes" here will enable ethernet networking support in SHORK 486. BusyBox will include implementations for the `dnsdomainname`, `ftpget`, `ftpput`, `ifconfig`, `ip`, `ipcalc`, `nc`, `netcat`, `netstat`, `nslookup`, `ping`, `pscan`, `route`, `telnet`, `traceroute`, `udhcpc`, `wget` and `whois` commands. You will be allowed to select bundled software and options that require an internet connection in the subsequent prompts.
 
 
 
