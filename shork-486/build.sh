@@ -857,6 +857,7 @@ fi
 if $INCLUDE_MIDNIGHT_CMDR; then
     NEED_GLIB=true
     NEED_LIBSSH2=true
+    NEED_LIBZIP=true
 fi
 
 if $INCLUDE_MPG321; then
@@ -11520,7 +11521,7 @@ if $INCLUDE_MIDNIGHT_CMDR; then
         "--with-screen=ncurses --without-x --disable-mclib --enable-vfs-sftp " \
         "-I${SYSROOT}/usr/include -I${PREFIX}/include" \
         "-L${SYSROOT}/usr/lib -L${PREFIX}/lib" \
-        "-Wl,--start-group -lssh2 -lsoftfp -lpcre2-8 -Wl,-Bstatic ${LIBATOMIC_A} -lncursesw -ltinfo -lgpm -Wl,--end-group"
+        "-Wl,--start-group -lssh2 -lcrypto -lz -lsoftfp -lpcre2-8 -Wl,-Bstatic ${LIBATOMIC_A} -lncursesw -ltinfo -lgpm -Wl,--end-group"
 fi
 if $INCLUDE_MPG321; then
     get_mpg321

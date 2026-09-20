@@ -194,7 +194,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | libuuid | 1.47.4 | e2fsprogs | BSD 3-Clause |
 | [libxlsxwriter](https://github.com/jmcnamara/libxlsxwriter) | 1.2.4 | sc-im | BSD 2-Clause |
 | [libxml2](https://github.com/gnome/libxml2) | 2.15.4 | sc-im, Universal Ctags | MIT |
-| [libzip](https://github.com/nih-at/libzip) | 1.11.4 | sc-im | BSD 3-Clause |
+| [libzip](https://github.com/nih-at/libzip) | 1.11.4 | Midnight Commander, sc-im | BSD 3-Clause |
 | [musl](somethhttps://musl.libc.org/) | 1.2.6 | GCC, Tiny C Compiler | MIT |
 | [ncurses](https://github.com/mirror/ncurses) | 6.4 | Cscope, dialog, htop, Lynx, Midnight Commander, nano, Ncdu, sc-im, SHORKMINES, tic, tmux, tn5250, util-linux, x3270 | MIT |
 | [nPth](https://www.gnupg.org/software/npth/index.html) | 1.8 | GnuPG | LGPLv2.1 |
