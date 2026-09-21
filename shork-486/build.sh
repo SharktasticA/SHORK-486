@@ -1210,14 +1210,14 @@ install_debian_prerequisites()
     sudo dpkg --add-architecture i386
     sudo apt-get update
 
-    PACKAGES="autopoint bc bison bzip2 e2fsprogs extlinux fdisk flex genisoimage git kpartx libncurses-dev libtool libtool-bin libxcb1-dev make meson ninja-build pkg-config python3 python-is-python3 qemu-utils wget xz-utils"
+    PACKAGES="autopoint bc bison bzip2 e2fsprogs extlinux fdisk flex genisoimage gettext gettext-base git kpartx libncurses-dev libtool libtool-bin libxcb1-dev make meson ninja-build pkg-config python3 python-is-python3 qemu-utils wget xz-utils"
 
     if $FIX_EXTLINUX; then
         PACKAGES+=" nasm uuid-dev"
     fi
 
     if $INCLUDE_GUI; then
-        PACKAGES+=" fontconfig gettext gperf unzip xfonts-utils"
+        PACKAGES+=" fontconfig gperf unzip xfonts-utils"
     fi
 
     if $INCLUDE_GIT; then
