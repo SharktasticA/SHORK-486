@@ -1,19 +1,47 @@
 # SHORK 486 Gallery
 
-* Updated 18th July 2026
+* Updated 22nd September 2026
 
 
 
 ## Photos
 
 <table style="table-layout: fixed; width: 100%;">
+
   <tr>
-    <td style="width: 33%; text-align: center;"><img src="photos/20260223_365ed.jpg" style="width: 100%;" /></td>
-    <td style="width: 33%; text-align: center;"><img src="photos/20260416_365ed_shorkfetch.jpg" style="width: 100%;" /></td>
+    <td style="width: 33%; text-align: center;"><img src="photos/20260721_365ed_shorkfetch_1.jpg" style="width: 100%;" /></td>
+    <td style="width: 33%; text-align: center;"><img src="photos/20260721_365ed_shorksay.jpg" style="width: 100%;" /></td>
   </tr>
   <tr>
-    <td>First boot on IBM ThinkPad 365ED</td>
     <td>SHORKFETCH on IBM ThinkPad 365ED</td>
+    <td>SHORKSAY on IBM ThinkPad 365ED</td>
+  </tr>
+
+  <tr>
+    <td style="width: 33%; text-align: center;"><img src="photos/20260721_365ed_tmux_vim_nano_tcc.jpg" style="width: 100%;" /></td>
+    <td style="width: 33%; text-align: center;"><img src="photos/20260722_365ed_tmux_vi_dialog.jpg" style="width: 100%;" /></td>
+  </tr>
+  <tr>
+    <td>tmux, Vim, nano & TCC on IBM ThinkPad 365ED</td>
+    <td>tmux, vi & dialog on IBM ThinkPad 365ED</td>
+  </tr>
+
+  <tr>
+    <td style="width: 33%; text-align: center;"><img src="photos/20260919_365ed_tmux_ssh_shorkfetch.jpg" style="width: 100%;" /></td>
+    <td style="width: 33%; text-align: center;"><img src="photos/20260919_365ed_tmux_vim_lynx_frogfind.jpg" style="width: 100%;" /></td>
+  </tr>
+  <tr>
+    <td>tmux, SHORKFETCH & ssh on IBM ThinkPad 365ED</td>
+    <td>tmux, Vim & Lynx on IBM ThinkPad 365ED</td>
+  </tr>
+
+  <tr>
+    <td style="width: 33%; text-align: center;"><img src="photos/20260919_365ed_mc.jpg" style="width: 100%;" /></td>
+    <td style="width: 33%; text-align: center;"><img src="photos/20260919_365ed_tilde.jpg" style="width: 100%;" /></td>
+  </tr>
+  <tr>
+    <td>Midnight Commander on IBM ThinkPad 365ED</td>
+    <td>Tilde on IBM ThinkPad 365ED</td>
   </tr>
 </table>
 

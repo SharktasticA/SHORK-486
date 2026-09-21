@@ -4,7 +4,7 @@ SHORK 486 is a free and open-source operating system for 486 and Pentium (P5) er
 
 A build configurator is available to alter the SHORK 486 Operating System to your liking. For example, you can select the "mini" build type that requires just 8MiB RAM and ~8MiB disk space, whilst still including most typical commands as before, some custom SHORK Utilities, and the ed and vi editors. You can also configure SHORK 486 for symmetric multiprocessing support, multi-user support (if not "micro" or "mini" build) and serial console use, and pick and choose specific software and other features to include. Versions of SHORK 486 that can be burned to a CD (SHORK DISC) or small enough to fit on a 1.44MB floppy diskette (SHORK DISKETTE) are also available.
 
-<p align="center"><img alt="A photo of SHORK 486 running on an IBM ThinkPad 365ED after a cold boot" src="photos/20260223_365ed.jpg" width="512"></p>
+<p align="center"><img alt="A photo of SHORK 486 running on an IBM ThinkPad 365ED" src="photos/20260721_365ed_shorkfetch_1.jpg" width="100%"></p>
 
 <table>
     <tr>
