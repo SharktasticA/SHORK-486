@@ -162,6 +162,10 @@ CTAGS_SRC="https://github.com/universal-ctags/ctags.git"
 CTAGS_VER="6.2.1"
 CURL_SRC="https://curl.se/download"
 CURL_VER="8.22.0"
+
+BIND9_SRC="https://downloads.isc.org/isc/bind9"
+BIND9_VER="9.20.29"
+
 BINUTILS_TEST_SRC="https://ftp.gnu.org/gnu/binutils"
 BINUTILS_TEST_VER="2.47"
 BINUTILS_VER="2.37"
@@ -289,6 +293,13 @@ LIBTOOL_VER="2.6.2"
 LIBTRANSCRIPT_VER="0.3.4"
 LIBUNISTRING_SRC="https://ftp.gnu.org/gnu/libunistring"
 LIBUNISTRING_VER="1.4.2"
+
+LIBURCU_SRC="https://github.com/urcu/userspace-rcu.git"
+LIBURCU_VER="0.15.7"
+
+LIBUV_SRC="https://github.com/libuv/libuv.git"
+LIBUV_VER="1.52.1"
+
 LIBXLSXWRITER_SRC="https://github.com/jmcnamara/libxlsxwriter.git"
 LIBXLSXWRITER_VER="1.2.4"
 LIBXML2_SRC="https://github.com/gnome/libxml2.git"
@@ -440,6 +451,7 @@ ENABLE_USB=false
 ENABLE_VM86=false
 ENABLE_ZSWAP=false
 
+INCLUDE_BIND9_DNSUTILS=false
 INCLUDE_C3270=false
 INCLUDE_CON_FONTS=false
 INCLUDE_CSCOPE=false
@@ -633,8 +645,8 @@ else
     INCLUDE_TNFTP=false
 fi
 
-# Ensure EPOLL is enabled with MICRO
-if [ "$INCLUDE_MICRO" = true ]; then
+# Ensure EPOLL is enabled with BIND9_DNSUTILS and MICRO
+if [ "$INCLUDE_BIND9_DNSUTILS" = true ] || [ "$INCLUDE_MICRO" = true ]; then
     ENABLE_EPOLL=true
 fi
 
@@ -793,7 +805,9 @@ NEED_LIBTASN1=false
 NEED_LIBTOOL=false
 NEED_LIBTRANSCRIPT=false
 NEED_LIBUNISTRING=false
+NEED_LIBURCU=false
 NEED_LIBUUID=false
+NEED_LIBUV=false
 NEED_LIBXLSXWRITER=false
 NEED_LIBXML2=false
 NEED_LIBZIP=false
@@ -813,6 +827,15 @@ NEED_ZSTD=false
 #if $ENABLE_FB_VBE; then
 #    NEED_X86EMU=true
 #fi
+
+if $INCLUDE_BIND9_DNSUTILS; then
+    NEED_LIBCAP=true
+    NEED_LIBIDN2=true
+    NEED_LIBURCU=true
+    NEED_LIBUV=true
+    NEED_OPENSSL=true
+    NEED_ZLIB=true
+fi
 
 if $INCLUDE_CTAGS; then
     NEED_LIBXML2=true
@@ -1326,6 +1349,12 @@ get_musl_cross()
     echo -e "${GREEN}Downloading ${CROSS}...${RESET}"
     [ -f "${CROSS}.tgz" ] || wget "https://musl.cc/${CROSS}.tgz"
     [ -d "${CROSS}" ] || tar xvf "${CROSS}.tgz"
+
+    # Fix libatomic.la was moved (etc.)
+    find "${PREFIX}" -name '*.la' -print0 | while IFS= read -r -d '' la; do
+        actual_dir="$(dirname "$la")"
+        sed -i "s#^libdir=.*#libdir='${actual_dir}'#" "$la"
+    done
 }
 
 # Download and compile gpm for ncurses mouse support
@@ -1382,9 +1411,7 @@ get_gpm()
     fix_perms
 }
 
-# Download and compile ncurses (required for c3270, GNU Midnight Commander, 
-# htop, Lynx, nano, Ncdu, sc-im, T3* stack, tic, Tilde, tmux, tn5250 and
-# util-linux)
+# Download and compile ncurses
 get_ncurses()
 {
     cd "${CURR_DIR}/build"
@@ -1446,7 +1473,7 @@ get_ncurses()
     ln -sf "${PREFIX}/lib/libncursesw.a" "${PREFIX}/lib/libcurses.a"
 }
 
-# Compile tic (required for shorkset)
+# Compile tic
 get_tic()
 {
     cd "${CURR_DIR}/build/ncurses-${NCURSES_VER}"
@@ -1473,7 +1500,7 @@ get_tic()
     sudo install -D progs/tic "${DESTDIR}/usr/bin/tic"
 }
 
-# Download and compile Brotli (required for GnuTLS and tshark)
+# Download and compile Brotli
 get_brotli()
 {
     cd "${CURR_DIR}/build"
@@ -1515,7 +1542,7 @@ get_brotli()
     sudo cmake --install build --prefix "${SYSROOT}/usr"
 }
 
-# Download and compile c-ares (required for tshark)
+# Download and compile c-ares 
 get_cares()
 {
     cd "${CURR_DIR}/build"
@@ -1557,7 +1584,7 @@ get_cares()
     make DESTDIR="$SYSROOT" install
 }
 
-# Download and compile cURL (required for cURL itself or Git)
+# Download and compile cURL
 get_curl()
 {
     cd "${CURR_DIR}/build"
@@ -1597,6 +1624,7 @@ get_curl()
             --with-openssl="$SYSROOT" \
             --with-ca-bundle=/etc/ssl/cert.pem \
             --without-libpsl \
+            --without-libidn2 \
             --disable-shared
         make -j$(nproc)
         echo -e "${GREEN}Installing cURL for toolchain...${RESET}"
@@ -1611,7 +1639,7 @@ get_curl()
     fi
 }
 
-# Download and compile GNU Binutils and GCC for Go (required for micro)
+# Download and compile GNU Binutils and GCC for Go
 get_gccgo()
 {
     cd "${CURR_DIR}/build"
@@ -1775,7 +1803,7 @@ get_gccgo()
     cd "${CURR_DIR}/build"
 }
 
-# Download and compile GLib (required for GNU Midnight Commander and tshark)
+# Download and compile GLib
 get_glib()
 {
     cd "${CURR_DIR}/build"
@@ -1823,7 +1851,7 @@ get_glib()
     DESTDIR="${SYSROOT}" ninja -C _build install
 }
 
-# Download and compile GMP (required for GnuTLS)
+# Download and compile GMP
 get_gmp()
 {
     cd "${CURR_DIR}/build"
@@ -1866,7 +1894,7 @@ get_gmp()
     make DESTDIR="${SYSROOT}" install
 }
 
-# Download and compile GnuTLS (required for tshark)
+# Download and compile GnuTLS
 get_gnutls()
 {
     cd "${CURR_DIR}/build"
@@ -1919,7 +1947,7 @@ get_gnutls()
     make DESTDIR="${SYSROOT}" install
 }
 
-# Download and compile loadkeys from kbd (required for building keymaps)
+# Download and compile loadkeys
 get_kbd()
 {
     cd "${CURR_DIR}"/build
@@ -1948,7 +1976,7 @@ get_kbd()
     make -j"$(nproc)" -C src
 }
 
-# Download and compile Kerberos (required for tshark)
+# Download and compile Kerberos
 get_krb5()
 {
     cd "${CURR_DIR}/build"
@@ -1991,9 +2019,11 @@ get_krb5()
         LDFLAGS="-static -L${SYSROOT}/lib"
     make -j$(nproc)
     make DESTDIR="${SYSROOT}" install
+
+    sed -i '/# linking, we would output "-lkrb5support \$LIBS \$DL_LIB" here\./a\    lib_flags="$lib_flags -lkrb5support $LIBS $DL_LIB"' "${SYSROOT}/usr/bin/krb5-config"
 }
 
-# Download and compile libao (required for mpg321) 
+# Download and compile libao
 get_libao()
 {
     cd "${CURR_DIR}/build"
@@ -2048,7 +2078,7 @@ get_libao()
     #sudo ln -sf libc.so "${DESTDIR}"/lib/ld-musl-i386.so.1
 }
 
-# Download and compile libassuan (required for GnuPG)
+# Download and compile libassuan
 get_libassuan()
 {
     cd "${CURR_DIR}/build"
@@ -2096,7 +2126,7 @@ get_libassuan()
     make DESTDIR="${SYSROOT}" install
 }
 
-# Download and compile libcap (required for tshark)
+# Download and compile libcap
 get_libcap()
 {
     cd "${CURR_DIR}/build"
@@ -2140,7 +2170,7 @@ get_libcap()
         install
 }
 
-# Download and compile libevent (required for tmux)
+# Download and compile libevent
 get_libevent()
 {
     cd "${CURR_DIR}/build"
@@ -2170,7 +2200,7 @@ get_libevent()
     make install
 }
 
-# Download and compile libffi (required for glib)
+# Download and compile libffi
 get_libffi()
 {
     cd "${CURR_DIR}/build"
@@ -2212,7 +2242,7 @@ get_libffi()
     make DESTDIR="$SYSROOT" install
 }
 
-# Download and compile libgcrypt (required for GnuPG, libssh and tshark)
+# Download and compile libgcrypt
 get_libgcrypt()
 {
     cd "${CURR_DIR}/build"
@@ -2260,7 +2290,7 @@ get_libgcrypt()
     make DESTDIR="${SYSROOT}" install
 }
 
-# Download and compile libgpg-error (required for GnuPG and tshark)
+# Download and compile libgpg-error
 get_libgpg_error()
 {
     cd "${CURR_DIR}/build"
@@ -2306,7 +2336,7 @@ get_libgpg_error()
     make DESTDIR="${SYSROOT}" install
 }
 
-# Download and compile libid3tag (required for mpg321) 
+# Download and compile libid3tag
 get_libid3tag()
 {
     cd "${CURR_DIR}/build"
@@ -2350,7 +2380,7 @@ get_libid3tag()
     make DESTDIR="$SYSROOT" install
 }
 
-# Download and compile libidn2 (required for GnuTLS)
+# Download and compile libidn2
 get_libidn2()
 {
     cd "${CURR_DIR}/build"
@@ -2393,7 +2423,7 @@ get_libidn2()
     make DESTDIR="${SYSROOT}" install
 }
 
-# Download and compile libksba (required for GnuPG)
+# Download and compile libksba
 get_libksba()
 {
     cd "${CURR_DIR}/build"
@@ -2441,7 +2471,7 @@ get_libksba()
     make DESTDIR="${SYSROOT}" install
 }
 
-# Download and compile liblua (required for tshark)
+# Download and compile liblua
 get_liblua()
 {
     cd "${CURR_DIR}/build"
@@ -2478,7 +2508,7 @@ get_liblua()
     make INSTALL_TOP="${SYSROOT}/usr" install
 }
 
-# Download and compile libmad (required for mpg321) 
+# Download and compile libmad
 get_libmad()
 {
     cd "${CURR_DIR}/build"
@@ -2524,7 +2554,7 @@ get_libmad()
     make DESTDIR="$SYSROOT" install
 }
 
-# Download and compile libnl (required for tshark)
+# Download and compile libnl
 get_libnl()
 {
     cd "${CURR_DIR}/build"
@@ -2566,7 +2596,7 @@ get_libnl()
     make DESTDIR="${SYSROOT}" install
 }
 
-# Download and compile libpcap (required for tshark)
+# Download and compile libpcap
 get_libpcap()
 {
     cd "${CURR_DIR}/build"
@@ -2612,7 +2642,7 @@ get_libpcap()
     make DESTDIR="${SYSROOT}" install
 }
 
-# Download and compile libsmi (required for tshark)
+# Download and compile libsmi
 get_libsmi()
 {
     cd "${CURR_DIR}/build"
@@ -2733,7 +2763,7 @@ get_libsoftfp()
     sudo install -m644 libsoftfp.a "${PREFIX}"/lib/
 }
 
-# Download and compile libssh (required for tshark)
+# Download and compile libssh
 get_libssh()
 {
     cd "${CURR_DIR}/build"
@@ -2787,7 +2817,7 @@ get_libssh()
     sudo cmake --install build --prefix "${SYSROOT}/usr"
 }
 
-# Download and compile libssh2 (required for GNU Midnight Commander)
+# Download and compile libssh2
 get_libssh2()
 {
     cd "${CURR_DIR}/build"
@@ -2836,7 +2866,7 @@ get_libssh2()
     find "$SYSROOT/usr/lib" -name "*.la" -exec sed -i "s|^libdir=.*|libdir='${SYSROOT}/usr/lib'|" {} \;
 }
 
-# Download and compile libt3config (required for Tilde)
+# Download and compile libt3config
 get_libt3config()
 {
     cd "${CURR_DIR}/build"
@@ -2902,7 +2932,7 @@ get_libt3config()
     "${RANLIB}" "$SYSROOT/usr/lib/libt3config.a"
 }
 
-# Download and compile libt3highlight (required for Tilde)
+# Download and compile libt3highlight
 get_libt3highlight()
 {
     cd "${CURR_DIR}/build"
@@ -2958,7 +2988,7 @@ get_libt3highlight()
     "${RANLIB}" "$SYSROOT/usr/lib/libt3highlight.a"
 }
 
-# Download and compile libt3key (required for Tilde)
+# Download and compile libt3key
 get_libt3key()
 {
     cd "${CURR_DIR}/build"
@@ -3050,7 +3080,7 @@ get_libt3key()
     "${RANLIB}" "$SYSROOT/usr/lib/libt3key.a"
 }
 
-# Download and compile libt3widget (required for Tilde)
+# Download and compile libt3widget
 get_libt3widget()
 {
     cd "${CURR_DIR}/build"
@@ -3113,7 +3143,7 @@ get_libt3widget()
     "${RANLIB}" "$SYSROOT/usr/lib/libt3widget.a"
 }
 
-# Download and compile libt3window (required for Tilde)
+# Download and compile libt3window
 get_libt3window()
 {
     cd "${CURR_DIR}/build"
@@ -3172,7 +3202,7 @@ get_libt3window()
     "${RANLIB}" "$SYSROOT/usr/lib/libt3window.a"
 }
 
-# Download and compile libtasn1 (required for GnuTLS)
+# Download and compile libtasn1
 get_libtasn1()
 {
     cd "${CURR_DIR}/build"
@@ -3215,8 +3245,7 @@ get_libtasn1()
     make DESTDIR="${SYSROOT}" install
 }
 
-# Download and compile libtool and libltdl (required for T3* stack and
-# Tilde)
+# Download and compile libtool and libltdl
 get_libtool()
 {
     cd "${CURR_DIR}/build"
@@ -3274,7 +3303,7 @@ get_libtool()
     make DESTDIR="${SYSROOT}" install
 }
 
-# Download and compile libtranscript (required for Tilde)
+# Download and compile libtranscript
 get_libtranscript()
 {
     cd "${CURR_DIR}/build"
@@ -3346,7 +3375,7 @@ get_libtranscript()
     done
 }
 
-# Download and compile libunistring (required for T3* stack and tshark)
+# Download and compile libunistring
 get_libunistring()
 {
     cd "${CURR_DIR}/build"
@@ -3391,7 +3420,48 @@ get_libunistring()
     make DESTDIR="${SYSROOT}" install
 }
 
-# Download and compile util-linux for libuuid (required for hwinfo)
+# Download and compile liburcu
+get_liburcu()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/liburcu.a" ]; then
+        echo -e "${LIGHT_RED}liburcu already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d userspace-rcu ]; then
+        echo -e "${YELLOW}liburcu source already present, resetting...${RESET}"
+        cd userspace-rcu
+        git config --global --add safe.directory "${CURR_DIR}"/build/userspace-rcu
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading liburcu...${RESET}"
+        git clone --depth=1 --branch "v$LIBURCU_VER" $LIBURCU_SRC
+        cd userspace-rcu
+    fi
+
+    # Compile and install
+    echo -e "${GREEN}Compiling liburcu...${RESET}"
+    ./bootstrap
+    ./configure \
+        --host="$HOST" \
+        --prefix="${SYSROOT}/usr" \
+        --enable-static \
+        --disable-shared \
+        CC="$CC_STATIC" \
+        AR="$AR" \
+        RANLIB="$RANLIB" \
+        CFLAGS="-Os -march=${ARCH} -I${PREFIX}/include" \
+        LDFLAGS="-static -L${SYSROOT}/lib"
+    make -j$(nproc)
+    make install
+}
+
+# Download and compile util-linux for libuuid
 get_libuuid()
 {
     mkdir -p "${CURR_DIR}/build/libuuid"
@@ -3436,7 +3506,50 @@ get_libuuid()
     make DESTDIR="$SYSROOT" install
 }
 
-# Download and compile libxlsxwriter (required for sc-im)
+# Download and compile libuv
+get_libuv()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/libuv.a" ]; then
+        echo -e "${LIGHT_RED}libuv already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d libuv ]; then
+        echo -e "${YELLOW}libuv source already present, resetting...${RESET}"
+        cd libuv
+        git config --global --add safe.directory "${CURR_DIR}"/build/libuv
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading libuv...${RESET}"
+        git clone --depth=1 --branch "v$LIBUV_VER" $LIBUV_SRC
+        cd libuv
+    fi
+
+    # Compile and install
+    echo -e "${GREEN}Compiling libuv...${RESET}"
+    cmake -B build -S . \
+        -DCMAKE_SYSTEM_NAME=Linux \
+        -DCMAKE_SYSTEM_PROCESSOR=x86 \
+        -DCMAKE_C_COMPILER="${CC_STATIC}" \
+        -DCMAKE_AR="${AR}" \
+        -DCMAKE_RANLIB="${RANLIB}" \
+        -DCMAKE_STRIP="${STRIP}" \
+        -DCMAKE_C_FLAGS="-Os -march=${ARCH}" \
+        -DCMAKE_BUILD_TYPE=MinSizeRel \
+        -DCMAKE_INSTALL_PREFIX=/usr \
+        -DBUILD_SHARED_LIBS=OFF \
+        -DLIBUV_BUILD_TESTS=OFF \
+        -DLIBUV_BUILD_BENCH=OFF
+    cmake --build build -j$(nproc)
+    sudo cmake --install build --prefix "${SYSROOT}/usr"
+}
+
+# Download and compile libxlsxwriter
 get_libxlsxwriter()
 {
     cd "${CURR_DIR}/build"
@@ -3473,7 +3586,7 @@ get_libxlsxwriter()
     cp src/libxlsxwriter.a "$PREFIX/lib/"
 }
 
-# Download and compile libxml2 (required for ctags, sc-im and tshark)
+# Download and compile libxml2
 get_libxml2()
 {
     cd "${CURR_DIR}/build"
@@ -3513,7 +3626,7 @@ get_libxml2()
     ln -sf "${PREFIX}/lib/pkgconfig/libxml-2.0.pc" "${SYSROOT}/usr/lib/pkgconfig/libxml-2.0.pc"
 }
 
-# Download and compile libzip (required for sc-im)
+# Download and compile libzip
 get_libzip()
 {
     cd "${CURR_DIR}/build"
@@ -3562,7 +3675,7 @@ get_libzip()
     cp lib/zip.h "${PREFIX}/include/"
 }
 
-# Download and compile LZ4 (required for tshark)
+# Download and compile LZ4
 get_lz4()
 {
     cd "${CURR_DIR}/build"
@@ -3606,7 +3719,7 @@ get_lz4()
         -C lib install
 }
 
-# Download and compile Nettle (required for GnuTLS)
+# Download and compile Nettle
 get_nettle()
 {
     cd "${CURR_DIR}/build"
@@ -3649,7 +3762,7 @@ get_nettle()
     make DESTDIR="${SYSROOT}" install
 }
 
-# Download and compile nPth (required for GnuPG)
+# Download and compile nPth
 get_npth()
 {
     cd "${CURR_DIR}/build"
@@ -3695,8 +3808,7 @@ get_npth()
     make DESTDIR="${SYSROOT}" install
 }
 
-# Download and compile OpenSSL (required for cURL, Git, libssh2, Lynx and
-# tn5250)
+# Download and compile OpenSSL
 get_openssl()
 {
     cd "${CURR_DIR}/build"
@@ -3732,7 +3844,7 @@ get_openssl()
     make install_sw
 }
 
-# Download and compile PCRE2 (required for glib and T3* stack)
+# Download and compile PCRE2
 get_pcre2()
 {
     cd "${CURR_DIR}/build"
@@ -3777,7 +3889,7 @@ get_pcre2()
     make DESTDIR="${SYSROOT}" install
 }
 
-# Download and compile Snappy (required for tshark)
+# Download and compile Snappy
 get_snappy()
 {
     cd "${CURR_DIR}/build"
@@ -3822,7 +3934,7 @@ get_snappy()
     sudo cmake --install build --prefix "${SYSROOT}/usr"
 }
 
-# Download and compile xxHash (required for tshark)
+# Download and compile xxHash
 get_xxhash()
 {
     cd "${CURR_DIR}/build"
@@ -3860,8 +3972,7 @@ get_xxhash()
         install
 }
 
-# Download and compile zlib and minizip (required for Git, tshark, libssh,
-# libzip and TWM)
+# Download and compile zlib and minizip
 get_zlib()
 {
     cd "${CURR_DIR}/build"
@@ -3908,7 +4019,7 @@ get_zlib()
     make DESTDIR="$SYSROOT" install
 }
 
-# Download and compile Zstandard (required for GnuTLS and tshark)
+# Download and compile Zstandard
 get_zstd()
 {
     cd "${CURR_DIR}/build"
@@ -3952,8 +4063,7 @@ get_zstd()
     sudo cmake --install build --prefix "${SYSROOT}/usr"
 }
 
-# Download and compile x86emu (required for SHORKSET's VBE resolution
-# detection)
+# Download and compile x86emu
 get_x86emu()
 {
     cd "${CURR_DIR}/build"
@@ -3987,8 +4097,7 @@ get_x86emu()
     install -D -m644 include/x86emu.h "$SYSROOT/usr/include/x86emu.h"
 }
 
-# Download and build our forked ISOLINUX/EXTLINUX/SYSLINUX (required if "Fix
-# ISOLINUX/EXTLINUX/SYSLINUX" was used)
+# Download and build our forked ISOLINUX/EXTLINUX/SYSLINUX
 get_patched_xlinux()
 {
     cd "${CURR_DIR}/build"
@@ -4153,6 +4262,13 @@ get_busybox()
             echo -e "${GREEN}Enabling BusyBox's USB-related utilities...${RESET}"
             merge_bb_frag "${CONFIGS_DIR}/busybox/busybox.config.usb.frag"
             yes | make oldconfig
+        fi
+
+        if $INCLUDE_BIND9_DNSUTILS; then
+            echo -e "${GREEN}Disabling BusyBox's nslookup implementation in favour of BIND9's...${RESET}"
+            disable_bb_feat "CONFIG_NSLOOKUP"
+            disable_bb_feat "CONFIG_FEATURE_NSLOOKUP_BIG"
+            disable_bb_feat "CONFIG_FEATURE_NSLOOKUP_LONG_OPTIONS"
         fi
 
         if $INCLUDE_DOSFSTOOLS; then
@@ -6836,6 +6952,95 @@ make_swap_wrap()
     fi
 }
 
+# Download and compile BIND 9 DNS utilities
+get_bind9_dnsutils()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ -f "${DESTDIR}/usr/bin/arpaname" ] &&
+        [ -f "${DESTDIR}/usr/bin/delv" ] &&
+        [ -f "${DESTDIR}/usr/bin/dig" ] &&
+        [ -f "${DESTDIR}/usr/bin/host" ] &&
+        [ -f "${DESTDIR}/usr/bin/mdig" ] &&
+        [ -f "${DESTDIR}/usr/bin/nslookup" ] &&
+        [ -f "${DESTDIR}/usr/bin/nsupdate" ]; then
+        echo -e "${LIGHT_RED}BIND 9 DNS utilities already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading BIND 9...${RESET}"
+    DIR="bind-${BIND9_VER}"
+    ARC="${DIR}.tar.xz"
+    URI="${BIND9_SRC}/${BIND9_VER}/${ARC}"
+
+    # Download source
+    [ -f $ARC ] || wget $URI
+
+    # Extract source
+    if [ -d $DIR ]; then
+        echo -e "${YELLOW}BIND 9's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -rf $DIR
+    fi
+    tar xf $ARC
+    cd $DIR
+
+    export PKG_CONFIG_PATH=""
+    export PKG_CONFIG_LIBDIR="${SYSROOT}/usr/lib/pkgconfig:${SYSROOT}/usr/share/pkgconfig"
+
+    # Compile and install
+    echo -e "${GREEN}Configuring BIND 9...${RESET}"
+    ./configure \
+        --host="${HOST}" \
+        --prefix=/usr \
+        --enable-static \
+        --disable-shared \
+        --enable-developer \
+        --without-lmdb \
+        --without-gssapi \
+        --without-maxminddb \
+        --without-libnghttp2 \
+        --disable-doh \
+        --disable-geoip \
+        --with-openssl="${SYSROOT}" \
+        --with-libidn2 \
+        --without-libxml2 \
+        --with-zlib \
+        --without-json-c \
+        --without-readline \
+        --with-cmocka=no \
+        --with-jemalloc=no \
+        --enable-year2038 \
+        CC="${CC_STATIC}" \
+        AR="${AR}" \
+        RANLIB="${RANLIB}" \
+        CFLAGS="-Os -march=${ARCH} -I${SYSROOT}/usr/include" \
+        LDFLAGS="-L${SYSROOT}/usr/lib"
+
+    echo -e "${GREEN}Compiling lib prerequisites...${RESET}"
+    make -j$(nproc) -C lib
+
+    echo -e "${GREEN}Compiling arpaname and mdig...${RESET}"
+    make -j$(nproc) -C bin/tools arpaname mdig LDFLAGS="-all-static -Wl,-u,isc__initialize -L${SYSROOT}/usr/lib -L${SYSROOT}/lib"
+    sudo install -Dm755 bin/tools/arpaname "${DESTDIR}/usr/bin/arpaname"
+    sudo install -Dm755 bin/tools/mdig "${DESTDIR}/usr/bin/mdig"
+
+    echo -e "${GREEN}Compiling delv...${RESET}"
+    make bind.keys.h
+    make -j$(nproc) -C bin/delv LDFLAGS="-all-static -Wl,-u,isc__initialize -L${SYSROOT}/usr/lib -L${SYSROOT}/lib"
+    sudo install -Dm755 bin/delv/delv "${DESTDIR}/usr/bin/delv"
+
+    echo -e "${GREEN}Compiling dig, host and nslookup...${RESET}"
+    make -j$(nproc) -C bin/dig dig host nslookup LDFLAGS="-all-static -Wl,-u,isc__initialize -L${SYSROOT}/usr/lib -L${SYSROOT}/lib"
+    for bin in dig host nslookup; do
+        sudo install -Dm755 bin/dig/$bin "${DESTDIR}/usr/bin/$bin"
+    done
+
+    echo -e "${GREEN}Compiling nsupdate...${RESET}"
+    make -j$(nproc) -C bin/nsupdate LDFLAGS="-all-static -Wl,-u,isc__initialize -L${SYSROOT}/usr/lib -L${SYSROOT}/lib"
+    sudo install -Dm755 bin/nsupdate/nsupdate "${DESTDIR}/usr/bin/nsupdate"
+}
+
 # Download and compile Dropbear
 get_dropbear()
 {
@@ -9014,6 +9219,12 @@ copy_licences()
         CSV+="\nlibid3tag,GNU GPLv2,libid3tag.txt"
     fi
 
+    if $NEED_LIBIDN2 && 
+        [ -f "${CURR_DIR}/build/libidn2-${LIBIDN2_VER}/COPYING" ]; then
+        cp "${CURR_DIR}/build/libidn2-${LIBIDN2_VER}/COPYING" "${DESTDIR}/LICENCES/libidn2.txt" || true
+        CSV+="\nlibidn2,GNU GPLv3,libidn2.txt"
+    fi
+
     if $NEED_LIBKSBA && 
         [ -f "${CURR_DIR}/build/libksba-${LIBKSBA_VER}/COPYING" ]; then
         cp "${CURR_DIR}/build/libksba-${LIBKSBA_VER}/COPYING" "${DESTDIR}/LICENCES/libksba.txt" || true
@@ -9038,11 +9249,23 @@ copy_licences()
         CSV+="\nlibssh2,BSD 3-Clause,libssh2.txt"
     fi
 
+    if $NEED_LIBURCU && 
+        [ -f "${CURR_DIR}/build/userspace-rcu/LICENSES/LGPL-2.1-or-later.txt" ]; then
+        cp "${CURR_DIR}/build/userspace-rcu/LICENSES/LGPL-2.1-or-later.txt" "${DESTDIR}/LICENCES/liburcu.txt" || true
+        CSV+="\nliburcu,GNU LGPLv2.1,liburcu.txt"
+    fi
+
     # TODO: $NEED_LIBUUID
     if $INCLUDE_E2FSPROGS && 
         [ -f "${CURR_DIR}/build/e2fsprogs-$E2FSPROGS_VER/lib/uuid/COPYING" ]; then
         cp "${CURR_DIR}/build/e2fsprogs-$E2FSPROGS_VER/lib/uuid/COPYING" "${DESTDIR}/LICENCES/libuuid.txt" || true
         CSV+="\nlibuuid,BSD 3-Clause,libuuid.txt"
+    fi
+
+    if $NEED_LIBUV && 
+        [ -f "${CURR_DIR}/build/libuv/LICENSE" ]; then
+        cp "${CURR_DIR}/build/libuv/LICENSE" "${DESTDIR}/LICENCES/libuv.txt" || true
+        CSV+="\nlibuv,MIT,libuv.txt"
     fi
 
     if $NEED_LIBXLSXWRITER && 
@@ -9958,7 +10181,7 @@ build_disk_img()
             if [ "$INCLUDE_TSHARK" = true ]; then
                 OVERHEAD_BYTES=$((48 * 1024 * 1024))
             else
-                OVERHEAD_BYTES=$((32 * 1024 * 1024))
+                OVERHEAD_BYTES=$((48 * 1024 * 1024))
             fi
         fi
         OVERHEAD_MIB=$(((OVERHEAD_BYTES + 1048575) / 1048576))
@@ -10558,6 +10781,13 @@ get_included_busybox_commands()
     check_bb_config "CONFIG_MODPROBE" ""
     check_bb_config "CONFIG_RMMOD" ""
 
+    # Added 2026-09-20
+    check_bb_config "CONFIG_DNSDOMAINNAME" ""
+    check_bb_config "CONFIG_IPCALC" ""
+    check_bb_config "CONFIG_NETSTAT" ""
+    check_bb_config "CONFIG_NSLOOKUP" ""
+    check_bb_config "CONFIG_PSCAN" ""
+
     readarray -t INCLUDED_BB_CMDS < <(printf '%s\n' "${INCLUDED_BB_CMDS[@]}" | sort)
     readarray -t EXCLUDED_BB_CMDS < <(printf '%s\n' "${EXCLUDED_BB_CMDS[@]}" | sort)
 }
@@ -10805,6 +11035,7 @@ get_installed_progs_feats()
         check_installed_file "jq ${JQ_VER}" "/usr/bin/jq"
         check_installed_file "gpm ${GPM_VER}" "/usr/sbin/gpm"
         check_installed_file "GNU Midnight Commander ${MIDNIGHT_CMDR_VER}" "/usr/bin/mc"
+        check_installed_file "BIND 9 DNS utilities ${BIND9_VER}" "/usr/bin/dig"
     fi
     if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
         check_installed_file "util-linux ${UTIL_LINUX_VER}" "/usr/bin/whereis"
@@ -11210,6 +11441,12 @@ fi
 if $NEED_LOADKEYS; then
     get_kbd
 fi
+if $NEED_LIBURCU; then
+    get_liburcu
+fi
+if $NEED_LIBUV; then
+    get_libuv
+fi
 
 # Compile SHORKGUI
 if $INCLUDE_GUI; then
@@ -11233,6 +11470,9 @@ if $INCLUDE_CON_FONTS; then
 fi
 
 # Compile bunlded programs
+if $INCLUDE_BIND9_DNSUTILS; then
+    get_bind9_dnsutils
+fi
 if $INCLUDE_C3270; then
     get_prog_git \
         "usr/bin" \

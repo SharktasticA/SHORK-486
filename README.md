@@ -87,8 +87,8 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
     * Micro: 7MiB RAM
 * IDE or SCSI disk: 
     * **Default: 100MiB**
-    * Max: 540MiB
-    * Plus: 504MiB
+    * Max: 640MiB
+    * Plus: 600MiB
     * Writer: 90MiB
     * Terminal: 70MiB
     * Offline: 70MiB
@@ -114,6 +114,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 
 | Name | Command(s) | Version | Purpose | Licence(s) |P|D|W|T|O|
 |------|------------|---------|---------|------------|-|-|-|-|-|
+| [BIND 9 DNS utilities](https://www.isc.org/bind/) | `arpaname`, `delv`, `dig`, `host`, `mdig`, `nslookup`\*, `nsupdate` | 9.20.29 | DNS query & update tools | MPL 2.0 |✓|||||
 | [Cscope](https://cscope.sourceforge.net/) | `cscope` | 15.9 | C/C++ code browser | BSD 3-Clause |✓|||||
 | [cURL](https://curl.se/) | `curl` | 8.22.0 | HTTP client & transfer utility | MIT |✓|**✓**||✓||
 | [dialog](https://invisible-mirror.net/dialog/dialog.html) | `dialog` | 1.3-20260721 | Shell script TUI widgets | LGPLv2.1 |✓|**✓**|||✓|
@@ -180,6 +181,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [libgcrypt](https://www.gnupg.org/software/libgcrypt/index.html) | 1.12.4 | GnuPG | GPLv3 |
 | [libgpg-error](https://www.gnupg.org/software/libgpg-error/index.html) | 1.61 | GnuPG | GPLv3 |
 | [libid3tag](https://github.com/markjeee/libid3tag) | 0.15.1b | mpg321 | GPLv2 |
+| [libidn2](https://ftp.gnu.org/gnu/libidn) | 2.3.8 | BIND 9 | GPLv3 |
 | [libksba](https://www.gnupg.org/software/libksba/index.html) | 1.8.1 | GnuPG | GPLv3 |
 | [libmad](https://github.com/markjeee/libmad) | 0.15.1b | mpg321 | GPLv2 |
 | libss | 1.47.4 | e2fsprogs | MIT SIPB |
@@ -191,7 +193,9 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [libt3window](https://os.ghalkes.nl/t3/libt3window.html) | 0.4.2 | Tilde | GPLv3 |
 | [libtranscript](https://os.ghalkes.nl/libtranscript.html) | 0.3.4 | Tilde | GPLv3 |
 | [libunistring](https://ftp.gnu.org/gnu/libunistring/) | 1.4.2 | Tilde | GPLv3 |
+| [liburcu](https://github.com/urcu/userspace-rcu.git) | 0.15.7 | BIND 9 | LGPLv2.1 |
 | libuuid | 1.47.4 | e2fsprogs | BSD 3-Clause |
+| [libuv](https://github.com/libuv/libuv.git) | 1.52.1 | BIND 9 | MIT |
 | [libxlsxwriter](https://github.com/jmcnamara/libxlsxwriter) | 1.2.4 | sc-im | BSD 2-Clause |
 | [libxml2](https://github.com/gnome/libxml2) | 2.15.4 | sc-im, Universal Ctags | MIT |
 | [libzip](https://github.com/nih-at/libzip) | 1.11.4 | Midnight Commander, sc-im | BSD 3-Clause |

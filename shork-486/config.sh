@@ -27,7 +27,7 @@ CUSTOM_MIN_DISK=8
 DEFAULT_DEF_SWAP=8
 DEFAULT_MIN_DISK=100
 MAX_DEF_SWAP=16
-MAX_MIN_DISK=540
+MAX_MIN_DISK=640
 MICRO_DEF_SWAP=0
 MICRO_MIN_DISK=4
 MINI_DEF_SWAP=0
@@ -35,7 +35,7 @@ MINI_MIN_DISK=8
 OFFLINE_DEF_SWAP=8
 OFFLINE_MIN_DISK=70
 PLUS_DEF_SWAP=16
-PLUS_MIN_DISK=504
+PLUS_MIN_DISK=600
 TERM_DEF_SWAP=8
 TERM_MIN_DISK=70
 WRITER_DEF_SWAP=16
@@ -63,6 +63,7 @@ ENABLE_MULTIUSER_REAL=false
 ROOT_PASSWD=""
 ENABLE_SERIAL_CON=false
 SERIAL_CON_PORT="ttyS0"
+INCLUDE_BIND9_DNSUTILS=false
 INCLUDE_C3270=false
 INCLUDE_CSCOPE=false
 INCLUDE_CTAGS=false
@@ -214,6 +215,7 @@ save_env()
         printf 'ROOT_PASSWD=%s\n' "$(printf "'%s'" "$ROOT_PASSWD")"
         echo "ENABLE_SERIAL_CON=$ENABLE_SERIAL_CON"
         printf 'SERIAL_CON_PORT=%s\n' "$(printf '"%s"' "$SERIAL_CON_PORT")"
+        echo "INCLUDE_BIND9_DNSUTILS=$INCLUDE_BIND9_DNSUTILS"
         echo "INCLUDE_C3270=$INCLUDE_C3270"
         echo "INCLUDE_CSCOPE=$INCLUDE_CSCOPE"
         echo "INCLUDE_CTAGS=$INCLUDE_CTAGS"
@@ -312,6 +314,7 @@ set_mini_vars()
 
     ENABLE_NET_ETH=false
 
+    INCLUDE_BIND9_DNSUTILS=false
     INCLUDE_C3270=false
     INCLUDE_CSCOPE=false
     INCLUDE_CTAGS=false
@@ -497,6 +500,7 @@ set_plus_vars()
 {
     set_default_vars
 
+    INCLUDE_BIND9_DNSUTILS=true
     INCLUDE_C3270=true
     INCLUDE_CSCOPE=true
     INCLUDE_CTAGS=true
@@ -655,8 +659,8 @@ if [ "$ID" == "shork-486" ]; then
         --default-item "$BUILD_TYPE" \
         --menu "Select the build type, presets for SHORK 486 feature levels. The recommended minimum requirements for each are enclosed in brackets. The \"custom\" option will enable further prompts for software and feature selection." 18 $WIDTH 9 \
         "default"   "Typical experience             (16MiB RAM, 8MiB swap, 100MiB disk)" \
-        "max"       "Largest configuration          (24MiB RAM, 16MiB swap, 540MiB disk)" \
-        "plus"      "Default w/ optional software   (16MiB RAM, 16MiB swap, 504MiB disk)" \
+        "max"       "Largest configuration          (24MiB RAM, 16MiB swap, 640MiB disk)" \
+        "plus"      "Default w/ optional software   (16MiB RAM, 16MiB swap, 600MiB disk)" \
         "writer"    "Writing focused                (16MiB RAM, 16MiB swap, 100MiB disk)" \
         "terminal"  "Remote session & file transfer (16MiB RAM, 8MiB swap, 70MiB disk)" \
         "offline"   "Default w/o networking         (12MiB RAM, 8MiB swap, 65MiB disk)" \
@@ -1290,6 +1294,7 @@ BUNDLED_ITEMS=()
 
 if [ "$ENABLE_NET_ETH" == true ]; then
     BUNDLED_ITEMS+=(
+        "bind9-dnsutils"    "DNS query & update tools (48MiB)"                      "$(val "$INCLUDE_BIND9_DNSUTILS")"
         "c3270"             "3270 terminal emulator (1.8MiB, EXPERIMENTAL)"         "$(val "$INCLUDE_C3270")"
         "cscope"            "C/C++ code browser (1MiB)"                             "$(val "$INCLUDE_CSCOPE")"
         "ctags"             "Source code object indexing (1.5MiB)"                  "$(val "$INCLUDE_CTAGS")"
@@ -1386,6 +1391,7 @@ SKIPPED=$?
 if [[ $SKIPPED -eq 1 ]]; then
     :
 else
+    if [[ $BUNDLED =~ "bind9-dnsutils" ]];  then INCLUDE_BIND9_DNSUTILS=true;   else INCLUDE_BIND9_DNSUTILS=false;  fi
     if [[ $BUNDLED =~ "c3270" ]];           then INCLUDE_C3270=true;            else INCLUDE_C3270=false;           fi
     if [[ $BUNDLED =~ "cscope" ]];          then INCLUDE_CSCOPE=true;           else INCLUDE_CSCOPE=false;          fi
     if [[ $BUNDLED =~ "ctags" ]];           then INCLUDE_CTAGS=true;            else INCLUDE_CTAGS=false;           fi
