@@ -9,7 +9,7 @@
 <table style="table-layout: fixed; width: 100%;">
 
   <tr>
-    <td style="width: 33%; text-align: center;"><img src="photos/20260721_365ed_shorkfetch_1.jpg" style="width: 100%;" /></td>
+    <td style="width: 33%; text-align: center;"><img src="photos/20260721_365ed_shorkfetch_1_small.jpg" style="width: 100%;" /></td>
     <td style="width: 33%; text-align: center;"><img src="photos/20260721_365ed_shorksay.jpg" style="width: 100%;" /></td>
   </tr>
   <tr>
