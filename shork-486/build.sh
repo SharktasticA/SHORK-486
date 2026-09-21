@@ -216,6 +216,12 @@ HTOP_SRC="https://github.com/htop-dev/htop.git"
 HTOP_VER="3.5.3"
 HWINFO_SRC="https://github.com/opensuse/hwinfo.git"
 HWINFO_VER="25.5"
+
+IBM3161_FONT_SRC="https://github.com/wyatt8740/IBM3161-font.git"
+IBM3161_FONT_VER="1.0"
+
+INCONSOLATA_SRC="https://github.com/xeechou/Inconsolata-psf.git"
+
 INDENT_SRC="https://ftp.gnu.org/gnu/indent"
 INDENT_VER="2.2.13"
 JOE_SRC="https://github.com/joe-editor/joe.git"
@@ -6569,10 +6575,11 @@ get_console_fonts()
 {
     cd "${CURR_DIR}"/build
 
-    # Skip if all keymaps are already compiled
+    # Skip if all fonts are already compiled
+    EXPECTED_CON_FONTS=106
     CON_FONTS_COUNT=$(find "${DESTDIR}/usr/share/consolefonts" -maxdepth 1 -type f -name '*.psf' 2>/dev/null | wc -l)
-    if [ "$CON_FONTS_COUNT" -eq 103 ]; then
-        echo -e "${LIGHT_RED}All 103 console fonts are already installed, skipping...${RESET}"
+    if [ "$CON_FONTS_COUNT" -eq $EXPECTED_CON_FONTS ]; then
+        echo -e "${LIGHT_RED}All $EXPECTED_CON_FONTS console fonts are already installed, skipping...${RESET}"
         return
     fi
 
@@ -6590,10 +6597,25 @@ get_console_fonts()
 
     sudo cp "${CURR_DIR}/configs/console-setup.Makefile" Makefile
 
-    echo -e "${GREEN}Compiling console fonts...${RESET}"
+    echo -e "${GREEN}Compiling console-setup fonts...${RESET}"
     make
-    echo -e "${GREEN}Installing console fonts...${RESET}"
+    echo -e "${GREEN}Installing console-setup fonts...${RESET}"
     make DESTDIR="$DESTDIR" install
+
+    # Normalise their names
+    echo -e "${YELLOW}Normalising console-setup font names...${RESET}"
+    for PSF in "${DESTDIR}"/usr/share/consolefonts/*.psf; do
+        BASE=$(basename "$PSF" .psf)
+        if [[ "$BASE" =~ -[0-9]+$ ]]; then
+            continue
+        fi
+        NEW=$(echo "$BASE" | sed -E 's/([0-9]+)$/-\1/')
+        if [[ "$NEW" == "$BASE" ]] || [[ -e "${DESTDIR}/usr/share/consolefonts/${NEW}.psf" ]]; then
+            continue
+        fi
+        sudo mv "$PSF" "${DESTDIR}/usr/share/consolefonts/${NEW}.psf"
+    done
+    cd "${CURR_DIR}"/build
 
     # Download Terminus' licence file
     TERMINUS_MIRRORS=(
@@ -6602,7 +6624,6 @@ get_console_fonts()
         "https://sf-eu-introserv-3.dl.sourceforge.net/project/terminus-font/terminus-font-4.49"
     )
     TERMINUS_ARC="terminus-font-4.49.1.tar.gz"
-
     if [ ! -f "$TERMINUS_ARC" ]; then
         for MIRROR in "${TERMINUS_MIRRORS[@]}"; do
             if wget --timeout=5 --tries=1 "$MIRROR/$TERMINUS_ARC"; then
@@ -6610,6 +6631,37 @@ get_console_fonts()
             fi
         done
     fi
+
+    # Download IBM3161-font
+    if [ -d "IBM3161-font" ]; then
+        echo -e "${YELLOW}IBM3161-font already present...${RESET}"
+        cd "IBM3161-font"
+        git config --global --add safe.directory "${CURR_DIR}/build/IBM3161-font"
+    else
+        echo -e "${GREEN}Downloading IBM3161-font...${RESET}"
+        git clone --branch "$IBM3161_FONT_VER" $IBM3161_FONT_SRC
+        cd "IBM3161-font"
+    fi
+    echo -e "${GREEN}Installing IBM3161-font...${RESET}"
+    sudo cp linux-console/IBM3161.psf "${DESTDIR}/usr/share/consolefonts/Uni-IBM3161-16.psf"
+
+    # Download IBM3161-font's licence file
+    [ -f LICENSE.txt ] || wget -q https://unifoundry.com/LICENSE.txt -O LICENSE.txt
+    cd ..
+
+    # Download Inconsolata-psf
+    if [ -d "Inconsolata-psf" ]; then
+        echo -e "${YELLOW}Inconsolata-psf already present...${RESET}"
+        cd "Inconsolata-psf"
+        git config --global --add safe.directory "${CURR_DIR}/build/IBM3161-font"
+    else
+        echo -e "${GREEN}Downloading Inconsolata-psf...${RESET}"
+        git clone $INCONSOLATA_SRC
+        cd "Inconsolata-psf"
+    fi
+    echo -e "${GREEN}Installing Inconsolata-psf...${RESET}"
+    sudo cp Inconsolata-16b.psf "${DESTDIR}/usr/share/consolefonts/CP1252-InconsolataBold-16.psf"
+    sudo cp Inconsolata-16r.psf "${DESTDIR}/usr/share/consolefonts/CP1252-Inconsolata-16.psf"
 
     cd "${DESTDIR}"
 }
@@ -9092,6 +9144,18 @@ copy_licences()
         CSV+="\nGLib,GNU LGPLv2.1,glib.txt"
     fi
 
+    if $INCLUDE_CON_FONTS && 
+        [ -f "${CURR_DIR}/build/IBM3161-font/LICENSE.txt" ]; then
+        cp "${CURR_DIR}/build/IBM3161-font/LICENSE.txt" "${DESTDIR}/LICENCES/ibm3161-font.txt" || true
+        CSV+="\nIBM3161-font,GNU Unifont GPLv2,ibm3161-font.txt"
+    fi
+
+    if $INCLUDE_CON_FONTS && 
+        [ -f "${CURR_DIR}/build/Inconsolata-psf/OFL.txt" ]; then
+        cp "${CURR_DIR}/build/Inconsolata-psf/OFL.txt" "${DESTDIR}/LICENCES/inconsolata.txt" || true
+        CSV+="\nInconsolata,SIL OFL 1.1,inconsolata.txt"
+    fi
+
     if $INCLUDE_INDENT && 
         [ -f "${CURR_DIR}/build/indent-${INDENT_VER}/COPYING" ]; then
         cp "${CURR_DIR}/build/indent-${INDENT_VER}/COPYING" "${DESTDIR}/LICENCES/indent.txt" || true
@@ -9143,7 +9207,7 @@ copy_licences()
     if [ -f "${DESTDIR}/usr/share/fonts/opentype/ibm-plex-mono/IBMPlexMono-Regular.otf" ] && 
         [ -f "${CURR_DIR}/build/plex/LICENSE.txt" ]; then
         cp "${CURR_DIR}/build/plex/LICENSE.txt" "${DESTDIR}/LICENCES/ibm-plex.txt" || true
-        CSV+="\nIBM Plex,OFL 1.1,ibm-plex.txt"
+        CSV+="\nIBM Plex,SIL OFL 1.1,ibm-plex.txt"
     fi
 
     if [ "$ID" == "shork-disc" ] &&
@@ -9438,7 +9502,7 @@ copy_licences()
     if $INCLUDE_CON_FONTS && 
         [ -f "${CURR_DIR}/build/terminus-font-4.49.1.tar.gz" ]; then
         tar -xzf "${CURR_DIR}/build/terminus-font-4.49.1.tar.gz" -O terminus-font-4.49.1/OFL.TXT > "${DESTDIR}"/LICENCES/terminus.txt
-        CSV+="\nTerminus,OFL 1.1,terminus.txt"
+        CSV+="\nTerminus,SIL OFL 1.1,terminus.txt"
     fi
 
     if [ -f "${DESTDIR}/usr/bin/tic" ] && 

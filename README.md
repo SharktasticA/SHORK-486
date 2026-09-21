@@ -165,14 +165,16 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 * _‖ Only included with multi-user configurations_
 * _¶ Supports mouse input with gpm_
 
-#### Libraries & prerequisites
+#### Libraries, prerequisites & extras
 
 | Name | Version | For | Licence(s) |
 |------|---------|-----|------------|
 | [Compiler-RT](https://github.com/llvm/llvm-project/tree/main/compiler-rt) (libsoftfp) | 23.1.1 | GLib, GnuPG | Apache 2.0 w/ LLVM Exceptions |
 | [console-data](https://packages.debian.org/trixie/console-data) & [KBD](https://git.kernel.org/pub/scm/linux/kernel/git/legion/kbd.git) | 1.12-9 & 2.10.0  | Keymaps pack | GPLv2 |
-| [console-setup](https://packages.debian.org/trixie/console-setup) | 1.249 | Console fonts pack | Public domain (most), OFL 1.1 (Terminus) |
+| [console-setup](https://packages.debian.org/trixie/console-setup) | 1.249 | Console fonts pack | Public domain (most), SIL OFL 1.1 (Terminus) |
 | [GLib](https://download.gnome.org/sources/glib/) | 2.90.0 | Midnight Commander | LGPLv2.1 |
+| [IBM3161-font](https://github.com/wyatt8740/IBM3161-font) | 1.0 | Console fonts pack | GNU Unifont GPLv2 |
+| [Inconsolata-psf](https://github.com/xeechou/Inconsolata-psf) | | Console fonts pack | SIL OFL 1.1 |
 | [libao](https://github.com/xiph/libao) | 1.2.2 | mpg321 | GPLv2 |
 | [libassuan](https://www.gnupg.org/software/libassuan/index.html) | 3.0.2 | GnuPG | GPLv3 |
 | libcom_err | 1.47.4 | e2fsprogs | MIT SIPB |
@@ -193,9 +195,9 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [libt3window](https://os.ghalkes.nl/t3/libt3window.html) | 0.4.2 | Tilde | GPLv3 |
 | [libtranscript](https://os.ghalkes.nl/libtranscript.html) | 0.3.4 | Tilde | GPLv3 |
 | [libunistring](https://ftp.gnu.org/gnu/libunistring/) | 1.4.2 | Tilde | GPLv3 |
-| [liburcu](https://github.com/urcu/userspace-rcu.git) | 0.15.7 | BIND 9 | LGPLv2.1 |
+| [liburcu](https://github.com/urcu/userspace-rcu) | 0.15.7 | BIND 9 | LGPLv2.1 |
 | libuuid | 1.47.4 | e2fsprogs | BSD 3-Clause |
-| [libuv](https://github.com/libuv/libuv.git) | 1.52.1 | BIND 9 | MIT |
+| [libuv](https://github.com/libuv/libuv) | 1.52.1 | BIND 9 | MIT |
 | [libxlsxwriter](https://github.com/jmcnamara/libxlsxwriter) | 1.2.4 | sc-im | BSD 2-Clause |
 | [libxml2](https://github.com/gnome/libxml2) | 2.15.4 | sc-im, Universal Ctags | MIT |
 | [libzip](https://github.com/nih-at/libzip) | 1.11.4 | Midnight Commander, sc-im | BSD 3-Clause |
