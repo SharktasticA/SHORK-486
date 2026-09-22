@@ -141,6 +141,13 @@ SHORKFETCH_SRC="https://github.com/SharktasticA/shorkfetch.git"
 SHORKFETCH_VER="0.6.4"
 SHORKMINES_SRC="https://github.com/SharktasticA/shorkmines.git"
 
+BIND9_SRC="https://downloads.isc.org/isc/bind9"
+BIND9_VER="9.20.29"
+
+BINUTILS_TEST_SRC="https://ftp.gnu.org/gnu/binutils"
+BINUTILS_TEST_VER="2.47"
+BINUTILS_VER="2.37"
+
 BROTLI_SRC="https://github.com/google/brotli.git"
 BROTLI_VER="1.2.0"
 
@@ -160,15 +167,12 @@ CSCOPE_SRC="https://git.code.sf.net/p/cscope/cscope cscope-cscope"
 CSCOPE_VER="15.9"
 CTAGS_SRC="https://github.com/universal-ctags/ctags.git"
 CTAGS_VER="6.2.1"
+
+CTRIS_SRC="https://github.com/MitchelPaulin/CTris.git"
+
 CURL_SRC="https://curl.se/download"
 CURL_VER="8.22.0"
 
-BIND9_SRC="https://downloads.isc.org/isc/bind9"
-BIND9_VER="9.20.29"
-
-BINUTILS_TEST_SRC="https://ftp.gnu.org/gnu/binutils"
-BINUTILS_TEST_VER="2.47"
-BINUTILS_VER="2.37"
 DIALOG_SRC="https://invisible-mirror.net/archives/dialog"
 DIALOG_VER="1.3-20260721"
 DOSEMU2_SRC="https://codeload.github.com/dosemu2/dosemu2/tar.gz/refs/tags"
@@ -466,6 +470,7 @@ INCLUDE_C3270=false
 INCLUDE_CON_FONTS=false
 INCLUDE_CSCOPE=false
 INCLUDE_CTAGS=false
+INCLUDE_CTRIS=false
 INCLUDE_CURL=false
 INCLUDE_DIALOG=false
 INCLUDE_DOSEMU2=false
@@ -7098,6 +7103,42 @@ get_bind9_dnsutils()
     sudo install -Dm755 bin/nsupdate/nsupdate "${DESTDIR}/usr/bin/nsupdate"
 }
 
+# Download and compile Ctris
+get_ctris()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ -f "${DESTDIR}/usr/bin/ctris" ]; then
+        echo -e "${LIGHT_RED}CTris already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d CTris ]; then
+        echo -e "${YELLOW}CTris source already present, resetting...${RESET}"
+        cd CTris
+        git config --global --add safe.directory "${CURR_DIR}/build/CTris"
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading CTris...${RESET}"
+        git clone $CTRIS_SRC
+        cd CTris
+    fi
+
+    # Patch Makefile to support our cross-compiler and gpm
+    sed -i \
+        -e "s|CC = g++|CC = ${CXX_STATIC}|g" \
+        -e "s|CFLAGS = -lncursesw|CFLAGS = -I${PREFIX}/include -L${PREFIX}/lib -lncursesw -lgpm|g" \
+        makefile
+
+    # Compile and install
+    echo -e "${GREEN}Compiling CTris...${RESET}"
+    sudo make install DESTDIR="${DESTDIR}/usr/bin"
+}
+
+
 # Download and compile Dropbear
 get_dropbear()
 {
@@ -9103,16 +9144,22 @@ copy_licences()
         CSV+="\nc3270,BSD 3-Clause,c3270.txt"
     fi
 
+    if $NEED_LIBSOFTFP && 
+        [ -f "${CURR_DIR}/build/libsoftfp/llvm-project/LICENSE.TXT" ]; then
+        cp "${CURR_DIR}/build/libsoftfp/llvm-project/LICENSE.TXT" "${DESTDIR}/LICENCES/compiler-rt.txt" || true
+        CSV+="\nCompiler-RT,Apache 2.0 w/ LLVM Exceptions,compiler-rt.txt"
+    fi
+
     if $INCLUDE_CSCOPE && 
         [ -f "${CURR_DIR}/build/cscope-cscope/COPYING" ]; then
         cp "${CURR_DIR}/build/cscope-cscope/COPYING" "${DESTDIR}/LICENCES/cscope.txt" || true
         CSV+="\nCscope,BSD 3-Clause,cscope.txt"
     fi
 
-    if $NEED_LIBSOFTFP && 
-        [ -f "${CURR_DIR}/build/libsoftfp/llvm-project/LICENSE.TXT" ]; then
-        cp "${CURR_DIR}/build/libsoftfp/llvm-project/LICENSE.TXT" "${DESTDIR}/LICENCES/compiler-rt.txt" || true
-        CSV+="\nCompiler-RT,Apache 2.0 w/ LLVM Exceptions,compiler-rt.txt"
+    if $INCLUDE_CTRIS && 
+        [ -f "${CURR_DIR}/build/CTris/LICENSE" ]; then
+        cp "${CURR_DIR}/build/CTris/LICENSE" "${DESTDIR}/LICENCES/ctris.txt" || true
+        CSV+="\nCTris,MIT,ctris.txt"
     fi
 
     if $NEED_CURL && 
@@ -11152,6 +11199,7 @@ get_installed_progs_feats()
         check_installed_file "GNU Midnight Commander ${MIDNIGHT_CMDR_VER}" "/usr/bin/mc"
         check_installed_file "BIND 9 DNS utilities ${BIND9_VER}" "/usr/bin/dig"
         check_installed_file "New BSD Games ${NBSDGAMES_VER}" "/usr/bin/nbsdgames"
+        check_installed_file "CTris" "/usr/bin/ctris"
     fi
     if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
         check_installed_file "util-linux ${UTIL_LINUX_VER}" "/usr/bin/whereis"
@@ -11636,6 +11684,9 @@ if $INCLUDE_CTAGS; then
         false \
         "/usr" \
         "--disable-pcre2 --disable-external-sort --disable-yaml --disable-json --disable-iconv --disable-seccomp"
+fi
+if $INCLUDE_CTRIS; then
+    get_ctris
 fi
 if $INCLUDE_DIALOG; then
     get_prog_tar \

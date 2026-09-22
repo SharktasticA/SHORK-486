@@ -1,6 +1,6 @@
 # SHORK 486, DISC & DISKETTE
 
-SHORK 486 is a free and open-source operating system for 486 and Pentium (P5) era vintage personal computers. The aim is to produce a 32-bit Linux distribution that is lean and functional, but still capable on such PCs, often with my '90s IBM ThinkPads in mind. A default SHORK 486 system aims to work with at least 16MiB system memory and take up no more than ~100MiB on your disk. Despite those constraints, the default SHORK 486 experience includes [Linux kernel 7.2.7](KERNEL.md), many typical Linux commands, custom SHORK Utilities such as shorkdir (TUI file browser) and shorkfetch (*fetch clone), a terminal multiplexer, a C compiler, Lua intepreter, Python 3.4-syntax interpreter and dialog for shell script TUI widgets, a text web browser, an FTP, SCP and SSH client, Git source control client, the ed, Mg, nano and vi editors, a spreadsheet editor, a minesweeper game, DOS and ext\* filesystem tools, IDE and SCSI CD-ROM and DVD-ROM support, SCSI tape drive support, ISA, PCI and PCMCIA ethernet support, support for most major national keyboard layouts, and a cute ASCII shark welcome screen!
+SHORK 486 is a free and open-source operating system for 486 and Pentium (P5) era vintage personal computers. The aim is to produce a 32-bit Linux distribution that is lean and functional, but still capable on such PCs, often with my '90s IBM ThinkPads in mind. A default SHORK 486 system aims to work with at least 16MiB system memory and take up no more than ~100MiB on your disk. Despite those constraints, the default SHORK 486 experience includes [Linux kernel 7.2.7](KERNEL.md), many typical Linux commands, custom SHORK Utilities such as shorkdir (TUI file browser) and shorkfetch (*fetch clone), a terminal multiplexer, a C compiler, Lua intepreter, Python 3.4-syntax interpreter and dialog for shell script TUI widgets, a text web browser, an FTP, SCP and SSH client, Git source control client, the ed, Mg, nano and vi editors, a spreadsheet editor, a minesweeper- and Tetris-clone game, DOS and ext\* filesystem tools, IDE and SCSI CD-ROM and DVD-ROM support, SCSI tape drive support, ISA, PCI and PCMCIA ethernet support, support for most major national keyboard layouts, and a cute ASCII shark welcome screen!
 
 A build configurator is available to alter the SHORK 486 Operating System to your liking. For example, you can select the "mini" build type that requires just 8MiB RAM and ~8MiB disk space, whilst still including most typical commands as before, some custom SHORK Utilities, and the ed and vi editors. You can also configure SHORK 486 for symmetric multiprocessing support, multi-user support (if not "micro" or "mini" build) and serial console use, and pick and choose specific software and other features to include. Versions of SHORK 486 that can be burned to a CD (SHORK DISC) or small enough to fit on a 1.44MB floppy diskette (SHORK DISKETTE) are also available.
 
@@ -116,6 +116,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 |------|------------|---------|---------|------------|-|-|-|-|-|
 | [BIND 9 DNS utilities](https://www.isc.org/bind/) | `arpaname`, `delv`, `dig`, `host`, `mdig`, `nslookup`\*, `nsupdate` | 9.20.29 | DNS query & update tools | MPL 2.0 |✓|||||
 | [Cscope](https://cscope.sourceforge.net/) | `cscope` | 15.9 | C/C++ code browser | BSD 3-Clause |✓|||||
+| [CTris](https://github.com/MitchelPaulin/CTris) | `ctris` | | Tetris clone | MIT |✓|**✓**|||✓|
 | [cURL](https://curl.se/) | `curl` | 8.22.0 | HTTP client & transfer utility | MIT |✓|**✓**||✓||
 | [dialog](https://invisible-mirror.net/dialog/dialog.html) | `dialog` | 1.3-20260721 | Shell script TUI widgets | LGPLv2.1 |✓|**✓**|||✓|
 | [dosfstools](https://github.com/dosfstools/dosfstools/) | e.g. `dosfsck`, `mkdosfs`\* | 4.2 | FAT family filesystem utilities | GPLv3 |✓|**✓**|||✓|
@@ -203,7 +204,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [libxml2](https://github.com/gnome/libxml2) | 2.15.4 | sc-im, Universal Ctags | MIT |
 | [libzip](https://github.com/nih-at/libzip) | 1.11.4 | Midnight Commander, sc-im | BSD 3-Clause |
 | [musl](somethhttps://musl.libc.org/) | 1.2.6 | GCC, Tiny C Compiler | MIT |
-| [ncurses](https://invisible-island.net/ncurses/) | 6.6 | Cscope, dialog, htop, Lynx, Midnight Commander, nano, Ncdu, sc-im, SHORKMINES, tic, tmux, tn5250, util-linux, x3270 | MIT |
+| [ncurses](https://invisible-island.net/ncurses/) | 6.6 | Cscope, CTris, dialog, htop, Lynx, Midnight Commander, nano, Ncdu, New BSD Games, sc-im, SHORKMINES, tic, tmux, tn5250, util-linux, x3270 | MIT |
 | [nPth](https://www.gnupg.org/software/npth/index.html) | 1.8 | GnuPG | LGPLv2.1 |
 | [OpenSSL](https://github.com/openssl/openssl) | 3.6.4 | cURL, Git, Lynx, Midnight Commander, tn5250 | Apache 2.0 |
 | [PCRE2](https://pcre2project.github.io/pcre2/) | 10.48 | GLib, Tilde | BSD 3-Clause w/ PCRE2 exception |

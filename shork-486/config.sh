@@ -67,6 +67,7 @@ INCLUDE_BIND9_DNSUTILS=false
 INCLUDE_C3270=false
 INCLUDE_CSCOPE=false
 INCLUDE_CTAGS=false
+INCLUDE_CTRIS=false
 INCLUDE_CURL=false
 INCLUDE_DIALOG=false
 INCLUDE_DOSFSTOOLS=false
@@ -220,6 +221,7 @@ save_env()
         echo "INCLUDE_C3270=$INCLUDE_C3270"
         echo "INCLUDE_CSCOPE=$INCLUDE_CSCOPE"
         echo "INCLUDE_CTAGS=$INCLUDE_CTAGS"
+        echo "INCLUDE_CTRIS=$INCLUDE_CTRIS"
         echo "INCLUDE_CURL=$INCLUDE_CURL"
         echo "INCLUDE_DIALOG=$INCLUDE_DIALOG"
         echo "INCLUDE_DOSFSTOOLS=$INCLUDE_DOSFSTOOLS"
@@ -320,6 +322,7 @@ set_mini_vars()
     INCLUDE_C3270=false
     INCLUDE_CSCOPE=false
     INCLUDE_CTAGS=false
+    INCLUDE_CTRIS=false
     INCLUDE_CURL=false
     INCLUDE_DIALOG=false
     INCLUDE_DOSFSTOOLS=false
@@ -445,6 +448,7 @@ set_default_vars()
 
     ENABLE_NET_ETH=true
 
+    INCLUDE_CTRIS=true
     INCLUDE_CURL=true
     INCLUDE_DIALOG=true
     INCLUDE_DOSFSTOOLS=true
@@ -1302,6 +1306,7 @@ if [ "$ENABLE_NET_ETH" == true ]; then
         "c3270"             "3270 terminal emulator (1.8MiB, EXPERIMENTAL)"         "$(val "$INCLUDE_C3270")"
         "cscope"            "C/C++ code browser (1MiB)"                             "$(val "$INCLUDE_CSCOPE")"
         "ctags"             "Source code object indexing (1.5MiB)"                  "$(val "$INCLUDE_CTAGS")"
+        "ctris"             "*Tetris clone (0.6MiB)"                                "$(val "$INCLUDE_CTRIS")"
         "curl"              "HTTP client & transfer utility (8MiB)"                 "$(val "$INCLUDE_CURL")"
         "dialog"            "*Shell script TUI widgets (0.5MiB)"                    "$(val "$INCLUDE_DIALOG")"
         "dosfstools"        "*FAT12/16/32 filesystem utilities (0.8MiB)"            "$(val "$INCLUDE_DOSFSTOOLS")"
@@ -1347,6 +1352,7 @@ else
         "c3270"             "3270 terminal emulator (1.8MiB, EXPERIMENTAL)"         "$(val "$INCLUDE_C3270")"
         "cscope"            "C/C++ code browser (1MiB)"                             "$(val "$INCLUDE_CSCOPE")"
         "ctags"             "Source code object indexing (1.5MiB)"                  "$(val "$INCLUDE_CTAGS")"
+        "ctris"             "*Tetris clone (0.6MiB)"                                "$(val "$INCLUDE_CTRIS")"
         "dialog"            "*Shell script TUI widgets (0.5MiB)"                    "$(val "$INCLUDE_DIALOG")"
         "dosfstools"        "*FAT12/16/32 filesystem utilities (0.8MiB)"            "$(val "$INCLUDE_DOSFSTOOLS")"
         "e2fsprogs"         "*ext2/3/4 file system utilities (4MiB)"                "$(val "$INCLUDE_E2FSPROGS")"
@@ -1401,6 +1407,7 @@ else
     if [[ $BUNDLED =~ "c3270" ]];           then INCLUDE_C3270=true;            else INCLUDE_C3270=false;           fi
     if [[ $BUNDLED =~ "cscope" ]];          then INCLUDE_CSCOPE=true;           else INCLUDE_CSCOPE=false;          fi
     if [[ $BUNDLED =~ "ctags" ]];           then INCLUDE_CTAGS=true;            else INCLUDE_CTAGS=false;           fi
+    if [[ $BUNDLED =~ "ctris" ]];           then INCLUDE_CTRIS=true;            else INCLUDE_CTRIS=false;           fi
     if [[ $BUNDLED =~ "curl" ]];            then INCLUDE_CURL=true;             else INCLUDE_CURL=false;            fi
     if [[ $BUNDLED =~ "dialog" ]];          then INCLUDE_DIALOG=true;           else INCLUDE_DIALOG=false;          fi
     if [[ $BUNDLED =~ "dosfstools" ]]       then INCLUDE_DOSFSTOOLS=true;       else INCLUDE_DOSFSTOOLS=false;      fi
