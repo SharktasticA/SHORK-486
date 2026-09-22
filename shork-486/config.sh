@@ -92,6 +92,7 @@ INCLUDE_MPG321=false
 INCLUDE_MT_ST=false
 INCLUDE_NANO=false
 INCLUDE_NASM=false
+INCLUDE_NBSDGAMES=false
 INCLUDE_NCDU=false
 INCLUDE_PATCHELF=false
 INCLUDE_SC_IM=false
@@ -245,6 +246,7 @@ save_env()
         echo "INCLUDE_MT_ST=$INCLUDE_MT_ST"
         echo "INCLUDE_NANO=$INCLUDE_NANO"
         echo "INCLUDE_NASM=$INCLUDE_NASM"
+        echo "INCLUDE_NBSDGAMES=$INCLUDE_NBSDGAMES"
         echo "INCLUDE_NCDU=$INCLUDE_NCDU"
         echo "INCLUDE_PATCHELF=$INCLUDE_PATCHELF"
         echo "INCLUDE_SC_IM=$INCLUDE_SC_IM"
@@ -344,6 +346,7 @@ set_mini_vars()
     INCLUDE_MT_ST=false
     INCLUDE_NANO=false
     INCLUDE_NASM=false
+    INCLUDE_NBSDGAMES=false
     INCLUDE_NCDU=false
     INCLUDE_PATCHELF=false
     INCLUDE_SC_IM=false
@@ -514,6 +517,7 @@ set_plus_vars()
     INCLUDE_MIDNIGHT_CMDR=true
     INCLUDE_MPG321=true
     INCLUDE_NASM=true
+    INCLUDE_NBSDGAMES=true
     INCLUDE_PATCHELF=true
     INCLUDE_TILDE=true
     INCLUDE_TN5250=true
@@ -1324,6 +1328,7 @@ if [ "$ENABLE_NET_ETH" == true ]; then
         "mt-st"             "*Tape drive tools (0.2MiB)"                            "$(val "$INCLUDE_MT_ST")"
         "nano"              "*Pico-style text editor (0.8MiB)"                      "$(val "$INCLUDE_NANO")"
         "nasm"              "Portable x86 assembler & disassembler (2.5MiB)"        "$(val "$INCLUDE_NASM")"
+        "nbsdgames"         "†Terminal games pack (8MiB)"                           "$(val "$INCLUDE_NBSDGAMES")"
         "ncdu"              "*Disk usage analyser (0.4MiB)"                         "$(val "$INCLUDE_NCDU")"
         "patchelf"          "*ELF binary patching (0.9MiB)"                         "$(val "$INCLUDE_PATCHELF")"
         "sc-im"             "*Terminal spreadsheet editor (2.8MiB)"                 "$(val "$INCLUDE_SC_IM")"
@@ -1363,6 +1368,7 @@ else
         "mt-st"             "*Tape drive tools (0.2MiB)"                            "$(val "$INCLUDE_MT_ST")"
         "nano"              "*Pico-style text editor (0.8MiB)"                      "$(val "$INCLUDE_NANO")"
         "nasm"              "Portable x86 assembler & disassembler (2.5MiB)"        "$(val "$INCLUDE_NASM")"
+        "nbsdgames"         "†Terminal games pack (8MiB)"                           "$(val "$INCLUDE_NBSDGAMES")"
         "ncdu"              "*Disk usage analyser (0.4MiB)"                         "$(val "$INCLUDE_NCDU")"
         "patchelf"          "*ELF binary patching (0.9MiB)"                         "$(val "$INCLUDE_PATCHELF")"
         "sc-im"             "*Terminal spreadsheet editor (2.8MiB)"                 "$(val "$INCLUDE_SC_IM")"
@@ -1421,6 +1427,7 @@ else
     if [[ $BUNDLED =~ "mt-st" ]];           then INCLUDE_MT_ST=true;            else INCLUDE_MT_ST=false;           fi
     if [[ $BUNDLED =~ "nano" ]];            then INCLUDE_NANO=true;             else INCLUDE_NANO=false;            fi
     if [[ $BUNDLED =~ "nasm" ]];            then INCLUDE_NASM=true;             else INCLUDE_NASM=false;            fi
+    if [[ $BUNDLED =~ "nbsdgames" ]];       then INCLUDE_NBSDGAMES=true;        else INCLUDE_NBSDGAMES=false;       fi
     if [[ $BUNDLED =~ "ncdu" ]];            then INCLUDE_NCDU=true;             else INCLUDE_NCDU=false;            fi
     if [[ $BUNDLED =~ "patchelf" ]];        then INCLUDE_PATCHELF=true;         else INCLUDE_PATCHELF=false;        fi
     if [[ $BUNDLED =~ "sc-im" ]];           then INCLUDE_SC_IM=true;            else INCLUDE_SC_IM=false;           fi

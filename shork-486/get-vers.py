@@ -61,6 +61,7 @@ REPOS = [
     "micropython/micropython",
     "iustin/mt-st",
     "netwide-assembler/nasm",
+    "abakh/nbsdgames",
     "openssl/openssl",
     "NixOS/patchelf",
     "PCRE2Project/pcre2",

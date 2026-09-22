@@ -144,6 +144,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [mt-st](https://github.com/iustin/mt-st) | `mt`, `stinit` | 1.8 | Tape drive tools | GPLv2 |✓|**✓**|||✓|
 | [NASM](https://www.nasm.us/) | `nasm`, `ndisasm` | 3.02 | Portable x86 assembler & disassembler | BSD 2-Clause |✓|||||
 | [Ncdu](https://dev.yorhel.nl/ncdu) | `ncdu` | 1.22 | Disk usage analyser | MIT |✓|**✓**|✓||✓|
+| [New BSD Games](https://github.com/abakh/nbsdgames) | `nbsdgames` | 6.0.2 | Terminal games pack (22) | Public domain |✓|||||
 | [PatchELF](https://github.com/nixos/patchelf) | `patchelf` | 0.19.1 | ELF binary patching | GPLv3 |✓|||||
 | [sc-im](https://github.com/andmarti1424/sc-im) | `sc-im` | 0.8.5 | Terminal spreadsheet editor | BSD 4-Clause |✓|**✓**|✓||✓|
 | [strace](https://github.com/strace/strace) | `strace` | 7.2 | System calls & signals tracer | LGPLv2.1 |✓|**✓**|||✓|
@@ -458,6 +459,8 @@ EXTLINUX (SHORK 486), ISOLINUX (SHORK DISC) and SYSLINUX (SHORK DISKETTE) are th
     * **Note:** If included, BusyBox's `ar` and `strings` implementations will be disabled in favour of GNU Binutils'.
 
 * **midnight-cmdr**: Adds the GNU Midnight Commander file manager. It presently has a hard dependency on networking, but making this optional is planned. Memory requirements are ideally 16MiB with 8MiB swap.
+
+* **nbsdgames**: Adds a pack of 22 ncurses-based games. It includes battleship, checkers, darrt, fifteen, fisher, jewels, memoblocks, miketron, mines, muncher, pipes, rabbithole, redsquare, revenge, reversi, scissor, sjump, snakeduel, sos, sudoku, trsr, and tugow. They require at least 12MiB RAM.
 
 * **shorktainment**: Includes the SHORK Entertainment programs bundle: shorklocomotive, shorkmatrix, shorkmines, and shorksay.
 

@@ -349,6 +349,10 @@ NANO_DIST="v9"
 NANO_VER="9.2"
 NASM_SRC="https://github.com/netwide-assembler/nasm.git"
 NASM_VER="3.02"
+
+NBSDGAMES_SRC="https://github.com/abakh/nbsdgames.git"
+NBSDGAMES_VER="6.0.2"
+
 NCDU_SRC="https://dev.yorhel.nl/download"
 NCDU_VER="1.22"
 NCURSES_SRC="https://ftp.gnu.org/gnu/ncurses"
@@ -495,6 +499,7 @@ INCLUDE_MPG321=false
 INCLUDE_MT_ST=false
 INCLUDE_NANO=false
 INCLUDE_NASM=false
+INCLUDE_NBSDGAMES=false
 INCLUDE_NCDU=false
 INCLUDE_PATCHELF=false
 INCLUDE_PCI_IDS=false
@@ -7922,6 +7927,46 @@ get_nasm()
     sudo install -D -m 755 ndisasm "${DESTDIR}/usr/bin/ndisasm"
 }
 
+# Download and compile nbsdgames
+get_nbsdgames()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ -f "${DESTDIR}/usr/bin/nbsdgames" ]; then
+        echo -e "${LIGHT_RED}nbsdgames already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d nbsdgames ]; then
+        echo -e "${YELLOW}nbsdgames source already present, resetting...${RESET}"
+        cd nbsdgames
+        git config --global --add safe.directory "${CURR_DIR}/build/nbsdgames"
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading nbsdgames...${RESET}"
+        git clone --depth=1 --branch "v${NBSDGAMES_VER}" $NBSDGAMES_SRC
+        cd nbsdgames
+    fi
+
+    export PKG_CONFIG="pkg-config --static"
+    export PKG_CONFIG_LIBDIR="${PREFIX}/lib/pkgconfig"
+    export PKG_CONFIG_PATH=""
+
+    # Compile and install
+    echo -e "${GREEN}Compiling nbsdgames...${RESET}"
+    sudo make install \
+        CC="${CC_STATIC}" \
+        CFLAGS="-Os -march=${ARCH} -I${PREFIX}/include" \
+        LDFLAGS="-static -L${PREFIX}/lib" \
+        LIBS="-lncursesw -lgpm" \
+        PREFIX= \
+        DESTDIR="${DESTDIR}" \
+        -C src
+}
+
 # Download and compile sc-im
 get_sc_im()
 {
@@ -9419,6 +9464,12 @@ copy_licences()
         CSV+="\nNcdu,MIT,ncdu.txt"
     fi
 
+    if $INCLUDE_NBSDGAMES && 
+        [ -f "${CURR_DIR}/build/nbsdgames/LICENSE" ]; then
+        cp "${CURR_DIR}/build/nbsdgames/LICENSE" "${DESTDIR}/LICENCES/nbsdgames.txt" || true
+        CSV+="\nNew BSD Games,CC0 1.0 Universal,nbsdgames.txt"
+    fi
+
     if [ -f "${PREFIX}/lib/libncursesw.a" ] && 
         [ -f "${CURR_DIR}/build/ncurses-${NCURSES_VER}/COPYING" ]; then
         cp "${CURR_DIR}/build/ncurses-${NCURSES_VER}/COPYING" "${DESTDIR}/LICENCES/ncurses.txt" || true
@@ -9630,7 +9681,7 @@ build_filesystem()
     cd "${DESTDIR}"
 
     echo -e "${GREEN}Creating required directories...${RESET}"
-    sudo mkdir -p {dev,proc,etc/init.d,sys,tmp,usr/share,usr/libexec,banners,mnt,var/run}
+    sudo mkdir -p {dev,proc,etc/init.d,sys,tmp,usr/share,usr/libexec,banners,mnt,var/games,var/run}
 
     echo -e "${GREEN}Configure permissions...${RESET}"
     chmod +x "${CURR_DIR}"/sysfiles/*/rc
@@ -11100,6 +11151,7 @@ get_installed_progs_feats()
         check_installed_file "gpm ${GPM_VER}" "/usr/sbin/gpm"
         check_installed_file "GNU Midnight Commander ${MIDNIGHT_CMDR_VER}" "/usr/bin/mc"
         check_installed_file "BIND 9 DNS utilities ${BIND9_VER}" "/usr/bin/dig"
+        check_installed_file "New BSD Games ${NBSDGAMES_VER}" "/usr/bin/nbsdgames"
     fi
     if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
         check_installed_file "util-linux ${UTIL_LINUX_VER}" "/usr/bin/whereis"
@@ -11852,6 +11904,9 @@ if $INCLUDE_NANO; then
 fi
 if $INCLUDE_NASM; then
     get_nasm
+fi
+if $INCLUDE_NBSDGAMES; then
+    get_nbsdgames
 fi
 if $INCLUDE_NCDU; then
     get_prog_tar \
