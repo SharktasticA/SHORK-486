@@ -33,7 +33,7 @@ In December 2025, [Action Retro](https://www.youtube.com/@ActionRetro) posted a 
 
 ### Architecture
 
-The SHORK 486 Operating System is not GNU/Linux as you may be accustomed to. Its init system and primary userland are provided by BusyBox, a single-binary application well known for embedded usage. As needed, some other utilities (such as those from util-linux) are permitted to plug any 'holes' in BusyBox's suite or provide more capabilities when system resources allow. The system is compiled with musl instead of glibc, allowing smaller binaries that also use fewer resources. Software is also statically compiled to eliminate dependency woes, increase predictability, and reduce memory usage. Architecturally, the closest well-known Linux distribution to SHORK 486 is perhaps Alpine Linux.
+The SHORK 486 Operating System is not GNU/Linux as you may be accustomed to. Its init system and primary userland are provided by BusyBox, a single-binary application well known for embedded usage. As needed, some other utilities (such as those from util-linux) are permitted to plug any 'holes' in BusyBox's suite or provide more capabilities when system resources allow. The system is compiled with musl instead of glibc, allowing smaller binaries that also use fewer resources. Software is also statically compiled to eliminate dependency woes and increase predictability. Architecturally, the closest well-known Linux distribution to SHORK 486 is perhaps Alpine Linux.
 
 ### Goals
 
