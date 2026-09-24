@@ -9861,6 +9861,18 @@ copy_licences()
     echo -e "$CSV" > "${DESTDIR}/LICENCES/manifest.csv"
 }
 
+# Copies test files and shell scripts for testing certain SHORK 486
+# features and capabilities
+copy_tests()
+{
+    echo -e "${GREEN}Copying test suite...${RESET}"
+    sudo mkdir -p "${DESTDIR}"/tests
+    sudo cp -rf "${CURR_DIR}"/tests/* "${DESTDIR}"/tests
+    sudo chmod +x "${DESTDIR}"/tests/*.sh
+    sudo chmod +x "${DESTDIR}"/tests/*/*.sh
+    cd "${DESTDIR}"
+}
+
 
 
 ######################################################
@@ -9877,17 +9889,6 @@ find_mbr_bin()
             break
         fi
     done
-}
-
-# Copies test files and shell scripts for testing certain SHORK 486
-# features and capabilities
-copy_tests()
-{
-    echo -e "${GREEN}Copying feature/capability tests...${RESET}"
-    sudo mkdir -p "${DESTDIR}"/tests
-    sudo cp "${CURR_DIR}"/tests/* "${DESTDIR}"/tests
-    sudo chmod +x "${DESTDIR}"/tests/*.sh
-    cd "${DESTDIR}"
 }
 
 # Builds the root filesystem
@@ -10075,10 +10076,6 @@ build_filesystem()
     if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
         sudo mkdir -p "${DESTDIR}"/root/.config/shorkutils
         copy_sysfile "${CURR_DIR}"/sysfiles/shorkfetch.conf "${DESTDIR}"/root/.config/shorkutils/shorkfetch.conf
-    fi
-
-    if $INCLUDE_TESTS; then
-        copy_tests
     fi
 
     if $INCLUDE_TMUX; then
@@ -12328,6 +12325,10 @@ copy_licences
 
 if $FIX_EXTLINUX; then
     get_patched_xlinux
+fi
+
+if $INCLUDE_TESTS; then
+    copy_tests
 fi
 
 find_mbr_bin
