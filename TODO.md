@@ -18,17 +18,15 @@
 * BASIC interpreter (exact one TBD)
 * bison
 * cmake
+* Common Lisp
 * dosemu2
     * Already successfully compiled - working out teething issues
 * flex
 * GDB
-* GNU Autoconf
-* GNU Autotools (especially automake and autoreconf)
 * GNU Emacs
     * Already successfully compiled - streamlining/pruning extraneous files
 * IRC client (exact one TBD)
-* libtool
-* m4
+* links
 * pkg-config
 * SQLite
 * SWIG

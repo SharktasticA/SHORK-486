@@ -87,8 +87,8 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
     * Micro: 7MiB RAM
 * IDE or SCSI disk: 
     * **Default: 100MiB**
-    * Max: 640MiB
-    * Plus: 600MiB
+    * Max: 720MiB
+    * Plus: 680MiB
     * Writer: 90MiB
     * Terminal: 70MiB
     * Offline: 70MiB
@@ -112,7 +112,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 * **P:** plus/max - **D:** default - **W:** writer - **T:** terminal - **O:** offline
 * **✓** indicates the software is included for the given edition
 
-| Name | Command(s) | Version | Purpose | Licence(s) |P|D|W|T|O|
+| Name | Command commands | Version | Purpose | Licence(s) |P|D|W|T|O|
 |------|------------|---------|---------|------------|-|-|-|-|-|
 | [BIND 9 DNS utilities](https://www.isc.org/bind/) | `arpaname`, `delv`, `dig`, `host`, `mdig`, `nslookup`\*, `nsupdate` | 9.20.29 | DNS query & update tools | MPL 2.0 |✓|||||
 | [Cscope](https://cscope.sourceforge.net/) | `cscope` | 15.9 | C/C++ code browser | BSD 3-Clause |✓|||||
@@ -123,10 +123,14 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [Dropbear](https://github.com/mkj/dropbear) | `scp`, `ssh` | 2026.94 | SCP and SSH clients | MIT + BSD 2-Clause |✓|**✓**||✓||
 | [e2fsprogs](https://e2fsprogs.sourceforge.net/)| e.g. `blkid`\*, `fsck`, `mke2fs`\*, `resize2fs`, `tune2fs`, `uuidgen`\* | 1.47.4 | ext2/3/4 filesystem utilities | GPLv2 + LGPLv2 |✓|**✓**|||✓|
 | [file](https://github.com/file/file)| `file` | 5_48 | File identification | BSD 2-Clause |✓|**✓**|||✓|
-| [GCC](https://musl.cc/)‡§ | `gcc`, `g++`, `gfortran` | 11.2.1 | C, C++ and Fortran compilers | GPLv3 + GCC RLE |✓|||||
 | [Git](https://github.com/git/git) | `git` | 2.55.0 | Source control client | GPLv2 |✓|**✓**|||||
+| [GNU Autoconf](https://www.gnu.org/software/autoconf/) | `autoconf`, `autoreconf` | 2.73 | configure script generator | GNU GPLv2 |✓|||||
+| [GNU Automake](https://www.gnu.org/software/automake/) | `aclocal`, `automake` | 1.19 | Makefile.in generator | GNU GPLv2 |✓|||||
 | [GNU Binutils](https://musl.cc/)‡ | e.g. `ar`\*, `as`, `gprof`, `ld`, `nm`, `objdump`, `ranlib`,`readelf`, `strings`\*, `strip` | 2.37 | Binary tools to compliment GCC | GPLv3 |✓|||||
+| [GNU Compiler Collection](https://musl.cc/)‡§ | `gcc`, `g++`, `gfortran` | 11.2.1 | C, C++ and Fortran compilers | GPLv3 + GCC RLE |✓|||||
 | [GNU Indent](https://www.gnu.org/software/indent/) | `indent` | 2.2.13 | C code formatter | GPLv3 |✓|||||
+| [GNU Libtool](https://www.gnu.org/software/libtool/) | `libtool`, `libtoolize` | 2.6.2 | Portable shared library build helper | GNU GPLv2 |✓|||||
+| [GNU m4](https://www.gnu.org/software/m4/) | `m4` | 1.4.21 | General-purpose macro processor | GNU GPLv3 |✓|||||
 | [GNU Make](https://www.gnu.org/software/make/) | `make` | 4.4.1 | Build automation tool | GPLv3 |✓|||||
 | [GNU Midnight Commander](https://midnight-commander.org/)¶ | `mc`, `mcdiff`, `mcedit`, `mcview` | 4.8.33 | Norton Commander-style file manager | GPLv3 |✓|||||
 | [GNU nano](https://www.nano-editor.org/)¶ | `nano` | 9.2 | Pico-style text editor | GPLv3 |✓|**✓**|✓||✓|
@@ -147,6 +151,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [Ncdu](https://dev.yorhel.nl/ncdu) | `ncdu` | 1.22 | Disk usage analyser | MIT |✓|**✓**|✓||✓|
 | [New BSD Games](https://github.com/abakh/nbsdgames) | `nbsdgames` | 6.0.2 | Terminal games pack (22) | Public domain |✓|||||
 | [PatchELF](https://github.com/nixos/patchelf) | `patchelf` | 0.19.1 | ELF binary patching | GPLv3 |✓|||||
+| [Perl](https://www.perl.org/) | `perl` | 5.44.0 | General-purpose scripting language | GNU GPLv1 |✓|||||
 | [sc-im](https://github.com/andmarti1424/sc-im) | `sc-im` | 0.8.5 | Terminal spreadsheet editor | BSD 4-Clause |✓|**✓**|✓||✓|
 | [strace](https://github.com/strace/strace) | `strace` | 7.2 | System calls & signals tracer | LGPLv2.1 |✓|**✓**|||✓|
 | [sudo](https://www.sudo.ws/)‖ | `sudo`, `sudoedit`, `visudo` | 1.9.17p2 | Run command as root/substitute user | ISC + BSD 2-Clause + BSD 3-Clause + zlib |✓|**✓**|✓|✓|✓|
@@ -462,6 +467,8 @@ EXTLINUX (SHORK 486), ISOLINUX (SHORK DISC) and SYSLINUX (SHORK DISKETTE) are th
 * **midnight-cmdr**: Adds the GNU Midnight Commander file manager. It presently has a hard dependency on networking, but making this optional is planned. Memory requirements are ideally 16MiB with 8MiB swap.
 
 * **nbsdgames**: Adds a pack of 22 ncurses-based games. It includes battleship, checkers, darrt, fifteen, fisher, jewels, memoblocks, miketron, mines, muncher, pipes, rabbithole, redsquare, revenge, reversi, scissor, sjump, snakeduel, sos, sudoku, trsr, and tugow. They require at least 12MiB RAM.
+
+* **perl**: Includes the Perl general-purpose scripting language interpreter. Using Perl independently or Perl-based tools like GNU Autoconf or Automake require ideally 24MiB RAM, or at least 16MiB RAM with 8MiB swap.
 
 * **shorktainment**: Includes the SHORK Entertainment programs bundle: shorklocomotive, shorkmatrix, shorkmines, and shorksay.
 

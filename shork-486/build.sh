@@ -91,6 +91,7 @@ MICRO_TARGET_DISK=4
 MINI_TARGET_DISK=8
 ROOT_PART_SIZE=0
 TOTAL_DISK_SIZE=0
+TRIM_FAT=true
 USED_PARAMS=""
 USED_WM="TWM"
 
@@ -140,6 +141,12 @@ SHORKBIN_SRC="https://github.com/SharktasticA/shorkbin.git"
 SHORKFETCH_SRC="https://github.com/SharktasticA/shorkfetch.git"
 SHORKFETCH_VER="0.6.4"
 SHORKMINES_SRC="https://github.com/SharktasticA/shorkmines.git"
+
+AUTOCONF_SRC="https://ftp.gnu.org/gnu/autoconf"
+AUTOCONF_VER="2.73"
+
+AUTOMAKE_SRC="https://ftp.gnu.org/gnu/automake"
+AUTOMAKE_VER="1.19"
 
 BIND9_SRC="https://downloads.isc.org/isc/bind9"
 BIND9_VER="9.20.29"
@@ -300,6 +307,7 @@ LIBTASN1_VER="4.21.0"
 
 LIBTOOL_SRC="https://ftp.gnu.org/gnu/libtool"
 LIBTOOL_VER="2.6.2"
+
 LIBTRANSCRIPT_VER="0.3.4"
 LIBUNISTRING_SRC="https://ftp.gnu.org/gnu/libunistring"
 LIBUNISTRING_VER="1.4.2"
@@ -327,6 +335,9 @@ LYNX_VER="2-9-3a"
 
 LZ4_SRC="https://github.com/lz4/lz4.git"
 LZ4_VER="1.10.0"
+
+M4_SRC="https://ftp.gnu.org/gnu/m4"
+M4_VER="1.4.21"
 
 MAKE_SRC="https://ftp.gnu.org/gnu/make"
 MAKE_VER="4.4.1"
@@ -373,6 +384,12 @@ PATCHELF_SRC="https://github.com/NixOS/patchelf/archive/refs/tags"
 PATCHELF_VER="0.19.1"
 PCRE2_SRC="https://github.com/PCRE2Project/pcre2/releases/download"
 PCRE2_VER="10.48"
+
+PERL_CROSS_SRC="https://github.com/arsv/perl-cross.git"
+PERL_CROSS_VER="1.6.5"
+PERL_SRC="https://www.cpan.org/src/5.0"
+PERL_VER="5.44.0"
+
 PINENTRY_SRC="https://www.gnupg.org/ftp/gcrypt/pinentry"
 PINENTRY_VER="1.3.3"
 SC_IM_SRC="https://github.com/andmarti1424/sc-im.git"
@@ -465,6 +482,8 @@ ENABLE_USB=false
 ENABLE_VM86=false
 ENABLE_ZSWAP=false
 
+INCLUDE_AUTOCONF=false
+INCLUDE_AUTOMAKE=false
 INCLUDE_BIND9_DNSUTILS=false
 INCLUDE_C3270=false
 INCLUDE_CON_FONTS=false
@@ -491,9 +510,11 @@ INCLUDE_INDENT=false
 INCLUDE_JOE=false
 INCLUDE_JQ=false
 INCLUDE_KEYMAPS=false
+INCLUDE_LIBTOOL=false
 INCLUDE_LSB_RELEASE_MIN=false
 INCLUDE_LUA=false
 INCLUDE_LYNX=false
+INCLUDE_M4=false
 INCLUDE_MAKE=false
 INCLUDE_MEMTESTER=false
 INCLUDE_MG=false
@@ -507,6 +528,7 @@ INCLUDE_NASM=false
 INCLUDE_NBSDGAMES=false
 INCLUDE_NCDU=false
 INCLUDE_PATCHELF=false
+INCLUDE_PERL=false
 INCLUDE_PCI_IDS=false
 INCLUDE_SC_IM=false
 INCLUDE_SUDO=false
@@ -677,6 +699,12 @@ if [ "$INCLUDE_DOSEMU2" = false ] && [ "$INCLUDE_FREEDOS" = true ]; then
     INCLUDE_FREEDOS=false
 fi
 
+# Ensure M4 and PERL is included with AUTOCONF
+if [ "$INCLUDE_AUTOCONF" = true ]; then
+    INCLUDE_M4=true
+    INCLUDE_PERL=true
+fi
+
 # Ensure MODULES is enabled with SOUND
 if [ "$ENABLE_SOUND" = true ]; then
     ENABLE_MODULES=true
@@ -718,6 +746,11 @@ if [ "$INCLUDE_DOSEMU2" = true ] || [ "$INCLUDE_GNUPG" = true ] ||
     [ "$INCLUDE_SUDO" = true ] ||  [ "$INCLUDE_TMUX" = true ] ||
     [ "$ENABLE_NET_ETH" = true ]; then
     ENABLE_NET_BASE=true
+fi
+
+# Ensure PERL is included with AUTOMAKE
+if [ "$INCLUDE_AUTOMAKE" = true ]; then
+    INCLUDE_PERL=true
 fi
 
 # Ensure SCSI_EXT is enabled with MT_ST
@@ -3262,7 +3295,7 @@ get_libtasn1()
 }
 
 # Download and compile libtool and libltdl
-get_libtool()
+get_libtool_tilde()
 {
     cd "${CURR_DIR}/build"
 
@@ -4337,6 +4370,11 @@ get_busybox()
         sudo rm -r "${DESTDIR}"
     fi
     mv _install "${DESTDIR}"
+
+    # Create symlinks needed for some programs
+    [ ! -e "${DESTDIR}"/usr/bin/sed ]  && ln -s /bin/sed  "${DESTDIR}"/usr/bin/sed
+    [ ! -e "${DESTDIR}"/usr/bin/grep ] && ln -s /bin/grep "${DESTDIR}"/usr/bin/grep
+    [ ! -e "${DESTDIR}"/usr/bin/dd ]   && ln -s /bin/dd   "${DESTDIR}"/usr/bin/dd
 }
 
 # Download and compile strace
@@ -6959,6 +6997,7 @@ get_prog_tar()
     export PKG_CONFIG_LIBDIR="${SYSROOT}/usr/lib/pkgconfig:${SYSROOT}/lib/pkgconfig"
     export PKG_CONFIG_PATH=""
     export PKG_CONFIG_SYSROOT_DIR="${SYSROOT}"
+    export CONFIG_SHELL="/bin/sh"
 
     # Compile program
     echo -e "${GREEN}Compiling $NAME...${RESET}"
@@ -8008,6 +8047,89 @@ get_nbsdgames()
         -C src
 }
 
+# Download and compile Perl
+get_perl()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ -f "${DESTDIR}/usr/bin/perl" ]; then
+        echo -e "${LIGHT_RED}perl already compiled, skipping...${RESET}"
+        return
+    fi
+
+    DIR="perl-${PERL_VER}"
+    ARC="${DIR}.tar.gz"
+    URI="${PERL_SRC}/${ARC}"
+
+    # Download source (Perl)
+    echo -e "${GREEN}Downloading Perl...${RESET}"
+    [ -f $ARC ] || wget $URI
+
+    # Extract source (Perl)
+    if [ -d $DIR ]; then
+        echo -e "${YELLOW}Perl's source archive is already present, re-extracting before proceeding...${RESET}"
+        sudo rm -rf $DIR
+    fi
+    tar xzf $ARC
+
+    # Download source (perl-cross)
+    if [ -d perl-cross ]; then
+        echo -e "${YELLOW}perl-cross source already present, resetting & cleaning...${RESET}"
+        cd perl-cross
+        git config --global --add safe.directory "${CURR_DIR}/build/perl-cross"
+        git reset --hard
+        git clean -fdx
+        cd ..
+    else
+        echo -e "${GREEN}Downloading perl-cross...${RESET}"
+        git clone --depth 1 --branch "${PERL_CROSS_VER}" $PERL_CROSS_SRC
+    fi
+
+    # Copy perl-cross over Perl source
+    cp -rf perl-cross/* "${DIR}/"
+    cd "$DIR"
+
+    export PKG_CONFIG_LIBDIR="${SYSROOT}/usr/lib/pkgconfig:${SYSROOT}/lib/pkgconfig"
+    export PKG_CONFIG_PATH=""
+    export PKG_CONFIG_SYSROOT_DIR="${SYSROOT}"
+
+    # Compile and install
+    echo -e "${GREEN}Compiling Perl...${RESET}"
+    ./configure \
+        --target="${HOST}" \
+        -Dcc="${CC_STATIC}" \
+        -Dar="${AR}" \
+        -Dranlib="${RANLIB}" \
+        -Dprefix="/usr" \
+        -Dccflags="-Os -march=${ARCH}" \
+        -Dldflags="-static" \
+        -Uusedl \
+        -Dman1dir=none \
+        -Dman3dir=none \
+        -Uusethreads \
+        -Uuseithreads \
+        --disable-mod=re \
+        -Dnoextensions="threads threads/shared Socket IPC/SysV Sys/Syslog Time/HiRes I18N/Langinfo Digest/MD5 MIME/Base64 Unicode/Normalize Compress/Raw/Zlib Compress/Raw/Bzip2 XS/APItest XS/Typemap"
+    make -j$(nproc)
+    sudo make DESTDIR="$DESTDIR" install
+
+    # Make sure we have all the .pm files we need
+    PERL_LIBDIR="${DESTDIR}/usr/lib/perl5/${PERL_VER}"
+    for PM_SRC in $(find ext dist cpan -name "*.pm" 2>/dev/null); do
+        PKG=$(grep -m1 -E '^\s*package\s+[A-Za-z0-9_:]+' "$PM_SRC" | \
+            sed -E 's/^\s*package\s+([A-Za-z0-9_:]+).*/\1/')
+        [ -z "$PKG" ] && continue
+        rel="$(echo "$PKG" | sed 's/::/\//g').pm"
+        DEST="${PERL_LIBDIR}/${rel}"
+        if [ ! -f "$DEST" ]; then
+            sudo mkdir -p "$(dirname "$DEST")"
+            sudo cp "$PM_SRC" "$DEST"
+            echo "Copying: $rel"
+        fi
+    done
+}
+
 # Download and compile sc-im
 get_sc_im()
 {
@@ -8552,6 +8674,9 @@ get_shorkfetch()
     git clone --branch "${SHORKFETCH_VER}" $SHORKFETCH_SRC
     cd shorkfetch
 
+    # Optimise for size
+    sed -i 's|-O3|-Os|' Makefile
+
     # Compile and install
     echo -e "${GREEN}Compiling shorkfetch...${RESET}"
     make clean
@@ -9077,6 +9202,14 @@ trim_fat()
         sudo rm -rf "${DESTDIR}/usr/share/mg"
     fi
 
+    if $INCLUDE_PERL; then
+        sudo rm -f  "${DESTDIR}"/usr/bin/{perlbug,perlthanks,prove}
+        sudo rm -rf "${DESTDIR}"/usr/lib/perl5/*/App/Prove*
+        sudo rm -rf "${DESTDIR}"/usr/lib/perl5/*/CPAN "${DESTDIR}"/usr/bin/cpan
+        sudo rm -rf "${DESTDIR}"/usr/lib/perl5/*/unicore
+        sudo rm -rf "${DESTDIR}"/usr/lib/perl5/*/{Win32*,VMS,Amiga,vmsish.pm,DCLsym.pm,ARexx.pm,EBCDIC}
+    fi
+
     if $INCLUDE_SUDO; then
         sudo rm -rf "${DESTDIR}/usr/sbin/sudo_logsrvd"
         sudo rm -rf "${DESTDIR}/usr/sbin/sudo_sendlog"
@@ -9148,6 +9281,12 @@ copy_licences()
         [ -f "${CURR_DIR}/build/libsoftfp/llvm-project/LICENSE.TXT" ]; then
         cp "${CURR_DIR}/build/libsoftfp/llvm-project/LICENSE.TXT" "${DESTDIR}/LICENCES/compiler-rt.txt" || true
         CSV+="\nCompiler-RT,Apache 2.0 w/ LLVM Exceptions,compiler-rt.txt"
+    fi
+
+    if $INCLUDE_KEYMAPS &&
+        [ -f "${CURR_DIR}/build/kbd/LICENSE" ]; then
+        cp "${CURR_DIR}/build/kbd/LICENSE" "${DESTDIR}/LICENCES/kbd.txt" || true
+        CSV+="\nconsole-data & KBD keymaps pack,GNU GPLv2,kbd.txt"
     fi
 
     if $INCLUDE_CSCOPE && 
@@ -9236,16 +9375,16 @@ copy_licences()
         CSV+="\nGLib,GNU LGPLv2.1,glib.txt"
     fi
 
-    if $INCLUDE_CON_FONTS && 
-        [ -f "${CURR_DIR}/build/IBM3161-font/LICENSE.txt" ]; then
-        cp "${CURR_DIR}/build/IBM3161-font/LICENSE.txt" "${DESTDIR}/LICENCES/ibm3161-font.txt" || true
-        CSV+="\nIBM3161-font,GNU Unifont GPLv2,ibm3161-font.txt"
+    if $INCLUDE_AUTOCONF && 
+        [ -f "${CURR_DIR}/build/autoconf-${AUTOCONF_VER}/COPYING" ]; then
+        cp "${CURR_DIR}/build/autoconf-${AUTOCONF_VER}/COPYING" "${DESTDIR}/LICENCES/autoconf.txt" || true
+        CSV+="\nGNU Autoconf,GNU GPLv2,autoconf.txt"
     fi
 
-    if $INCLUDE_CON_FONTS && 
-        [ -f "${CURR_DIR}/build/Inconsolata-psf/OFL.txt" ]; then
-        cp "${CURR_DIR}/build/Inconsolata-psf/OFL.txt" "${DESTDIR}/LICENCES/inconsolata.txt" || true
-        CSV+="\nInconsolata,SIL OFL 1.1,inconsolata.txt"
+    if $INCLUDE_AUTOMAKE && 
+        [ -f "${CURR_DIR}/build/automake-${AUTOMAKE_VER}/COPYING" ]; then
+        cp "${CURR_DIR}/build/automake-${AUTOMAKE_VER}/COPYING" "${DESTDIR}/LICENCES/automake.txt" || true
+        CSV+="\nGNU Automake,GNU GPLv2,automake.txt"
     fi
 
     if $INCLUDE_INDENT && 
@@ -9254,10 +9393,16 @@ copy_licences()
         CSV+="\nGNU Indent,GNU GPLv3,indent.txt"
     fi
 
-    if $INCLUDE_KEYMAPS &&
-        [ -f "${CURR_DIR}/build/kbd/LICENSE" ]; then
-        cp "${CURR_DIR}/build/kbd/LICENSE" "${DESTDIR}/LICENCES/kbd.txt" || true
-        CSV+="\nconsole-data & KBD keymaps pack,GNU GPLv2,kbd.txt"
+    if $INCLUDE_LIBTOOL && 
+        [ -f "${CURR_DIR}/build/libtool-${LIBTOOL_VER}/COPYING" ]; then
+        cp "${CURR_DIR}/build/libtool-${LIBTOOL_VER}/COPYING" "${DESTDIR}/LICENCES/libtool.txt" || true
+        CSV+="\nGNU Libtool,GNU GPLv2,libtool.txt"
+    fi
+
+    if $INCLUDE_M4 && 
+        [ -f "${CURR_DIR}/build/m4-${M4_VER}/COPYING" ]; then
+        cp "${CURR_DIR}/build/m4-${M4_VER}/COPYING" "${DESTDIR}/LICENCES/m4.txt" || true
+        CSV+="\nGNU m4,GNU GPLv3,m4.txt"
     fi
 
     if $INCLUDE_MAKE && 
@@ -9300,6 +9445,18 @@ copy_licences()
         [ -f "${CURR_DIR}/build/plex/LICENSE.txt" ]; then
         cp "${CURR_DIR}/build/plex/LICENSE.txt" "${DESTDIR}/LICENCES/ibm-plex.txt" || true
         CSV+="\nIBM Plex,SIL OFL 1.1,ibm-plex.txt"
+    fi
+
+    if $INCLUDE_CON_FONTS && 
+        [ -f "${CURR_DIR}/build/IBM3161-font/LICENSE.txt" ]; then
+        cp "${CURR_DIR}/build/IBM3161-font/LICENSE.txt" "${DESTDIR}/LICENCES/ibm3161-font.txt" || true
+        CSV+="\nIBM3161-font,GNU Unifont GPLv2,ibm3161-font.txt"
+    fi
+
+    if $INCLUDE_CON_FONTS && 
+        [ -f "${CURR_DIR}/build/Inconsolata-psf/OFL.txt" ]; then
+        cp "${CURR_DIR}/build/Inconsolata-psf/OFL.txt" "${DESTDIR}/LICENCES/inconsolata.txt" || true
+        CSV+="\nInconsolata,SIL OFL 1.1,inconsolata.txt"
     fi
 
     if [ "$ID" == "shork-disc" ] &&
@@ -9550,6 +9707,12 @@ copy_licences()
         [ -f "${CURR_DIR}/build/patchelf-$PATCHELF_VER/COPYING" ]; then
         cp "${CURR_DIR}/build/patchelf-$PATCHELF_VER/COPYING" "${DESTDIR}/LICENCES/patchelf.txt" || true
         CSV+="\nPatchELF,GNU GPLv3,patchelf.txt"
+    fi
+
+    if $INCLUDE_PERL && 
+        [ -f "${CURR_DIR}/build/perl-${PERL_VER}/Copying" ]; then
+        cp "${CURR_DIR}/build/perl-${PERL_VER}/Copying" "${DESTDIR}/LICENCES/perl.txt" || true
+        CSV+="\nPerl & perl-cross,GNU GPLv1,perl.txt"
     fi
 
     if $INCLUDE_PCI_IDS && 
@@ -11495,7 +11658,7 @@ if $NEED_LIBUNISTRING; then
     get_libunistring
 fi
 if $NEED_LIBTOOL; then
-    get_libtool
+    get_libtool_tilde
 fi
 if $NEED_LIBTRANSCRIPT; then
     get_libtranscript
@@ -11634,6 +11797,51 @@ if $INCLUDE_CON_FONTS; then
 fi
 
 # Compile bunlded programs
+# m4 is required to be present before compiling Autoconf
+if $INCLUDE_M4; then
+    get_prog_tar \
+        "usr/bin" \
+        "m4" \
+        "m4" \
+        "${M4_VER}" \
+        "m4-${M4_VER}" \
+        ".tar.xz" \
+        "$M4_SRC" \
+        "xf" \
+        false \
+        false \
+        "/usr" \
+        ""
+fi
+if $INCLUDE_AUTOCONF; then
+    get_prog_tar \
+        "usr/bin" \
+        "autoconf" \
+        "autoconf" \
+        "${AUTOCONF_VER}" \
+        "autoconf-${AUTOCONF_VER}" \
+        ".tar.xz" \
+        "$AUTOCONF_SRC" \
+        "xf" \
+        false \
+        false \
+        "/usr" \
+        "M4=/usr/bin/m4"
+fi
+if $INCLUDE_AUTOMAKE; then
+    get_prog_tar \
+        "usr/bin" \
+        "automake" \
+        "automake" \
+        "${AUTOMAKE_VER}" \
+        "automake-${AUTOMAKE_VER}" \
+        ".tar.xz" \
+        "$AUTOMAKE_SRC" \
+        "xf" \
+        false \
+        false \
+        "/usr"
+fi
 if $INCLUDE_BIND9_DNSUTILS; then
     get_bind9_dnsutils
 fi
@@ -11865,6 +12073,20 @@ if $INCLUDE_JQ; then
         "/usr" \
         "--with-oniguruma=builtin"
 fi
+if $INCLUDE_LIBTOOL; then
+    get_prog_tar \
+        "usr/bin" \
+        "libtool" \
+        "libtool" \
+        "${LIBTOOL_VER}" \
+        "libtool-${LIBTOOL_VER}" \
+        ".tar.xz" \
+        "$LIBTOOL_SRC" \
+        "xf" \
+        false \
+        false \
+        "/usr"
+fi
 if $INCLUDE_LSB_RELEASE_MIN; then
     get_lsb_release_minimal
 fi
@@ -11991,6 +12213,10 @@ if $INCLUDE_PATCHELF; then
         false \
         "/usr"
 fi
+if $INCLUDE_PERL; then
+    get_perl
+    make_swap_wrap "${DESTDIR}/usr/bin/perl"
+fi
 if $INCLUDE_SC_IM; then
     get_sc_im
 fi
@@ -12089,7 +12315,9 @@ if [ "$BUILD_TYPE" != "micro" ]; then
     fi
 fi
 
-trim_fat
+if $TRIM_FAT; then
+    trim_fat
+fi
 copy_licences
 
 if $FIX_EXTLINUX; then

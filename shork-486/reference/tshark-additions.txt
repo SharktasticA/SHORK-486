@@ -1,6 +1,3 @@
-Size: 369MiB
-Files: 729
-Files added:
   usr/bin/capinfos
   usr/bin/captype
   usr/bin/dumpcap

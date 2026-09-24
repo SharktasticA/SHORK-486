@@ -1,0 +1,260 @@
+3Com 3c574 (3c574_cs):
+3Com 3c574 Fast EtherLink
+
+
+
+3Com 3c589 (3c589_cs):
+3Com 3c589 EtherLink III
+Farallon EtherWave/EtherMac
+Motorola Marquis
+
+
+
+ASIX AX88190 (axnet_cs):
+AmbiCom AMB8110 Fast Ethernet
+ASIX AX88190
+Billionton LNA-100B
+CHEETAH ETHERCARD EN2228
+CNet CNF301
+corega FEther PCC-TXD
+corega FEther PCC-TXM
+corega FEtherII PCC-TXD
+Dynalink L100C16
+(Generic) 100BASE
+(Generic) FastEtherCard
+(Generic) FEP501
+IO DATA ETX-PCM
+Linksys PCMPC100 EtherFast 10/100 (V3)
+MELCO LPC3-TX
+NETGEAR FA411
+Network Everywhere AX88190
+
+
+
+Fujitsu FMV-J18x (fmvj18x_cs):
+EAGLE NE200 ETHERNET LAN MBH10302 04
+Eiger EPX-10BT PC Card Ethernet 10BT
+FUJITSU FMV-J182 LAN
+FUJITSU MBH10308
+FUJITSU TOWA LA501
+(Generic) LAN MBH10304 ES
+(Generic) MBH10302
+HITACHI HT-4840-11
+NEC PK-UG-J001
+NextCom NC5310
+NextCom NC5310B
+RATOC REX-R280
+TDK GlobalNetworker 3410/3412
+TDK LAC-CD02x
+TDK LAC-CF010
+UBKK,V2.0
+
+
+
+New Media LAN (nmclan_cs):
+New Media Ethernet
+Portable Add-ons Ethernet+
+
+
+
+Novell NE2000 (pcnet_cs):
+2408LAN Ethernet
+2412LAN
+=RELIA== Ethernet
+(Generic) 10/100Mbps Ethernet Card
+(Generic) EN2218-LAN/MODEM
+(Generic) Ethernet
+(Generic) ETHERNET
+(Generic) Ethernet 10BaseT Card
+(Generic) Ethernet Card
+(Generic) Ethernet Combo card
+(Generic) Ethernet NE2000 Compatible
+(Generic) ETHERNET V1.0
+(Generic) FAST ETHERNET CARD
+(Generic) Fast-Ethernet
+(Generic) FastEthernet
+(Generic) LNT-10TN
+(Generic) PCMCIA-ETHERNET-CARD UE2216
+(Generic) PCMCIA-ETHERNET-CARD UE2620
+(Generic) UE2212
+(Generic) UE2218-LAN/MODEM
+ACCTON EN2212
+ACCTON EN2216-PCMCIA-ETHERNET
+Allied Telesis K.K. LA100-PCM V2
+Allied Telesis K.K. LA-PCM V3
+Allied Telesis, K.K. CentreCOM LA100-PCM-T V2 100/10M LAN PC Card
+Allied Telesis, K.K. CentreCOM LA-PCM_V2
+Allied Telesis,K.K Ethernet LAN Card
+AmbiCom AMB8010
+AmbiCom AMB8610
+AmbiCom Inc AMB8002
+AmbiCom Inc AMB8002T
+AmbiCom Inc AMB8010
+AnyCom ECO Ethernet
+AnyCom ECO Ethernet 10/100
+AnyCom Fast Ethernet + 56K COMBO
+APEX DATA MULTICARD ETHERNET-MODEM
+AROWANA PCMCIA Ethernet LAN Card
+ASANTE FriendlyNet PC Card
+ATKK LM33-PCM-T
+Billionton LNT-10TB
+Cardwell PCMCIA ETHERNET
+CF 10Base-Ethernet
+CNet CN30BC ETHERNET
+CNet CN40BC Ethernet
+COMPU-SHACK BASEline PCMCIA 10 MBit Ethernetadapter
+COMPU-SHACK FASTline PCMCIA 10/100 Fast-Ethernet
+CONTEC C-NET(PC)C-10L
+corega Ether CF-TD
+corega FEther PCC-TXF
+corega K.K. (CG-LAPCCTXD)
+corega K.K. corega Ether CF-TD LAN Card
+corega K.K. corega Ether PCC-T
+corega K.K. corega Ether PCC-TD
+corega K.K. corega EtherII PCC-T
+corega K.K. corega FastEther PCC-TX
+Corega K.K. corega EtherII PCC-TD
+corega,K.K. Ethernet LAN Card
+CouplerlessPCMCIA 100BASE
+CyQ've 10 Base-T LAN CARD
+CyQ've ELA-010
+CyQ've ELA-110E 10/100M LAN Card
+DataTrek. NetCard
+DAYNA COMMUNICATIONS LAN AND MODEM MULTIFUNCTION
+Dayna Communications, Inc. CommuniCard E
+Digicom Palladio LAN 10/100
+Digicom Palladio LAN 10/100 Dongless
+DIGITAL DEPCM-XX
+Digital Ethernet Adapter
+D-Link DE-650
+D-Link DE-660
+D-Link DE-660+
+D-Link DFE-650
+D-Link DME336T
+Dual Speed 10/100 PC Card
+Dual Speed 10/100 Port Attached PC Card
+DYNALINK L10BC
+DYNALINK L10C
+E-CARD E-CARD
+Edimax Technology Inc. PCMCIA Ethernet Card
+EFA EFA207 ETHERNET
+EIGER Labs Inc. Ethernet 10BaseT card
+EIGER Labs Inc. Ethernet Combo card
+EN-6200P2
+EP-210 PCMCIA LAN CARD.
+ETHER-C16
+Ethernet Adapter
+Ethernet Adapter E2000 PCMCIA Ethernet
+Ethernet CF Size PC Card
+Ethernet PCMCIA adapter EP-210
+Fast Ethernet Adapter
+Fast Ethernet CF Size PC Card 1.0
+Grey Cell GCS2000
+Grey Cell GCS2220
+Grey Cell GCS3000
+GVC NIC-2000p
+Hypertec EP401
+IBM Corp. Ethernet
+IBM Home and Away 28.8 PC Card
+IBM Home and Away Credit Card Adapter
+IBM w95 Home and Away Credit Card
+IC-CARD IC-CARD
+IC-CARD+ IC-CARD+
+iPort 10/100 Ethernet Card
+I-O DATA PCLA ETHERNET
+IO DATA PCETTX
+IO DATA PCLATE ETHERNET
+KANSAI ELECTRIC CO.,LTD KLA-PCM/T
+KCI PE520 PCMCIA Ethernet Adapter
+KENTRONICS KEP-230
+KingMax Technology Inc. EN10-T2 PCMCIA Ethernet Card
+KingMax Technology Inc. Ethernet Card
+KINGMAX EN10T2T
+Kingston KNE-PC2
+Kingston Technology Corp. EtheRx PC Card Ethernet Adapter
+KTI PE520 PLUS
+Laneed LD-10/100CD
+Laneed LD-CDF
+Laneed LD-CDL/T
+Laneed LD-CDS
+LEMEL LM-N89TX PRO
+LINKSYS E-CARD
+LINKSYS PCMLM28
+LINKSYS PCMLM336
+Linksys Combo PCMCIA EthernetCard (EC2T)
+Linksys EtherFast 10&100 + 56K PC Card (PCMLM56)
+Linksys EtherFast 10/100 Integrated PC Card (PCM100)
+Linksys EtherFast 10/100 PC Card (PCMPC100)
+Linksys EtherFast 10/100 PC Card (PCMPC100 V2)
+Linksys HomeLink Phoneline + 10/100 Network PC Card (PCM100H1)
+Logitec LPM-LN100TE
+Logitec LPM-LN100TX
+Logitec LPM-LN10TE
+Logitec LPM-LN20T
+LONGSHINE EP401
+LONGSHINE PCMCIA Ethernet Card
+MACNICA ME1-JEIDA
+Macsense MPC-10
+Matsushita Electric Industrial Co.,LTD. CF-VEL211
+MAXTECH PCN2000
+MELCO LPC2-T
+MELCO LPC2-TX
+Microcom C.E. Travel Card LAN 10/100
+Microdyne NE4200
+MICRO RESEARCH COMBO-L/M-336
+MIDORI ELEC. LT-PCMT
+National Semiconductor InfoMover 4100
+National Semiconductor InfoMover NE4100
+NDC Ethernet
+NE2000 Compatible
+NEC PC-9801N-J12
+NETGEAR FA410TX
+Network Everywhere Fast Ethernet 10/100 PC Card
+NextCom K.K. Next Hawk
+NSC MF LAN/Modem
+PCMCIA LAN Ethernet
+PCMCIAs ComboCard
+PCMCIAs LanModem
+PMX PE-200
+PRETEC Ethernet CompactLAN 10baseT 3.3V
+PRETEC Ethernet CompactLAN 10BaseT 3.3V
+Psion Dacom Gold Card Ethernet
+Psion Dacom Gold Card V34 Ethernet
+Psion Dacom Gold Card V34 Ethernet GSM
+RIOS Systems Co. PC CARD3 ETHERNET
+RP 1625B Ethernet NE2000 Compatible
+RPTI EP400 Ethernet NE2000 Compatible
+RPTI EP401 Ethernet NE2000 Compatible
+RPTI LTD. EP400
+SCM Ethernet Combo card
+Seiko Epson Corp. Ethernet
+SMC EZCard-10-PCMCIA
+Socket CF 10/100 Ethernet Card Revision B 05/11/06
+Socket Communications Inc Socket EA PCMCIA LAN Adapter Revision D
+Socket Communications Inc Socket EA PCMCIA LAN Adapter Revision E
+TAMARACK Ethernet
+TDK LAK-CD031 for PCMCIA
+Telecom Device K.K. SuperSocket RE450T
+Telecom Device K.K. SuperSocket RE550T
+TOSHIBA Modem/LAN Card
+Xircom CFE-10
+
+
+Xircom 16-bit (xirc2ps_cs):
+Compaq CPQ-10/100 Netelligent 10/100  
+Compaq Ethernet LAN  
+Intel EtherExpress PRO/100  
+Toshiba 10/100 Ethernet  
+Toshiba TPCENET  
+Xircom CE2-10 CreditCard Ethernet  
+Xircom CE3-10/100 CreditCard Ethernet 10/100  
+Xircom CEM2 CreditCard Ethernet + Modem II  
+Xircom CEM28 CreditCard Ethernet + Modem 28  
+Xircom CEM33 CreditCard Ethernet + Modem 33  
+Xircom CEM56 CreditCard Ethernet 10/100 + Modem 56  
+Xircom R2E-100BTX RealPort2 Ethernet 10/100  
+Xircom RE-10 RealPort Ethernet 10  
+Xircom RE-100 RealPort Ethernet 10/100  
+Xircom REM10  
+Xircom XEM5600 RealPort 10/100 LAN + 56k Modem
+

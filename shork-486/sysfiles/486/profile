@@ -18,10 +18,14 @@ export USER=root
 export LOGNAME=root
 export SHELL=/bin/sh
 export PS1='\[\033[0;37m\]\[\033[40m\]\w$ '
+export LC_ALL=C
 
 export PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin
 if [ -d /opt/i486-linux-musl-native/bin ]; then
     PATH="/opt/i486-linux-musl-native/bin:$PATH"
+    export CC=gcc
+elif [ -x /usr/bin/tcc ]; then
+    export CC=tcc
 fi
 export PATH
 
@@ -46,8 +50,9 @@ shorkset()
     exit
 }
 
-# Wraps launching a program with creating a 8-64MiB swapfile for it to help
-# prevent the kernel from OOM-killing it when the system runs out of RAM
+# Wraps launching a program with creating a 8-32MiB swapfile for it to help
+# prevent the kernel from OOM-killing it when the system runs out of
+# physical memory
 _swap_wrap()
 {
     local BIN_PATH="$1"
@@ -85,7 +90,7 @@ _swap_wrap()
     local SWAP_DIR="/var/tmp"
     local SWAP_PATH="${SWAP_DIR}/.$(basename "$BIN_PATH")_ramswap.$$"
     local SWAP_MIN=$((8 * 1024 * 1024))
-    local SWAP_MAX=$((64 * 1024 * 1024))
+    local SWAP_MAX=$((32 * 1024 * 1024))
     local TARGET_B=$SWAP_MIN
 
     # Clamp target swap between MIN and MAX, else 2x RAM if in range

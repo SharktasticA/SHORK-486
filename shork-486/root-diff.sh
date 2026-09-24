@@ -31,7 +31,7 @@ trap 'rm -f "$BEFORE_LIST" "$AFTER_LIST"' EXIT
 
 get_size()
 {
-    du -sm "$TARGET_DIR" 2>/dev/null | cut -f1
+    du -sk "$TARGET_DIR" 2>/dev/null | cut -f1
 }
 
 get_file_count()
@@ -53,13 +53,14 @@ get_file_list > "$BEFORE_LIST"
 BEFORE_FILES=$(wc -l < "$BEFORE_LIST")
 
 printf "Before:\n"
-printf "Size: ${BEFORE_SIZE}MiB\n"
+printf "Size: ${BEFORE_SIZE}KiB\n"
 printf "Files: ${BEFORE_FILES}\n\n"
 
 
 
 read -rp "Press ENTER to make AFTER snapshot..."
 AFTER_SIZE=$(get_size)
+DIFF_SIZE=$((AFTER_SIZE - BEFORE_SIZE))
 get_file_list > "$AFTER_LIST"
 AFTER_FILES=$(wc -l < "$AFTER_LIST")
 
@@ -70,7 +71,8 @@ if [ -n "$ADDED_FILES" ]; then
 fi
 
 printf "After:\n"
-printf "Size: ${AFTER_SIZE}MiB\n"
+printf "Size: ${AFTER_SIZE}KiB\n"
+printf "Difference: ${DIFF_SIZE}KiB\n"
 printf "Files: ${AFTER_FILES}\n"
 printf "Files added:\n"
 if [ "$ADDED_COUNT" -eq 0 ]; then
@@ -78,3 +80,20 @@ if [ "$ADDED_COUNT" -eq 0 ]; then
 else
     echo "$ADDED_FILES" | sed 's/^\.\//  /'
 fi
+
+{
+    printf "Before:\n"
+    printf "Size: ${BEFORE_SIZE}KiB\n"
+    printf "Files: ${BEFORE_FILES}\n\n"
+
+    printf "After:\n"
+    printf "Size: ${AFTER_SIZE}KiB\n"
+    printf "Difference: ${DIFF_SIZE}KiB\n"
+    printf "Files: ${AFTER_FILES}\n"
+    printf "Files added:\n"
+    if [ "$ADDED_COUNT" -eq 0 ]; then
+        echo "(none)"
+    else
+        echo "$ADDED_FILES" | sed 's/^\.\//  /'
+    fi
+} > root-diff.txt
