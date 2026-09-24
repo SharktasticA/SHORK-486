@@ -4250,14 +4250,20 @@ get_busybox()
     cd $BUSYBOX
 
     # Patch to fix error with running menuconfig
-    sed -i 's/main() {}/int main() {}/' scripts/kconfig/lxdialog/check-lxdialog.sh
+    sed -i 's/main() {}/int main() {}/' \
+        scripts/kconfig/lxdialog/check-lxdialog.sh
 
-    # Patch BusyBox's eject and volname to default to /dev/sr0 not /dev/cdrom
+    # Patch BusyBox's eject and volname to default to /dev/sr0 not
+    # /dev/cdrom
     sed -i 's|"/dev/cdrom"|"/dev/sr0"|' util-linux/eject.c
     sed -i 's|"/dev/cdrom"|"/dev/sr0"|' miscutils/volname.c
 
     # Patch login timeout to 0
     sed -i 's/getenv("LOGIN_TIMEOUT") ? : "60"/getenv("LOGIN_TIMEOUT") ? : "0"/' loginutils/login.c
+
+    # Patch "Please press Enter to activate this console" message to not
+    # include a prefixing new line
+    sed -i 's|\\nPlease|Please|' init/init.c
 
     echo -e "${GREEN}Copying base ${DIST} BusyBox .config file...${RESET}"
     if [ "$ID" == "shork-486" ]; then
