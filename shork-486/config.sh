@@ -27,7 +27,7 @@ CUSTOM_MIN_DISK=8
 DEFAULT_DEF_SWAP=8
 DEFAULT_MIN_DISK=100
 MAX_DEF_SWAP=16
-MAX_MIN_DISK=640
+MAX_MIN_DISK=720
 MICRO_DEF_SWAP=0
 MICRO_MIN_DISK=4
 MINI_DEF_SWAP=0
@@ -35,7 +35,7 @@ MINI_MIN_DISK=8
 OFFLINE_DEF_SWAP=8
 OFFLINE_MIN_DISK=70
 PLUS_DEF_SWAP=16
-PLUS_MIN_DISK=600
+PLUS_MIN_DISK=680
 TERM_DEF_SWAP=8
 TERM_MIN_DISK=70
 WRITER_DEF_SWAP=16
@@ -63,6 +63,8 @@ ENABLE_MULTIUSER_REAL=false
 ROOT_PASSWD=""
 ENABLE_SERIAL_CON=false
 SERIAL_CON_PORT="ttyS0"
+INCLUDE_AUTOCONF=false
+INCLUDE_AUTOMAKE=false
 INCLUDE_BIND9_DNSUTILS=false
 INCLUDE_C3270=false
 INCLUDE_CSCOPE=false
@@ -81,9 +83,11 @@ INCLUDE_GPM=false
 INCLUDE_HTOP=false
 INCLUDE_INDENT=false
 INCLUDE_JOE=false
+INCLUDE_LIBTOOL=false
 INCLUDE_LSB_RELEASE_MIN=false
 INCLUDE_LUA=false
 INCLUDE_LYNX=false
+INCLUDE_M4=false
 INCLUDE_MAKE=false
 INCLUDE_MEMTESTER=false
 INCLUDE_MG=false
@@ -96,6 +100,7 @@ INCLUDE_NASM=false
 INCLUDE_NBSDGAMES=false
 INCLUDE_NCDU=false
 INCLUDE_PATCHELF=false
+INCLUDE_PERL=false
 INCLUDE_SC_IM=false
 INCLUDE_SHORKSTALL=false
 INCLUDE_SHORKTAINMENT=false
@@ -217,6 +222,8 @@ save_env()
         printf 'ROOT_PASSWD=%s\n' "$(printf "'%s'" "$ROOT_PASSWD")"
         echo "ENABLE_SERIAL_CON=$ENABLE_SERIAL_CON"
         printf 'SERIAL_CON_PORT=%s\n' "$(printf '"%s"' "$SERIAL_CON_PORT")"
+        echo "INCLUDE_AUTOCONF=$INCLUDE_AUTOCONF"
+        echo "INCLUDE_AUTOMAKE=$INCLUDE_AUTOMAKE"
         echo "INCLUDE_BIND9_DNSUTILS=$INCLUDE_BIND9_DNSUTILS"
         echo "INCLUDE_C3270=$INCLUDE_C3270"
         echo "INCLUDE_CSCOPE=$INCLUDE_CSCOPE"
@@ -236,9 +243,11 @@ save_env()
         echo "INCLUDE_INDENT=$INCLUDE_INDENT"
         echo "INCLUDE_JOE=$INCLUDE_JOE"
         echo "INCLUDE_JQ=$INCLUDE_JQ"
+        echo "INCLUDE_LIBTOOL=$INCLUDE_LIBTOOL"
         echo "INCLUDE_LSB_RELEASE_MIN=$INCLUDE_LSB_RELEASE_MIN"
         echo "INCLUDE_LUA=$INCLUDE_LUA"
         echo "INCLUDE_LYNX=$INCLUDE_LYNX"
+        echo "INCLUDE_M4=$INCLUDE_M4"
         echo "INCLUDE_MAKE=$INCLUDE_MAKE"
         echo "INCLUDE_MEMTESTER=$INCLUDE_MEMTESTER"
         echo "INCLUDE_MG=$INCLUDE_MG"
@@ -251,6 +260,7 @@ save_env()
         echo "INCLUDE_NBSDGAMES=$INCLUDE_NBSDGAMES"
         echo "INCLUDE_NCDU=$INCLUDE_NCDU"
         echo "INCLUDE_PATCHELF=$INCLUDE_PATCHELF"
+        echo "INCLUDE_PERL=$INCLUDE_PERL"
         echo "INCLUDE_SC_IM=$INCLUDE_SC_IM"
         echo "INCLUDE_SHORKSTALL=$INCLUDE_SHORKSTALL"
         echo "INCLUDE_SHORKTAINMENT=$INCLUDE_SHORKTAINMENT"
@@ -318,6 +328,8 @@ set_mini_vars()
 
     ENABLE_NET_ETH=false
 
+    INCLUDE_AUTOCONF=false
+    INCLUDE_AUTOMAKE=false
     INCLUDE_BIND9_DNSUTILS=false
     INCLUDE_C3270=false
     INCLUDE_CSCOPE=false
@@ -337,9 +349,11 @@ set_mini_vars()
     INCLUDE_INDENT=false
     INCLUDE_JOE=false
     INCLUDE_JQ=false
+    INCLUDE_LIBTOOL=false
     INCLUDE_LSB_RELEASE_MIN=false
     INCLUDE_LUA=false
     INCLUDE_LYNX=false
+    INCLUDE_M4=false
     INCLUDE_MAKE=false
     INCLUDE_MEMTESTER=false
     INCLUDE_MG=false
@@ -352,6 +366,7 @@ set_mini_vars()
     INCLUDE_NBSDGAMES=false
     INCLUDE_NCDU=false
     INCLUDE_PATCHELF=false
+    INCLUDE_PERL=false
     INCLUDE_SC_IM=false
     INCLUDE_SHORKSTALL=false
     INCLUDE_SHORKTAINMENT=false
@@ -507,6 +522,8 @@ set_plus_vars()
 {
     set_default_vars
 
+    INCLUDE_AUTOCONF=true
+    INCLUDE_AUTOMAKE=true
     INCLUDE_BIND9_DNSUTILS=true
     INCLUDE_C3270=true
     INCLUDE_CSCOPE=true
@@ -517,12 +534,15 @@ set_plus_vars()
     INCLUDE_INDENT=true
     INCLUDE_JOE=true
     INCLUDE_JQ=true
+    INCLUDE_LIBTOOL=true
+    INCLUDE_M4=true
     INCLUDE_MAKE=true
     INCLUDE_MIDNIGHT_CMDR=true
     INCLUDE_MPG321=true
     INCLUDE_NASM=true
     INCLUDE_NBSDGAMES=true
     INCLUDE_PATCHELF=true
+    INCLUDE_PERL=true
     INCLUDE_TILDE=true
     INCLUDE_TN5250=true
     INCLUDE_VIM=true
@@ -667,8 +687,8 @@ if [ "$ID" == "shork-486" ]; then
         --default-item "$BUILD_TYPE" \
         --menu "Select the build type, presets for SHORK 486 feature levels. The recommended minimum requirements for each are enclosed in brackets. The \"custom\" option will enable further prompts for software and feature selection." 18 $WIDTH 9 \
         "default"   "Typical experience             (16MiB RAM, 8MiB swap, 100MiB disk)" \
-        "max"       "Largest configuration          (24MiB RAM, 16MiB swap, 640MiB disk)" \
-        "plus"      "Default w/ optional software   (16MiB RAM, 16MiB swap, 600MiB disk)" \
+        "max"       "Largest configuration          (24MiB RAM, 16MiB swap, 720MiB disk)" \
+        "plus"      "Default w/ optional software   (16MiB RAM, 16MiB swap, 680MiB disk)" \
         "writer"    "Writing focused                (16MiB RAM, 16MiB swap, 100MiB disk)" \
         "terminal"  "Remote session & file transfer (16MiB RAM, 8MiB swap, 70MiB disk)" \
         "offline"   "Default w/o networking         (12MiB RAM, 8MiB swap, 65MiB disk)" \
@@ -1315,27 +1335,32 @@ if [ "$ENABLE_NET_ETH" == true ]; then
         "file"              "*†File type identification (10MiB)"                    "$(val "$INCLUDE_FILE")"
         "gcc"               "†GCC + binutils + musl (215MiB)"                       "$(val "$INCLUDE_GCC")"
         "git"               "*Source control client (19MiB)"                        "$(val "$INCLUDE_GIT")"
+        "gnu-autoconf"      "†configure script generator (2.1MiB)"                  "$(val "$INCLUDE_AUTOCONF")"
+        "gnu-automake"      "†Makefile.in generator (1.6MiB)"                       "$(val "$INCLUDE_AUTOMAKE")"
+        "gnu-indent"        "C code formatter (0.1MiB)"                             "$(val "$INCLUDE_INDENT")"
+        "gnu-libtool"       "Portable shared library build helper (2.4MiB)"         "$(val "$INCLUDE_LIBTOOL")"
+        "gnu-m4"            "General-purpose macro processor (0.4MiB)"              "$(val "$INCLUDE_M4")"
+        "gnu-make"          "Build automation tool (0.3MiB)"                        "$(val "$INCLUDE_MAKE")"
+        "gnu-midnight-cmdr" "†Norton Commander-style file manager (9MiB)"           "$(val "$INCLUDE_MIDNIGHT_CMDR")"
+        "gnu-nano"          "*Pico-style text editor (0.8MiB)"                      "$(val "$INCLUDE_NANO")"
         "gnupg"             "OpenPGP-compliant encryption & signing (25MiB)"        "$(val "$INCLUDE_GNUPG")"
         "gpm"               "*Virtual console mouse (0.6MiB)"                       "$(val "$INCLUDE_GPM")"
         "htop"              "*Interactive process viewer (0.6MiB)"                  "$(val "$INCLUDE_HTOP")"
-        "indent"            "C code formatter (0.1MiB)"                             "$(val "$INCLUDE_INDENT")"
         "joe"               "WordStar & Emacs-blend text editor (1.9MiB)"           "$(val "$INCLUDE_JOE")"
         "jq"                "Command-line JSON processor (0.9MiB)"                  "$(val "$INCLUDE_JQ")"
         "lsb-release-min"   "*LSB/distribution info reporter (0.03MiB)"             "$(val "$INCLUDE_LSB_RELEASE_MIN")"
         "lua"               "*Embedded scripting & extensions language (0.4MiB)"    "$(val "$INCLUDE_LUA")"
         "lynx"              "*Terminal web browser (7.3MiB)"                        "$(val "$INCLUDE_LYNX")"
-        "make"              "Build automation tool (0.3MiB)"                        "$(val "$INCLUDE_MAKE")"
         "memtester"         "*Userspace memory subsystem fault tester (0.05MiB)"    "$(val "$INCLUDE_MEMTESTER")"
         "mg"                "*Emacs-style text editor (0.3MiB)"                     "$(val "$INCLUDE_MG")"
         "micropython"       "*Python 3.4-syntax intepreter (0.7MiB)"                "$(val "$INCLUDE_MICROPYTHON")"
-        "midnight-cmdr"     "†Norton Commander-style file manager (9MiB)"           "$(val "$INCLUDE_MIDNIGHT_CMDR")"
         "mpg321"            "MP3 player (0.4MiB)"                                   "$(val "$INCLUDE_MPG321")"
         "mt-st"             "*Tape drive tools (0.2MiB)"                            "$(val "$INCLUDE_MT_ST")"
-        "nano"              "*Pico-style text editor (0.8MiB)"                      "$(val "$INCLUDE_NANO")"
         "nasm"              "Portable x86 assembler & disassembler (2.5MiB)"        "$(val "$INCLUDE_NASM")"
         "nbsdgames"         "†Terminal games pack (8MiB)"                           "$(val "$INCLUDE_NBSDGAMES")"
         "ncdu"              "*Disk usage analyser (0.4MiB)"                         "$(val "$INCLUDE_NCDU")"
         "patchelf"          "*ELF binary patching (0.9MiB)"                         "$(val "$INCLUDE_PATCHELF")"
+        "perl"              "†General-purpose scripting language (40.3MiB)"         "$(val "$INCLUDE_PERL")"
         "sc-im"             "*Terminal spreadsheet editor (2.8MiB)"                 "$(val "$INCLUDE_SC_IM")"
         "shorktainment"     "*shorkmatrix, shorkmines, shorksay & sl (0.5MiB)"      "$(val "$INCLUDE_SHORKTAINMENT")"
         "strace"            "*System calls & signals tracer (1.1MiB)"               "$(val "$INCLUDE_STRACE")"
@@ -1358,25 +1383,30 @@ else
         "e2fsprogs"         "*ext2/3/4 file system utilities (4MiB)"                "$(val "$INCLUDE_E2FSPROGS")"
         "file"              "*†File type identification (10MiB)"                    "$(val "$INCLUDE_FILE")"
         "gcc"               "†GCC + binutils + musl (215MiB)"                       "$(val "$INCLUDE_GCC")"
+        "gnu-autoconf"      "†configure script generator (2.1MiB)"                  "$(val "$INCLUDE_AUTOCONF")"
+        "gnu-automake"      "†Makefile.in generator (1.6MiB)"                       "$(val "$INCLUDE_AUTOMAKE")"
+        "gnu-indent"        "C code formatter (0.1MiB)"                             "$(val "$INCLUDE_INDENT")"
+        "gnu-libtool"       "Portable shared library build helper (2.4MiB)"         "$(val "$INCLUDE_LIBTOOL")"
+        "gnu-m4"            "General-purpose macro processor (0.4MiB)"              "$(val "$INCLUDE_M4")"
+        "gnu-make"          "Build automation tool (0.3MiB)"                        "$(val "$INCLUDE_MAKE")"
+        "gnu-nano"          "*Pico-style text editor (0.8MiB)"                      "$(val "$INCLUDE_NANO")"
         "gnupg"             "OpenPGP-compliant encryption & signing (25MiB)"        "$(val "$INCLUDE_GNUPG")"
         "gpm"               "*Virtual console mouse (0.6MiB)"                       "$(val "$INCLUDE_GPM")"
         "htop"              "*Interactive process viewer (0.6MiB)"                  "$(val "$INCLUDE_HTOP")"
-        "indent"            "C code formatter (0.1MiB)"                             "$(val "$INCLUDE_INDENT")"
         "joe"               "WordStar & Emacs-blend text editor (1.9MiB)"           "$(val "$INCLUDE_JOE")"
         "jq"                "Command-line JSON processor (0.9MiB)"                  "$(val "$INCLUDE_JQ")"
         "lsb-release-min"   "*LSB/distribution info reporter (0.03MiB)"             "$(val "$INCLUDE_LSB_RELEASE_MIN")"
-        "lua"              "*Embedded scripting & extensions language (0.4MiB)"     "$(val "$INCLUDE_LUA")"
-        "make"              "Build automation tool (0.3MiB)"                        "$(val "$INCLUDE_MAKE")"
+        "lua"               "*Embedded scripting & extensions language (0.4MiB)"    "$(val "$INCLUDE_LUA")"
         "memtester"         "*Userspace memory subsystem fault tester (0.05MiB)"    "$(val "$INCLUDE_MEMTESTER")"
         "mg"                "*Emacs-style text editor (0.3MiB)"                     "$(val "$INCLUDE_MG")"
         "micropython"       "*Python 3.4-syntax intepreter (0.7MiB)"                "$(val "$INCLUDE_MICROPYTHON")"
         "mpg321"            "MP3 player (0.4MiB)"                                   "$(val "$INCLUDE_MPG321")"
         "mt-st"             "*Tape drive tools (0.2MiB)"                            "$(val "$INCLUDE_MT_ST")"
-        "nano"              "*Pico-style text editor (0.8MiB)"                      "$(val "$INCLUDE_NANO")"
         "nasm"              "Portable x86 assembler & disassembler (2.5MiB)"        "$(val "$INCLUDE_NASM")"
         "nbsdgames"         "†Terminal games pack (8MiB)"                           "$(val "$INCLUDE_NBSDGAMES")"
         "ncdu"              "*Disk usage analyser (0.4MiB)"                         "$(val "$INCLUDE_NCDU")"
         "patchelf"          "*ELF binary patching (0.9MiB)"                         "$(val "$INCLUDE_PATCHELF")"
+        "perl"              "General-purpose scripting language (40.3MiB)"          "$(val "$INCLUDE_PERL")"
         "sc-im"             "*Terminal spreadsheet editor (2.8MiB)"                 "$(val "$INCLUDE_SC_IM")"
         "shorktainment"     "*shorkmatrix, shorkmines, shorksay & sl (0.5MiB)"      "$(val "$INCLUDE_SHORKTAINMENT")"
         "strace"            "*System calls & signals tracer (1.1MiB)"               "$(val "$INCLUDE_STRACE")"
@@ -1394,7 +1424,7 @@ BUNDLED=$(dialog --clear \
     --backtitle "SHORK 486 Build Configurator" \
     --title "Bundled Software" \
     --cancel-label "Skip" \
-    --checklist "Select what software to bundle with SHORK 486.\n* This option would be included in a \"default\" build\n† This option can raise system memory requirements" $HEIGHT $WIDTH 8 \
+    --checklist "Select what software to bundle with SHORK 486.\n* This option would be included in a \"default\" build\n† This option has specific memory requirements (check GitHub repository's README)" $HEIGHT $WIDTH 8 \
     "${BUNDLED_ITEMS[@]}" \
     2>&1 >/dev/tty)
 
@@ -1403,51 +1433,56 @@ SKIPPED=$?
 if [[ $SKIPPED -eq 1 ]]; then
     :
 else
-    if [[ $BUNDLED =~ "bind9-dnsutils" ]];  then INCLUDE_BIND9_DNSUTILS=true;   else INCLUDE_BIND9_DNSUTILS=false;  fi
-    if [[ $BUNDLED =~ "c3270" ]];           then INCLUDE_C3270=true;            else INCLUDE_C3270=false;           fi
-    if [[ $BUNDLED =~ "cscope" ]];          then INCLUDE_CSCOPE=true;           else INCLUDE_CSCOPE=false;          fi
-    if [[ $BUNDLED =~ "ctags" ]];           then INCLUDE_CTAGS=true;            else INCLUDE_CTAGS=false;           fi
-    if [[ $BUNDLED =~ "ctris" ]];           then INCLUDE_CTRIS=true;            else INCLUDE_CTRIS=false;           fi
-    if [[ $BUNDLED =~ "curl" ]];            then INCLUDE_CURL=true;             else INCLUDE_CURL=false;            fi
-    if [[ $BUNDLED =~ "dialog" ]];          then INCLUDE_DIALOG=true;           else INCLUDE_DIALOG=false;          fi
-    if [[ $BUNDLED =~ "dosfstools" ]]       then INCLUDE_DOSFSTOOLS=true;       else INCLUDE_DOSFSTOOLS=false;      fi
-    if [[ $BUNDLED =~ "dropbear" ]];        then INCLUDE_DROPBEAR=true;         else INCLUDE_DROPBEAR=false;        fi
-    if [[ $BUNDLED =~ "e2fsprogs" ]];       then INCLUDE_E2FSPROGS=true;        else INCLUDE_E2FSPROGS=false;       fi
-    if [[ $BUNDLED =~ "file" ]];            then INCLUDE_FILE=true;             else INCLUDE_FILE=false;            fi
-    if [[ $BUNDLED =~ "gcc" ]];             then INCLUDE_GCC=true;              else INCLUDE_GCC=false;             fi
-    if [[ $BUNDLED =~ "git" ]];             then INCLUDE_GIT=true;              else INCLUDE_GIT=false;             fi
-    if [[ $BUNDLED =~ "gnupg" ]];           then INCLUDE_GNUPG=true;            else INCLUDE_GNUPG=false;           fi
-    if [[ $BUNDLED =~ "gpm" ]];             then INCLUDE_GPM=true;              else INCLUDE_GPM=false;             fi
-    if [[ $BUNDLED =~ "htop" ]];            then INCLUDE_HTOP=true;             else INCLUDE_HTOP=false;            fi
-    if [[ $BUNDLED =~ "indent" ]]           then INCLUDE_INDENT=true;           else INCLUDE_INDENT=false;          fi
-    if [[ $BUNDLED =~ "joe" ]];             then INCLUDE_JOE=true;              else INCLUDE_JOE=false;             fi
-    if [[ $BUNDLED =~ "jq" ]];              then INCLUDE_JQ=true;               else INCLUDE_JQ=false;              fi
-    if [[ $BUNDLED =~ "lsb-release-min" ]]; then INCLUDE_LSB_RELEASE_MIN=true;  else INCLUDE_LSB_RELEASE_MIN=false; fi
-    if [[ $BUNDLED =~ "lua" ]];             then INCLUDE_LUA=true;              else INCLUDE_LUA=false;             fi
-    if [[ $BUNDLED =~ "lynx" ]];            then INCLUDE_LYNX=true;             else INCLUDE_LYNX=false;            fi
-    if [[ $BUNDLED =~ "make" ]];            then INCLUDE_MAKE=true;             else INCLUDE_MAKE=false;            fi
-    if [[ $BUNDLED =~ "memtester" ]];       then INCLUDE_MEMTESTER=true;        else INCLUDE_MEMTESTER=false;       fi
-    if [[ $BUNDLED =~ "mg" ]];              then INCLUDE_MG=true;               else INCLUDE_MG=false;              fi
-    if [[ $BUNDLED =~ "micropython" ]];     then INCLUDE_MICROPYTHON=true;      else INCLUDE_MICROPYTHON=false;     fi
-    if [[ $BUNDLED =~ "midnight-cmdr" ]];   then INCLUDE_MIDNIGHT_CMDR=true;    else INCLUDE_MIDNIGHT_CMDR=false;   fi
-    if [[ $BUNDLED =~ "mpg321" ]];          then INCLUDE_MPG321=true;           else INCLUDE_MPG321=false;          fi
-    if [[ $BUNDLED =~ "mt-st" ]];           then INCLUDE_MT_ST=true;            else INCLUDE_MT_ST=false;           fi
-    if [[ $BUNDLED =~ "nano" ]];            then INCLUDE_NANO=true;             else INCLUDE_NANO=false;            fi
-    if [[ $BUNDLED =~ "nasm" ]];            then INCLUDE_NASM=true;             else INCLUDE_NASM=false;            fi
-    if [[ $BUNDLED =~ "nbsdgames" ]];       then INCLUDE_NBSDGAMES=true;        else INCLUDE_NBSDGAMES=false;       fi
-    if [[ $BUNDLED =~ "ncdu" ]];            then INCLUDE_NCDU=true;             else INCLUDE_NCDU=false;            fi
-    if [[ $BUNDLED =~ "patchelf" ]];        then INCLUDE_PATCHELF=true;         else INCLUDE_PATCHELF=false;        fi
-    if [[ $BUNDLED =~ "sc-im" ]];           then INCLUDE_SC_IM=true;            else INCLUDE_SC_IM=false;           fi
-    if [[ $BUNDLED =~ "shorktainment" ]];   then INCLUDE_SHORKTAINMENT=true;    else INCLUDE_SHORKTAINMENT=false;   fi
-    if [[ $BUNDLED =~ "strace" ]];          then INCLUDE_STRACE=true;           else INCLUDE_STRACE=false;          fi
-    if [[ $BUNDLED =~ "sudo" ]];            then INCLUDE_SUDO=true;             else INCLUDE_SUDO=false;            fi
-    if [[ $BUNDLED =~ "tcc" ]];             then INCLUDE_TCC=true;              else INCLUDE_TCC=false;             fi
-    if [[ $BUNDLED =~ "tilde" ]];           then INCLUDE_TILDE=true;            else INCLUDE_TILDE=false;           fi
-    if [[ $BUNDLED =~ "tmux" ]];            then INCLUDE_TMUX=true;             else INCLUDE_TMUX=false;            fi
-    if [[ $BUNDLED =~ "tn5250" ]];          then INCLUDE_TN5250=true;           else INCLUDE_TN5250=false;          fi
-    if [[ $BUNDLED =~ "tnftp" ]];           then INCLUDE_TNFTP=true;            else INCLUDE_TNFTP=false;           fi
-    if [[ $BUNDLED =~ "util-linux" ]];      then INCLUDE_UTIL_LINUX=true;       else INCLUDE_UTIL_LINUX=false;      fi
-    if [[ $BUNDLED =~ "vim" ]];             then INCLUDE_VIM=true;              else INCLUDE_VIM=false;             fi
+    if [[ $BUNDLED =~ "bind9-dnsutils" ]];      then INCLUDE_BIND9_DNSUTILS=true;   else INCLUDE_BIND9_DNSUTILS=false;  fi
+    if [[ $BUNDLED =~ "c3270" ]];               then INCLUDE_C3270=true;            else INCLUDE_C3270=false;           fi
+    if [[ $BUNDLED =~ "cscope" ]];              then INCLUDE_CSCOPE=true;           else INCLUDE_CSCOPE=false;          fi
+    if [[ $BUNDLED =~ "ctags" ]];               then INCLUDE_CTAGS=true;            else INCLUDE_CTAGS=false;           fi
+    if [[ $BUNDLED =~ "ctris" ]];               then INCLUDE_CTRIS=true;            else INCLUDE_CTRIS=false;           fi
+    if [[ $BUNDLED =~ "curl" ]];                then INCLUDE_CURL=true;             else INCLUDE_CURL=false;            fi
+    if [[ $BUNDLED =~ "dialog" ]];              then INCLUDE_DIALOG=true;           else INCLUDE_DIALOG=false;          fi
+    if [[ $BUNDLED =~ "dosfstools" ]]           then INCLUDE_DOSFSTOOLS=true;       else INCLUDE_DOSFSTOOLS=false;      fi
+    if [[ $BUNDLED =~ "dropbear" ]];            then INCLUDE_DROPBEAR=true;         else INCLUDE_DROPBEAR=false;        fi
+    if [[ $BUNDLED =~ "e2fsprogs" ]];           then INCLUDE_E2FSPROGS=true;        else INCLUDE_E2FSPROGS=false;       fi
+    if [[ $BUNDLED =~ "file" ]];                then INCLUDE_FILE=true;             else INCLUDE_FILE=false;            fi
+    if [[ $BUNDLED =~ "gcc" ]];                 then INCLUDE_GCC=true;              else INCLUDE_GCC=false;             fi
+    if [[ $BUNDLED =~ "git" ]];                 then INCLUDE_GIT=true;              else INCLUDE_GIT=false;             fi
+    if [[ $BUNDLED =~ "gnupg" ]];               then INCLUDE_GNUPG=true;            else INCLUDE_GNUPG=false;           fi
+    if [[ $BUNDLED =~ "gnu-autoconf" ]];        then INCLUDE_AUTOCONF=true;         else INCLUDE_AUTOCONF=false;        fi
+    if [[ $BUNDLED =~ "gnu-automake" ]];        then INCLUDE_AUTOMAKE=true;         else INCLUDE_AUTOMAKE=false;        fi
+    if [[ $BUNDLED =~ "gnu-indent" ]]           then INCLUDE_INDENT=true;           else INCLUDE_INDENT=false;          fi
+    if [[ $BUNDLED =~ "gnu-libtool" ]];         then INCLUDE_LIBTOOL=true;          else INCLUDE_LIBTOOL=false;         fi
+    if [[ $BUNDLED =~ "gnu-m4" ]];              then INCLUDE_M4=true;               else INCLUDE_M4=false;              fi
+    if [[ $BUNDLED =~ "gnu-make" ]];            then INCLUDE_MAKE=true;             else INCLUDE_MAKE=false;            fi
+    if [[ $BUNDLED =~ "gnu-midnight-cmdr" ]];   then INCLUDE_MIDNIGHT_CMDR=true;    else INCLUDE_MIDNIGHT_CMDR=false;   fi
+    if [[ $BUNDLED =~ "gnu-nano" ]];            then INCLUDE_NANO=true;             else INCLUDE_NANO=false;            fi
+    if [[ $BUNDLED =~ "gpm" ]];                 then INCLUDE_GPM=true;              else INCLUDE_GPM=false;             fi
+    if [[ $BUNDLED =~ "htop" ]];                then INCLUDE_HTOP=true;             else INCLUDE_HTOP=false;            fi
+    if [[ $BUNDLED =~ "joe" ]];                 then INCLUDE_JOE=true;              else INCLUDE_JOE=false;             fi
+    if [[ $BUNDLED =~ "jq" ]];                  then INCLUDE_JQ=true;               else INCLUDE_JQ=false;              fi
+    if [[ $BUNDLED =~ "lsb-release-min" ]];     then INCLUDE_LSB_RELEASE_MIN=true   else INCLUDE_LSB_RELEASE_MIN=false; fi
+    if [[ $BUNDLED =~ "lua" ]];                 then INCLUDE_LUA=true;              else INCLUDE_LUA=false;             fi
+    if [[ $BUNDLED =~ "lynx" ]];                then INCLUDE_LYNX=true;             else INCLUDE_LYNX=false;            fi
+    if [[ $BUNDLED =~ "memtester" ]];           then INCLUDE_MEMTESTER=true;        else INCLUDE_MEMTESTER=false;       fi
+    if [[ $BUNDLED =~ "mg" ]];                  then INCLUDE_MG=true;               else INCLUDE_MG=false;              fi
+    if [[ $BUNDLED =~ "micropython" ]];         then INCLUDE_MICROPYTHON=true;      else INCLUDE_MICROPYTHON=false;     fi
+    if [[ $BUNDLED =~ "mpg321" ]];              then INCLUDE_MPG321=true;           else INCLUDE_MPG321=false;          fi
+    if [[ $BUNDLED =~ "mt-st" ]];               then INCLUDE_MT_ST=true;            else INCLUDE_MT_ST=false;           fi
+    if [[ $BUNDLED =~ "nasm" ]];                then INCLUDE_NASM=true;             else INCLUDE_NASM=false;            fi
+    if [[ $BUNDLED =~ "nbsdgames" ]];           then INCLUDE_NBSDGAMES=true;        else INCLUDE_NBSDGAMES=false;       fi
+    if [[ $BUNDLED =~ "ncdu" ]];                then INCLUDE_NCDU=true;             else INCLUDE_NCDU=false;            fi
+    if [[ $BUNDLED =~ "patchelf" ]];            then INCLUDE_PATCHELF=true;         else INCLUDE_PATCHELF=false;        fi
+    if [[ $BUNDLED =~ "perl" ]];                then INCLUDE_PERL=true;             else INCLUDE_PERL=false;            fi
+    if [[ $BUNDLED =~ "sc-im" ]];               then INCLUDE_SC_IM=true;            else INCLUDE_SC_IM=false;           fi
+    if [[ $BUNDLED =~ "shorktainment" ]];       then INCLUDE_SHORKTAINMENT=true;    else INCLUDE_SHORKTAINMENT=false;   fi
+    if [[ $BUNDLED =~ "strace" ]];              then INCLUDE_STRACE=true;           else INCLUDE_STRACE=false;          fi
+    if [[ $BUNDLED =~ "sudo" ]];                then INCLUDE_SUDO=true;             else INCLUDE_SUDO=false;            fi
+    if [[ $BUNDLED =~ "tcc" ]];                 then INCLUDE_TCC=true;              else INCLUDE_TCC=false;             fi
+    if [[ $BUNDLED =~ "tilde" ]];               then INCLUDE_TILDE=true;            else INCLUDE_TILDE=false;           fi
+    if [[ $BUNDLED =~ "tmux" ]];                then INCLUDE_TMUX=true;             else INCLUDE_TMUX=false;            fi
+    if [[ $BUNDLED =~ "tn5250" ]];              then INCLUDE_TN5250=true;           else INCLUDE_TN5250=false;          fi
+    if [[ $BUNDLED =~ "tnftp" ]];               then INCLUDE_TNFTP=true;            else INCLUDE_TNFTP=false;           fi
+    if [[ $BUNDLED =~ "util-linux" ]];          then INCLUDE_UTIL_LINUX=true;       else INCLUDE_UTIL_LINUX=false;      fi
+    if [[ $BUNDLED =~ "vim" ]];                 then INCLUDE_VIM=true;              else INCLUDE_VIM=false;             fi
 fi
 
 # Enable prerequisites for selected bundled software
@@ -1465,7 +1500,7 @@ OPTIONS=$(dialog --clear \
     --backtitle "SHORK 486 Build Configurator" \
     --title "Options" \
     --cancel-label "Skip" \
-    --checklist "Select what other options to include. Some of these are benign, some may increase the RAM and disk space requirement considerably, some are experimental.\n* This option would be included in a \"default\" build\n† This option can raise system memory requirements" $HEIGHT $WIDTH 9 \
+    --checklist "Select what other options to include. Some of these are benign, some may increase the RAM and disk space requirement considerably, some are experimental.\n* This option would be included in a \"default\" build\n† This option has specific memory requirements (check GitHub repository's README)" $HEIGHT $WIDTH 9 \
     "cdrom"         "*Kernel-level CD-ROM & DVD-ROM support"                    $(val $ENABLE_CDROM) \
     "con-fonts"     "*Console fonts pack (0.6MiB)"                              $(val $INCLUDE_CON_FONTS) \
     "fb-vbe"        "*†Kernel-level framebuffer & VBE support"                  $(val $ENABLE_FB_VBE) \
@@ -1512,6 +1547,103 @@ else
 fi
 
 
+
+# Advisory - +INCLUDE_AUTOCONF/-INCLUDE_AUTOMAKE
+if [ "$INCLUDE_AUTOCONF" = true ] && [ "$INCLUDE_AUTOMAKE" = false ]; then
+    dialog --clear \
+        --backtitle "SHORK 486 Build Configurator" \
+        --title "Advisory - +INCLUDE_AUTOCONF/-INCLUDE_AUTOMAKE" \
+        --yes-label "Include GNU Automake" \
+        --no-label "Ignore" \
+        --yesno "You have chosen to include GNU Autoconf but exclude GNU Automake. Autoconf will still work on its own for packages that include a pre-generated Makefile.in file, but autoreconf will fail on packages that only provide a Makefile.am file. This is common when working with Git checkouts rather than release tarballs." \
+        8 "$WIDTH"
+
+    CHOICE=$?
+
+    if [[ $CHOICE -eq 0 ]]; then
+        INCLUDE_AUTOMAKE=true
+    elif [[ $CHOICE -eq 1 ]]; then
+        :
+    fi
+fi
+
+# Advisory - +INCLUDE_NASM/-INCLUDE_GCC
+if [ "$INCLUDE_NASM" = true ] && [ "$INCLUDE_GCC" = false ]; then
+    dialog --clear \
+        --backtitle "SHORK 486 Build Configurator" \
+        --title "Advisory - +INCLUDE_NASM/-INCLUDE_GCC" \
+        --yes-label "Include GCC + binutils + musl" \
+        --no-label "Ignore" \
+        --yesno "You have chosen to include NASM but exclude GCC + binutils + musl. Whilst NASM will work without it, SHORK 486 will lack a linker to produce a final binary from NASM's ELF output. If you only intend to produce flat binaries, use ndisasm or provide your own linker, you may ignore this advisory. Otherwise, including GCC + binutils + musl will provide a linker to use." \
+        9 "$WIDTH"
+
+    CHOICE=$?
+
+    if [[ $CHOICE -eq 0 ]]; then
+        INCLUDE_GCC=true
+    elif [[ $CHOICE -eq 1 ]]; then
+        :
+    fi
+fi
+
+
+
+# Conflict Resolution - +INCLUDE_AUTOCONF/-INCLUDE_PERL
+if [ "$INCLUDE_AUTOCONF" = true ] && [ "$INCLUDE_PERL" = false ]; then
+    dialog --clear \
+        --backtitle "SHORK 486 Build Configurator" \
+        --title "Conflict Resolution - +INCLUDE_AUTOCONF/-INCLUDE_PERL" \
+        --yes-label "Include Perl" \
+        --no-label "Exclude GNU Autoconf" \
+        --yesno "You have chosen to include GNU Autoconf but not include Perl. GNU Autoconf is a Perl-based tool, thus requires the Perl interpreter to function. Do you wish to include Perl, or exclude GNU Autoconf?" \
+        7 "$WIDTH"
+
+    CHOICE=$?
+
+    if [[ $CHOICE -eq 0 ]]; then
+        INCLUDE_PERL=true
+    elif [[ $CHOICE -eq 1 ]]; then
+        INCLUDE_AUTOCONF=false
+    fi
+fi
+
+# Conflict Resolution - +INCLUDE_AUTOCONF/-INCLUDE_M4
+if [ "$INCLUDE_AUTOCONF" = true ] && [ "$INCLUDE_M4" = false ]; then
+    dialog --clear \
+        --backtitle "SHORK 486 Build Configurator" \
+        --title "Conflict Resolution - +INCLUDE_AUTOCONF/-INCLUDE_M4" \
+        --yes-label "Include GNU m4" \
+        --no-label "Exclude GNU Autoconf" \
+        --yesno "You have chosen to include GNU Autoconf but not include GNU m4. GNU Autoconf makes use of m4 macros, thus requires a m4 macro processor. Do you wish to include GNU m4, or exclude GNU Autoconf?" \
+        7 "$WIDTH"
+
+    CHOICE=$?
+
+    if [[ $CHOICE -eq 0 ]]; then
+        INCLUDE_M4=true
+    elif [[ $CHOICE -eq 1 ]]; then
+        INCLUDE_AUTOCONF=false
+    fi
+fi
+
+# Conflict Resolution - +INCLUDE_AUTOMAKE/-INCLUDE_PERL
+if [ "$INCLUDE_AUTOMAKE" = true ] && [ "$INCLUDE_PERL" = false ]; then
+    dialog --clear \
+        --backtitle "SHORK 486 Build Configurator" \
+        --title "Conflict Resolution - +INCLUDE_AUTOMAKE/-INCLUDE_PERL" \
+        --yes-label "Include Perl" \
+        --no-label "Exclude GNU Automake" \
+        --yesno "You have chosen to include GNU Automake but not include Perl. GNU Automake is a Perl-based tool, thus requires the Perl interpreter to function. Do you wish to include Perl, or exclude GNU Automake?" \
+        7 "$WIDTH"
+
+    CHOICE=$?
+
+    if [[ $CHOICE -eq 0 ]]; then
+        INCLUDE_PERL=true
+    elif [[ $CHOICE -eq 1 ]]; then
+        INCLUDE_AUTOMAKE=false
+    fi
+fi
 
 # Conflict Resolution - +ENABLE_SERIAL_CON/+ENABLE_MENU
 if [ "$ENABLE_SERIAL_CON" = true ] && [ "$ENABLE_MENU" = true ]; then
@@ -1606,26 +1738,5 @@ if [ "$INCLUDE_MT_ST" = true ] && [ "$ENABLE_SCSI_EXP" = false ]; then
         ENABLE_SCSI_EXP=true
     elif [[ $CHOICE -eq 1 ]]; then
         INCLUDE_MT_ST=false
-    fi
-fi
-
-
-
-# Advisory - +INCLUDE_NASM/-INCLUDE_GCC
-if [ "$INCLUDE_NASM" = true ] && [ "$INCLUDE_GCC" = false ]; then
-    dialog --clear \
-        --backtitle "SHORK 486 Build Configurator" \
-        --title "Advisory - +INCLUDE_NASM/-INCLUDE_GCC" \
-        --yes-label "Include GCC + binutils + musl" \
-        --no-label "Ignore" \
-        --yesno "You have chosen to include NASM but exclude GCC + binutils + musl. Whilst NASM will work without it, SHORK 486 will lack a linker to produce a final binary from NASM's ELF output. If you only intend to produce flat binaries, use ndisasm or provide your own linker, you may ignore this advisory. Otherwise, including GCC + binutils + musl will provide a linker to use." \
-        9 "$WIDTH"
-
-    CHOICE=$?
-
-    if [[ $CHOICE -eq 0 ]]; then
-        INCLUDE_GCC=true
-    elif [[ $CHOICE -eq 1 ]]; then
-        :
     fi
 fi
