@@ -1459,7 +1459,7 @@ else
     if [[ $BUNDLED =~ "htop" ]];                then INCLUDE_HTOP=true;             else INCLUDE_HTOP=false;            fi
     if [[ $BUNDLED =~ "joe" ]];                 then INCLUDE_JOE=true;              else INCLUDE_JOE=false;             fi
     if [[ $BUNDLED =~ "jq" ]];                  then INCLUDE_JQ=true;               else INCLUDE_JQ=false;              fi
-    if [[ $BUNDLED =~ "lsb-release-min" ]];     then INCLUDE_LSB_RELEASE_MIN=true   else INCLUDE_LSB_RELEASE_MIN=false; fi
+    if [[ $BUNDLED =~ "lsb-release-min" ]];     then INCLUDE_LSB_RELEASE_MIN=true;  else INCLUDE_LSB_RELEASE_MIN=false; fi
     if [[ $BUNDLED =~ "lua" ]];                 then INCLUDE_LUA=true;              else INCLUDE_LUA=false;             fi
     if [[ $BUNDLED =~ "lynx" ]];                then INCLUDE_LYNX=true;             else INCLUDE_LYNX=false;            fi
     if [[ $BUNDLED =~ "memtester" ]];           then INCLUDE_MEMTESTER=true;        else INCLUDE_MEMTESTER=false;       fi
