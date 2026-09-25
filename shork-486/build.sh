@@ -4793,6 +4793,9 @@ compile_kernel()
         patch -p1 < "${PATCHES_DIR}/linux/7.1.x/7.1.x_restore-isa-pcmcia-net.patch"
     fi
 
+    echo -e "${GREEN}Applying 7.0.x_387-fpu-clone-sigfpe patch...${RESET}"
+    patch -p1 < "${PATCHES_DIR}/linux/7.0.x/7.0.x_387-fpu-clone-sigfpe.patch"
+
     echo -e "${GREEN}Compiling Linux kernel...${RESET}"
     make ARCH=x86 olddefconfig
     make ARCH=x86 bzImage -j$(nproc)

@@ -101,6 +101,12 @@ This patch reverts the changes made in [8b793a92d862](https://git.kernel.org/pub
 
 ## 7.0.x
 
+### [7.0.x_387-fpu-clone-sigfpe.patch](shork-486/patches/linux/7.0.x/7.0.x_387-fpu-clone-sigfpe.patch)
+
+* Original kernel: 7.0.0 (likely earlier)
+
+This patch fixes an issue with spurious SIGFPE signals when using threaded programs with floating-point operations on a 486SX-class CPU. Such a scenario requires 387 math emulation, and `fpu_clone()` would raise these signals when new threads were created. This patch fixes the issue by correcting the falsely-zeroed x87 control word `dst_fpu->fpstate->regs.soft.cwd`, which should instead be masked rather than left to raise the signals. This issue was found during SHORK 486's development.
+
 ### [7.0.x_6.14.11-e820.patch](shork-486/patches/linux/7.0.x/7.0.x_6.14.11-e820.patch), [7.0.x_6.14.11-e820-v2.patch](shork-486/patches/linux/7.0.x/7.0.x_6.14.11-e820-v2.patch)
 
 * Original kernel: 7.0.0

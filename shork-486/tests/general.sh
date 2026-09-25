@@ -1,7 +1,5 @@
 #!/bin/sh
 
-
-
 RESULTS_FILE="general_results.txt"
 RESULTS=""
 PASSES=0
