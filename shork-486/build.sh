@@ -128,13 +128,11 @@ SYSROOT="${PREFIX}/${ARCH}-linux-musl"
 # Standardised compiler flags
 CLAGS_SOFTFP="-mno-fancy-math-387 -msoft-float -mno-80387 \
     -mno-fp-ret-in-387"
-CFLAGS_COMMON_486SX="-Os -m32 -march=${ARCH} -mtune=${ARCH} \
-    -mhard-float \
-    -g -ffunction-sections -fdata-sections \
+CFLAGS_COMMON_486SX="-Os -m32 -march=${ARCH} -mtune=${ARCH} -mhard-float \
     -D__gnuc_va_list=va_list -D__NR_landlock_create_ruleset=444 \
     -D__NR_landlock_add_rule=445 -D__NR_landlock_restrict_self=446 \
     --sysroot=${SYSROOT} -I$SYSROOT/usr/include -I${PREFIX}/include \
-    -I${PREFIX}/include/ncursesw -L${PREFIX}/lib -fcommon"
+    -I${PREFIX}/include/ncursesw -L${PREFIX}/lib"
 CFLAGS_NOPIE_486SX="${CFLAGS_COMMON_486SX} -no-pie -fno-pie -fno-pic"
 LDLIBS_COMMON_486SX=""
 
@@ -1466,7 +1464,7 @@ get_gpm()
         AS="${AS}" \
         RANLIB="${RANLIB}" \
         STRIP="${STRIP}" \
-        CFLAGS="${CFLAGS_NOPIE}" \
+        CFLAGS="${CFLAGS_NOPIE} -fcommon" \
         CPPFLAGS="-I${SYSROOT}/include -I${PREFIX}/include -DHAVE_FORKPTY" \
         LDFLAGS="-static -Wl,--gc-sections -s -L${PREFIX}/lib"
     make -j$(nproc)
@@ -4433,9 +4431,10 @@ get_strace()
         --host="${HOST}" \
         --prefix=/usr \
         --disable-shared \
-        --enable-static CC="${CC_STATIC}" \
-        CFLAGS="${CFLAGS_NOPIE}" \
-        LDFLAGS="-static"
+        --enable-static \
+        CC="${CC_STATIC} " \
+        CFLAGS="${CFLAGS_NOPIE} -ffunction-sections -fdata-sections" \
+        LDFLAGS="-static -Wl,--gc-sections"
     make -j$(nproc)
     make install DESTDIR="${DESTDIR}"
 }
@@ -6942,7 +6941,7 @@ get_prog_git()
             AS="${AS}" \
             RANLIB="${RANLIB}" \
             STRIP="${STRIP}" \
-            CFLAGS="${CFLAGS_NOPIE} ${EXTRA_CFLAGS}" \
+            CFLAGS="${CFLAGS_NOPIE} ${EXTRA_CFLAGS} -ffunction-sections -fdata-sections" \
             CPPFLAGS="-I${SYSROOT}/include -I${PREFIX}/include -I${PREFIX}/include/ncursesw -DHAVE_FORKPTY" \
             LDFLAGS="-static -Wl,--gc-sections -s -L${PREFIX}/lib ${EXTRA_LDFLAGS}" \
             LIBS="${EXTRA_LIBS}" \
@@ -7054,7 +7053,7 @@ get_prog_tar()
             AS="${AS}" \
             RANLIB="${RANLIB}" \
             STRIP="${STRIP}" \
-            CFLAGS="${CFLAGS_NOPIE} ${EXTRA_CFLAGS}" \
+            CFLAGS="${CFLAGS_NOPIE} ${EXTRA_CFLAGS} -ffunction-sections -fdata-sections" \
             CPPFLAGS="-I${SYSROOT}/include -I${PREFIX}/include -I${PREFIX}/include/ncursesw -DHAVE_FORKPTY" \
             LDFLAGS="-static -Wl,--gc-sections -s -L${PREFIX}/lib ${EXTRA_LDFLAGS}" \
             LIBS="-Wl,--start-group ${EXTRA_LIBS}" \
@@ -7926,7 +7925,7 @@ get_mpg321()
         CC="$CC_STATIC" \
         RANLIB="$RANLIB" \
         CPPFLAGS="-nostdinc -I$SYSROOT/usr/include -I$SYSROOT/include -I${PREFIX}/lib/gcc/i486-linux-musl/11.2.1/include" \
-        CFLAGS="${CFLAGS_NOPIE} -std=gnu89" \
+        CFLAGS="${CFLAGS_NOPIE} -std=gnu89 -fcommon" \
         LDFLAGS="-static -L$SYSROOT/usr/lib" \
         LIBAO_LIBS="-L$SYSROOT/usr/lib -lao" \
         LIBAO_CFLAGS="${CFLAGS_NOPIE}" \

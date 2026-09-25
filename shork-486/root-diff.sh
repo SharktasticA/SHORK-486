@@ -2,8 +2,8 @@
 
 ######################################################
 ## Takes two snapshots of build/root directory to   ##
-# work out the size difference and added files      ##
-# between them.                                     ##
+## work out the size difference and added files     ##
+## between them.                                    ##
 ######################################################
 ## Kali (links.sharktastica.co.uk)                  ##
 ######################################################
@@ -19,15 +19,9 @@ if [ ! -d "$TARGET_DIR" ]; then
     echo "ERROR: $TARGET_DIR does not exist\n" >&2
     exit 1
 fi
-
-
-
-
 BEFORE_LIST="$(mktemp)"
 AFTER_LIST="$(mktemp)"
 trap 'rm -f "$BEFORE_LIST" "$AFTER_LIST"' EXIT
-
-
 
 get_size()
 {
@@ -46,17 +40,10 @@ get_file_list()
 
 
 
-
 read -rp "Press ENTER to make BEFORE snapshot..."
 BEFORE_SIZE=$(get_size)
 get_file_list > "$BEFORE_LIST"
 BEFORE_FILES=$(wc -l < "$BEFORE_LIST")
-
-printf "Before:\n"
-printf "Size: ${BEFORE_SIZE}KiB\n"
-printf "Files: ${BEFORE_FILES}\n\n"
-
-
 
 read -rp "Press ENTER to make AFTER snapshot..."
 AFTER_SIZE=$(get_size)
@@ -68,17 +55,6 @@ ADDED_FILES=$(comm -13 "$BEFORE_LIST" "$AFTER_LIST")
 ADDED_COUNT=0
 if [ -n "$ADDED_FILES" ]; then
     ADDED_COUNT=$(echo "$ADDED_FILES" | wc -l)
-fi
-
-printf "After:\n"
-printf "Size: ${AFTER_SIZE}KiB\n"
-printf "Difference: ${DIFF_SIZE}KiB\n"
-printf "Files: ${AFTER_FILES}\n"
-printf "Files added:\n"
-if [ "$ADDED_COUNT" -eq 0 ]; then
-    echo "(none)"
-else
-    echo "$ADDED_FILES" | sed 's/^\.\//  /'
 fi
 
 {
@@ -97,3 +73,5 @@ fi
         echo "$ADDED_FILES" | sed 's/^\.\//  /'
     fi
 } > root-diff.txt
+
+cat root-diff.txt
