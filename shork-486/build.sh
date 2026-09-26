@@ -146,6 +146,9 @@ fi
 CONFIGS_DIR="${CURR_DIR}/configs"
 PATCHES_DIR="${CURR_DIR}/patches"
 
+# Required host toolchain component versions
+NEEDED_MESON="1.4.0"
+
 # Target software/feature versions
 LINUX_STABLE_SRC="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git"
 LINUX_TORVALDS_SRC="https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
@@ -1395,6 +1398,31 @@ get_prerequisites()
     else
         # Skip if inside Docker as Dockerfile already installs prerequisites
         echo -e "${LIGHT_RED}Running inside Docker, skipping installing prerequisite packages...${RESET}"
+    fi
+}
+
+# Checks host-based toolchain component versions and exits if one is too old
+check_host_tc_versions()
+{
+    # Check for component existence
+    if ! command -v meson >/dev/null 2>&1; then
+        echo -e "${RED}ERROR: need Meson >= ${NEEDED_MESON} (none found)${RESET}"
+        exit 1
+    fi
+
+    # Get component current version
+    MESON_VER=$(meson --version 2>/dev/null)
+    if [ -z "$MESON_VER" ]; then
+        echo -e "${RED}ERROR: could not determine Meson version${RESET}"
+        exit 1
+    fi
+
+    # Compare needed and current versions by sorting the vars and seeing
+    # which is the lowest
+    if [ "$(printf '%s\n%s\n' "$NEEDED_MESON" "$MESON_VER" | sort -V | \
+        head -n1)" != "$NEEDED_MESON" ]; then
+        echo -e "${RED}ERROR: need Meson >= ${NEEDED_MESON} (${MESON_VER} found)${RESET}"
+        exit 1
     fi
 }
 
@@ -11637,6 +11665,7 @@ fi
 
 mkdir -p build/staging
 get_prerequisites
+check_host_tc_versions
 get_musl_cross
 chmod +x "${CURR_DIR}/compilation/"*
 
