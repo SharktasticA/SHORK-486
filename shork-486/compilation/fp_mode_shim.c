@@ -2,7 +2,7 @@
     ######################################################
     ## fp_mode_shim.c                                   ##
     ######################################################
-    ## musl fenv.h-backed  __fe_getround and            ##
+    ## musl fenv.h-backed __fe_getround and             ##
     ## __fe_raise_inexact for libsoftfp                 ##
     ######################################################
     ## Kali (links.sharktastica.co.uk)                  ##

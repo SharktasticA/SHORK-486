@@ -1,0 +1,32 @@
+############################################################################
+## 7.0.x_fix-387-fpu-clone-sigfpe.patch                                   ##
+############################################################################
+## This patch is a derivative work of the Linux kernel. It is licensed    ##
+## separately under the terms of the GNU GPLv2 licence, and is            ##
+## distributed as part of the SHORK project. See the accompanying COPYING ##
+## file in the parent directory for details.                              ##
+############################################################################
+## Kali (links.sharktastica.co.uk)                                        ##
+############################################################################
+
+diff --git a/arch/x86/kernel/fpu/core.c b/arch/x86/kernel/fpu/core.c
+index 842870034..c1d73bea7 100644
+--- a/arch/x86/kernel/fpu/core.c
++++ b/arch/x86/kernel/fpu/core.c
+@@ -678,7 +678,16 @@ int fpu_clone(struct task_struct *dst, u64 clone_flags, bool minimal,
+ 	fpstate_reset(dst_fpu);
+ 
+ 	if (!cpu_feature_enabled(X86_FEATURE_FPU))
++	{
++		/*
++		 * Patch for SHORK 486:
++		 * Previously, cwd is left zeroed (all exceptions unmasked) instead
++		 * of the masked default. This caused spurious SIGFPE in new threads
++		 * under math emulation.
++		*/
++		fpstate_init_soft(&dst_fpu->fpstate->regs.soft);
+ 		return 0;
++	}
+ 
+ 	/*
+ 	 * Enforce reload for user space tasks and prevent kernel threads

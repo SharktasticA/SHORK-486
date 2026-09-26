@@ -125,6 +125,23 @@ STAGE_DIR="${CURR_DIR}/build/stage"
 STRIP="${PREFIX}/bin/${ARCH}-linux-musl-strip"
 SYSROOT="${PREFIX}/${ARCH}-linux-musl"
 
+# Standardised compiler flags
+CLAGS_SOFTFP="-mno-fancy-math-387 -msoft-float -mno-80387 \
+    -mno-fp-ret-in-387"
+CFLAGS_COMMON_486SX="-Os -m32 -march=${ARCH} -mtune=${ARCH} -mhard-float \
+    -D__gnuc_va_list=va_list -D__NR_landlock_create_ruleset=444 \
+    -D__NR_landlock_add_rule=445 -D__NR_landlock_restrict_self=446 \
+    --sysroot=${SYSROOT} -I$SYSROOT/usr/include -I${PREFIX}/include \
+    -I${PREFIX}/include/ncursesw -L${PREFIX}/lib"
+CFLAGS_NOPIE_486SX="${CFLAGS_COMMON_486SX} -no-pie -fno-pie -fno-pic"
+LDLIBS_COMMON_486SX=""
+
+if [ "$ARCH_TARGET" = "486SX" ]; then
+    CFLAGS_NOPIE="${CFLAGS_NOPIE_486SX}"
+    CFLAGS_COMMON="${CFLAGS_COMMON_486SX}"
+    LDLIBS_COMMON="${LDLIBS_COMMON_486SX}"
+fi
+
 # Other common locations
 CONFIGS_DIR="${CURR_DIR}/configs"
 PATCHES_DIR="${CURR_DIR}/patches"
@@ -902,7 +919,6 @@ fi
 
 if $INCLUDE_GNUPG; then
     NEED_ZLIB=true
-    NEED_LIBSOFTFP=true
     NEED_NPTH=true
     NEED_LIBGPG_ERROR=true
     NEED_LIBGCRYPT=true
@@ -980,7 +996,6 @@ if $INCLUDE_TSHARK; then
     NEED_LIBLUA=true
     NEED_LIBNL=true
     NEED_LIBCAP=true
-    NEED_LIBSOFTFP=true
 fi
 
 if [ -n "$USED_WM" ]; then
@@ -992,7 +1007,6 @@ if $NEED_GLIB; then
     NEED_LIBFFI=true
     NEED_PCRE2=true
     NEED_ZLIB=true
-    NEED_LIBSOFTFP=true
 fi
 
 if $NEED_GNUTLS; then
@@ -1447,7 +1461,7 @@ get_gpm()
         AS="${AS}" \
         RANLIB="${RANLIB}" \
         STRIP="${STRIP}" \
-        CFLAGS="-Os -march=${ARCH} -mno-fancy-math-387 -ffunction-sections -fdata-sections -I${PREFIX}/include -fcommon" \
+        CFLAGS="${CFLAGS_NOPIE} -fcommon" \
         CPPFLAGS="-I${SYSROOT}/include -I${PREFIX}/include -DHAVE_FORKPTY" \
         LDFLAGS="-static -Wl,--gc-sections -s -L${PREFIX}/lib"
     make -j$(nproc)
@@ -1544,7 +1558,7 @@ get_tic()
         --without-cxx \
         --enable-widec \
         CC="${CC}" \
-        CFLAGS="-Os -static"
+        CFLAGS="${CFLAGS_NOPIE}"
     make -C progs tic -j$(nproc)
     sudo install -D progs/tic "${DESTDIR}/usr/bin/tic"
 }
@@ -1627,7 +1641,7 @@ get_cares()
         CC="$CC_STATIC" \
         AR="$AR" \
         RANLIB="$RANLIB" \
-        CFLAGS="-Os -march=${ARCH} -I${PREFIX}/include" \
+        CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${SYSROOT}/lib"
     make -j$(nproc)
     make DESTDIR="$SYSROOT" install
@@ -1665,7 +1679,7 @@ get_curl()
         LDFLAGS="-L$SYSROOT/lib -static" \
         LIBS="-lssl -lcrypto -lpthread -ldl ${LIBATOMIC_A}" \
         CC="${CC_STATIC}" \
-        CFLAGS="-Os -march=${ARCH} -static" \
+        CFLAGS="${CFLAGS_NOPIE}" \
         ./configure \
             --build="$(gcc -dumpmachine)" \
             --host="${HOST}" \
@@ -1937,7 +1951,7 @@ get_gmp()
         CC="$CC_STATIC" \
         AR="$AR" \
         RANLIB="$RANLIB" \
-        CFLAGS="-Os -march=${ARCH} -I${PREFIX}/include" \
+        CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${SYSROOT}/lib"
     make -j$(nproc)
     make DESTDIR="${SYSROOT}" install
@@ -1990,7 +2004,7 @@ get_gnutls()
         CC="$CC_STATIC" \
         AR="$AR" \
         RANLIB="$RANLIB" \
-        CFLAGS="-Os -march=${ARCH} -I${PREFIX}/include" \
+        CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${SYSROOT}/lib"
     make -j$(nproc)
     make DESTDIR="${SYSROOT}" install
@@ -2064,7 +2078,7 @@ get_krb5()
         CC="$CC_STATIC" \
         AR="$AR" \
         RANLIB="$RANLIB" \
-        CFLAGS="-Os -march=${ARCH} -I${PREFIX}/include -fcommon" \
+        CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${SYSROOT}/lib"
     make -j$(nproc)
     make DESTDIR="${SYSROOT}" install
@@ -2087,6 +2101,7 @@ get_libao()
     if [ -d libao ]; then
         echo -e "${YELLOW}libao source already present, resetting...${RESET}"
         cd libao
+        git config --global --add safe.directory "${CURR_DIR}"/build/libao
         git reset --hard
         git clean -fdx
     else
@@ -2113,7 +2128,7 @@ get_libao()
         CC="$CC" \
         RANLIB="$RANLIB" \
         CPPFLAGS="-I$SYSROOT/usr/include" \
-        CFLAGS="-fPIC" \
+        CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-L$SYSROOT/usr/lib"
     make -j$(nproc)
     make DESTDIR="$SYSROOT" install
@@ -2168,9 +2183,9 @@ get_libassuan()
         RANLIB="${RANLIB}" \
         GPG_ERROR_CONFIG="${SYSROOT}/usr/bin/gpg-error-config" \
         GPGRT_CONFIG="${SYSROOT}/usr/bin/gpgrt-config" \
-        CFLAGS="-static -fno-pie -fno-pic -mno-fancy-math-387 -msoft-float -mno-80387 -mno-fp-ret-in-387 -D__gnuc_va_list=va_list -I${SYSROOT}/usr/include" \
+        CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -static-libgcc -no-pie -Wl,-static -L${PREFIX}/lib -L${SYSROOT}/lib -L${SYSROOT}/usr/lib" \
-        LIBS="-lsoftfp -lgcc"
+        LIBS="-lgcc"
     make -j$(nproc)
     make DESTDIR="${SYSROOT}" install
 }
@@ -2205,7 +2220,7 @@ get_libcap()
         CC="${CC_STATIC}" \
         AR="${AR}" \
         RANLIB="${RANLIB}" \
-        CFLAGS="-Os -march=${ARCH}" \
+        CFLAGS="${CFLAGS_NOPIE}" \
         BUILD_CC=cc \
         lib=lib \
         SHARED=no \
@@ -2234,7 +2249,9 @@ get_libevent()
     if [ -d libevent ]; then
         echo -e "${YELLOW}libevent source already present, resetting...${RESET}"
         cd libevent
+        git config --global --add safe.directory "${CURR_DIR}"/build/libevent
         git reset --hard
+        git clean -fdx
     else
         echo -e "${GREEN}Downloading libevent...${RESET}"
         git clone --branch ${LIBEVENT_VER} $LIBEVENT_SRC
@@ -2285,7 +2302,7 @@ get_libffi()
         CC="$CC_STATIC" \
         AR="$AR" \
         RANLIB="$RANLIB" \
-        CFLAGS="-Os -march=${ARCH} -I${PREFIX}/include" \
+        CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${SYSROOT}/lib"
     make -j$(nproc)
     make DESTDIR="$SYSROOT" install
@@ -2332,9 +2349,9 @@ get_libgcrypt()
         RANLIB="${RANLIB}" \
         GPG_ERROR_CONFIG="${SYSROOT}/usr/bin/gpg-error-config" \
         GPGRT_CONFIG="${SYSROOT}/usr/bin/gpgrt-config" \
-        CFLAGS="-static -fno-pie -fno-pic -mno-fancy-math-387 -msoft-float -mno-80387 -mno-fp-ret-in-387 -D__gnuc_va_list=va_list -I${SYSROOT}/usr/include" \
+        CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -static-libgcc -no-pie -Wl,-static -L${PREFIX}/lib -L${SYSROOT}/lib -L${SYSROOT}/usr/lib" \
-        LIBS="-lsoftfp -lgcc"
+        LIBS="-lgcc"
     make -j$(nproc)
     make DESTDIR="${SYSROOT}" install
 }
@@ -2378,9 +2395,9 @@ get_libgpg_error()
         AR="${AR}" \
         LD="${LD}" \
         RANLIB="${RANLIB}" \
-        CFLAGS="-static -fno-pie -fno-pic -mno-fancy-math-387 -msoft-float -mno-80387 -mno-fp-ret-in-387 -D__gnuc_va_list=va_list -I${SYSROOT}/usr/include" \
+        CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -static-libgcc -no-pie -Wl,-static -L${PREFIX}/lib -L${SYSROOT}/lib -L${SYSROOT}/usr/lib" \
-        LIBS="-lsoftfp -lgcc"
+        LIBS="-lgcc"
     make -j$(nproc)
     make DESTDIR="${SYSROOT}" install
 }
@@ -2400,6 +2417,7 @@ get_libid3tag()
     if [ -d libid3tag ]; then
         echo -e "${YELLOW}libid3tag source already present, resetting...${RESET}"
         cd libid3tag
+        git config --global --add safe.directory "${CURR_DIR}"/build/libid3tag
         git reset --hard
         git clean -fdx
     else
@@ -2423,7 +2441,7 @@ get_libid3tag()
         AR="$AR" \
         CC="$CC_STATIC" \
         RANLIB="$RANLIB" \
-        CFLAGS="-static -I$SYSROOT/usr/include" \
+        CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L$SYSROOT/usr/lib"
     make -j$(nproc)
     make DESTDIR="$SYSROOT" install
@@ -2466,7 +2484,7 @@ get_libidn2()
         CC="$CC_STATIC" \
         AR="$AR" \
         RANLIB="$RANLIB" \
-        CFLAGS="-Os -march=${ARCH} -I${PREFIX}/include" \
+        CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${SYSROOT}/lib"
     make -j$(nproc)
     make DESTDIR="${SYSROOT}" install
@@ -2513,9 +2531,9 @@ get_libksba()
         RANLIB="${RANLIB}" \
         GPG_ERROR_CONFIG="${SYSROOT}/usr/bin/gpg-error-config" \
         GPGRT_CONFIG="${SYSROOT}/usr/bin/gpgrt-config" \
-        CFLAGS="-static -fno-pie -fno-pic -mno-fancy-math-387 -msoft-float -mno-80387 -mno-fp-ret-in-387 -D__gnuc_va_list=va_list -I${SYSROOT}/usr/include" \
+        CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -static-libgcc -no-pie -Wl,-static -L${PREFIX}/lib -L${SYSROOT}/lib -L${SYSROOT}/usr/lib" \
-        LIBS="-lsoftfp -lgcc"
+        LIBS="-lgcc"
     make -j$(nproc)
     make DESTDIR="${SYSROOT}" install
 }
@@ -2553,7 +2571,7 @@ get_liblua()
         CC="${CC_STATIC}" \
         AR="${AR} rcu" \
         RANLIB="${RANLIB}" \
-        MYCFLAGS="-Os -march=${ARCH}"
+        MYCFLAGS="${CFLAGS_NOPIE}"
     make INSTALL_TOP="${SYSROOT}/usr" install
 }
 
@@ -2572,6 +2590,7 @@ get_libmad()
     if [ -d libmad ]; then
         echo -e "${YELLOW}libmad source already present, resetting...${RESET}"
         cd libmad
+        git config --global --add safe.directory "${CURR_DIR}"/build/libmad
         git reset --hard
         git clean -fdx
     else
@@ -2585,7 +2604,7 @@ get_libmad()
     cp "${CURR_DIR}/compilation/config.guess" config.guess
     cp "${CURR_DIR}/compilation/config.sub" config.sub
 
-    local CFLAGS="-static -O2 -march=i486 -mtune=i486 -fomit-frame-pointer -I$SYSROOT/usr/include"
+    local CFLAGS="${CFLAGS_NOPIE}"
 
     # Compile and install
     echo -e "${GREEN}Compiling libmad...${RESET}"
@@ -2640,7 +2659,7 @@ get_libnl()
         CC="${CC_STATIC}" \
         AR="${AR}" \
         RANLIB="${RANLIB}" \
-        CFLAGS="-Os -march=${ARCH}"
+        CFLAGS="${CFLAGS_NOPIE}"
     make -j$(nproc)
     make DESTDIR="${SYSROOT}" install
 }
@@ -2685,7 +2704,7 @@ get_libpcap()
         CC="$CC_STATIC" \
         AR="$AR" \
         RANLIB="$RANLIB" \
-        CFLAGS="-Os -march=${ARCH} -I${PREFIX}/include" \
+        CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${SYSROOT}/lib"
     make -j$(nproc)
     make DESTDIR="${SYSROOT}" install
@@ -2735,7 +2754,7 @@ get_libsmi()
         CC="$CC_STATIC" \
         AR="$AR" \
         RANLIB="$RANLIB" \
-        CFLAGS="-Os -march=${ARCH} -I${PREFIX}/include" \
+        CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${SYSROOT}/lib" \
         YACC="bison -y"
     make -j$(nproc)
@@ -2743,7 +2762,7 @@ get_libsmi()
 }
 
 # Compile our own static library of C software floating-point routines from
-## LLVM
+# LLVM (NO LONGER NEEDED)
 get_libsoftfp()
 {
     # Skip if already built and installed
@@ -2905,7 +2924,7 @@ get_libssh2()
         CC="$CC_STATIC" \
         AR="$AR" \
         RANLIB="$RANLIB" \
-        CFLAGS="-Os -march=${ARCH} -I${PREFIX}/include" \
+        CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${SYSROOT}/lib" \
         LIBS="-lssl -lcrypto"
     make -j$(nproc)
@@ -2966,7 +2985,7 @@ get_libt3config()
         LD="${LD}" \
         RANLIB="${RANLIB}" \
         LIBTOOL="${PREFIX}/bin/i486-linux-musl-libtool" \
-        CFLAGS="--sysroot=${SYSROOT} -I${SYSROOT}/usr/include" \
+        CFLAGS="${CFLAGS_COMMON}" \
         LDFLAGS="--sysroot=${SYSROOT} -L${SYSROOT}/usr/lib"
     make -j$(nproc)
     make DESTDIR="${SYSROOT}" install
@@ -3022,7 +3041,7 @@ get_libt3highlight()
         LD="${LD}" \
         RANLIB="${RANLIB}" \
         LIBTOOL="${PREFIX}/bin/i486-linux-musl-libtool" \
-        CFLAGS="--sysroot=${SYSROOT} -I${SYSROOT}/usr/include -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
+        CFLAGS="${CFLAGS_COMMON}" \
         LDFLAGS="--sysroot=${SYSROOT} -L${SYSROOT}/usr/lib -L${PREFIX}/lib"
     make -j$(nproc)
     make DESTDIR="${SYSROOT}" install
@@ -3097,7 +3116,7 @@ get_libt3key()
         LD="${LD}" \
         RANLIB="${RANLIB}" \
         LIBTOOL="${PREFIX}/bin/i486-linux-musl-libtool" \
-        CFLAGS="--sysroot=${SYSROOT} -I${SYSROOT}/usr/include -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
+        CFLAGS="${CFLAGS_COMMON}" \
         LDFLAGS="--sysroot=${SYSROOT} -L${SYSROOT}/usr/lib -L${PREFIX}/lib"
     make -j$(nproc)
     make DESTDIR="${SYSROOT}" install || true
@@ -3170,7 +3189,7 @@ get_libt3widget()
         LD="${LD}" \
         RANLIB="${RANLIB}" \
         LIBTOOL="${PREFIX}/bin/i486-linux-musl-libtool" \
-        CFLAGS="--sysroot=${SYSROOT} -I${SYSROOT}/usr/include -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
+        CFLAGS="${CFLAGS_COMMON}" \
         CXXFLAGS="-I${PREFIX}/include -I${SYSROOT}/usr/include" \
         LDFLAGS="--sysroot=${SYSROOT} -L${SYSROOT}/usr/lib -L${PREFIX}/lib"
 
@@ -3236,7 +3255,7 @@ get_libt3window()
         LD="${LD}" \
         RANLIB="${RANLIB}" \
         LIBTOOL="${PREFIX}/bin/i486-linux-musl-libtool" \
-        CFLAGS="--sysroot=${SYSROOT} -I${SYSROOT}/usr/include -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
+        CFLAGS="${CFLAGS_COMMON}" \
         LDFLAGS="--sysroot=${SYSROOT} -L${SYSROOT}/usr/lib -L${PREFIX}/lib"
     make -j$(nproc)
     make DESTDIR="${SYSROOT}" install
@@ -3288,7 +3307,7 @@ get_libtasn1()
         CC="$CC_STATIC" \
         AR="$AR" \
         RANLIB="$RANLIB" \
-        CFLAGS="-Os -march=${ARCH} -I${PREFIX}/include" \
+        CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${SYSROOT}/lib"
     make -j$(nproc)
     make DESTDIR="${SYSROOT}" install
@@ -3346,7 +3365,7 @@ get_libtool_tilde()
         AR="${AR}" \
         LD="${LD}" \
         RANLIB="${RANLIB}" \
-        CFLAGS="--sysroot=${SYSROOT}" \
+        CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="--sysroot=${SYSROOT} -L${SYSROOT}/lib"
     make -j$(nproc)
     make DESTDIR="${SYSROOT}" install
@@ -3390,7 +3409,7 @@ get_libtranscript()
             AR="${AR}" \
             LD="${LD}" \
             RANLIB="${RANLIB}" \
-            CFLAGS="--sysroot=${SYSROOT} -I${SYSROOT}/usr/include" \
+            CFLAGS="${CFLAGS_COMMON}" \
             LDFLAGS="--sysroot=${SYSROOT} -L${SYSROOT}/usr/lib -lltdl"
         make -j$(nproc)
         rm -rf "$SYSROOT/usr/lib/transcript1"
@@ -3463,7 +3482,7 @@ get_libunistring()
         AR="${AR}" \
         LD="${LD}" \
         RANLIB="${RANLIB}" \
-        CFLAGS="-static -fno-pie -fno-pic -D__gnuc_va_list=va_list" \
+        CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -static-libgcc -no-pie -Wl,-static -L${PREFIX}/lib -L${SYSROOT}/lib"
     make -j$(nproc)
     make DESTDIR="${SYSROOT}" install
@@ -3504,7 +3523,7 @@ get_liburcu()
         CC="$CC_STATIC" \
         AR="$AR" \
         RANLIB="$RANLIB" \
-        CFLAGS="-Os -march=${ARCH} -I${PREFIX}/include" \
+        CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${SYSROOT}/lib"
     make -j$(nproc)
     make install
@@ -3547,7 +3566,7 @@ get_libuuid()
         --disable-all-programs \
         --enable-libuuid \
         CC="${CC_STATIC}" \
-        CFLAGS="-Os -march=${ARCH} -I${PREFIX}/include" \
+        CFLAGS="${CFLAGS_NOPIE}" \
         CPPFLAGS="-I${PREFIX}/include" \
         LDFLAGS="-L${PREFIX}/lib -static" \
         PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig"
@@ -3612,8 +3631,8 @@ get_libxlsxwriter()
     # Download source
     if [ -d libxlsxwriter ]; then
         echo -e "${YELLOW}libxlsxwriter source already present, resetting...${RESET}"
-        git config --global --add safe.directory "${CURR_DIR}/build/libxlsxwriter"
         cd libxlsxwriter
+        git config --global --add safe.directory "${CURR_DIR}/build/libxlsxwriter"
         git reset --hard
     else
         echo -e "${GREEN}Downloading libxlsxwriter...${RESET}"
@@ -3627,7 +3646,7 @@ get_libxlsxwriter()
         CC="$CC_STATIC" \
         AR="$AR" \
         RANLIB="$RANLIB" \
-        CFLAGS="-static -O2 -I$PREFIX/include -I$SYSROOT/usr/include" \
+        CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L$PREFIX/lib -L$SYSROOT/usr/lib" \
         MINIZIP=1 \
         -j$(nproc)
@@ -3650,6 +3669,7 @@ get_libxml2()
     if [ -d libxml2 ]; then
         echo -e "${YELLOW}libxml2 source already present, resetting...${RESET}"
         cd libxml2
+        git config --global --add safe.directory "${CURR_DIR}"/build/libxml2
         git reset --hard
     else
         echo -e "${GREEN}Downloading libxml2...${RESET}"
@@ -3690,6 +3710,7 @@ get_libzip()
     if [ -d libzip ]; then
         echo -e "${YELLOW}libzip source already present, resetting...${RESET}"
         cd libzip
+        git config --global --add safe.directory "${CURR_DIR}"/build/libzip
         git reset --hard
         git clean -fdx
     else
@@ -3754,7 +3775,7 @@ get_lz4()
         CC="${CC_STATIC}" \
         AR="${AR}" \
         RANLIB="${RANLIB}" \
-        CFLAGS="-Os -march=${ARCH}" \
+        CFLAGS="${CFLAGS_NOPIE}" \
         BUILD_SHARED=no \
         BUILD_STATIC=yes \
         lib
@@ -3762,7 +3783,7 @@ get_lz4()
         CC="${CC_STATIC}" \
         AR="${AR}" \
         RANLIB="${RANLIB}" \
-        CFLAGS="-Os -march=${ARCH}" \
+        CFLAGS="${CFLAGS_NOPIE}" \
         BUILD_SHARED=no \
         BUILD_STATIC=yes \
         -C lib install
@@ -3805,7 +3826,7 @@ get_nettle()
         CC="$CC_STATIC" \
         AR="$AR" \
         RANLIB="$RANLIB" \
-        CFLAGS="-Os -march=${ARCH} -I${PREFIX}/include" \
+        CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${SYSROOT}/lib"
     make -j$(nproc)
     make DESTDIR="${SYSROOT}" install
@@ -3850,9 +3871,9 @@ get_npth()
         AR="${AR}" \
         LD="${LD}" \
         RANLIB="${RANLIB}" \
-        CFLAGS="-static -fno-pie -fno-pic -mno-fancy-math-387 -msoft-float -mno-80387 -mno-fp-ret-in-387 -D__gnuc_va_list=va_list -I${SYSROOT}/usr/include" \
+        CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -static-libgcc -no-pie -Wl,-static -L${PREFIX}/lib -L${SYSROOT}/lib -L${SYSROOT}/usr/lib" \
-        LIBS="-lsoftfp -lgcc"
+        LIBS="-lgcc"
     make -j$(nproc)
     make DESTDIR="${SYSROOT}" install
 }
@@ -3871,8 +3892,8 @@ get_openssl()
     # Download source
     if [ -d openssl ]; then
         echo -e "${YELLOW}OpenSSL source already present, resetting...${RESET}"
-        git config --global --add safe.directory "${CURR_DIR}"/build/openssl
         cd openssl
+        git config --global --add safe.directory "${CURR_DIR}"/build/openssl
         git reset --hard
         git clean -fdx
     else
@@ -3932,7 +3953,7 @@ get_pcre2()
         AR="${AR}" \
         LD="${LD}" \
         RANLIB="${RANLIB}" \
-        CFLAGS="-static -fno-pie -fno-pic -D__gnuc_va_list=va_list" \
+        CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -static-libgcc -no-pie -Wl,-static -L${PREFIX}/lib -L${SYSROOT}/lib"
     make -j$(nproc)
     make DESTDIR="${SYSROOT}" install
@@ -4012,12 +4033,12 @@ get_xxhash()
     make -j$(nproc) \
         CC="${CC_STATIC}" \
         AR="${AR}" \
-        CFLAGS="-Os -march=${ARCH}" \
+        CFLAGS="${CFLAGS_NOPIE}" \
         libxxhash.a
     make DESTDIR="${SYSROOT}" PREFIX=/usr \
         CC="${CC_STATIC}" \
         AR="${AR}" \
-        CFLAGS="-Os -march=${ARCH}" \
+        CFLAGS="${CFLAGS_NOPIE}" \
         install
 }
 
@@ -4035,9 +4056,10 @@ get_zlib()
     # Download source
     if [ -d zlib ]; then
         echo -e "${YELLOW}zlib source already present, resetting...${RESET}"
-        git config --global --add safe.directory "${CURR_DIR}"/build/zlib
         cd zlib
+        git config --global --add safe.directory "${CURR_DIR}"/build/zlib
         git reset --hard
+        git clean -fdx
     else
         echo -e "${GREEN}Downloading zlib...${RESET}"
         git clone --branch v${ZLIB_VER} $ZLIB_SRC
@@ -4046,7 +4068,7 @@ get_zlib()
 
     echo -e "${GREEN}Compiling zlib...${RESET}"
     CC="$CC_STATIC" \
-    CFLAGS="-Os -march=${ARCH} -static --sysroot=$SYSROOT" \
+    CFLAGS="${CFLAGS_NOPIE}" \
     ./configure \
         --static \
         --prefix=/usr
@@ -4057,7 +4079,7 @@ get_zlib()
     cd contrib/minizip
     autoreconf -fi
     CC="$CC_STATIC" \
-    CFLAGS="-Os -march=${ARCH} -static --sysroot=$SYSROOT -I${SYSROOT}/usr/include" \
+    CFLAGS="${CFLAGS_NOPIE}" \
     LDFLAGS="-L${SYSROOT}/usr/lib" \
     ./configure \
         --host="${HOST}" \
@@ -4126,8 +4148,8 @@ get_x86emu()
     # Download source
     if [ -d libx86emu ]; then
         echo -e "${YELLOW}x86emu source already present, resetting...${RESET}"
-        git config --global --add safe.directory "${CURR_DIR}"/build/libx86emu
         cd libx86emu
+        git config --global --add safe.directory "${CURR_DIR}"/build/libx86emu
         git reset --hard
         git clean -fdx
     else
@@ -4161,6 +4183,7 @@ get_patched_xlinux()
     if [ -d syslinux ]; then
         echo -e "${YELLOW}ISOLINUX/EXTLINUX/SYSLINUX source already present, resetting...${RESET}"
         cd syslinux
+        git config --global --add safe.directory "${CURR_DIR}"/build/syslinux
         git reset --hard
         make clean || true
     else
@@ -4276,9 +4299,10 @@ get_busybox()
 
     # Ensure BusyBox behaves with our toolchain
     sed -i "s|^CONFIG_CROSS_COMPILER_PREFIX=.*|CONFIG_CROSS_COMPILER_PREFIX=\"${PREFIX}/bin/${ARCH}-linux-musl-\"|" .config
-    sed -i "s|^CONFIG_SYSROOT=.*|CONFIG_SYSROOT=\"${CURR_DIR}/build/${ARCH}-linux-musl-cross\"|" .config
-    sed -i "s|^CONFIG_EXTRA_CFLAGS=.*|CONFIG_EXTRA_CFLAGS=\"-no-pie -fno-pie -march=i486 -mtune=i486 -I${PREFIX}/include\"|" .config
+    sed -i "s|^CONFIG_SYSROOT=.*|CONFIG_SYSROOT=\"${SYSROOT}\"|" .config
+    sed -i "s|^CONFIG_EXTRA_CFLAGS=.*|CONFIG_EXTRA_CFLAGS=\"${CFLAGS_NOPIE}\"|" .config
     sed -i "s|^CONFIG_EXTRA_LDFLAGS=.*|CONFIG_EXTRA_LDFLAGS=\"-no-pie -static -L${PREFIX}/lib\"|" .config
+    sed -i "s|^CONFIG_EXTRA_LDLIBS=.*|CONFIG_EXTRA_LDLIBS=\"${LDLIBS_COMMON}\"|" .config
 
     # Patch in swap partition identification in lsblk implementation
     echo -e "${GREEN}Applying 1.38.0_lsblk_swap patch...${RESET}"
@@ -4409,7 +4433,14 @@ get_strace()
     # Compile and install
     echo -e "${GREEN}Compiling strace...${RESET}"
     ./bootstrap
-    ./configure --host="${HOST}" --prefix=/usr --disable-shared --enable-static CC="${CC_STATIC}" CFLAGS="-Os -march=${ARCH}" LDFLAGS="-static"
+    ./configure \
+        --host="${HOST}" \
+        --prefix=/usr \
+        --disable-shared \
+        --enable-static \
+        CC="${CC_STATIC} " \
+        CFLAGS="${CFLAGS_NOPIE} -ffunction-sections -fdata-sections" \
+        LDFLAGS="-static -Wl,--gc-sections"
     make -j$(nproc)
     make install DESTDIR="${DESTDIR}"
 }
@@ -4474,7 +4505,7 @@ get_util_linux()
         --disable-nls \
         --disable-widechar \
         CC="${CC_STATIC}" \
-        CFLAGS="-Os -march=${ARCH} -I${PREFIX}/include" \
+        CFLAGS="${CFLAGS_NOPIE}" \
         CPPFLAGS="-I${PREFIX}/include" \
         LDFLAGS="-L${PREFIX}/lib -static" \
         PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig"
@@ -4768,6 +4799,9 @@ compile_kernel()
         patch -p1 < "${PATCHES_DIR}/linux/7.1.x/7.1.x_restore-isa-pcmcia-net.patch"
     fi
 
+    echo -e "${GREEN}Applying 7.0.x_387-fpu-clone-sigfpe patch...${RESET}"
+    patch -p1 < "${PATCHES_DIR}/linux/7.0.x/7.0.x_387-fpu-clone-sigfpe.patch"
+
     echo -e "${GREEN}Compiling Linux kernel...${RESET}"
     make ARCH=x86 olddefconfig
     make ARCH=x86 bzImage -j$(nproc)
@@ -4839,7 +4873,9 @@ get_v86d()
     if [ -d v86d ]; then
         echo -e "${YELLOW}v86d source already present, resetting...${RESET}"
         cd v86d
+        git config --global --add safe.directory "${CURR_DIR}"/build/v86d
         git reset --hard
+        git clean -fdx
     else
         echo -e "${GREEN}Downloading v86d...${RESET}"
         git clone https://salsa.debian.org/debian/v86d.git
@@ -6162,8 +6198,8 @@ get_tinyx()
     # Download source
     if [ -d tinyx ]; then
         echo -e "${YELLOW}TinyX source already present, resetting...${RESET}"
-        git config --global --add safe.directory "${CURR_DIR}/build/tinyx"
         cd tinyx
+        git config --global --add safe.directory "${CURR_DIR}/build/tinyx"
         git reset --hard
         git clean -fdx
     else
@@ -6210,8 +6246,8 @@ get_twm()
     # Download source
     if [ -d twm ]; then
         echo -e "${YELLOW}TWM source already present, resetting...${RESET}"
-        git config --global --add safe.directory "${CURR_DIR}/build/twm"
         cd twm
+        git config --global --add safe.directory "${CURR_DIR}/build/twm"
         git reset --hard
         git clean -fdx
     else
@@ -6253,8 +6289,8 @@ get_nedit()
     # Download source
     if [ -d nedit-git ]; then
         echo -e "${YELLOW}NEdit source already present, resetting...${RESET}"
-        git config --global --add safe.directory "${CURR_DIR}/build/nedit-git"
         cd nedit-git
+        git config --global --add safe.directory "${CURR_DIR}/build/nedit-git"
         git reset --hard
         git clean -fdx
     else
@@ -6298,8 +6334,8 @@ get_oneko()
     # Download source
     if [ -d oneko ]; then
         echo -e "${YELLOW}oneko source already present, resetting...${RESET}"
-        git config --global --add safe.directory "${CURR_DIR}/build/oneko"
         cd oneko
+        git config --global --add safe.directory "${CURR_DIR}/build/oneko"
         git reset --hard
         git clean -fdx
     else
@@ -6327,8 +6363,8 @@ get_st()
     # Download source
     if [ -d st ]; then
         echo -e "${YELLOW}st source already present, resetting...${RESET}"
-        git config --global --add safe.directory "${CURR_DIR}/build/st"
         cd st
+        git config --global --add safe.directory "${CURR_DIR}/build/st"
         git reset --hard
         git clean -fdx
     else
@@ -6513,8 +6549,8 @@ get_xli()
     # Download source
     if [ -d xli ]; then
         echo -e "${YELLOW}xli source already present, resetting...${RESET}"
-        git config --global --add safe.directory "${CURR_DIR}/build/xli"
         cd xli
+        git config --global --add safe.directory "${CURR_DIR}/build/xli"
         git reset --hard
         git clean -fdx
     else
@@ -6916,13 +6952,13 @@ get_prog_git()
             AS="${AS}" \
             RANLIB="${RANLIB}" \
             STRIP="${STRIP}" \
-            CFLAGS="-Os -march=${ARCH} -mno-fancy-math-387 -ffunction-sections -fdata-sections -I${PREFIX}/include -I${PREFIX}/include/ncursesw ${EXTRA_CFLAGS}" \
+            CFLAGS="${CFLAGS_NOPIE} ${EXTRA_CFLAGS} -ffunction-sections -fdata-sections" \
             CPPFLAGS="-I${SYSROOT}/include -I${PREFIX}/include -I${PREFIX}/include/ncursesw -DHAVE_FORKPTY" \
             LDFLAGS="-static -Wl,--gc-sections -s -L${PREFIX}/lib ${EXTRA_LDFLAGS}" \
             LIBS="${EXTRA_LIBS}" \
-            LIBEVENT_CFLAGS="-I${PREFIX}/include" \
+            LIBEVENT_CFLAGS="${CFLAGS_NOPIE}" \
             LIBEVENT_LIBS="-L${PREFIX}/lib -levent" \
-            CURSES_CFLAGS="-I${PREFIX}/include/ncursesw -I${PREFIX}/include" \
+            CURSES_CFLAGS="${CFLAGS_NOPIE}" \
             CURSES_LIBS="-L${PREFIX}/lib -lncursesw"
     fi
 
@@ -7028,13 +7064,13 @@ get_prog_tar()
             AS="${AS}" \
             RANLIB="${RANLIB}" \
             STRIP="${STRIP}" \
-            CFLAGS="-Os -march=${ARCH} -mno-fancy-math-387 -ffunction-sections -fdata-sections -I${PREFIX}/include -I${PREFIX}/include/ncursesw ${EXTRA_CFLAGS}" \
+            CFLAGS="${CFLAGS_NOPIE} ${EXTRA_CFLAGS} -ffunction-sections -fdata-sections" \
             CPPFLAGS="-I${SYSROOT}/include -I${PREFIX}/include -I${PREFIX}/include/ncursesw -DHAVE_FORKPTY" \
             LDFLAGS="-static -Wl,--gc-sections -s -L${PREFIX}/lib ${EXTRA_LDFLAGS}" \
             LIBS="-Wl,--start-group ${EXTRA_LIBS}" \
-            LIBEVENT_CFLAGS="-I${PREFIX}/include" \
+            LIBEVENT_CFLAGS="${CFLAGS_NOPIE}" \
             LIBEVENT_LIBS="-L${PREFIX}/lib -levent" \
-            CURSES_CFLAGS="-I${PREFIX}/include/ncursesw -I${PREFIX}/include" \
+            CURSES_CFLAGS="${CFLAGS_NOPIE} -I${PREFIX}/include" \
             CURSES_LIBS="-L${PREFIX}/lib -lncursesw -Wl,--end-group"
     fi
     make -j$(nproc)
@@ -7121,7 +7157,7 @@ get_bind9_dnsutils()
         CC="${CC_STATIC}" \
         AR="${AR}" \
         RANLIB="${RANLIB}" \
-        CFLAGS="-Os -march=${ARCH} -I${SYSROOT}/usr/include" \
+        CFLAGS="${CFLAGS_COMMON}" \
         LDFLAGS="-L${SYSROOT}/usr/lib"
 
     echo -e "${GREEN}Compiling lib prerequisites...${RESET}"
@@ -7175,7 +7211,7 @@ get_ctris()
     # Patch Makefile to support our cross-compiler and gpm
     sed -i \
         -e "s|CC = g++|CC = ${CXX_STATIC}|g" \
-        -e "s|CFLAGS = -lncursesw|CFLAGS = -I${PREFIX}/include -L${PREFIX}/lib -lncursesw -lgpm|g" \
+        -e "s|CFLAGS = -lncursesw|CFLAGS = ${CFLAGS_NOPIE} -lncursesw -lgpm|g" \
         makefile
 
     # Compile and install
@@ -7231,7 +7267,7 @@ get_dropbear()
         CC="${CC}" \
         AR="${AR}" \
         RANLIB="${RANLIB}" \
-        CFLAGS="-Os -march=${ARCH} -static" \
+        CFLAGS="${CFLAGS_COMMON_486SX}" \
         LDFLAGS="-static"
     make PROGRAMS="dbclient scp" -j$(nproc)
     sudo make DESTDIR="$DESTDIR" install PROGRAMS="dbclient scp"
@@ -7316,7 +7352,7 @@ get_file()
         CC="${CC_STATIC}" \
         AR="${AR}" \
         RANLIB="${RANLIB}" \
-        CFLAGS="-Os -march=${ARCH} -D__NR_landlock_create_ruleset=444 -D__NR_landlock_add_rule=445 -D__NR_landlock_restrict_self=446" \
+        CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static"
     make -j$(nproc)
     sudo make DESTDIR="$DESTDIR" install
@@ -7425,7 +7461,7 @@ get_git()
         CC="${CC_STATIC}" \
         AR="${AR}" \
         RANLIB="${RANLIB}" \
-        CFLAGS="-Os -march=${ARCH} -static -I${PREFIX}/include" \
+        CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${PREFIX}/lib"
     sudo cp "$CONFIGS_DIR"/git.config.mak config.mak
     make NO_RUST=1 -j$(nproc)
@@ -7476,7 +7512,7 @@ get_htop()
         CC="${CC_STATIC}" \
         AR="${AR}" \
         RANLIB="${RANLIB}" \
-        CFLAGS="-Os -march=${ARCH} -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
+        CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${PREFIX}/lib" \
         LIBS="-lgpm"
     make -j$(nproc)
@@ -7683,9 +7719,9 @@ get_memtester()
     tar xzf $ARC
     cd $DIR
 
-    # Patch relevant build files to support 486/no-x87 building, our
-    # cross-compiler and our DESTDIR
-    sed -i "1s|^cc |${CC_STATIC} -m32 -march=i486 -mtune=i486 -mno-80387 -mno-fp-ret-in-387 |" conf-cc
+    # Patch relevant build files to support 486 building, our cross-compiler
+    # and our DESTDIR
+    sed -i "1s|^cc |${CC_STATIC} -m32 ${CFLAGS_NOPIE} |" conf-cc
     sed -i "1s|^cc -s|${CC_STATIC} -m32 -static -s|" conf-ld
     sed -i "s|^INSTALLPATH\t= /usr/local|INSTALLPATH\t= ${DESTDIR}/usr|" Makefile
 
@@ -7727,7 +7763,7 @@ get_mg()
     # Compile and install
     echo -e "${GREEN}Compiling Mg...${RESET}"
     ./autogen.sh
-    ./configure --host="${HOST}" --prefix=/usr CC="${CC}" AR="${AR}" RANLIB="${RANLIB}" CFLAGS="-Os -march=${ARCH} -static"
+    ./configure --host="${HOST}" --prefix=/usr CC="${CC}" AR="${AR}" RANLIB="${RANLIB}" CFLAGS="${CFLAGS_NOPIE}"
     make -j$(nproc)
     sudo make DESTDIR="$DESTDIR" install
 
@@ -7834,7 +7870,7 @@ get_micropython()
         AR="${AR}" \
         RANLIB="${RANLIB}" \
         STRIP="${STRIP}" \
-        CFLAGS_EXTRA="-Os -march=${ARCH} -static --sysroot=${SYSROOT}" \
+        CFLAGS_EXTRA="${CFLAGS_NOPIE}" \
         LDFLAGS_EXTRA="-static --sysroot=${SYSROOT}" \
         MICROPY_PY_SSL=1 \
         MICROPY_SSL_MBEDTLS=1 \
@@ -7900,10 +7936,10 @@ get_mpg321()
         CC="$CC_STATIC" \
         RANLIB="$RANLIB" \
         CPPFLAGS="-nostdinc -I$SYSROOT/usr/include -I$SYSROOT/include -I${PREFIX}/lib/gcc/i486-linux-musl/11.2.1/include" \
-        CFLAGS="-static -fcommon -std=gnu89" \
+        CFLAGS="${CFLAGS_NOPIE} -std=gnu89 -fcommon" \
         LDFLAGS="-static -L$SYSROOT/usr/lib" \
         LIBAO_LIBS="-L$SYSROOT/usr/lib -lao" \
-        LIBAO_CFLAGS="-I$SYSROOT/usr/include" \
+        LIBAO_CFLAGS="${CFLAGS_NOPIE}" \
         PKG_CONFIG_PATH="$SYSROOT/usr/lib/pkgconfig" \
         PKG_CONFIG_LIBDIR="$SYSROOT/usr/lib/pkgconfig" \
         PKG_CONFIG_SYSROOT_DIR="$SYSROOT" \
@@ -7964,7 +8000,7 @@ get_nano()
         --disable-browser \
         --disable-libmagic \
         CC="${CC}" \
-        CFLAGS="-Os -march=${ARCH} -mno-fancy-math-387 -I${PREFIX}/include -I${PREFIX}/include/ncursesw -fno-pie -no-pie" \
+        CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${PREFIX}/lib -fno-pie -no-pie"
 
     # In case "cannot find -ltinfo" error 
@@ -8006,7 +8042,7 @@ get_nasm()
         --host="${HOST}" \
         --prefix=/usr \
         CC="${CC_STATIC}" \
-        CFLAGS="-I${PREFIX}/include" \
+        CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-L${PREFIX}/lib -static"
     make -j$(nproc)
     sudo install -D -m 755 nasm "${DESTDIR}/usr/bin/nasm"
@@ -8045,7 +8081,7 @@ get_nbsdgames()
     echo -e "${GREEN}Compiling nbsdgames...${RESET}"
     sudo make install \
         CC="${CC_STATIC}" \
-        CFLAGS="-Os -march=${ARCH} -I${PREFIX}/include" \
+        CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${PREFIX}/lib" \
         LIBS="-lncursesw -lgpm" \
         PREFIX= \
@@ -8169,7 +8205,7 @@ get_sc_im()
 
     make -C src \
         CC="$CC_STATIC" \
-        CFLAGS="-static -O2 -I${PREFIX}/include -I${PREFIX}/include/ncursesw -I${PREFIX}/include/libxml2 \
+        CFLAGS="${CFLAGS_NOPIE} -I${PREFIX}/include/libxml2 \
             -DNCURSES -D_XOPEN_SOURCE_EXTENDED -D_GNU_SOURCE \
             -DSNAME=\\\"sc-im\\\" -DHELP_PATH=\\\"/usr/share/sc-im\\\" \
             -DCONFIG_DIR=\\\".config/sc-im\\\" -DCONFIG_FILE=\\\"scimrc\\\" \
@@ -8282,8 +8318,8 @@ get_tilde()
         LD="${LD}" \
         RANLIB="${RANLIB}" \
         LIBTOOL="${PREFIX}/bin/i486-linux-musl-libtool" \
-        CFLAGS="--sysroot=${SYSROOT} -g -fno-pie -I${SYSROOT}/usr/include -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
-        CXXFLAGS="--sysroot=${SYSROOT} -g -fno-pie -I${SYSROOT}/usr/include -I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
+        CFLAGS="${CFLAGS_COMMON}" \
+        CXXFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="--sysroot=${SYSROOT} -static -static-libgcc -static-libstdc++ -no-pie -L${SYSROOT}/usr/lib -L${PREFIX}/lib"
 
     # Add our extra object files to the OBJECTS list and transcript_preload.o an
@@ -8327,7 +8363,7 @@ get_tn5250()
     LIBATOMIC_A="$($CC -print-file-name=libatomic.a)"
 
     export CC="$CC"
-    export CFLAGS="-static -fno-pie -fno-pic -D__gnuc_va_list=va_list -nostdinc -I${INTER_HEADERS} -I${PREFIX}/${ARCH}-linux-musl/include -I${PREFIX}/include -I${PREFIX}/include/ncursesw"
+    export CFLAGS="${CFLAGS_NOPIE} -nostdinc -I${INTER_HEADERS} -I${PREFIX}/${ARCH}-linux-musl/include"
     export CPPFLAGS="$CFLAGS"
     export LDFLAGS="-static -static-libgcc -no-pie -Wl,-static -L${PREFIX}/lib -L${SYSROOT}/lib"
 
@@ -8377,7 +8413,18 @@ get_tnftp()
     # Compile and install
     echo -e "${GREEN}Compiling tnftp...${RESET}"
     unset LIBS
-    ./configure --host="${HOST}" --prefix=/usr --disable-editcomplete --disable-shared --enable-static CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}" CFLAGS="-Os -march=${ARCH}" LDFLAGS=""
+    ./configure \
+        --host="${HOST}" \
+        --prefix=/usr \
+        --disable-editcomplete \
+        --disable-shared \
+        --enable-static \
+        CC="${CC_STATIC}" \
+        AR="${AR}" \
+        RANLIB="${RANLIB}" \
+        STRIP="${STRIP}" \
+        CFLAGS="${CFLAGS_NOPIE}" \
+        LDFLAGS=""
     make -j$(nproc)
     sudo make DESTDIR="$DESTDIR" install
     ln -sf tnftp "${DESTDIR}/usr/bin/ftp"
@@ -8433,12 +8480,12 @@ get_tshark()
         -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
         -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
         -DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=ONLY \
-        -DCMAKE_C_FLAGS="-m32 -march=i486 -mtune=i486 -mno-80387 -mno-fp-ret-in-387 -Os -mlong-double-64" \
-        -DCMAKE_CXX_FLAGS="-m32 -march=i486 -mtune=i486 -mno-80387 -mno-fp-ret-in-387 -Os -mlong-double-64" \
+        -DCMAKE_C_FLAGS="${CFLAGS_NOPIE}" \
+        -DCMAKE_CXX_FLAGS="${CFLAGS_NOPIE}" \
         -DCMAKE_EXE_LINKER_FLAGS="-static -no-pie -Wl,--allow-multiple-definition -L${PREFIX}/lib" \
         -DCMAKE_POSITION_INDEPENDENT_CODE=OFF \
-        -DCMAKE_C_STANDARD_LIBRARIES="-lsoftfp -lpcre2-8 -lstdc++ -lhogweed -lnettle -lgmp -ltasn1 -lidn2 -lunistring -lbrotlidec -lbrotlienc -lbrotlicommon" \
-        -DCMAKE_CXX_STANDARD_LIBRARIES="-lsoftfp -lpcre2-8 -lstdc++ -lhogweed -lnettle -lgmp -ltasn1 -lidn2 -lunistring -lbrotlidec -lbrotlienc -lbrotlicommon" \
+        -DCMAKE_C_STANDARD_LIBRARIES="-lpcre2-8 -lstdc++ -lhogweed -lnettle -lgmp -ltasn1 -lidn2 -lunistring -lbrotlidec -lbrotlienc -lbrotlicommon" \
+        -DCMAKE_CXX_STANDARD_LIBRARIES="-lpcre2-8 -lstdc++ -lhogweed -lnettle -lgmp -ltasn1 -lidn2 -lunistring -lbrotlidec -lbrotlienc -lbrotlicommon" \
         -DCMAKE_BUILD_TYPE=MinSizeRel \
         -DCMAKE_INSTALL_PREFIX="${DESTDIR}/usr" \
         -DUSE_STATIC=ON \
@@ -8559,8 +8606,8 @@ get_vim()
         AS="${AS}" \
         RANLIB="${RANLIB}" \
         STRIP="${STRIP}" \
-        CFLAGS="-Os -march=${ARCH} -mno-fancy-math-387 -ffunction-sections -fdata-sections -I${PREFIX}/include" \
-        CPPFLAGS="-I${SYSROOT}/include -I${PREFIX}/include -DHAVE_FORKPTY" \
+        CFLAGS="${CFLAGS_NOPIE}" \
+        CPPFLAGS="${CFLAGS_NOPIE} -DHAVE_FORKPTY" \
         LDFLAGS="-static -Wl,--gc-sections -s -L${PREFIX}/lib"
     make -j$(nproc)
     sudo make DESTDIR="$DESTDIR" install
@@ -12017,9 +12064,9 @@ if $INCLUDE_GNUPG; then
         false \
         "/usr" \
         "--sysconfdir=/etc --enable-pinentry-tty --disable-pinentry-curses --disable-pinentry-qt --disable-pinentry-qt5 --disable-pinentry-gtk2 --disable-pinentry-gnome3 --disable-pinentry-tqt --disable-pinentry-qt4 --disable-pinentry-emacs --disable-pinentry-fltk --disable-pinentry-efl --disable-libsecret --without-libsecret GPG_ERROR_CONFIG=${SYSROOT}/usr/bin/gpg-error-config GPGRT_CONFIG=${SYSROOT}/usr/bin/gpgrt-config LIBASSUAN_CONFIG=${SYSROOT}/usr/bin/libassuan-config PKG_CONFIG_PATH=${SYSROOT}/usr/lib/pkgconfig" \
-        "-msoft-float -mno-80387 -mno-fp-ret-in-387" \
         "" \
-        "-lsoftfp -lgcc"
+        "" \
+        "-lgcc"
 
     get_prog_tar \
         "usr/bin" \
@@ -12034,9 +12081,9 @@ if $INCLUDE_GNUPG; then
         false \
         "/usr" \
         "--enable-static --disable-shared --disable-doc --disable-ldap --disable-nls --disable-gpgsm --disable-scdaemon --disable-card-support --disable-wks-tools --disable-sqlite --disable-tofu --disable-dirmngr --disable-photo-viewers --disable-ntbtls --disable-gnutls GPG_ERROR_CONFIG=${SYSROOT}/usr/bin/gpg-error-config GPGRT_CONFIG=${SYSROOT}/usr/bin/gpgrt-config LIBGCRYPT_CONFIG=${SYSROOT}/usr/bin/libgcrypt-config LIBASSUAN_CONFIG=${SYSROOT}/usr/bin/libassuan-config KSBA_CONFIG=${SYSROOT}/usr/bin/ksba-config NPTH_CONFIG=${SYSROOT}/usr/bin/npth-config PKG_CONFIG_PATH=${SYSROOT}/usr/lib/pkgconfig" \
-        "-msoft-float -mno-80387 -mno-fp-ret-in-387" \
         "" \
-        "-lsoftfp -lgcc"
+        "" \
+        "-lgcc"
 fi
 if $INCLUDE_HTOP; then
     get_htop
@@ -12141,7 +12188,7 @@ if $INCLUDE_MICROPYTHON; then
     get_micropython
 fi
 if $INCLUDE_MIDNIGHT_CMDR; then
-    LIBATOMIC_A="$($CC -print-file-name=libatomic.a)"
+    #LIBATOMIC_A="$($CC -print-file-name=libatomic.a)"
     get_prog_git \
         "usr/bin" \
         "mc" \
@@ -12156,7 +12203,7 @@ if $INCLUDE_MIDNIGHT_CMDR; then
         "--with-screen=ncurses --without-x --disable-mclib --enable-vfs-sftp " \
         "-I${SYSROOT}/usr/include -I${PREFIX}/include" \
         "-L${SYSROOT}/usr/lib -L${PREFIX}/lib" \
-        "-Wl,--start-group -lssh2 -lcrypto -lz -lsoftfp -lpcre2-8 -Wl,-Bstatic ${LIBATOMIC_A} -lncursesw -ltinfo -lgpm -Wl,--end-group"
+        "-Wl,--start-group -lssh2 -lcrypto -lz -lpcre2-8 -Wl,-Bstatic -latomic -lncursesw -ltinfo -lgpm -Wl,--end-group"
 fi
 if $INCLUDE_MPG321; then
     get_mpg321
