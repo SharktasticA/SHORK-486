@@ -919,7 +919,6 @@ fi
 
 if $INCLUDE_GNUPG; then
     NEED_ZLIB=true
-    NEED_LIBSOFTFP=true
     NEED_NPTH=true
     NEED_LIBGPG_ERROR=true
     NEED_LIBGCRYPT=true
@@ -997,7 +996,6 @@ if $INCLUDE_TSHARK; then
     NEED_LIBLUA=true
     NEED_LIBNL=true
     NEED_LIBCAP=true
-    NEED_LIBSOFTFP=true
 fi
 
 if [ -n "$USED_WM" ]; then
@@ -1009,7 +1007,6 @@ if $NEED_GLIB; then
     NEED_LIBFFI=true
     NEED_PCRE2=true
     NEED_ZLIB=true
-    NEED_LIBSOFTFP=true
 fi
 
 if $NEED_GNUTLS; then
@@ -2760,7 +2757,7 @@ get_libsmi()
 }
 
 # Compile our own static library of C software floating-point routines from
-## LLVM
+# LLVM (NO LONGER NEEDED)
 get_libsoftfp()
 {
     # Skip if already built and installed
