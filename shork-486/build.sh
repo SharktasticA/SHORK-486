@@ -336,7 +336,7 @@ LIBURCU_SRC="https://github.com/urcu/userspace-rcu.git"
 LIBURCU_VER="0.15.7"
 
 LIBUV_SRC="https://github.com/libuv/libuv.git"
-LIBUV_VER="1.52.1"
+LIBUV_VER="1.53.0"
 
 LIBXLSXWRITER_SRC="https://github.com/jmcnamara/libxlsxwriter.git"
 LIBXLSXWRITER_VER="1.2.4"
