@@ -4846,8 +4846,11 @@ compile_kernel()
         make ARCH=x86 modules -j$(nproc)
 
         echo -e "${GREEN}Installing Linux kernel modules...${RESET}"
-        sudo make ARCH=x86 modules_install INSTALL_MOD_PATH="${DESTDIR}"
-        sudo "${DESTDIR}/sbin/depmod" -b "${DESTDIR}" "$KRN_BUILT_VER"
+        sudo rm -rf "${CURR_DIR}/build/modules/"*
+        sudo make ARCH=x86 modules_install \
+            INSTALL_MOD_PATH="${CURR_DIR}/build/modules"
+        sudo "${DESTDIR}/sbin/depmod" -b "${CURR_DIR}/build/modules" \
+            "$KRN_BUILT_VER"
     fi
 }
 
@@ -4886,6 +4889,17 @@ get_kernel()
     fi
 
     compile_kernel
+}
+
+# Copies potential Linux modules from their temporary install dir to DESTDIR
+copy_modules()
+{
+    if [ -d "${CURR_DIR}/build/modules" ] && 
+        [ -n "$(ls -A "${CURR_DIR}/build/modules" 2>/dev/null)" ]; then
+        echo -e "${GREEN}Copying Linux kernel modules...${RESET}"
+        sudo cp -a --remove-destination "${CURR_DIR}/build/modules/." \
+            "${DESTDIR}/"
+    fi
 }
 
 # Download and compile v86d (needed for uvesafb, NOT PRESENTLY USED)
@@ -11657,15 +11671,12 @@ generate_report()
 
 fix_perms
 
-mkdir -p images
-mkdir -p packages
-mkdir -p "$STAGE_DIR"
+mkdir -p {build/modules,"${STAGE_DIR}",build/staging,images,packages}
 
 if ! $DONT_DEL_ROOT; then
     delete_root_dir
 fi
 
-mkdir -p build/staging
 get_prerequisites
 check_host_tc_versions
 get_musl_cross
@@ -11697,6 +11708,7 @@ fi
 if ! $SKIP_KRN; then
     get_kernel
 fi
+copy_modules
 
 # Compile prerequisites
 if $NEED_ZLIB; then
