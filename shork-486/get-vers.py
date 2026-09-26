@@ -31,7 +31,7 @@ BLACKLIST = [
 ]
 
 REPOS = [
-    "pmattes/x3270",
+    "google/brotli",
     "universal-ctags/ctags",
     "dosemu2/dosemu2",
     "dosfstools/dosfstools",
@@ -47,6 +47,7 @@ REPOS = [
     "libffi/libffi",
     "libssh2/libssh2",
     "libuv/libuv",
+    "wfeldt/libx86emu",
     "jmcnamara/libxlsxwriter",
     "gnome/libxml2",
     "nih-at/libzip",
@@ -72,8 +73,9 @@ REPOS = [
     "urcu/userspace-rcu",
     "util-linux/util-linux",
     "vim/vim",
-    "wfeldt/libx86emu",
+    "pmattes/x3270",
     "madler/zlib",
+    "facebook/zstd"
 ]
 
 

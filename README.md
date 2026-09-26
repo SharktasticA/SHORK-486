@@ -1,6 +1,6 @@
 # SHORK 486, DISC & DISKETTE
 
-SHORK 486 is a free and open-source operating system for 486 and Pentium (P5) era vintage personal computers. The aim is to produce a 32-bit Linux distribution that is lean and functional, but still capable on such PCs, often with my '90s IBM ThinkPads in mind. A default SHORK 486 system aims to work with at least 16MiB system memory and take up no more than ~100MiB on your disk. Despite those constraints, the default SHORK 486 experience includes [Linux kernel 7.2.8](KERNEL.md), many typical Linux commands, custom SHORK Utilities such as shorkdir (TUI file browser) and shorkfetch (*fetch clone), a terminal multiplexer, a C compiler, Lua intepreter, Python 3.4-syntax interpreter and dialog for shell script TUI widgets, a text web browser, an FTP, SCP and SSH client, Git source control client, the ed, Mg, nano and vi editors, a spreadsheet editor, a minesweeper- and Tetris-clone game, DOS and ext\* filesystem tools, IDE and SCSI CD-ROM and DVD-ROM support, SCSI tape drive support, ISA, PCI and PCMCIA ethernet support, support for most major national keyboard layouts, and a cute ASCII shark welcome screen!
+SHORK 486 is a free and open-source operating system for 486 and Pentium (P5) era vintage personal computers. The aim is to produce a 32-bit Linux distribution that is lean and functional, but still capable on such PCs, often with my '90s IBM ThinkPads in mind. A default SHORK 486 system aims to work with at least 16MiB system memory and take up no more than ~120MiB on your disk. Despite those constraints, the default SHORK 486 experience includes [Linux kernel 7.2.8](KERNEL.md), many typical Linux commands, custom SHORK Utilities such as shorkdir (TUI file browser) and shorkfetch (*fetch clone), a terminal multiplexer, a C compiler, Lua intepreter, Python 3.4-syntax interpreter and dialog for shell script TUI widgets, a text web browser, an FTP, SCP and SSH client, Git source control client, the ed, Mg, nano and vi editors, a spreadsheet editor, a minesweeper- and Tetris-clone game, DOS and ext\* filesystem tools, IDE and SCSI CD-ROM and DVD-ROM support, SCSI tape drive support, ISA, PCI and PCMCIA ethernet support, support for most major national keyboard layouts, and a cute ASCII shark welcome screen!
 
 A build configurator is available to alter the SHORK 486 Operating System to your liking. For example, you can select the "mini" build type that requires just 8MiB RAM and ~8MiB disk space, whilst still including most typical commands as before, some custom SHORK Utilities, and the ed and vi editors. You can also configure SHORK 486 for symmetric multiprocessing support, multi-user support (if not "micro" or "mini" build) and serial console use, and pick and choose specific software and other features to include. Versions of SHORK 486 that can be burned to a CD (SHORK DISC) or small enough to fit on a 1.44MB floppy diskette (SHORK DISKETTE) are also available.
 
@@ -86,7 +86,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
     * Mini: 8MiB RAM
     * Micro: 7MiB RAM
 * IDE or SCSI disk: 
-    * **Default: 100MiB**
+    * **Default: 120MiB**
     * Max: 710MiB
     * Plus: 670MiB
     * Writer: 90MiB
@@ -115,6 +115,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | Name | Command commands | Version | Purpose | Licence(s) |P|D|W|T|O|
 |------|------------|---------|---------|------------|-|-|-|-|-|
 | [BIND 9 DNS utilities](https://www.isc.org/bind/) | `arpaname`, `delv`, `dig`, `host`, `mdig`, `nslookup`\*, `nsupdate` | 9.20.29 | DNS query & update tools | MPL 2.0 |✓|||||
+| [chrony](https://chrony-project.org/) | `chronyc`, `chronyd` | 4.9 | NTP daemon & interface | GPLv2 |✓|**✓**||✓||
 | [Cscope](https://cscope.sourceforge.net/) | `cscope` | 15.9 | C/C++ code browser | BSD 3-Clause |✓|||||
 | [CTris](https://github.com/MitchelPaulin/CTris) | `ctris` | | Tetris clone | MIT |✓|**✓**|||✓|
 | [cURL](https://curl.se/) | `curl` | 8.22.0 | HTTP client & transfer utility | MIT |✓|**✓**||✓||
@@ -176,10 +177,16 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 
 | Name | Version | For | Licence(s) |
 |------|---------|-----|------------|
+| [Brotli](https://github.com/google/brotli) | 1.2.0 | GnuTLS | MIT |
 | [console-data](https://packages.debian.org/trixie/console-data) & [KBD](https://git.kernel.org/pub/scm/linux/kernel/git/legion/kbd.git) | 1.12-9 & 2.10.0  | Keymaps pack | GPLv2 |
 | [console-setup](https://packages.debian.org/trixie/console-setup) | 1.249 | Console fonts pack | Public domain (most), SIL OFL 1.1 (Terminus) |
 | [GLib](https://download.gnome.org/sources/glib/) | 2.90.0 | Midnight Commander | LGPLv2.1 |
-| [IBM3161-font](https://github.com/wyatt8740/IBM3161-font) | 1.0 | Console fonts pack | GNU Unifont GPLv2 |
+| [GNU Libidn2](https://ftp.gnu.org/gnu/libidn) | 2.3.8 | BIND 9, GnuTLS | GPLv3 |
+| [GNU Libtasn1](https://www.gnu.org/software/libtasn1/) | 4.21.0 | GnuTLS | GPLv3 |
+| [GNU libunistring](https://www.gnu.org/software/libunistring/) | 1.4.2 | GnuTLS, Tilde | GPLv3 |
+| [GNU Nettle](https://www.lysator.liu.se/~nisse/nettle/) | 4.0 | chrony, GnuTLS | GPLv2 |
+| [GnuTLS](https://www.gnutls.org/) | 3.8.13 | chrony | LGPLv2.1 |
+| [IBM3161-font](https://github.com/wyatt8740/IBM3161-font) | 1.0 | Console fonts pack | Unifont GPLv2 |
 | [Inconsolata-psf](https://github.com/xeechou/Inconsolata-psf) | | Console fonts pack | SIL OFL 1.1 |
 | [libao](https://github.com/xiph/libao) | 1.2.2 | mpg321 | GPLv2 |
 | [libassuan](https://www.gnupg.org/software/libassuan/index.html) | 3.0.2 | GnuPG | GPLv3 |
@@ -189,7 +196,6 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [libgcrypt](https://www.gnupg.org/software/libgcrypt/index.html) | 1.12.4 | GnuPG | GPLv3 |
 | [libgpg-error](https://www.gnupg.org/software/libgpg-error/index.html) | 1.61 | GnuPG | GPLv3 |
 | [libid3tag](https://github.com/markjeee/libid3tag) | 0.15.1b | mpg321 | GPLv2 |
-| [libidn2](https://ftp.gnu.org/gnu/libidn) | 2.3.8 | BIND 9 | GPLv3 |
 | [libksba](https://www.gnupg.org/software/libksba/index.html) | 1.8.1 | GnuPG | GPLv3 |
 | [libmad](https://github.com/markjeee/libmad) | 0.15.1b | mpg321 | GPLv2 |
 | libss | 1.47.4 | e2fsprogs | MIT SIPB |
@@ -200,7 +206,6 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [libt3widget](https://os.ghalkes.nl/t3/libt3widget.html) | 1.2.2 | Tilde | GPLv3 |
 | [libt3window](https://os.ghalkes.nl/t3/libt3window.html) | 0.4.2 | Tilde | GPLv3 |
 | [libtranscript](https://os.ghalkes.nl/libtranscript.html) | 0.3.4 | Tilde | GPLv3 |
-| [libunistring](https://ftp.gnu.org/gnu/libunistring/) | 1.4.2 | Tilde | GPLv3 |
 | [liburcu](https://github.com/urcu/userspace-rcu) | 0.15.7 | BIND 9 | LGPLv2.1 |
 | libuuid | 1.47.4 | e2fsprogs | BSD 3-Clause |
 | [libuv](https://github.com/libuv/libuv) | 1.53.0 | BIND 9 | MIT |
@@ -213,6 +218,8 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [OpenSSL](https://github.com/openssl/openssl) | 3.6.4 | cURL, Git, Lynx, Midnight Commander, tn5250 | Apache 2.0 |
 | [PCRE2](https://pcre2project.github.io/pcre2/) | 10.48 | GLib, Tilde | BSD 3-Clause w/ PCRE2 exception |
 | [zlib](https://github.com/madler/zlib) | 1.3.2 | Git, GLib, GnuPG, libzip | zlib |
+| [Zstandard](https://github.com/Facebook/zstd) | 1.5.7 | GnuTLS | BSD 3-Clause, **GPLv2** |
+
 
 ### SHORK Utilities (SHORKUTILS)
 

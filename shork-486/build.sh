@@ -184,6 +184,9 @@ C3270_VER="4.5ga6"
 CARES_SRC="https://github.com/c-ares/c-ares.git"
 CARES_VER="1.34.8"
 
+CHRONY_SRC="https://chrony-project.org/releases"
+CHRONY_VER="4.9"
+
 CON_DATA_SRC="http://deb.debian.org/debian/pool/main/c/console-data"
 CON_DATA_VER="1.12"
 
@@ -506,6 +509,7 @@ INCLUDE_AUTOCONF=false
 INCLUDE_AUTOMAKE=false
 INCLUDE_BIND9_DNSUTILS=false
 INCLUDE_C3270=false
+INCLUDE_CHRONY=false
 INCLUDE_CON_FONTS=false
 INCLUDE_CSCOPE=false
 INCLUDE_CTAGS=false
@@ -904,6 +908,11 @@ if $INCLUDE_BIND9_DNSUTILS; then
     NEED_LIBUV=true
     NEED_OPENSSL=true
     NEED_ZLIB=true
+fi
+
+if $INCLUDE_CHRONY; then
+    NEED_GNUTLS=true
+    NEED_NETTLE=true
 fi
 
 if $INCLUDE_CTAGS; then
@@ -1718,6 +1727,8 @@ get_curl()
             --with-ca-bundle=/etc/ssl/cert.pem \
             --without-libpsl \
             --without-libidn2 \
+            --without-brotli \
+            --without-zstd \
             --disable-shared
         make -j$(nproc)
         echo -e "${GREEN}Installing cURL for toolchain...${RESET}"
@@ -7097,6 +7108,10 @@ get_prog_tar()
         ./bootstrap.sh
     fi
     if [ -x ./configure ] || [ -f ./configure ]; then
+        CC="${CC_STATIC}" \
+        CFLAGS="${CFLAGS_NOPIE} ${EXTRA_CFLAGS} -ffunction-sections -fdata-sections" \
+        LDFLAGS="-static -Wl,--gc-sections -s -L${PREFIX}/lib ${EXTRA_LDFLAGS}" \
+        LIBS="-Wl,--start-group ${EXTRA_LIBS}" \
         ./configure \
             --host="${HOST}" \
             "${CONFIGURE_PREFIX}" \
@@ -9368,10 +9383,22 @@ copy_licences()
         CSV+="\nBusyBox,GNU GPLv2,busybox.txt"
     fi
 
+    if $NEED_BROTLI && 
+        [ -f "${CURR_DIR}/build/brotli/LICENSE" ]; then
+        cp "${CURR_DIR}/build/brotli/LICENSE" "${DESTDIR}/LICENCES/brotli.txt" || true
+        CSV+="\nBrotli,MIT,brotli.txt"
+    fi
+
     if $INCLUDE_C3270 && 
         [ -f "${CURR_DIR}/build/x3270/LICENSE.md" ]; then
         cp "${CURR_DIR}/build/x3270/LICENSE.md" "${DESTDIR}/LICENCES/c3270.txt" || true
         CSV+="\nc3270,BSD 3-Clause,c3270.txt"
+    fi
+
+    if $INCLUDE_CHRONY &&
+        [ -f "${CURR_DIR}/build/chrony-${CHRONY_VER}/COPYING" ]; then
+        cp "${CURR_DIR}/build/chrony-${CHRONY_VER}/COPYING" "${DESTDIR}/LICENCES/chrony.txt" || true
+        CSV+="\nchrony,GNU GPLv2,chrony.txt"
     fi
 
     if $NEED_LIBSOFTFP && 
@@ -9490,10 +9517,22 @@ copy_licences()
         CSV+="\nGNU Indent,GNU GPLv3,indent.txt"
     fi
 
+    if $NEED_LIBTASN1 && 
+        [ -f "${CURR_DIR}/build/libtasn1-${LIBTASN1_VER}/COPYING" ]; then
+        cp "${CURR_DIR}/build/libtasn1-${LIBTASN1_VER}/COPYING" "${DESTDIR}/LICENCES/libtasn1.txt" || true
+        CSV+="\nGNU Libtasn1,GNU GPLv3,libtasn1.txt"
+    fi
+
     if $INCLUDE_LIBTOOL && 
         [ -f "${CURR_DIR}/build/libtool-${LIBTOOL_VER}/COPYING" ]; then
         cp "${CURR_DIR}/build/libtool-${LIBTOOL_VER}/COPYING" "${DESTDIR}/LICENCES/libtool.txt" || true
         CSV+="\nGNU Libtool,GNU GPLv2,libtool.txt"
+    fi
+
+    if $NEED_LIBUNISTRING && 
+        [ -f "${CURR_DIR}/build/libunistring-${LIBUNISTRING_VER}/COPYING" ]; then
+        cp "${CURR_DIR}/build/libunistring-${LIBUNISTRING_VER}/COPYING" "${DESTDIR}/LICENCES/libunistring.txt" || true
+        CSV+="\nGNU libunistring,GNU GPLv3,libunistring.txt"
     fi
 
     if $INCLUDE_M4 && 
@@ -9508,22 +9547,40 @@ copy_licences()
         CSV+="\nGNU Make,GNU GPLv3,make.txt"
     fi
 
-    if $INCLUDE_MIDNIGHT_CMDR && 
+    if $INCLUDE_MIDNIGHT_CMDR &&
         [ -f "${CURR_DIR}/build/mc/doc/COPYING" ]; then
         cp "${CURR_DIR}/build/mc/doc/COPYING" "${DESTDIR}/LICENCES/mc.txt" || true
         CSV+="\nGNU Midnight Commander,GNU GPLv3,mc.txt"
     fi
 
-    if $INCLUDE_NANO && 
+    if $NEED_GMP &&
+        [ -f "${CURR_DIR}/build/gmp-${GMP_VER}/COPYING" ]; then
+        cp "${CURR_DIR}/build/gmp-${GMP_VER}/COPYING" "${DESTDIR}/LICENCES/gmp.txt" || true
+        CSV+="\nGNU MP,GNU GPLv3,gmp.txt"
+    fi
+
+    if $INCLUDE_NANO &&
         [ -f "${CURR_DIR}/build/nano-$NANO_VER/COPYING" ]; then
         cp "${CURR_DIR}/build/nano-$NANO_VER/COPYING" "${DESTDIR}/LICENCES/nano.txt" || true
         CSV+="\nGNU nano,GNU GPLv3,nano.txt"
+    fi
+
+    if $NEED_NETTLE && 
+        [ -f "${CURR_DIR}/build/nettle-$NETTLE_VER/COPYINGv2" ]; then
+        cp "${CURR_DIR}/build/nettle-$NETTLE_VER/COPYINGv2" "${DESTDIR}/LICENCES/nettle.txt" || true
+        CSV+="\nGNU Nettle,GNU GPLv2,nettle.txt"
     fi
 
     if $INCLUDE_GNUPG && 
         [ -f "${CURR_DIR}/build/gnupg-$GNUPG_VER/COPYING" ]; then
         cp "${CURR_DIR}/build/gnupg-$GNUPG_VER/COPYING" "${DESTDIR}/LICENCES/gnupg.txt" || true
         CSV+="\nGnuPG & pinentry,GNU GPLv3,gnupg.txt"
+    fi
+
+    if $NEED_GNUTLS && 
+        [ -f "${CURR_DIR}/build/gnutls-$GNUTLS_VER/COPYING.LESSERv2" ]; then
+        cp "${CURR_DIR}/build/gnutls-$GNUTLS_VER/COPYING.LESSERv2" "${DESTDIR}/LICENCES/gnutls.txt" || true
+        CSV+="\nGnuTLS,GNU LGPLv2.1,gnutls.txt"
     fi
 
     if $INCLUDE_GPM && 
@@ -9947,6 +10004,12 @@ copy_licences()
         [ -f "${CURR_DIR}/build/zlib/LICENSE" ]; then
         cp "${CURR_DIR}/build/zlib/LICENSE" "${DESTDIR}/LICENCES/zlib.txt" || true
         CSV+="\nzlib,zlib,zlib.txt"
+    fi
+
+    if $NEED_ZSTD && 
+        [ -f "${CURR_DIR}/build/zstd/COPYING" ]; then
+        cp "${CURR_DIR}/build/zstd/COPYING" "${DESTDIR}/LICENCES/zstd.txt" || true
+        CSV+="\nZstandard,GNU GPLv2,zstd.txt"
     fi
 
     echo -e "$CSV" > "${DESTDIR}/LICENCES/manifest.csv"
@@ -11457,6 +11520,7 @@ get_installed_progs_feats()
         check_installed_file "BIND 9 DNS utilities ${BIND9_VER}" "/usr/bin/dig"
         check_installed_file "New BSD Games ${NBSDGAMES_VER}" "/usr/bin/nbsdgames"
         check_installed_file "CTris" "/usr/bin/ctris"
+        check_installed_file "chrony ${CHRONY_VER}" "/usr/bin/chronyc"
     fi
     if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
         check_installed_file "util-linux ${UTIL_LINUX_VER}" "/usr/bin/whereis"
@@ -11954,6 +12018,26 @@ if $INCLUDE_C3270; then
         "" \
         "" \
         "-lgpm"
+fi
+if $INCLUDE_CHRONY; then
+    get_prog_tar \
+        "usr/bin" \
+        "chronyc" \
+        "chrony" \
+        "${CHRONY_VER}" \
+        "chrony-${CHRONY_VER}" \
+        ".tar.gz" \
+        "$CHRONY_SRC" \
+        "xzf" \
+        false \
+        false \
+        "/usr" \
+        "-sysconfdir=/etc --localstatedir=/var \
+        --chronyrundir=/var/run/chrony --host-system=Linux \
+        --host-machine=${ARCH} --with-user=root --with-chronyc-user=root \
+        --with-pidfile=/var/run/chrony/chronyd.pid --disable-readline \
+        --without-editline --without-nss --without-tomcrypt \
+        --without-seccomp --disable-ipv6"
 fi
 if $INCLUDE_CSCOPE; then
     get_prog_git \

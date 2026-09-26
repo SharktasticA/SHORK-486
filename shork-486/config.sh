@@ -25,7 +25,7 @@ HEIGHT=20
 CUSTOM_DEF_SWAP=0
 CUSTOM_MIN_DISK=8
 DEFAULT_DEF_SWAP=8
-DEFAULT_MIN_DISK=100
+DEFAULT_MIN_DISK=120
 MAX_DEF_SWAP=16
 MAX_MIN_DISK=710
 MICRO_DEF_SWAP=0
@@ -67,6 +67,7 @@ INCLUDE_AUTOCONF=false
 INCLUDE_AUTOMAKE=false
 INCLUDE_BIND9_DNSUTILS=false
 INCLUDE_C3270=false
+INCLUDE_CHRONY=false
 INCLUDE_CSCOPE=false
 INCLUDE_CTAGS=false
 INCLUDE_CTRIS=false
@@ -226,6 +227,7 @@ save_env()
         echo "INCLUDE_AUTOMAKE=$INCLUDE_AUTOMAKE"
         echo "INCLUDE_BIND9_DNSUTILS=$INCLUDE_BIND9_DNSUTILS"
         echo "INCLUDE_C3270=$INCLUDE_C3270"
+        echo "INCLUDE_CHRONY=$INCLUDE_CHRONY"
         echo "INCLUDE_CSCOPE=$INCLUDE_CSCOPE"
         echo "INCLUDE_CTAGS=$INCLUDE_CTAGS"
         echo "INCLUDE_CTRIS=$INCLUDE_CTRIS"
@@ -332,6 +334,7 @@ set_mini_vars()
     INCLUDE_AUTOMAKE=false
     INCLUDE_BIND9_DNSUTILS=false
     INCLUDE_C3270=false
+    INCLUDE_CHRONY=false
     INCLUDE_CSCOPE=false
     INCLUDE_CTAGS=false
     INCLUDE_CTRIS=false
@@ -407,6 +410,7 @@ set_terminal_vars()
 
     ENABLE_NET_ETH=true
 
+    INCLUDE_CHRONY=true
     INCLUDE_CURL=true
     INCLUDE_DROPBEAR=true
     INCLUDE_GPM=true
@@ -463,6 +467,7 @@ set_default_vars()
 
     ENABLE_NET_ETH=true
 
+    INCLUDE_CHRONY=true
     INCLUDE_CTRIS=true
     INCLUDE_CURL=true
     INCLUDE_DIALOG=true
@@ -686,10 +691,10 @@ if [ "$ID" == "shork-486" ]; then
         --cancel-label "Quit" \
         --default-item "$BUILD_TYPE" \
         --menu "Select the build type, presets for SHORK 486 feature levels. The recommended minimum requirements for each are enclosed in brackets. The \"custom\" option will enable further prompts for software and feature selection." 18 $WIDTH 9 \
-        "default"   "Typical experience             (16MiB RAM, 8MiB swap, 100MiB disk)" \
+        "default"   "Typical experience             (16MiB RAM, 8MiB swap, 120MiB disk)" \
         "max"       "Largest configuration          (24MiB RAM, 16MiB swap, 710MiB disk)" \
         "plus"      "Default w/ optional software   (16MiB RAM, 16MiB swap, 670MiB disk)" \
-        "writer"    "Writing focused                (16MiB RAM, 16MiB swap, 100MiB disk)" \
+        "writer"    "Writing focused                (16MiB RAM, 16MiB swap, 90MiB disk)" \
         "terminal"  "Remote session & file transfer (16MiB RAM, 8MiB swap, 70MiB disk)" \
         "offline"   "Default w/o networking         (12MiB RAM, 8MiB swap, 65MiB disk)" \
         "mini"      "Small configuration            (8MiB RAM, 8MiB disk)" \
@@ -1324,6 +1329,7 @@ if [ "$ENABLE_NET_ETH" == true ]; then
     BUNDLED_ITEMS+=(
         "bind9-dnsutils"    "DNS query & update tools (48MiB)"                      "$(val "$INCLUDE_BIND9_DNSUTILS")"
         "c3270"             "3270 terminal emulator (1.8MiB, EXPERIMENTAL)"         "$(val "$INCLUDE_C3270")"
+        "chrony"            "*NTP daemon and interface (0.7MiB)"                    "$(val "$INCLUDE_CHRONY")"
         "cscope"            "C/C++ code browser (1MiB)"                             "$(val "$INCLUDE_CSCOPE")"
         "ctags"             "Source code object indexing (1.5MiB)"                  "$(val "$INCLUDE_CTAGS")"
         "ctris"             "*Tetris clone (0.6MiB)"                                "$(val "$INCLUDE_CTRIS")"
@@ -1435,6 +1441,7 @@ if [[ $SKIPPED -eq 1 ]]; then
 else
     if [[ $BUNDLED =~ "bind9-dnsutils" ]];      then INCLUDE_BIND9_DNSUTILS=true;   else INCLUDE_BIND9_DNSUTILS=false;  fi
     if [[ $BUNDLED =~ "c3270" ]];               then INCLUDE_C3270=true;            else INCLUDE_C3270=false;           fi
+    if [[ $BUNDLED =~ "chrony" ]];              then INCLUDE_CHRONY=true;           else INCLUDE_CHRONY=false;          fi
     if [[ $BUNDLED =~ "cscope" ]];              then INCLUDE_CSCOPE=true;           else INCLUDE_CSCOPE=false;          fi
     if [[ $BUNDLED =~ "ctags" ]];               then INCLUDE_CTAGS=true;            else INCLUDE_CTAGS=false;           fi
     if [[ $BUNDLED =~ "ctris" ]];               then INCLUDE_CTRIS=true;            else INCLUDE_CTRIS=false;           fi

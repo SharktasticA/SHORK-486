@@ -30,6 +30,7 @@
 * pkg-config
 * SQLite
 * SWIG
+* tcpdump
 * tshark (Wireshark)
     * Already successfully compiled - high RAM usage and faults
 * w3m
