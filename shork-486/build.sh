@@ -1543,13 +1543,15 @@ get_ncurses()
             --without-dlsym \
             --enable-gpm \
             --with-gpm \
+            --with-default-terminfo-dir=/usr/share/terminfo \
+            --with-terminfo-dirs=/usr/share/terminfo \
             --with-pkg-config-libdir="${SYSROOT}/lib/pkgconfig" \
             CC="${CC_STATIC}" \
             CFLAGS="-fPIC" \
             CPPFLAGS="-D_XOPEN_SOURCE=600 -I${PREFIX}/include" \
             LDFLAGS="-static -L${PREFIX}/lib"
         make -j$(nproc)
-        make install
+        make install.libs install.includes
     fi
 
     ln -sf "${PREFIX}/include/ncursesw/curses.h" "${PREFIX}/include/curses.h"
@@ -1585,7 +1587,7 @@ get_tic()
         --without-debug \
         --without-cxx \
         --enable-widec \
-        CC="${CC}" \
+        CC="${CC_STATIC}" \
         CFLAGS="${CFLAGS_NOPIE}"
     make -C progs tic -j$(nproc)
     sudo install -D progs/tic "${DESTDIR}/usr/bin/tic"
