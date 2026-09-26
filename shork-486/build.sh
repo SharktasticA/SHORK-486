@@ -2101,6 +2101,7 @@ get_libao()
     if [ -d libao ]; then
         echo -e "${YELLOW}libao source already present, resetting...${RESET}"
         cd libao
+        git config --global --add safe.directory "${CURR_DIR}"/build/libao
         git reset --hard
         git clean -fdx
     else
@@ -2248,7 +2249,9 @@ get_libevent()
     if [ -d libevent ]; then
         echo -e "${YELLOW}libevent source already present, resetting...${RESET}"
         cd libevent
+        git config --global --add safe.directory "${CURR_DIR}"/build/libevent
         git reset --hard
+        git clean -fdx
     else
         echo -e "${GREEN}Downloading libevent...${RESET}"
         git clone --branch ${LIBEVENT_VER} $LIBEVENT_SRC
@@ -2414,6 +2417,7 @@ get_libid3tag()
     if [ -d libid3tag ]; then
         echo -e "${YELLOW}libid3tag source already present, resetting...${RESET}"
         cd libid3tag
+        git config --global --add safe.directory "${CURR_DIR}"/build/libid3tag
         git reset --hard
         git clean -fdx
     else
@@ -2586,6 +2590,7 @@ get_libmad()
     if [ -d libmad ]; then
         echo -e "${YELLOW}libmad source already present, resetting...${RESET}"
         cd libmad
+        git config --global --add safe.directory "${CURR_DIR}"/build/libmad
         git reset --hard
         git clean -fdx
     else
@@ -3626,8 +3631,8 @@ get_libxlsxwriter()
     # Download source
     if [ -d libxlsxwriter ]; then
         echo -e "${YELLOW}libxlsxwriter source already present, resetting...${RESET}"
-        git config --global --add safe.directory "${CURR_DIR}/build/libxlsxwriter"
         cd libxlsxwriter
+        git config --global --add safe.directory "${CURR_DIR}/build/libxlsxwriter"
         git reset --hard
     else
         echo -e "${GREEN}Downloading libxlsxwriter...${RESET}"
@@ -3664,6 +3669,7 @@ get_libxml2()
     if [ -d libxml2 ]; then
         echo -e "${YELLOW}libxml2 source already present, resetting...${RESET}"
         cd libxml2
+        git config --global --add safe.directory "${CURR_DIR}"/build/libxml2
         git reset --hard
     else
         echo -e "${GREEN}Downloading libxml2...${RESET}"
@@ -3704,6 +3710,7 @@ get_libzip()
     if [ -d libzip ]; then
         echo -e "${YELLOW}libzip source already present, resetting...${RESET}"
         cd libzip
+        git config --global --add safe.directory "${CURR_DIR}"/build/libzip
         git reset --hard
         git clean -fdx
     else
@@ -3885,8 +3892,8 @@ get_openssl()
     # Download source
     if [ -d openssl ]; then
         echo -e "${YELLOW}OpenSSL source already present, resetting...${RESET}"
-        git config --global --add safe.directory "${CURR_DIR}"/build/openssl
         cd openssl
+        git config --global --add safe.directory "${CURR_DIR}"/build/openssl
         git reset --hard
         git clean -fdx
     else
@@ -4049,9 +4056,10 @@ get_zlib()
     # Download source
     if [ -d zlib ]; then
         echo -e "${YELLOW}zlib source already present, resetting...${RESET}"
-        git config --global --add safe.directory "${CURR_DIR}"/build/zlib
         cd zlib
+        git config --global --add safe.directory "${CURR_DIR}"/build/zlib
         git reset --hard
+        git clean -fdx
     else
         echo -e "${GREEN}Downloading zlib...${RESET}"
         git clone --branch v${ZLIB_VER} $ZLIB_SRC
@@ -4140,8 +4148,8 @@ get_x86emu()
     # Download source
     if [ -d libx86emu ]; then
         echo -e "${YELLOW}x86emu source already present, resetting...${RESET}"
-        git config --global --add safe.directory "${CURR_DIR}"/build/libx86emu
         cd libx86emu
+        git config --global --add safe.directory "${CURR_DIR}"/build/libx86emu
         git reset --hard
         git clean -fdx
     else
@@ -4175,6 +4183,7 @@ get_patched_xlinux()
     if [ -d syslinux ]; then
         echo -e "${YELLOW}ISOLINUX/EXTLINUX/SYSLINUX source already present, resetting...${RESET}"
         cd syslinux
+        git config --global --add safe.directory "${CURR_DIR}"/build/syslinux
         git reset --hard
         make clean || true
     else
@@ -4864,7 +4873,9 @@ get_v86d()
     if [ -d v86d ]; then
         echo -e "${YELLOW}v86d source already present, resetting...${RESET}"
         cd v86d
+        git config --global --add safe.directory "${CURR_DIR}"/build/v86d
         git reset --hard
+        git clean -fdx
     else
         echo -e "${GREEN}Downloading v86d...${RESET}"
         git clone https://salsa.debian.org/debian/v86d.git
@@ -6187,8 +6198,8 @@ get_tinyx()
     # Download source
     if [ -d tinyx ]; then
         echo -e "${YELLOW}TinyX source already present, resetting...${RESET}"
-        git config --global --add safe.directory "${CURR_DIR}/build/tinyx"
         cd tinyx
+        git config --global --add safe.directory "${CURR_DIR}/build/tinyx"
         git reset --hard
         git clean -fdx
     else
@@ -6235,8 +6246,8 @@ get_twm()
     # Download source
     if [ -d twm ]; then
         echo -e "${YELLOW}TWM source already present, resetting...${RESET}"
-        git config --global --add safe.directory "${CURR_DIR}/build/twm"
         cd twm
+        git config --global --add safe.directory "${CURR_DIR}/build/twm"
         git reset --hard
         git clean -fdx
     else
@@ -6278,8 +6289,8 @@ get_nedit()
     # Download source
     if [ -d nedit-git ]; then
         echo -e "${YELLOW}NEdit source already present, resetting...${RESET}"
-        git config --global --add safe.directory "${CURR_DIR}/build/nedit-git"
         cd nedit-git
+        git config --global --add safe.directory "${CURR_DIR}/build/nedit-git"
         git reset --hard
         git clean -fdx
     else
@@ -6323,8 +6334,8 @@ get_oneko()
     # Download source
     if [ -d oneko ]; then
         echo -e "${YELLOW}oneko source already present, resetting...${RESET}"
-        git config --global --add safe.directory "${CURR_DIR}/build/oneko"
         cd oneko
+        git config --global --add safe.directory "${CURR_DIR}/build/oneko"
         git reset --hard
         git clean -fdx
     else
@@ -6352,8 +6363,8 @@ get_st()
     # Download source
     if [ -d st ]; then
         echo -e "${YELLOW}st source already present, resetting...${RESET}"
-        git config --global --add safe.directory "${CURR_DIR}/build/st"
         cd st
+        git config --global --add safe.directory "${CURR_DIR}/build/st"
         git reset --hard
         git clean -fdx
     else
@@ -6538,8 +6549,8 @@ get_xli()
     # Download source
     if [ -d xli ]; then
         echo -e "${YELLOW}xli source already present, resetting...${RESET}"
-        git config --global --add safe.directory "${CURR_DIR}/build/xli"
         cd xli
+        git config --global --add safe.directory "${CURR_DIR}/build/xli"
         git reset --hard
         git clean -fdx
     else
