@@ -8770,7 +8770,8 @@ get_shorkfetch()
     cd "${CURR_DIR}/build"
 
     # Skip if already compiled
-    if [ "$SHORKUTILS_RECLONE" != "true" ] && [ -f "${DESTDIR}/usr/bin/shorkfetch" ]; then
+    if [ "$SHORKUTILS_RECLONE" != "true" ] &&
+        [ -f "${DESTDIR}/usr/bin/shorkfetch" ]; then
         echo -e "${LIGHT_RED}shorkfetch already compiled, skipping...${RESET}"
         return
     fi
@@ -8789,14 +8790,50 @@ get_shorkfetch()
     # Optimise for size
     sed -i 's|-O3|-Os|' Makefile
 
+    # Skip packages field (no package manager, yet)
+    sed -i 's|,pkgs,|,|' src/main.c
+
+    # Skip screens field (don't have the right sysfs for it)
+    sed -i 's|,scn,|,|' src/main.c
+
+    # If no SHORKGUI included, skip DE and WM fields
+    if ! $INCLUDE_GUI; then
+        sed -i 's|,de,|,|' src/main.c
+        sed -i 's|,wm,|,|' src/main.c
+    fi
+
+    # If no PCI IDs database included, skip GPU field
+    if ! $INCLUDE_PCI_IDS; then
+        sed -i 's|,gpu,|,|' src/main.c
+    fi
+
+    # If no true networking enabled, skip local IP field
+    if ! $NET_ETH; then
+        sed -i 's|,lip,|,|' src/main.c
+    fi
+
+    # Replace 16-colour ANSI escape code palette with 8-colour
+    sed -i 's|,clrs,|,clba,|' src/main.c
+
     # Compile and install
     echo -e "${GREEN}Compiling shorkfetch...${RESET}"
     make clean
     if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
-        make X86_ONLY=1 -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+        make -j$(nproc) \
+            X86_ONLY=1 \
+            CC="${CC_STATIC}" \
+            AR="${AR}" \
+            RANLIB="${RANLIB}" \
+            STRIP="${STRIP}"
     elif [ "$ID" == "shork-diskette" ]; then
-        sed -i 's|,lip, ,clrs,|,lip, ,clba,|' src/main.c
-        make SHORK_DISKETTE=1 NO_STR_CLEANING=1 X86_ONLY=1 -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+        make -j$(nproc) \
+            X86_ONLY=1 \
+            SHORK_DISKETTE=1 \
+            NO_STR_CLEANING=1 \
+            CC="${CC_STATIC}" \
+            AR="${AR}" \
+            RANLIB="${RANLIB}" \
+            STRIP="${STRIP}"
     fi
     sudo make DESTDIR="$DESTDIR" install
 }
@@ -10224,12 +10261,6 @@ build_filesystem()
         echo -e "${GREEN}Generating pci.ids database...${RESET}"
         cd "${CURR_DIR}"/
         sudo python3 -c "from helpers import *; build_pci_ids()"
-    fi
-
-    echo -e "${GREEN}Copying SHORK Utilities configuration files...${RESET}"
-    if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
-        sudo mkdir -p "${DESTDIR}"/root/.config/shorkutils
-        copy_sysfile "${CURR_DIR}"/sysfiles/shorkfetch.conf "${DESTDIR}"/root/.config/shorkutils/shorkfetch.conf
     fi
 
     if $INCLUDE_TMUX; then
