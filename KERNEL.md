@@ -14,19 +14,31 @@ Whilst SHORK 486 Operating System itself is licensed under GPL 3.0 terms, the co
 * https://www.phoronix.com/news/SGI-GRU-Being-Removed
 * https://www.phoronix.com/news/Old-IBM-SGI-Drivers-Linux-7.3
 
+### 7.2.x
 
-
-## Applying the patches
-
-You are welcome to trying applying and incorporating these patches to your own Linux kernel source tree. They will need to be applied in a specific order. If there are any "carried forward" patches for a given kernel version, first apply those in the ascending order they are listed. Please note that not all previous kernel version patches are carried forward - some patches may be recreated or modified if the files they are patching have changed between kernel versions. After that, then apply the given kernel version's patches in the ascending numerical order they are given.
+* bluetooth: remove all PCMCIA drivers
+* char: dtlk: remove driver for ISA speech synthesizer card
+* console: mdacon: remove this obsolete driver
+* fbdev: remove Hercules monochrome ISA graphics adapter driver
+* watchdog: Remove AMD Elan SC520 processor watchdog driver
 
 
 
 ## 7.3.x
 
-_**Carried forward:** 7.0.x_387-fpu-clone-sigfpe.patch, 7.1.x_restore-M486-M486SX-ELAN.patch, 7.1.x_restore-pcmcia-hosts.patch, 7.1.x_restore-no-pci-devices.patch, 7.1.x_restore-pc110pad.patch, 7.2.x_restore-isa-pcmcia-net.patch, 7.2.x_restore-arcnet-isa-pcmcia.patch_
+### 7.3.x patch order
 
-### 1. [7.3.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.patch](shork-486/patches/linux/7.3.x/7.3.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.patch)
+1. 7.3.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.patch
+2. 7.1.x_restore-M486-M486SX-ELAN.patch
+3. 7.1.x_restore-pcmcia-hosts.patch
+4. 7.1.x_restore-no-pci-devices.patch
+5. 7.1.x_restore-pc110pad.patch
+6. 7.2.x_restore-isa-pcmcia-net.patch
+7. 7.2.x_restore-arcnet-isa-pcmcia.patch
+8. 7.3.x_restore-xircom-cardbus.patch
+9. 7.0.x_fix-387-fpu-clone-sigfpe.patch
+
+### [7.3.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.patch](shork-486/patches/linux/7.3.x/7.3.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.patch)
 
 * Original kernel: 7.3-rc1
 * Context: https://www.phoronix.com/news/AMD-K5-CPUs, https://www.phoronix.com/news/AMD-Elan-Linux-Driver-Removal
@@ -34,7 +46,7 @@ _**Carried forward:** 7.0.x_387-fpu-clone-sigfpe.patch, 7.1.x_restore-M486-M486S
 This is a modification of `7.2.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.patch` that allows it to be cleanly applied to 7.3.x. This patch reverts the removal of various TSC-less and CX8-less CPU build targets, 486-related plumming, AMD Élan support, and 387 maths emulation support from [this patch series](https://lore.kernel.org/all/20250425084216.3913608-1-mingo@kernel.org/). It includes build targets for "586" (AMD K5, Cyrix 5x86, etc.), AMD Élan, IDT Winchip, RDC R-321x and UMC U5x, x87 math emulation support, and Geode GX1 support.
 
 
-### 2. [7.3.x_restore-xircom-cardbus.patch](shork-486/patches/linux/7.3.x/7.3.x_restore-xircom-cardbus.patch)
+### [7.3.x_restore-xircom-cardbus.patch](shork-486/patches/linux/7.3.x/7.3.x_restore-xircom-cardbus.patch)
 
 * Original kernel: 7.3-rc1
 
@@ -44,23 +56,32 @@ This patch reverts the removal of the Xircom Tulip CardBus driver (`xircom_cb`) 
 
 ## 7.2.x
 
-_**Carried forward:** 7.0.x_387-fpu-clone-sigfpe.patch, 7.1.x_restore-M486-M486SX-ELAN.patch, 7.1.x_restore-pcmcia-hosts.patch, 7.1.x_restore-no-pci-devices.patch, 7.1.x_restore-pc110pad.patch_
+### 7.2.x patch order
 
-### 1. [7.2.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.patch](shork-486/patches/linux/7.2.x/7.2.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.patch)
+1. 7.2.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.patch
+2. 7.1.x_restore-M486-M486SX-ELAN.patch
+3. 7.1.x_restore-pcmcia-hosts.patch
+4. 7.1.x_restore-no-pci-devices.patch
+5. 7.1.x_restore-pc110pad.patch
+6. 7.2.x_restore-isa-pcmcia-net.patch
+7. 7.2.x_restore-arcnet-isa-pcmcia.patch
+8. 7.0.x_fix-387-fpu-clone-sigfpe.patch
+
+### [7.2.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.patch](shork-486/patches/linux/7.2.x/7.2.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.patch)
 
 * Original kernel: 7.2.0
 * Context: https://www.phoronix.com/news/AMD-K5-CPUs, https://www.phoronix.com/news/AMD-Elan-Linux-Driver-Removal
 
 This patch reverts the removal of various TSC-less and CX8-less CPU build targets, 486-related plumming, AMD Élan support, and 387 maths emulation support from [this patch series](https://lore.kernel.org/all/20250425084216.3913608-1-mingo@kernel.org/). It includes build targets for "586" (AMD K5, Cyrix 5x86, etc.), AMD Élan, IDT Winchip, RDC R-321x and UMC U5x, x87 math emulation support, and Geode GX1 support.
 
-### 2. [7.2.x_restore-isa-pcmcia-net.patch](shork-486/patches/linux/7.2.x/7.2.x_restore-isa-pcmcia-net.patch)
+### [7.2.x_restore-isa-pcmcia-net.patch](shork-486/patches/linux/7.2.x/7.2.x_restore-isa-pcmcia-net.patch)
 
 * Original kernel: 7.2.0
 * Context: https://www.phoronix.com/news/Linux-7.1-Removes-Old-Net, https://lore.kernel.org/all/20260422-v7-0-0-net-next-driver-removal-v1-v2-0-08a5b59784d5@lunn.ch/
 
 This is a modification of `7.1.x_restore-isa-pcmcia-net.patch` that allows it to be cleanly applied to 7.2.x. This patch reverts the removal of several ISA and PCMCIA network drivers from [this patch series](https://github.com/search?q=repo%3Atorvalds%2Flinux+net-next+driver-removal&type=commits). It includes the ISA drivers `3c515`, `lance`, `smc9194`, `ultra` and `wd80x3`, and the PCMCIA drivers `3c574`, `3c589`, `ax88190`, `fmvj18x`, `nmclan` and `smc91c92`. Several of these drivers include hardware relevant for SHORK 486.
 
-### 3. [7.2.x_restore-arcnet-isa-pcmcia.patch](shork-486/patches/linux/7.2.x/7.2.x_restore-arcnet-isa-pcmcia.patch)
+### [7.2.x_restore-arcnet-isa-pcmcia.patch](shork-486/patches/linux/7.2.x/7.2.x_restore-arcnet-isa-pcmcia.patch)
 
 * Original kernel: 7.2.0
 * Context: https://www.phoronix.com/news/Linux-To-Drop-ARCnet-ISA-PCMCIA
@@ -71,37 +92,44 @@ This patch reverts the removal of various ISA and PCMCIA ARCnet drivers and docu
 
 ## 7.1.x
 
-_**Carried forward:** 7.0.x_387-fpu-clone-sigfpe.patch_
+### 7.1.x patch order
 
-### 1. [7.1.x_restore-M486-M486SX-ELAN.patch](shork-486/patches/linux/7.1.x/7.1.x_restore-M486-M486SX-ELAN.patch)
+1. 7.1.x_restore-M486-M486SX-ELAN.patch
+2. 7.1.x_restore-pcmcia-hosts.patch
+3. 7.1.x_restore-no-pci-devices.patch
+4. 7.1.x_restore-pc110pad.patch
+5. 7.1.x_restore-isa-pcmcia-net.patch
+6. 7.0.x_fix-387-fpu-clone-sigfpe.patch
+
+### [7.1.x_restore-M486-M486SX-ELAN.patch](shork-486/patches/linux/7.1.x/7.1.x_restore-M486-M486SX-ELAN.patch)
 
 * Original kernel: 7.1.0
 * Context: https://www.phoronix.com/news/Linux-7.1-Begins-Removing-i486
 
 This patch reverts the changes made in [8b793a92d862](https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=8b793a92d862c89055daa97ffa61a6929cf732f9) during 7.1-rc1 and restores the ability to target and compile the kernel for 486(DX), 486SX and 486-based Élan processors. 
 
-### 2. [7.1.x_restore-pcmcia-hosts.patch](shork-486/patches/linux/7.1.x/7.1.x_restore-pcmcia-hosts.patch)
+### [7.1.x_restore-pcmcia-hosts.patch](shork-486/patches/linux/7.1.x/7.1.x_restore-pcmcia-hosts.patch)
 
 * Original kernel: 7.1.0
 * Context: https://www.phoronix.com/news/Linux-7.1-Drops-Old-PCMCIA-Code
 
 This patch reverts the changes made in [b3c26ea81ccc](https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=b3c26ea81ccc522e77ed0b1707add61fc9206216) during 7.1-rc1 that restores some legacy PCMCIA host controller drivers and associated infrastructure. The drivers include i82092, i82365 and tcic.
 
-### 3. [7.1.x_restore-no-pci-devices.patch](shork-486/patches/linux/7.1.x/7.1.x_restore-no-pci-devices.patch)
+### [7.1.x_restore-no-pci-devices.patch](shork-486/patches/linux/7.1.x/7.1.x_restore-no-pci-devices.patch)
 
 * Original kernel: 7.1.0
 * Context: https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=40286d6379aacfcc053253ef78dc78b09addffda
 
 This patch reverts the removal of the `no_pci_devices` function in [d79dc408deb6](https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=d79dc408deb6c192adbad7893ee0c22d50826511) as it is required by the above patch to restore the `pc110pad` driver.
 
-### 4. [7.1.x_restore-pc110pad.patch](shork-486/patches/linux/7.1.x/7.1.x_restore-pc110pad.patch)
+### [7.1.x_restore-pc110pad.patch](shork-486/patches/linux/7.1.x/7.1.x_restore-pc110pad.patch)
 
 * Original kernel: 7.1.0
 * Context: https://www.phoronix.com/news/Linux-7.1-PCI
 
 This patch reverts the removal of the `pc110pad` driver in [6f468ea360f0](https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=6f468ea360f0a6a1e45854afbc3019842ed891a8). This is for the IBM Palm Top PC 110's trackpad. The PC 110 is a 486SX-based device and a target for SHORK 486.
 
-### 5. [7.1.x_restore-isa-pcmcia-net.patch](shork-486/patches/linux/7.1.x/7.1.x_restore-isa-pcmcia-net.patch)
+### [7.1.x_restore-isa-pcmcia-net.patch](shork-486/patches/linux/7.1.x/7.1.x_restore-isa-pcmcia-net.patch)
 
 * Original kernel: 7.1.0
 * Context: https://www.phoronix.com/news/Linux-7.1-Removes-Old-Net, https://lore.kernel.org/all/20260422-v7-0-0-net-next-driver-removal-v1-v2-0-08a5b59784d5@lunn.ch/
@@ -112,7 +140,11 @@ This patch reverts the removal of several ISA and PCMCIA network drivers from [t
 
 ## 7.0.x
 
-### 1. [~~7.0.x_6.14.11-e820.patch~~](shork-486/patches/linux/7.0.x/7.0.x_6.14.11-e820.patch), [~~7.0.x_6.14.11-e820-v2.patch~~](shork-486/patches/linux/7.0.x/7.0.x_6.14.11-e820-v2.patch)
+### 7.0.x patch order
+
+1. 7.0.x_fix-387-fpu-clone-sigfpe.patch
+
+### [~~7.0.x_6.14.11-e820.patch~~](shork-486/patches/linux/7.0.x/7.0.x_6.14.11-e820.patch), [~~7.0.x_6.14.11-e820-v2.patch~~](shork-486/patches/linux/7.0.x/7.0.x_6.14.11-e820-v2.patch)
 
 _No longer required as of [7.0.7](https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/diff/?id=v7.0.7&id2=v7.0.6&dt=2) and [7.1-rc3](https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=5772f6535227ebd104065d80afa8ed3478d34c5c)_
 
@@ -122,7 +154,7 @@ _No longer required as of [7.0.7](https://git.kernel.org/pub/scm/linux/kernel/gi
 
 This patch fixes an issue introduced in [157266edcc56](https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?h=master&id=157266edcc56715323de1bd60e49194b3b66a174) during 7.0-rc1 that prevented the use of fallbacks when a received e820 map has no/too few entries, in turn preventing booting on certain old BIOSes and usually manifesting as a "Real mode trampoline was not allocated" error.
 
-### 2. [7.0.x_387-fpu-clone-sigfpe.patch](shork-486/patches/linux/7.0.x/7.0.x_387-fpu-clone-sigfpe.patch)
+### [7.0.x_fix-387-fpu-clone-sigfpe.patch](shork-486/patches/linux/7.0.x/7.0.x_fix-387-fpu-clone-sigfpe.patch)
 
 * Original kernel: 7.0.0 (likely earlier)
 

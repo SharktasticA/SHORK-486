@@ -4841,7 +4841,7 @@ compile_kernel()
     fi
 
     echo -e "${GREEN}Applying 7.0.x_387-fpu-clone-sigfpe patch...${RESET}"
-    patch -p1 < "${PATCHES_DIR}/linux/7.0.x/7.0.x_387-fpu-clone-sigfpe.patch"
+    patch -p1 < "${PATCHES_DIR}/linux/7.0.x/7.0.x_fix-387-fpu-clone-sigfpe.patch"
 
     echo -e "${GREEN}Compiling Linux kernel...${RESET}"
     make ARCH=x86 olddefconfig
