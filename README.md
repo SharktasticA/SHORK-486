@@ -61,7 +61,7 @@ In the temporary lieu of a package manager, SHORK 486 can be made as one of seve
 
 * **Mini:** SHORK 486 in a small but reasonable configuration. All bundled software, additional features and SHORK Entertainment are excluded, and multi-user, networking and non-US keyboard layout support are disabled. That said, a robust BusyBox configuration is still provided, so you lose comparatively few general and system utilities. You still have the ed and vi editors, a complement of archive and compression utilities, and basic partitioning tools for managing ext2 and FAT32 partitions you may encounter with old systems. It's a very lightweight Linux system, but one may still find usable.
 
-* **Micro (EXPERIMENTAL):** SHORK 486 in its smallest configuration. It's designed to provide a basic Linux system in just 4MiB, but not much else. All the cutbacks of Mini apply, but the BusyBox configuration is now also reduced, especially regarding file archiving, file compression and disk management/partitioning, and no SHORK Utilities are included.
+* **Micro (EXPERIMENTAL):** SHORK 486 in its smallest configuration. It's designed to provide a basic Linux system in just 6MiB, but not much else. All the cutbacks of Mini apply, but the BusyBox configuration is now also reduced, especially regarding file archiving, file compression and disk management/partitioning, and no SHORK Utilities are included.
 
 ### Licences
 
@@ -93,7 +93,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
     * Terminal: 70MiB
     * Offline: 70MiB
     * Mini: 8MiB
-    * Micro: 4MiB
+    * Micro: 6MiB
 * Graphics: IBM VGA or compatible (for most programs); VBE 2.0-compatible (for `shorkgui` and VBE resolutions in `shorkset`)
 * Monitor: VGA (640x480) or higher
 
