@@ -2031,8 +2031,8 @@ get_gnutls()
     export PKG_CONFIG="pkg-config --static"
 
     # TODO: find a better solution - perhaps change all prefix to $SYSROOT/usr?
-    LIBUNISTRING_LA="${SYSROOT}/usr/lib/libunistring.a"
-    sed -i "s|/usr/lib/libunistring\.la|${LIBUNISTRING_LA}|g" "${SYSROOT}/usr/lib/libidn2.la"
+    #LIBUNISTRING_LA="${SYSROOT}/usr/lib/libunistring.a"
+    #sed -i "s|/usr/lib/libunistring\.la|${LIBUNISTRING_LA}|g" "${SYSROOT}/usr/lib/libidn2.la"
 
     # Compile and install
     echo -e "${GREEN}Compiling GnuTLS...${RESET}"
@@ -2046,7 +2046,7 @@ get_gnutls()
         AR="$AR" \
         RANLIB="$RANLIB" \
         CFLAGS="${CFLAGS_NOPIE}" \
-        LDFLAGS="-static -L${SYSROOT}/lib"
+        LDFLAGS="-static -L${SYSROOT}/lib -L${SYSROOT}/usr/lib"
     make -j$(nproc)
     make DESTDIR="${SYSROOT}" install
 }
