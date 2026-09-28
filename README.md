@@ -12,6 +12,9 @@ A build configurator is available to alter the SHORK 486 Operating System to you
             <a href="GALLERY.md">SHORK 486 photo & screenshot gallery</a>
         </td>
         <td>
+            <a href="RUNNING.md">Running SHORK 486</a>
+        </td>
+        <td>
             <a href="KERNEL.md">SHORK 486 Linux kernel patching</a>
         </td>
         <td>
