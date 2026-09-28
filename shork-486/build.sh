@@ -846,6 +846,27 @@ fi
 
 
 
+# Host prerequisite packages
+PKGS_ARCH="autoconf base-devel bc bison bzip2 ca-certificates cdrtools \
+    cmake cpio dosfstools e2fsprogs flex fontconfig gettext git gperf grub \
+    libffi libtool make meson multipath-tools nasm ncurses ninja pciutils \
+    pkgconf python qemu-img syslinux systemd texinfo unzip util-linux wget \
+    xorg-bdftopcf xorg-font-util xorg-mkfontscale xz"
+PKGS_DEB="autoconf autopoint bc bison bzip2 cmake e2fsprogs extlinux fdisk \
+    flex fontconfig genisoimage gettext gettext-base git gperf grub-common \
+    grub-pc isolinux kpartx libffi-dev libncurses-dev libtool libtool-bin \
+    libxcb1-dev make meson nasm ninja-build pciutils pkg-config \
+    python-is-python3 python3 qemu-utils syslinux texinfo unzip uuid-dev \
+    wget xfonts-utils xz-utils"
+PKGS_RPM="autoconf automake bdftopcf bison byacc cmake dialog \
+    docbook-utils-pdf docbook2X flex fontconfig gcc genisoimage gettext \
+    git gperf grub2-common grub2-pc libffi-devel libtool libuuid-devel \
+    make meson mkfontscale nasm ncurses-devel ninja-build patch perl \
+    pciutils python3 qemu-img syslinux-extlinux syslinux-nonlinux texinfo \
+    xorg-x11-font-utils"
+
+
+
 # Check what other prerequisites we need
 NEED_BROTLI=false
 NEED_CARES=false
@@ -1063,19 +1084,10 @@ fi
 ## House keeping                                    ##
 ######################################################
 
-# Deletes build directory
-delete_root_dir()
-{
-    if [ -n "${CURR_DIR}" ] && [ -d "${DESTDIR}" ]; then
-        echo -e "${GREEN}Deleting existing ${DIST} root directory to ensure fresh changes can be made...${RESET}"
-        sudo rm -rf "${DESTDIR}"
-    fi
-}
-
 # Fixes directory and file permissions after root build
 fix_perms()
 {
-    echo -e "${GREEN}Tidying up and fixing directory and file permissions...${RESET}"
+    echo -e "${GREEN}Tidying up and fixing directory and file permissions... (may take a minute or two)${RESET}"
 
     HOST_GID=${HOST_GID:-1000}
     HOST_UID=${HOST_UID:-1000}
@@ -1099,6 +1111,17 @@ fix_perms()
     if [ -d "${CURR_DIR}/__pycache__" ]; then
         sudo chown -R "$HOST_UID:$HOST_GID" "${CURR_DIR}/__pycache__" || true
         sudo chmod 755 "${CURR_DIR}/__pycache__" || true
+    fi
+
+    chmod +x "${CURR_DIR}/compilation/"*
+}
+
+# Deletes root directory
+delete_root_dir()
+{
+    if [ -n "${CURR_DIR}" ] && [ -d "${DESTDIR}" ]; then
+        echo -e "${GREEN}Deleting existing ${DIST} root directory to ensure fresh changes can be made...${RESET}"
+        sudo rm -rf "${DESTDIR}"
     fi
 }
 
@@ -1246,137 +1269,112 @@ make_pkg()
 
 install_arch_prerequisites()
 {
-    echo -e "${GREEN}Installing prerequisite packages for an Arch-based system...${RESET}"
-
-    PACKAGES="autoconf bc base-devel bison bzip2 ca-certificates cdrtools cpio dosfstools e2fsprogs flex gettext git libtool make meson multipath-tools ncurses ninja pciutils python qemu-img systemd texinfo util-linux wget xz"
-
-    if $FIX_EXTLINUX; then
-        PACKAGES+=" nasm"
-    fi
-
-    if $INCLUDE_GUI; then
-        PACKAGES+=" fontconfig gperf unzip xorg-bdftopcf xorg-font-util xorg-mkfontscale"
-    fi
-
+    PACKAGES="${PKGS_ARCH}"
     if $INCLUDE_MICRO; then
         PACKAGES+=" go"
     fi
 
-    if $INCLUDE_MICROPYTHON; then
-        PACKAGES+=" libffi"
+    # Get missing packages
+    local MISSING=()
+    mapfile -t MISSING < <(pacman -T $PACKAGES)
+
+    if [ ${#MISSING[@]} -eq 0 ]; then
+        # All required packages are installed
+        return
     fi
 
-    if $INCLUDE_SC_IM; then
-        PACKAGES+=" cmake"
-    fi
+    echo -e "${YELLOW}The following packages may be required for building SHORK 486 and must be installed before proceeding:${RESET}"
+    echo "${MISSING[*]}"
+    echo -e "${YELLOW}You can allow this build script to install them, or quit if you wish to review and install them yourself.${RESET}"
+    select CHOICE in "Install" "Quit"; do
+        case $CHOICE in
+            "Install")
+                break ;;
+            "Quit")
+                echo -e "${RED}Exiting... Please review and install the packages manually.${RESET}"
+                exit 1;;
+            *)
+        esac
+    done
 
-    if $INCLUDE_TMUX; then
-        PACKAGES+=" pkgconf"
-    fi
-
-    if $USE_GRUB; then
-        PACKAGES+=" grub"
-    else
-        PACKAGES+=" syslinux"
-    fi
-
-    sudo pacman -Sy --noconfirm --needed $PACKAGES || true
+    sudo pacman -S --noconfirm --needed "${MISSING[@]}"
 }
 
 install_debian_prerequisites()
 {
-    echo -e "${GREEN}Installing prerequisite packages for a Debian-based system...${RESET}"
-    sudo dpkg --add-architecture i386
-    sudo apt-get update
-
-    PACKAGES="autopoint bc bison bzip2 e2fsprogs extlinux fdisk flex genisoimage gettext gettext-base git kpartx libncurses-dev libtool libtool-bin libxcb1-dev make meson ninja-build pkg-config python3 python-is-python3 qemu-utils wget xz-utils"
-
-    if $FIX_EXTLINUX; then
-        PACKAGES+=" nasm uuid-dev"
-    fi
-
-    if $INCLUDE_GUI; then
-        PACKAGES+=" fontconfig gperf unzip xfonts-utils"
-    fi
-
-    if $INCLUDE_GIT; then
-        PACKAGES+=" autoconf"
-    fi
-
+    PACKAGES="${PKGS_DEB}"
     if $INCLUDE_MICRO; then
         PACKAGES+=" golang-go"
     fi
 
-    if $INCLUDE_MICROPYTHON; then
-        PACKAGES+=" libffi-dev"
+    # Get missing packages
+    local MISSING=()
+    local PKG
+    for PKG in $PACKAGES; do
+        if ! dpkg-query -W -f='${db:Status-Status}\n' "$PKG" 2>/dev/null \
+            | grep -qx installed; then
+            MISSING+=("$PKG")
+        fi
+    done
+
+    if [ ${#MISSING[@]} -eq 0 ]; then
+        # All required packages are installed
+        return
     fi
 
-    if $INCLUDE_NANO; then
-        PACKAGES+=" texinfo"
-    fi
+    echo -e "${YELLOW}The following packages may be required for building SHORK 486 and must be installed before proceeding:${RESET}"
+    echo "${MISSING[*]}"
+    echo -e "${YELLOW}You can allow this build script to install them, or quit if you wish to review and install them yourself.${RESET}"
+    select CHOICE in "Install" "Quit"; do
+        case $CHOICE in
+            "Install")
+                break ;;
+            "Quit")
+                echo -e "${RED}Exiting... Please review and install the packages manually.${RESET}"
+                exit 1;;
+            *)
+        esac
+    done
 
-    if $INCLUDE_PCI_IDS; then
-        PACKAGES+=" pciutils"
-    fi
-
-    if $INCLUDE_SC_IM; then
-        PACKAGES+=" cmake"
-    fi
-
-    if $USE_GRUB; then
-        PACKAGES+=" grub-common grub-pc"
-    else
-        PACKAGES+=" isolinux syslinux"
-    fi
-
+    sudo apt-get update
     sudo apt-get install -y $PACKAGES
-
     export PATH="$PATH:/usr/sbin:/sbin"
 }
 
 install_fedora_prerequisites()
 {
-    echo -e "${GREEN}Installing prerequisite packages for a Fedora-based system...${RESET}"
-
-    PACKAGES="autoconf automake bison dialog docbook2pdf docbook2X flex gcc genisoimage gettext git libtool make meson ninja-build patch perl python3 qemu-img"
-
-    if $FIX_EXTLINUX; then
-        PACKAGES+=" libuuid-devel nasm"
-    fi
-
-    if $INCLUDE_GUI; then
-        PACKAGES+=" bdftopcf fontconfig gperf mkfontscale xorg-x11-font-utils"
-    fi
-
+    PACKAGES="${PKGS_RPM}"
     if $INCLUDE_MICRO; then
         PACKAGES+=" golang"
     fi
 
-    if $INCLUDE_MICROPYTHON; then
-        PACKAGES+=" libffi-devel"
+    # Get missing packages
+    local MISSING=()
+    local PKG
+    for PKG in $PACKAGES; do
+        if ! rpm -q --quiet --whatprovides "$PKG"; then
+            MISSING+=("$PKG")
+        fi
+    done
+
+    if [ ${#MISSING[@]} -eq 0 ]; then
+        # All required packages are installed
+        return
     fi
 
-    if $INCLUDE_NANO; then
-        PACKAGES+=" texinfo"
-    fi
-
-    if $INCLUDE_PCI_IDS; then
-        PACKAGES+=" pciutils"
-    fi
-
-    if $INCLUDE_SC_IM; then
-        PACKAGES+=" byacc cmake"
-    fi
-
-    if $NEED_LIBT3KEY; then
-        PACKAGES+=" ncurses-devel"
-    fi
-
-    if $USE_GRUB; then
-        PACKAGES+=" grub2-common grub2-pc"
-    else
-        PACKAGES+=" syslinux-extlinux syslinux-nonlinux"
-    fi
+    echo -e "${YELLOW}The following packages may be required for building SHORK 486 and must be installed before proceeding:${RESET}"
+    echo "${MISSING[*]}"
+    echo -e "${YELLOW}You can allow this build script to install them, or quit if you wish to review and install them yourself.${RESET}"
+    select CHOICE in "Install" "Quit"; do
+        case $CHOICE in
+            "Install")
+                break ;;
+            "Quit")
+                echo -e "${RED}Exiting... Please review and install the packages manually.${RESET}"
+                exit 1;;
+            *)
+        esac
+    done
 
     sudo dnf install -y $PACKAGES || true
 }
@@ -1410,7 +1408,8 @@ get_prerequisites()
         fi
     else
         # Skip if inside Docker as Dockerfile already installs prerequisites
-        echo -e "${LIGHT_RED}Running inside Docker, skipping installing prerequisite packages...${RESET}"
+        echo -e "${LIGHT_RED}Running inside Docker, skipping installing \
+        prerequisite packages...${RESET}"
     fi
 }
 
@@ -4440,7 +4439,7 @@ get_busybox()
     make ARCH=x86 -j$(nproc)
     make ARCH=x86 install
 
-    echo -e "${GREEN}Installing BusyBox as the basis of our root file system...${RESET}"
+    echo -e "${GREEN}Installing BusyBox as the basis of our root filesystem...${RESET}"
     if [ -d "${DESTDIR}" ]; then
         sudo rm -r "${DESTDIR}"
     fi
@@ -4884,13 +4883,13 @@ compile_kernel()
     echo -e "${GREEN}Installing Linux kernel image...${RESET}"
     sudo mv arch/x86/boot/bzImage "${CURR_DIR}/build" || true
 
+    sudo rm -rf "${CURR_DIR}/build/modules/"*
     if $ENABLE_MODULES; then
         KRN_BUILT_VER=$(make ARCH=x86 -s kernelrelease)
         echo -e "${GREEN}Compiling Linux kernel modules...${RESET}"
         make ARCH=x86 modules -j$(nproc)
 
         echo -e "${GREEN}Installing Linux kernel modules...${RESET}"
-        sudo rm -rf "${CURR_DIR}/build/modules/"*
         sudo make ARCH=x86 modules_install \
             INSTALL_MOD_PATH="${CURR_DIR}/build/modules"
         sudo "${DESTDIR}/sbin/depmod" -b "${CURR_DIR}/build/modules" \
@@ -5681,7 +5680,16 @@ get_freetype()
 
     # Compile and install
     echo -e "${GREEN}Compiling freetype...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    ./configure \
+        --host="$HOST" \
+        --prefix=/usr \
+        --disable-shared \
+        --enable-static \
+        --with-brotli=no \
+        CC="$CC_STATIC" \
+        AR="$AR" \
+        RANLIB="$RANLIB" \
+        STRIP="$STRIP"
     make -j$(nproc)
     make DESTDIR="$SYSROOT" install
 }
@@ -5755,7 +5763,6 @@ get_fontconfig()
 
     # Compile and install
     echo -e "${GREEN}Compiling fontconfig...${RESET}"
-    #./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP" LIBS="-lpng16 -lz -lm"
     ./configure \
         --host="$HOST" \
         --prefix=/usr \
@@ -6135,7 +6142,7 @@ get_xbitmaps()
     make -j$(nproc)
     make install DESTDIR="$SYSROOT"
 
-    # Also install bitmaps to root file system
+    # Also install bitmaps to root filesystem
     sudo mkdir -p "${DESTDIR}"/usr/include/X11/bitmaps
     sudo cp "$SYSROOT"/usr/include/X11/bitmaps/* "${DESTDIR}"/usr/include/X11/bitmaps
 }
@@ -7220,6 +7227,8 @@ get_bind9_dnsutils()
     tar xf $ARC
     cd $DIR
 
+    export PKG_CONFIG="pkg-config --static"
+    export LIBIDN2_LIBS="-lidn2 -lunistring"
     export PKG_CONFIG_PATH=""
     export PKG_CONFIG_LIBDIR="${SYSROOT}/usr/lib/pkgconfig:${SYSROOT}/usr/share/pkgconfig"
 
@@ -8840,6 +8849,11 @@ get_shorkfetch()
         sed -i 's|,gpu,|,|' src/main.c
     fi
 
+    # If not SHORK 486, skip root FS field
+    if [ "$ID" != "shork-486" ]; then
+        sed -i 's|,root,|,|' src/main.c
+    fi
+
     # If no true networking enabled, skip local IP field
     if ! $NET_ETH; then
         sed -i 's|,lip,|,|' src/main.c
@@ -10100,20 +10114,8 @@ copy_tests()
 
 
 ######################################################
-## File system & disk image building                ##
+## Filesystem & disk image building                 ##
 ######################################################
-
-# Find and set MBR binary (can be different depending on distro)
-find_mbr_bin()
-{
-    for candidate in /usr/lib/SYSLINUX/mbr.bin /usr/lib/syslinux/mbr/mbr.bin /usr/lib/syslinux/bios/mbr.bin /usr/share/syslinux/mbr.bin /usr/share/syslinux/mbr.bin
-    do
-        if [ -f "$candidate" ]; then
-            MBR_BIN="$candidate"
-            break
-        fi
-    done
-}
 
 # Builds the root filesystem
 build_filesystem()
@@ -10389,12 +10391,28 @@ set_filesystem_perms()
     fi
 }
 
-# Compresses the root file system (SHORK DISKETTE)
+# Compresses the root filesystem (SHORK DISKETTE)
 compress_filesystem()
 {
     cd "${DESTDIR}"
-    echo -e "${GREEN}Compressing root file system into one file...${RESET}"
+    echo -e "${GREEN}Compressing root filesystem into one file...${RESET}"
     find . | cpio -H newc -o | xz --check=crc32 --lzma2=dict=512KiB -e > "${CURR_DIR}"/build/rootfs.cpio.xz
+}
+
+# Find and set EXTLINUX MBR binary (can be different depending on distro)
+find_mbr_bin()
+{
+    for CAND in /usr/lib/SYSLINUX/mbr.bin \
+        /usr/lib/syslinux/mbr/mbr.bin \
+        /usr/lib/syslinux/bios/mbr.bin \
+        /usr/share/syslinux/mbr.bin \
+        /usr/share/syslinux/mbr.bin
+    do
+        if [ -f "$CAND" ]; then
+            MBR_BIN="$CAND"
+            break
+        fi
+    done
 }
 
 # Partition disk image
@@ -10854,8 +10872,8 @@ build_disk_img()
 
 
 
-    # Ensure file system is in a clean state
-    echo -e "${GREEN}Unmounting file system...${RESET}"
+    # Ensure filesystem is in a clean state
+    echo -e "${GREEN}Unmounting filesystem...${RESET}"
     if $ENABLE_BOOT_PART; then
         sudo umount "/mnt/${ID}/boot"
     fi
@@ -10909,8 +10927,8 @@ copy_report()
     sudo mkdir -p "/mnt/${ID}/var/log/shork"
     sudo cp "${CURR_DIR}/images/report.txt" "/mnt/${ID}/var/log/shork/build-report.log"
 
-    # Ensure file system is in a clean state
-    echo -e "${GREEN}Unmounting file system...${RESET}"
+    # Ensure filesystem is in a clean state
+    echo -e "${GREEN}Unmounting filesystem...${RESET}"
     sudo umount "/mnt/${ID}"
     sudo fsck.ext4 -f -p "$root_part"
 }
@@ -11028,8 +11046,8 @@ build_diskette_img()
     echo -e "${GREEN}Copying kernel image...${RESET}"
     sudo cp bzImage "/mnt/${ID}"
 
-    # Copy compressed root file system
-    echo -e "${GREEN}Copying compressed root file system...${RESET}"
+    # Copy compressed root filesystem
+    echo -e "${GREEN}Copying compressed root filesystem...${RESET}"
     sudo cp rootfs.cpio.xz "/mnt/${ID}"
 
     # Make directory to be used as /home when booted
@@ -11811,7 +11829,6 @@ fi
 get_prerequisites
 check_host_tc_versions
 get_musl_cross
-chmod +x "${CURR_DIR}/compilation/"*
 
 case ":$PATH:" in
   *:"$PREFIX/bin":*) ;;
@@ -11839,7 +11856,9 @@ fi
 if ! $SKIP_KRN; then
     get_kernel
 fi
-copy_modules
+if [ "$ID" == "shork-486" ]; then
+    copy_modules
+fi
 
 # Compile prerequisites
 if $NEED_ZLIB; then
@@ -12563,24 +12582,27 @@ if $TRIM_FAT; then
     trim_fat
 fi
 copy_licences
-
-if $FIX_EXTLINUX; then
-    get_patched_xlinux
-fi
-
 if $INCLUDE_TESTS; then
     copy_tests
 fi
 
-find_mbr_bin
 build_filesystem
 set_filesystem_perms
+if [ "$ID" == "shork-diskette" ]; then
+    compress_filesystem
+fi
+
+if $FIX_EXTLINUX; then
+    get_patched_xlinux
+fi
+if [ "$ID" == "shork-486" ] && [ "$USE_GRUB" = false ]; then
+    find_mbr_bin
+fi
 if [ "$ID" == "shork-486" ]; then
     build_disk_img
 elif [ "$ID" == "shork-disc" ]; then
     build_disc_img
 elif [ "$ID" == "shork-diskette" ]; then
-    compress_filesystem
     build_diskette_img
 fi
 

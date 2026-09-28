@@ -27,7 +27,7 @@ CUSTOM_MIN_DISK=8
 DEFAULT_DEF_SWAP=8
 DEFAULT_MIN_DISK=120
 MAX_DEF_SWAP=16
-MAX_MIN_DISK=710
+MAX_MIN_DISK=690
 MICRO_DEF_SWAP=0
 MICRO_MIN_DISK=6
 MINI_DEF_SWAP=0
@@ -692,7 +692,7 @@ if [ "$ID" == "shork-486" ]; then
         --default-item "$BUILD_TYPE" \
         --menu "Select the build type, presets for SHORK 486 feature levels. The recommended minimum requirements for each are enclosed in brackets. The \"custom\" option will enable further prompts for software and feature selection." 18 $WIDTH 9 \
         "default"   "Typical experience             (16MiB RAM, 8MiB swap, 120MiB disk)" \
-        "max"       "Largest configuration          (24MiB RAM, 16MiB swap, 710MiB disk)" \
+        "max"       "Largest configuration          (24MiB RAM, 16MiB swap, 690MiB disk)" \
         "plus"      "Default w/ optional software   (16MiB RAM, 16MiB swap, 670MiB disk)" \
         "writer"    "Writing focused                (16MiB RAM, 16MiB swap, 90MiB disk)" \
         "terminal"  "Remote session & file transfer (16MiB RAM, 8MiB swap, 70MiB disk)" \
