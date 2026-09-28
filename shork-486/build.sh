@@ -7227,6 +7227,8 @@ get_bind9_dnsutils()
     tar xf $ARC
     cd $DIR
 
+    export PKG_CONFIG="pkg-config --static"
+    export LIBIDN2_LIBS="-lidn2 -lunistring"
     export PKG_CONFIG_PATH=""
     export PKG_CONFIG_LIBDIR="${SYSROOT}/usr/lib/pkgconfig:${SYSROOT}/usr/share/pkgconfig"
 
