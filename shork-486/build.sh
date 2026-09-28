@@ -4735,7 +4735,7 @@ configure_kernel()
         FRAGS+="${CONFIGS_DIR}/linux/linux.config.micro.frag "
     fi
 
-    if $PATCH_TEST;then
+    if $PATCH_TEST; then
         echo -e "${GREEN}Enabling SHORK 486 kernel patch test...${RESET}"
         FRAGS+="${CONFIGS_DIR}/linux/linux.config.patchtest.frag "
     fi
