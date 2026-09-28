@@ -10321,6 +10321,7 @@ build_filesystem()
     sudo chown -R root:root "${DESTDIR}"
     sudo find "${DESTDIR}" -type d -exec chmod 755 {} +
     sudo find "${DESTDIR}" -type f ! -perm -111 -exec chmod 644 {} +
+    sudo chmod 1777 "${DESTDIR}/tmp"
 }
 
 # Sets any specifically required filesystem permissions based on enabled
