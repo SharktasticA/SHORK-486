@@ -5680,7 +5680,16 @@ get_freetype()
 
     # Compile and install
     echo -e "${GREEN}Compiling freetype...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    ./configure \
+        --host="$HOST" \
+        --prefix=/usr \
+        --disable-shared \
+        --enable-static \
+        --with-brotli=no \
+        CC="$CC_STATIC" \
+        AR="$AR" \
+        RANLIB="$RANLIB" \
+        STRIP="$STRIP"
     make -j$(nproc)
     make DESTDIR="$SYSROOT" install
 }
@@ -5754,7 +5763,6 @@ get_fontconfig()
 
     # Compile and install
     echo -e "${GREEN}Compiling fontconfig...${RESET}"
-    #./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP" LIBS="-lpng16 -lz -lm"
     ./configure \
         --host="$HOST" \
         --prefix=/usr \

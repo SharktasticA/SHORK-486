@@ -87,7 +87,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
     * Micro: 7MiB RAM
 * IDE or SCSI disk: 
     * **Default: 120MiB**
-    * Max: 710MiB
+    * Max: 690MiB
     * Plus: 670MiB
     * Writer: 90MiB
     * Terminal: 70MiB
