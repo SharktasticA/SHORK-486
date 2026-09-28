@@ -846,6 +846,27 @@ fi
 
 
 
+# Host prerequisite packages
+PKGS_ARCH="autoconf base-devel bc bison bzip2 ca-certificates cdrtools \
+    cmake cpio dosfstools e2fsprogs flex fontconfig gettext git gperf grub \
+    libffi libtool make meson multipath-tools nasm ncurses ninja pciutils \
+    pkgconf python qemu-img syslinux systemd texinfo unzip util-linux wget \
+    xorg-bdftopcf xorg-font-util xorg-mkfontscale xz"
+PKGS_DEB="autoconf autopoint bc bison bzip2 cmake e2fsprogs extlinux fdisk \
+    flex fontconfig genisoimage gettext gettext-base git gperf grub-common \
+    grub-pc isolinux kpartx libffi-dev libncurses-dev libtool libtool-bin \
+    libxcb1-dev make meson nasm ninja-build pciutils pkg-config \
+    python-is-python3 python3 qemu-utils syslinux texinfo unzip uuid-dev \
+    wget xfonts-utils xz-utils"
+PKGS_RPM="autoconf automake bdftopcf bison byacc cmake dialog docbook2pdf \
+    docbook2X flex fontconfig gcc genisoimage gettext git gperf \
+    grub2-common grub2-pc libffi-devel libtool libuuid-devel make meson \
+    mkfontscale nasm ncurses-devel ninja-build patch perl pciutils python3 \
+    qemu-img syslinux-extlinux syslinux-nonlinux texinfo \
+    xorg-x11-font-utils"
+
+
+
 # Check what other prerequisites we need
 NEED_BROTLI=false
 NEED_CARES=false
@@ -1246,137 +1267,112 @@ make_pkg()
 
 install_arch_prerequisites()
 {
-    echo -e "${GREEN}Installing prerequisite packages for an Arch-based system...${RESET}"
-
-    PACKAGES="autoconf bc base-devel bison bzip2 ca-certificates cdrtools cpio dosfstools e2fsprogs flex gettext git libtool make meson multipath-tools ncurses ninja pciutils python qemu-img systemd texinfo util-linux wget xz"
-
-    if $FIX_EXTLINUX; then
-        PACKAGES+=" nasm"
-    fi
-
-    if $INCLUDE_GUI; then
-        PACKAGES+=" fontconfig gperf unzip xorg-bdftopcf xorg-font-util xorg-mkfontscale"
-    fi
-
+    PACKAGES="${PKGS_ARCH}"
     if $INCLUDE_MICRO; then
         PACKAGES+=" go"
     fi
 
-    if $INCLUDE_MICROPYTHON; then
-        PACKAGES+=" libffi"
+    # Get missing packages
+    local MISSING=()
+    mapfile -t MISSING < <(pacman -T $PACKAGES)
+
+    if [ ${#MISSING[@]} -eq 0 ]; then
+        # All required packages are installed
+        return
     fi
 
-    if $INCLUDE_SC_IM; then
-        PACKAGES+=" cmake"
-    fi
-
-    if $INCLUDE_TMUX; then
-        PACKAGES+=" pkgconf"
-    fi
-
-    if $USE_GRUB; then
-        PACKAGES+=" grub"
-    else
-        PACKAGES+=" syslinux"
-    fi
+    echo -e "${YELLOW}The following packages may be required for building SHORK 486 and must be installed before proceeding:${RESET}"
+    echo "${MISSING[*]}"
+    echo -e "${YELLOW}You can allow this build script to install them, or quit if you wish to review and install them yourself.${RESET}"
+    select CHOICE in "Install" "Quit"; do
+        case $CHOICE in
+            "Install")
+                break ;;
+            "Quit")
+                echo -e "${RED}Exiting... Please review and install the packages manually.${RESET}"
+                exit 1;;
+            *)
+        esac
+    done
 
     sudo pacman -Sy --noconfirm --needed $PACKAGES || true
 }
 
 install_debian_prerequisites()
 {
-    echo -e "${GREEN}Installing prerequisite packages for a Debian-based system...${RESET}"
-    sudo dpkg --add-architecture i386
-    sudo apt-get update
-
-    PACKAGES="autopoint bc bison bzip2 e2fsprogs extlinux fdisk flex genisoimage gettext gettext-base git kpartx libncurses-dev libtool libtool-bin libxcb1-dev make meson ninja-build pkg-config python3 python-is-python3 qemu-utils wget xz-utils"
-
-    if $FIX_EXTLINUX; then
-        PACKAGES+=" nasm uuid-dev"
-    fi
-
-    if $INCLUDE_GUI; then
-        PACKAGES+=" fontconfig gperf unzip xfonts-utils"
-    fi
-
-    if $INCLUDE_GIT; then
-        PACKAGES+=" autoconf"
-    fi
-
+    PACKAGES="${PKGS_DEB}"
     if $INCLUDE_MICRO; then
         PACKAGES+=" golang-go"
     fi
 
-    if $INCLUDE_MICROPYTHON; then
-        PACKAGES+=" libffi-dev"
+    # Get missing packages
+    local MISSING=()
+    local PKG
+    for PKG in $PACKAGES; do
+        if ! dpkg-query -W -f='${db:Status-Status}\n' "$PKG" 2>/dev/null \
+            | grep -qx installed; then
+            MISSING+=("$PKG")
+        fi
+    done
+
+    if [ ${#MISSING[@]} -eq 0 ]; then
+        # All required packages are installed
+        return
     fi
 
-    if $INCLUDE_NANO; then
-        PACKAGES+=" texinfo"
-    fi
+    echo -e "${YELLOW}The following packages may be required for building SHORK 486 and must be installed before proceeding:${RESET}"
+    echo "${MISSING[*]}"
+    echo -e "${YELLOW}You can allow this build script to install them, or quit if you wish to review and install them yourself.${RESET}"
+    select CHOICE in "Install" "Quit"; do
+        case $CHOICE in
+            "Install")
+                break ;;
+            "Quit")
+                echo -e "${RED}Exiting... Please review and install the packages manually.${RESET}"
+                exit 1;;
+            *)
+        esac
+    done
 
-    if $INCLUDE_PCI_IDS; then
-        PACKAGES+=" pciutils"
-    fi
-
-    if $INCLUDE_SC_IM; then
-        PACKAGES+=" cmake"
-    fi
-
-    if $USE_GRUB; then
-        PACKAGES+=" grub-common grub-pc"
-    else
-        PACKAGES+=" isolinux syslinux"
-    fi
-
+    sudo apt-get update
     sudo apt-get install -y $PACKAGES
-
     export PATH="$PATH:/usr/sbin:/sbin"
 }
 
 install_fedora_prerequisites()
 {
-    echo -e "${GREEN}Installing prerequisite packages for a Fedora-based system...${RESET}"
-
-    PACKAGES="autoconf automake bison dialog docbook2pdf docbook2X flex gcc genisoimage gettext git libtool make meson ninja-build patch perl python3 qemu-img"
-
-    if $FIX_EXTLINUX; then
-        PACKAGES+=" libuuid-devel nasm"
-    fi
-
-    if $INCLUDE_GUI; then
-        PACKAGES+=" bdftopcf fontconfig gperf mkfontscale xorg-x11-font-utils"
-    fi
-
+    PACKAGES="${PKGS_RPM}"
     if $INCLUDE_MICRO; then
         PACKAGES+=" golang"
     fi
 
-    if $INCLUDE_MICROPYTHON; then
-        PACKAGES+=" libffi-devel"
+    # Get missing packages
+    local MISSING=()
+    local PKG
+    for PKG in $PACKAGES; do
+        if ! rpm -q --quiet --whatprovides "$PKG"; then
+            MISSING+=("$PKG")
+        fi
+    done
+
+    if [ ${#MISSING[@]} -eq 0 ]; then
+        # All required packages are installed
+        return
     fi
 
-    if $INCLUDE_NANO; then
-        PACKAGES+=" texinfo"
-    fi
-
-    if $INCLUDE_PCI_IDS; then
-        PACKAGES+=" pciutils"
-    fi
-
-    if $INCLUDE_SC_IM; then
-        PACKAGES+=" byacc cmake"
-    fi
-
-    if $NEED_LIBT3KEY; then
-        PACKAGES+=" ncurses-devel"
-    fi
-
-    if $USE_GRUB; then
-        PACKAGES+=" grub2-common grub2-pc"
-    else
-        PACKAGES+=" syslinux-extlinux syslinux-nonlinux"
-    fi
+    echo -e "${YELLOW}The following packages may be required for building SHORK 486 and must be installed before proceeding:${RESET}"
+    echo "${MISSING[*]}"
+    echo -e "${YELLOW}You can allow this build script to install them, or quit if you wish to review and install them yourself.${RESET}"
+    select CHOICE in "Install" "Quit"; do
+        case $CHOICE in
+            "Install")
+                break ;;
+            "Quit")
+                echo -e "${RED}Exiting... Please review and install the packages manually.${RESET}"
+                exit 1;;
+            *)
+        esac
+    done
 
     sudo dnf install -y $PACKAGES || true
 }
@@ -1410,7 +1406,8 @@ get_prerequisites()
         fi
     else
         # Skip if inside Docker as Dockerfile already installs prerequisites
-        echo -e "${LIGHT_RED}Running inside Docker, skipping installing prerequisite packages...${RESET}"
+        echo -e "${LIGHT_RED}Running inside Docker, skipping installing \
+        prerequisite packages...${RESET}"
     fi
 }
 
