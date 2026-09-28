@@ -858,11 +858,11 @@ PKGS_DEB="autoconf autopoint bc bison bzip2 cmake e2fsprogs extlinux fdisk \
     libxcb1-dev make meson nasm ninja-build pciutils pkg-config \
     python-is-python3 python3 qemu-utils syslinux texinfo unzip uuid-dev \
     wget xfonts-utils xz-utils"
-PKGS_RPM="autoconf automake bdftopcf bison byacc cmake dialog docbook2pdf \
-    docbook2X flex fontconfig gcc genisoimage gettext git gperf \
-    grub2-common grub2-pc libffi-devel libtool libuuid-devel make meson \
-    mkfontscale nasm ncurses-devel ninja-build patch perl pciutils python3 \
-    qemu-img syslinux-extlinux syslinux-nonlinux texinfo \
+PKGS_RPM="autoconf automake bdftopcf bison byacc cmake dialog \
+    docbook-utils-pdf docbook2X flex fontconfig gcc genisoimage gettext \
+    git gperf grub2-common grub2-pc libffi-devel libtool libuuid-devel \
+    make meson mkfontscale nasm ncurses-devel ninja-build patch perl \
+    pciutils python3 qemu-img syslinux-extlinux syslinux-nonlinux texinfo \
     xorg-x11-font-utils"
 
 
@@ -1096,7 +1096,7 @@ delete_root_dir()
 # Fixes directory and file permissions after root build
 fix_perms()
 {
-    echo -e "${GREEN}Tidying up and fixing directory and file permissions...${RESET}"
+    echo -e "${GREEN}Tidying up and fixing directory and file permissions... (may take a minute or two)${RESET}"
 
     HOST_GID=${HOST_GID:-1000}
     HOST_UID=${HOST_UID:-1000}
@@ -1295,7 +1295,7 @@ install_arch_prerequisites()
         esac
     done
 
-    sudo pacman -Sy --noconfirm --needed $PACKAGES || true
+    sudo pacman -S --noconfirm --needed "${MISSING[@]}"
 }
 
 install_debian_prerequisites()
