@@ -12,7 +12,7 @@
 set -euo pipefail
 
 # Input: lore.kernel.org message to get patch from
-INPUT="https://lore.kernel.org/netdev/20260521001631.45434-1-enelsonmoore@gmail.com/T/"
+INPUT="https://lore.kernel.org/all/20260502043341.34324-1-enelsonmoore@gmail.com/T/"
 
 # Strip trailing /T/
 BASE_URL="${INPUT%%/T/}"
@@ -23,7 +23,7 @@ MBOX_URL="${BASE_URL}/t.mbox.gz"
 
 # Output
 WORK_DIR="tmp/${MSGID}"
-mkdir -p "$WORKDIR"
+mkdir -p "$WORK_DIR"
 
 # Download message
 MBOX="$WORK_DIR/thread.mbox"

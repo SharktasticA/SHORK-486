@@ -10,10 +10,10 @@
 ############################################################################
 
 diff --git a/arch/mips/configs/mtx1_defconfig b/arch/mips/configs/mtx1_defconfig
-index d36808ea8..0dc07e4ea 100644
+index 0ee91bd28..5fd6a6e7d 100644
 --- a/arch/mips/configs/mtx1_defconfig
 +++ b/arch/mips/configs/mtx1_defconfig
-@@ -242,6 +242,7 @@ CONFIG_TULIP=m
+@@ -245,6 +245,7 @@ CONFIG_TULIP=m
  CONFIG_WINBOND_840=m
  CONFIG_DM9102=m
  CONFIG_ULI526X=m
@@ -22,10 +22,10 @@ index d36808ea8..0dc07e4ea 100644
  CONFIG_SUNDANCE=m
  CONFIG_PCMCIA_FMVJ18X=m
 diff --git a/arch/powerpc/configs/ppc6xx_defconfig b/arch/powerpc/configs/ppc6xx_defconfig
-index 54358bc39..aecbfabb4 100644
+index 4eb2a0df3..67c03b19a 100644
 --- a/arch/powerpc/configs/ppc6xx_defconfig
 +++ b/arch/powerpc/configs/ppc6xx_defconfig
-@@ -417,6 +417,7 @@ CONFIG_TULIP_MMIO=y
+@@ -420,6 +420,7 @@ CONFIG_TULIP_MMIO=y
  CONFIG_WINBOND_840=m
  CONFIG_DM9102=m
  CONFIG_ULI526X=m
@@ -33,14 +33,6 @@ index 54358bc39..aecbfabb4 100644
  CONFIG_DL2K=m
  CONFIG_SUNDANCE=m
  CONFIG_FEC_MPC52xx=m
-@@ -580,6 +581,7 @@ CONFIG_PPDEV=m
- CONFIG_HW_RANDOM=y
- CONFIG_HW_RANDOM_VIRTIO=m
- CONFIG_NVRAM=y
-+CONFIG_IPWIRELESS=m
- CONFIG_I2C_CHARDEV=m
- CONFIG_I2C_HYDRA=m
- CONFIG_I2C_MPC=m
 diff --git a/drivers/net/ethernet/dec/tulip/Kconfig b/drivers/net/ethernet/dec/tulip/Kconfig
 index 324608611..078a12f07 100644
 --- a/drivers/net/ethernet/dec/tulip/Kconfig

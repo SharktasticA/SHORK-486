@@ -2,7 +2,7 @@
 
 A side-project of SHORK 486 is patching bleeding-edge Linux kernels to ensure they operate with the hardware and specifications the SHORK 486 Operating System is intended to work with. This will include restoring removed build targets for older platforms and removed drivers for older hardware, as well as patching bugs noticed on older hardware. This document will list created patches and their purposes, potential/todo patches, and anything else useful for this endeavour. This side-project is non-essential as SHORK 486 would still work fine with a 6.x LTS kernel that is still supported for many years, but this was taken on as an indulgence and a potentially fun exercise to see the latest kernel possible running on old hardware. It will continue as long as patching doesn't become a total burden.
 
-Whilst SHORK 486 Operating System itself is licensed under GPL 3.0 terms, the contents of `shork-486/patches/linux` is licensed under [GPL 2.0 terms](https://docs.kernel.org/process/license-rules.html) as they are derived from Linux kernel source code.
+Whilst the SHORK 486 repository is largely licensed under GPL 3.0 terms, these patches and the contents of `shork-486/patches/linux` are licensed under [GPL 2.0 terms](https://docs.kernel.org/process/license-rules.html) as they are derived from Linux kernel source code.
 
 
 
@@ -13,14 +13,6 @@ Whilst SHORK 486 Operating System itself is licensed under GPL 3.0 terms, the co
 * https://www.phoronix.com/news/Linux-Retiring-Moxa-Driver
 * https://www.phoronix.com/news/SGI-GRU-Being-Removed
 * https://www.phoronix.com/news/Old-IBM-SGI-Drivers-Linux-7.3
-
-### 7.2.x
-
-* bluetooth: remove all PCMCIA drivers
-* char: dtlk: remove driver for ISA speech synthesizer card
-* console: mdacon: remove this obsolete driver
-* fbdev: remove Hercules monochrome ISA graphics adapter driver
-* watchdog: Remove AMD Elan SC520 processor watchdog driver
 
 
 
@@ -35,8 +27,12 @@ Whilst SHORK 486 Operating System itself is licensed under GPL 3.0 terms, the co
 5. 7.1.x_restore-pc110pad.patch
 6. 7.2.x_restore-isa-pcmcia-net.patch
 7. 7.2.x_restore-arcnet-isa-pcmcia.patch
-8. 7.3.x_restore-xircom-cardbus.patch
-9. 7.0.x_fix-387-fpu-clone-sigfpe.patch
+8. 7.2.x_restore-pcmcia-bt.patch
+9. 7.2.x_restore-mdacon.patch
+10. 7.2.x_restore-hgafb.patch
+11. 7.3.x_restore-doubletalk-pc.patch
+12. 7.3.x_restore-xircom-cardbus.patch
+13. 7.0.x_fix-387-fpu-clone-sigfpe.patch
 
 ### [7.3.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.patch](shork-486/patches/linux/7.3.x/7.3.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.patch)
 
@@ -45,6 +41,11 @@ Whilst SHORK 486 Operating System itself is licensed under GPL 3.0 terms, the co
 
 This is a modification of `7.2.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.patch` that allows it to be cleanly applied to 7.3.x. This patch reverts the removal of various TSC-less and CX8-less CPU build targets, 486-related plumming, AMD Élan support, and 387 maths emulation support from [this patch series](https://lore.kernel.org/all/20250425084216.3913608-1-mingo@kernel.org/). It includes build targets for "586" (AMD K5, Cyrix 5x86, etc.), AMD Élan, IDT Winchip, RDC R-321x and UMC U5x, x87 math emulation support, and Geode GX1 support.
 
+### [7.3.x_restore-doubletalk-pc.patch](shork-486/patches/linux/7.3.x/7.3.x_restore-doubletalk-pc.patch)
+
+* Original kernel: 7.3-rc1
+
+This is a modification of `7.2.x_restore-doubletalk-pc.patch` that allows it to be cleanly applied to 7.3.x. This patch reverts the removal of the RC Systems DoubleTalk PC ISA card driver by [this patch](https://lore.kernel.org/all/20260502043341.34324-1-enelsonmoore@gmail.com/).
 
 ### [7.3.x_restore-xircom-cardbus.patch](shork-486/patches/linux/7.3.x/7.3.x_restore-xircom-cardbus.patch)
 
@@ -66,6 +67,10 @@ This patch reverts the removal of the Xircom Tulip CardBus driver (`xircom_cb`) 
 6. 7.2.x_restore-isa-pcmcia-net.patch
 7. 7.2.x_restore-arcnet-isa-pcmcia.patch
 8. 7.0.x_fix-387-fpu-clone-sigfpe.patch
+9. 7.2.x_restore-pcmcia-bt.patch
+10. 7.2.x_restore-doubletalk-pc.patch
+11. 7.2.x_restore-mdacon.patch
+12. 7.2.x_restore-hgafb.patch
 
 ### [7.2.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.patch](shork-486/patches/linux/7.2.x/7.2.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.patch)
 
@@ -87,6 +92,30 @@ This is a modification of `7.1.x_restore-isa-pcmcia-net.patch` that allows it to
 * Context: https://www.phoronix.com/news/Linux-To-Drop-ARCnet-ISA-PCMCIA
 
 This patch reverts the removal of various ISA and PCMCIA ARCnet drivers and documentation from [this patch series](https://lore.kernel.org/netdev/20260521001631.45434-1-enelsonmoore@gmail.com/T/). This was done as per the request of a user.
+
+### [7.2.x_restore-pcmcia-bt.patch](shork-486/patches/linux/7.2.x/7.2.x_restore-pcmcia-bt.patch)
+
+* Original kernel: 7.2.0
+
+This patch reverts the removal of PCMCIA Bluetooth drivers by [this patch](https://lore.kernel.org/all/20260503033201.19719-1-enelsonmoore@gmail.com/). This includes drivers for HCI BlueCard (Anycom), HCI BT3C (3Com) and  HCI DTL1 (Nokia). This is done for their likely inclusion in future SHORK 686.
+
+### [7.2.x_restore-doubletalk-pc.patch](shork-486/patches/linux/7.2.x/7.2.x_restore-doubletalk-pc.patch)
+
+* Original kernel: 7.2.0
+
+This patch reverts the removal of the RC Systems DoubleTalk PC ISA card driver by [this patch](https://lore.kernel.org/all/20260502043341.34324-1-enelsonmoore@gmail.com/).
+
+### [7.2.x_restore-mdacon.patch](shork-486/patches/linux/7.2.x/7.2.x_restore-mdacon.patch)
+
+* Original kernel: 7.2.0
+
+This patch reverts the removal of MDA console support by [this patch](https://lore.kernel.org/all/20260520033155.17378-1-enelsonmoore@gmail.com/). It allows an ISA MDA or Hercules-compatible display card to be used as a secondary text console.
+
+### [7.2.x_restore-hgafb.patch](shork-486/patches/linux/7.2.x/7.2.x_restore-hgafb.patch)
+
+* Original kernel: 7.2.0
+
+This patch reverts the removal of Hercules-compatible ISA display card framebuffer support by [this patch](https://lore.kernel.org/all/20260503045653.33522-1-enelsonmoore@gmail.com/).
 
 
 
@@ -135,8 +164,6 @@ This patch reverts the removal of the `pc110pad` driver in [6f468ea360f0](https:
 * Context: https://www.phoronix.com/news/Linux-7.1-Removes-Old-Net, https://lore.kernel.org/all/20260422-v7-0-0-net-next-driver-removal-v1-v2-0-08a5b59784d5@lunn.ch/
 
 This patch reverts the removal of several ISA and PCMCIA network drivers from [this patch series](https://github.com/search?q=repo%3Atorvalds%2Flinux+net-next+driver-removal&type=commits). It includes the ISA drivers `3c515`, `lance`, `smc9194`, `ultra` and `wd80x3`, and the PCMCIA drivers `3c574`, `3c589`, `ax88190`, `fmvj18x`, `nmclan` and `smc91c92`. Several of these drivers include hardware relevant for SHORK 486.
-
-
 
 ## 7.0.x
 

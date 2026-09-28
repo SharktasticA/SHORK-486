@@ -463,6 +463,7 @@ FIX_EXTLINUX=false
 IS_ARCH=false
 IS_DEBIAN=false
 IS_FEDORA=false
+PATCH_TEST=false
 PHYSICAL_ALIGN=0x2000
 PHYSICAL_START=""
 ROOT_PASSWD=""
@@ -594,6 +595,9 @@ while [ $# -gt 0 ]; do
             IS_ARCH=false
             IS_DEBIAN=false
             IS_FEDORA=true
+            ;;
+        --patch-test)
+            PATCH_TEST=true
             ;;
         --shorkutils-reclone)
             SHORKUTILS_RECLONE=true
@@ -4731,6 +4735,11 @@ configure_kernel()
         FRAGS+="${CONFIGS_DIR}/linux/linux.config.micro.frag "
     fi
 
+    if $PATCH_TEST;then
+        echo -e "${GREEN}Enabling SHORK 486 kernel patch test...${RESET}"
+        FRAGS+="${CONFIGS_DIR}/linux/linux.config.patchtest.frag "
+    fi
+
     if [ -n "$PHYSICAL_START" ]; then
         echo -e "${GREEN}Setting custom Linux kernel physical address start...${RESET}"
         sed -i "s/CONFIG_PHYSICAL_START=0x100000/CONFIG_PHYSICAL_START=$PHYSICAL_START/" .config
@@ -4796,9 +4805,21 @@ compile_kernel()
 
         echo -e "${GREEN}Applying 7.2.x_restore-isa-pcmcia-net patch...${RESET}"
         patch -p1 < "${PATCHES_DIR}/linux/7.2.x/7.2.x_restore-isa-pcmcia-net.patch"
-    
+
         echo -e "${GREEN}Applying 7.2.x_restore-arcnet-isa-pcmcia patch...${RESET}"
         patch -p1 < "${PATCHES_DIR}/linux/7.2.x/7.2.x_restore-arcnet-isa-pcmcia.patch"
+
+        echo -e "${GREEN}Applying 7.2.x_restore-pcmcia-bt patch...${RESET}"
+        patch -p1 < "${PATCHES_DIR}/linux/7.2.x/7.2.x_restore-pcmcia-bt.patch"
+
+        echo -e "${GREEN}Applying 7.2.x_restore-mdacon patch...${RESET}"
+        patch -p1 < "${PATCHES_DIR}/linux/7.2.x/7.2.x_restore-mdacon.patch"
+
+        echo -e "${GREEN}Applying 7.2.x_restore-hgafb patch...${RESET}"
+        patch -p1 < "${PATCHES_DIR}/linux/7.2.x/7.2.x_restore-hgafb.patch"
+
+        echo -e "${GREEN}Applying 7.3.x_restore-doubletalk-pc patch...${RESET}"
+        patch -p1 < "${PATCHES_DIR}/linux/7.3.x/7.3.x_restore-doubletalk-pc.patch"
     
         echo -e "${GREEN}Applying 7.3.x_restore-xircom-cardbus patch...${RESET}"
         patch -p1 < "${PATCHES_DIR}/linux/7.3.x/7.3.x_restore-xircom-cardbus.patch"
@@ -4820,9 +4841,21 @@ compile_kernel()
 
         echo -e "${GREEN}Applying 7.2.x_restore-isa-pcmcia-net patch...${RESET}"
         patch -p1 < "${PATCHES_DIR}/linux/7.2.x/7.2.x_restore-isa-pcmcia-net.patch"
-    
+
         echo -e "${GREEN}Applying 7.2.x_restore-arcnet-isa-pcmcia patch...${RESET}"
         patch -p1 < "${PATCHES_DIR}/linux/7.2.x/7.2.x_restore-arcnet-isa-pcmcia.patch"
+
+        echo -e "${GREEN}Applying 7.2.x_restore-pcmcia-bt patch...${RESET}"
+        patch -p1 < "${PATCHES_DIR}/linux/7.2.x/7.2.x_restore-pcmcia-bt.patch"
+
+        echo -e "${GREEN}Applying 7.2.x_restore-doubletalk-pc patch...${RESET}"
+        patch -p1 < "${PATCHES_DIR}/linux/7.2.x/7.2.x_restore-doubletalk-pc.patch"
+
+        echo -e "${GREEN}Applying 7.2.x_restore-mdacon patch...${RESET}"
+        patch -p1 < "${PATCHES_DIR}/linux/7.2.x/7.2.x_restore-mdacon.patch"
+
+        echo -e "${GREEN}Applying 7.2.x_restore-hgafb patch...${RESET}"
+        patch -p1 < "${PATCHES_DIR}/linux/7.2.x/7.2.x_restore-hgafb.patch"
     elif [[ "$LINUX_VER" == 7.1* ]]; then
         echo -e "${GREEN}Applying 7.1.x_restore-M486-M486SX-ELAN patch...${RESET}"
         patch -p1 < "${PATCHES_DIR}/linux/7.1.x/7.1.x_restore-M486-M486SX-ELAN.patch"
