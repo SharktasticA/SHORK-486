@@ -1084,15 +1084,6 @@ fi
 ## House keeping                                    ##
 ######################################################
 
-# Deletes build directory
-delete_root_dir()
-{
-    if [ -n "${CURR_DIR}" ] && [ -d "${DESTDIR}" ]; then
-        echo -e "${GREEN}Deleting existing ${DIST} root directory to ensure fresh changes can be made...${RESET}"
-        sudo rm -rf "${DESTDIR}"
-    fi
-}
-
 # Fixes directory and file permissions after root build
 fix_perms()
 {
@@ -1120,6 +1111,17 @@ fix_perms()
     if [ -d "${CURR_DIR}/__pycache__" ]; then
         sudo chown -R "$HOST_UID:$HOST_GID" "${CURR_DIR}/__pycache__" || true
         sudo chmod 755 "${CURR_DIR}/__pycache__" || true
+    fi
+
+    chmod +x "${CURR_DIR}/compilation/"*
+}
+
+# Deletes root directory
+delete_root_dir()
+{
+    if [ -n "${CURR_DIR}" ] && [ -d "${DESTDIR}" ]; then
+        echo -e "${GREEN}Deleting existing ${DIST} root directory to ensure fresh changes can be made...${RESET}"
+        sudo rm -rf "${DESTDIR}"
     fi
 }
 
@@ -4437,7 +4439,7 @@ get_busybox()
     make ARCH=x86 -j$(nproc)
     make ARCH=x86 install
 
-    echo -e "${GREEN}Installing BusyBox as the basis of our root file system...${RESET}"
+    echo -e "${GREEN}Installing BusyBox as the basis of our root filesystem...${RESET}"
     if [ -d "${DESTDIR}" ]; then
         sudo rm -r "${DESTDIR}"
     fi
@@ -4881,13 +4883,13 @@ compile_kernel()
     echo -e "${GREEN}Installing Linux kernel image...${RESET}"
     sudo mv arch/x86/boot/bzImage "${CURR_DIR}/build" || true
 
+    sudo rm -rf "${CURR_DIR}/build/modules/"*
     if $ENABLE_MODULES; then
         KRN_BUILT_VER=$(make ARCH=x86 -s kernelrelease)
         echo -e "${GREEN}Compiling Linux kernel modules...${RESET}"
         make ARCH=x86 modules -j$(nproc)
 
         echo -e "${GREEN}Installing Linux kernel modules...${RESET}"
-        sudo rm -rf "${CURR_DIR}/build/modules/"*
         sudo make ARCH=x86 modules_install \
             INSTALL_MOD_PATH="${CURR_DIR}/build/modules"
         sudo "${DESTDIR}/sbin/depmod" -b "${CURR_DIR}/build/modules" \
@@ -6132,7 +6134,7 @@ get_xbitmaps()
     make -j$(nproc)
     make install DESTDIR="$SYSROOT"
 
-    # Also install bitmaps to root file system
+    # Also install bitmaps to root filesystem
     sudo mkdir -p "${DESTDIR}"/usr/include/X11/bitmaps
     sudo cp "$SYSROOT"/usr/include/X11/bitmaps/* "${DESTDIR}"/usr/include/X11/bitmaps
 }
@@ -8837,6 +8839,11 @@ get_shorkfetch()
         sed -i 's|,gpu,|,|' src/main.c
     fi
 
+    # If not SHORK 486, skip root FS field
+    if [ "$ID" != "shork-486" ]; then
+        sed -i 's|,root,|,|' src/main.c
+    fi
+
     # If no true networking enabled, skip local IP field
     if ! $NET_ETH; then
         sed -i 's|,lip,|,|' src/main.c
@@ -10097,20 +10104,8 @@ copy_tests()
 
 
 ######################################################
-## File system & disk image building                ##
+## Filesystem & disk image building                 ##
 ######################################################
-
-# Find and set MBR binary (can be different depending on distro)
-find_mbr_bin()
-{
-    for candidate in /usr/lib/SYSLINUX/mbr.bin /usr/lib/syslinux/mbr/mbr.bin /usr/lib/syslinux/bios/mbr.bin /usr/share/syslinux/mbr.bin /usr/share/syslinux/mbr.bin
-    do
-        if [ -f "$candidate" ]; then
-            MBR_BIN="$candidate"
-            break
-        fi
-    done
-}
 
 # Builds the root filesystem
 build_filesystem()
@@ -10385,12 +10380,28 @@ set_filesystem_perms()
     fi
 }
 
-# Compresses the root file system (SHORK DISKETTE)
+# Compresses the root filesystem (SHORK DISKETTE)
 compress_filesystem()
 {
     cd "${DESTDIR}"
-    echo -e "${GREEN}Compressing root file system into one file...${RESET}"
+    echo -e "${GREEN}Compressing root filesystem into one file...${RESET}"
     find . | cpio -H newc -o | xz --check=crc32 --lzma2=dict=512KiB -e > "${CURR_DIR}"/build/rootfs.cpio.xz
+}
+
+# Find and set EXTLINUX MBR binary (can be different depending on distro)
+find_mbr_bin()
+{
+    for CAND in /usr/lib/SYSLINUX/mbr.bin \
+        /usr/lib/syslinux/mbr/mbr.bin \
+        /usr/lib/syslinux/bios/mbr.bin \
+        /usr/share/syslinux/mbr.bin \
+        /usr/share/syslinux/mbr.bin
+    do
+        if [ -f "$CAND" ]; then
+            MBR_BIN="$CAND"
+            break
+        fi
+    done
 }
 
 # Partition disk image
@@ -10850,8 +10861,8 @@ build_disk_img()
 
 
 
-    # Ensure file system is in a clean state
-    echo -e "${GREEN}Unmounting file system...${RESET}"
+    # Ensure filesystem is in a clean state
+    echo -e "${GREEN}Unmounting filesystem...${RESET}"
     if $ENABLE_BOOT_PART; then
         sudo umount "/mnt/${ID}/boot"
     fi
@@ -10905,8 +10916,8 @@ copy_report()
     sudo mkdir -p "/mnt/${ID}/var/log/shork"
     sudo cp "${CURR_DIR}/images/report.txt" "/mnt/${ID}/var/log/shork/build-report.log"
 
-    # Ensure file system is in a clean state
-    echo -e "${GREEN}Unmounting file system...${RESET}"
+    # Ensure filesystem is in a clean state
+    echo -e "${GREEN}Unmounting filesystem...${RESET}"
     sudo umount "/mnt/${ID}"
     sudo fsck.ext4 -f -p "$root_part"
 }
@@ -11024,8 +11035,8 @@ build_diskette_img()
     echo -e "${GREEN}Copying kernel image...${RESET}"
     sudo cp bzImage "/mnt/${ID}"
 
-    # Copy compressed root file system
-    echo -e "${GREEN}Copying compressed root file system...${RESET}"
+    # Copy compressed root filesystem
+    echo -e "${GREEN}Copying compressed root filesystem...${RESET}"
     sudo cp rootfs.cpio.xz "/mnt/${ID}"
 
     # Make directory to be used as /home when booted
@@ -11807,7 +11818,6 @@ fi
 get_prerequisites
 check_host_tc_versions
 get_musl_cross
-chmod +x "${CURR_DIR}/compilation/"*
 
 case ":$PATH:" in
   *:"$PREFIX/bin":*) ;;
@@ -11835,7 +11845,9 @@ fi
 if ! $SKIP_KRN; then
     get_kernel
 fi
-copy_modules
+if [ "$ID" == "shork-486" ]; then
+    copy_modules
+fi
 
 # Compile prerequisites
 if $NEED_ZLIB; then
@@ -12559,24 +12571,27 @@ if $TRIM_FAT; then
     trim_fat
 fi
 copy_licences
-
-if $FIX_EXTLINUX; then
-    get_patched_xlinux
-fi
-
 if $INCLUDE_TESTS; then
     copy_tests
 fi
 
-find_mbr_bin
 build_filesystem
 set_filesystem_perms
+if [ "$ID" == "shork-diskette" ]; then
+    compress_filesystem
+fi
+
+if $FIX_EXTLINUX; then
+    get_patched_xlinux
+fi
+if [ "$ID" == "shork-486" ] && [ "$USE_GRUB" = false ]; then
+    find_mbr_bin
+fi
 if [ "$ID" == "shork-486" ]; then
     build_disk_img
 elif [ "$ID" == "shork-disc" ]; then
     build_disc_img
 elif [ "$ID" == "shork-diskette" ]; then
-    compress_filesystem
     build_diskette_img
 fi
 
