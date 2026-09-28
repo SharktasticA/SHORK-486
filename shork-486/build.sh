@@ -10189,6 +10189,8 @@ build_filesystem()
         echo -e "${GREEN}Copying mutli-user-related files...${RESET}"
 
         sudo mkdir -p "${DESTDIR}"/home
+        sudo mkdir -p "${DESTDIR}"/root
+        sudo chmod 700 "${DESTDIR}"/root
 
         copy_sysfile "${CURR_DIR}"/sysfiles/486/inittab.getty "${DESTDIR}"/etc/inittab
         copy_sysfile "${CURR_DIR}"/sysfiles/busybox.conf "${DESTDIR}"/etc/busybox.conf
