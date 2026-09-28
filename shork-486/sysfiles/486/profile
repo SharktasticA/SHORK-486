@@ -31,23 +31,25 @@ export PATH
 
 
 
-# Ensures sync and shell exist upon SHORKSET's exit so settings are guaranteed
-# saved and applied immediately
+# Ensures SHORKSET is ran as root and exits if it needs to respawn terminal
 shorkset()
 {
+    local ret
     # Only proceed if user is root
     if [ "$(whoami)" != "root" ]; then
         if which sudo >/dev/null 2>&1; then
             sudo /usr/libexec/shorkset "$@" || return
         else
             printf "SHORKSET must be ran whilst logged in as root, via \033[0;1;31msu\033[0m, or with \033[0;1;31msudo\033[0m\n" >&2
-            return
+            return 1
         fi
     else
-        /usr/libexec/shorkset "$@" || return
+        /usr/libexec/shorkset "$@"
     fi
-    sync
-    exit
+    ret=$?
+
+    [ "$ret" -eq 3 ] && exit 0
+    return "$ret"
 }
 
 # Wraps launching a program with creating a 8-32MiB swapfile for it to help
