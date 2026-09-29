@@ -11892,8 +11892,7 @@ generate_report()
 
 
 
-get_sudo()
-
+get_sudo
 fix_perms
 
 mkdir -p {build/modules,"${STAGE_DIR}",build/staging,images,packages}
