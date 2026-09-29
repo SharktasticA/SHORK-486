@@ -5015,7 +5015,7 @@ get_xorgproto()
     echo -e "${GREEN}Compiling xorgproto...${RESET}"
     ./configure --host="$HOST" --prefix=/usr --enable-legacy --with-sysroot="$SYSROOT" CC="$CC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
     make -j$(nproc)
-    make DESTDIR="$SYSROOT" install
+    sudo make DESTDIR="$SYSROOT" install
 }
 
 get_libxdmcp()
@@ -5200,7 +5200,7 @@ get_xtrans()
     echo -e "${GREEN}Compiling xtrans...${RESET}"
     ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
     make -j$(nproc)
-    make DESTDIR="$SYSROOT" install
+    sudo make DESTDIR="$SYSROOT" install
 }
 
 get_libx11()
@@ -5274,7 +5274,7 @@ get_libxext()
     echo -e "${GREEN}Compiling libXext...${RESET}"
     ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
     make -j$(nproc)
-    make DESTDIR="$SYSROOT" install
+    sudo make DESTDIR="$SYSROOT" install
 }
 
 get_libxfixes()
@@ -5311,7 +5311,7 @@ get_libxfixes()
     echo -e "${GREEN}Compiling libXfixes...${RESET}"
     ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
     make -j$(nproc)
-    make DESTDIR="$SYSROOT" install
+    sudo make DESTDIR="$SYSROOT" install
 }
 
 get_libxi()
@@ -5348,7 +5348,7 @@ get_libxi()
     echo -e "${GREEN}Compiling libXi...${RESET}"
     ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
     make -j$(nproc)
-    make DESTDIR="$SYSROOT" install
+    sudo make DESTDIR="$SYSROOT" install
 }
 
 get_libxtst()
@@ -5385,7 +5385,7 @@ get_libxtst()
     echo -e "${GREEN}Compiling libXtst...${RESET}"
     ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
     make -j$(nproc)
-    make DESTDIR="$SYSROOT" install
+    sudo make DESTDIR="$SYSROOT" install
 }
 
 get_libice()
@@ -5422,7 +5422,7 @@ get_libice()
     echo -e "${GREEN}Compiling libICE...${RESET}"
     ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
     make -j$(nproc)
-    make DESTDIR="$SYSROOT" install
+    sudo make DESTDIR="$SYSROOT" install
 }
 
 get_libsm()
@@ -5459,7 +5459,7 @@ get_libsm()
     echo -e "${GREEN}Compiling libSM...${RESET}"
     ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
     make -j$(nproc)
-    make DESTDIR="$SYSROOT" install
+    sudo make DESTDIR="$SYSROOT" install
 }
 
 get_libxt()
@@ -5496,7 +5496,7 @@ get_libxt()
     echo -e "${GREEN}Compiling libXt...${RESET}"
     ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
     make -j$(nproc)
-    make DESTDIR="$SYSROOT" install
+    sudo make DESTDIR="$SYSROOT" install
 }
 
 get_libpng()
@@ -5534,7 +5534,7 @@ get_libpng()
     echo -e "${GREEN}Compiling libpng...${RESET}"
     ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
     make -j$(nproc)
-    make DESTDIR="$SYSROOT" install
+    sudo make DESTDIR="$SYSROOT" install
 }
 
 get_libxpm()
@@ -5571,7 +5571,7 @@ get_libxpm()
     echo -e "${GREEN}Compiling libXpm...${RESET}"
     ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static --with-sysroot="$SYSROOT" CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP" LIBS="-lX11 -lxcb -lXau -lXdmcp -lSM -lICE"
     make -j$(nproc)
-    make DESTDIR="$SYSROOT" install
+    sudo make DESTDIR="$SYSROOT" install
 }
 
 get_libxmu()
@@ -5608,7 +5608,7 @@ get_libxmu()
     echo -e "${GREEN}Compiling libXmu...${RESET}"
     ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
     make -j$(nproc)
-    make DESTDIR="$SYSROOT" install
+    sudo make DESTDIR="$SYSROOT" install
 }
 
 get_utilmacros()
@@ -5645,7 +5645,7 @@ get_utilmacros()
     echo -e "${GREEN}Compiling util-macros...${RESET}"
     ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
     make -j$(nproc)
-    make DESTDIR="$SYSROOT" install
+    sudo make DESTDIR="$SYSROOT" install
 }
 
 get_freetype()
@@ -5691,7 +5691,7 @@ get_freetype()
         RANLIB="$RANLIB" \
         STRIP="$STRIP"
     make -j$(nproc)
-    make DESTDIR="$SYSROOT" install
+    sudo make DESTDIR="$SYSROOT" install
 }
 
 get_libexpat()
@@ -5728,7 +5728,7 @@ get_libexpat()
     echo -e "${GREEN}Compiling libexpat...${RESET}"
     ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static --without-examples --without-tests CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
     make -j$(nproc)
-    make DESTDIR="$SYSROOT" install
+    sudo make DESTDIR="$SYSROOT" install
 }
 
 get_fontconfig()
@@ -5775,7 +5775,7 @@ get_fontconfig()
         STRIP="$STRIP" \
         LIBS="-lz -lm"
     make -j$(nproc)
-    make DESTDIR="$SYSROOT" install
+    sudo make DESTDIR="$SYSROOT" install
 }
 
 get_libxrender()
@@ -5812,7 +5812,7 @@ get_libxrender()
     echo -e "${GREEN}Compiling libXrender...${RESET}"
     ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
     make -j$(nproc)
-    make DESTDIR="$SYSROOT" install
+    sudo make DESTDIR="$SYSROOT" install
 }
 
 get_libxft()
@@ -5849,7 +5849,7 @@ get_libxft()
     echo -e "${GREEN}Compiling libXft...${RESET}"
     ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
     make -j$(nproc)
-    make DESTDIR="$SYSROOT" install
+    sudo make DESTDIR="$SYSROOT" install
 }
 
 get_libfontenc()
@@ -5886,7 +5886,7 @@ get_libfontenc()
     echo -e "${GREEN}Compiling libfontenc...${RESET}"
     ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
     make -j$(nproc)
-    make DESTDIR="$SYSROOT" install
+    sudo make DESTDIR="$SYSROOT" install
 }
 
 get_libxfont()
@@ -6234,7 +6234,7 @@ get_xbiff()
     echo -e "${GREEN}Compiling xbiff...${RESET}"
     ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static --x-includes="$SYSROOT/usr/include" --x-libraries="$SYSROOT/usr/lib" CC="$CC_STATIC" LIBS="-lXaw7 -lXmu -lXpm -lXt -lSM -lICE -lXext -lX11 -lxcb -lXau -lXdmcp"
     make -j$(nproc)
-    make DESTDIR="${DESTDIR}" install
+    sudo make DESTDIR="${DESTDIR}" install
 }
 
 prepare_x11()
@@ -12033,6 +12033,7 @@ if $INCLUDE_GUI; then
     get_xli
     get_xload
     get_xset
+    fix_perms
 fi
 
 if $INCLUDE_CON_FONTS; then
