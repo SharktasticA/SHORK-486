@@ -2033,10 +2033,6 @@ get_gnutls()
     export PKG_CONFIG_SYSROOT_DIR="${SYSROOT}"
     export PKG_CONFIG="pkg-config --static"
 
-    # TODO: find a better solution - perhaps change all prefix to $SYSROOT/usr?
-    #LIBUNISTRING_LA="${SYSROOT}/usr/lib/libunistring.a"
-    #sed -i "s|/usr/lib/libunistring\.la|${LIBUNISTRING_LA}|g" "${SYSROOT}/usr/lib/libidn2.la"
-
     # Compile and install
     echo -e "${GREEN}Compiling GnuTLS...${RESET}"
     ./configure \
@@ -5937,9 +5933,17 @@ get_libxfont()
 
     # Compile and install
     echo -e "${GREEN}Compiling libXfont...${RESET}"
-    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    ./configure \
+        --host="$HOST" \
+        --prefix="${SYSROOT}/usr" \
+        --disable-shared \
+        --enable-static \
+        CC="$CC_STATIC" \
+        AR="$AR" \
+        RANLIB="$RANLIB" \
+        STRIP="$STRIP"
     make -j$(nproc)
-    install
+    make install
 }
 
 get_fontutil()
