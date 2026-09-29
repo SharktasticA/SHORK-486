@@ -1677,7 +1677,7 @@ get_cares()
     echo -e "${GREEN}Compiling c-ares...${RESET}"
     ./configure \
         --host="$HOST" \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
         CC="$CC_STATIC" \
@@ -1686,7 +1686,7 @@ get_cares()
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${SYSROOT}/lib"
     make -j$(nproc)
-    make DESTDIR="$SYSROOT" install
+    make install
 }
 
 # Download and compile cURL
@@ -1945,7 +1945,7 @@ get_glib()
     # Compile and install
     echo -e "${GREEN}Compiling GLib...${RESET}"
     meson setup _build \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --cross-file meson-cross.ini \
         --default-library=static \
         -Dtests=false \
@@ -1955,7 +1955,7 @@ get_glib()
         -Dlibelf=disabled \
         -Dsysprof=disabled
     ninja -C _build
-    DESTDIR="${SYSROOT}" ninja -C _build install
+    ninja -C _build install
 }
 
 # Download and compile GMP
@@ -1989,7 +1989,7 @@ get_gmp()
     echo -e "${GREEN}Compiling GMP...${RESET}"
     ./configure \
         --host="$HOST" \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
         CC="$CC_STATIC" \
@@ -1998,7 +1998,7 @@ get_gmp()
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${SYSROOT}/lib"
     make -j$(nproc)
-    make DESTDIR="${SYSROOT}" install
+    make install
 }
 
 # Download and compile GnuTLS
@@ -2041,7 +2041,7 @@ get_gnutls()
     echo -e "${GREEN}Compiling GnuTLS...${RESET}"
     ./configure \
         --host="$HOST" \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
         --without-p11-kit \
@@ -2051,7 +2051,7 @@ get_gnutls()
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${SYSROOT}/lib -L${SYSROOT}/usr/lib"
     make -j$(nproc)
-    make DESTDIR="${SYSROOT}" install
+    make install
 }
 
 # Download and compile loadkeys
@@ -2114,7 +2114,7 @@ get_krb5()
     echo -e "${GREEN}Compiling Kerberos...${RESET}"
     ./configure \
         --host="$HOST" \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
         --without-tcl \
@@ -2125,7 +2125,7 @@ get_krb5()
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${SYSROOT}/lib"
     make -j$(nproc)
-    make DESTDIR="${SYSROOT}" install
+    make install
 
     sed -i '/# linking, we would output "-lkrb5support \$LIBS \$DL_LIB" here\./a\    lib_flags="$lib_flags -lkrb5support $LIBS $DL_LIB"' "${SYSROOT}/usr/bin/krb5-config"
 }
@@ -2161,7 +2161,7 @@ get_libao()
     ./configure \
         --host="$HOST" \
         --build=x86_64-linux-gnu \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --disable-shared \
         --enable-static \
         --disable-alsa \
@@ -2175,7 +2175,7 @@ get_libao()
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-L$SYSROOT/usr/lib"
     make -j$(nproc)
-    make DESTDIR="$SYSROOT" install
+    make install
 
     # FOLLOWING NO LONGER NEEDED SINCE MPG321 PATCHES OUT REAL LIBAO USAGE
     #sudo mkdir -p "${DESTDIR}"/lib
@@ -2217,7 +2217,7 @@ get_libassuan()
     echo -e "${GREEN}Compiling libassuan...${RESET}"
     ./configure \
         --host="${ARCH}"-linux-musl \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
         CC="${CC_STATIC}" \
@@ -2231,7 +2231,7 @@ get_libassuan()
         LDFLAGS="-static -static-libgcc -no-pie -Wl,-static -L${PREFIX}/lib -L${SYSROOT}/lib -L${SYSROOT}/usr/lib" \
         LIBS="-lgcc"
     make -j$(nproc)
-    make DESTDIR="${SYSROOT}" install
+    make install
 }
 
 # Download and compile libcap
@@ -2340,7 +2340,7 @@ get_libffi()
     echo -e "${GREEN}Compiling libffi...${RESET}"
     ./configure \
         --host="$HOST" \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
         CC="$CC_STATIC" \
@@ -2349,7 +2349,7 @@ get_libffi()
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${SYSROOT}/lib"
     make -j$(nproc)
-    make DESTDIR="$SYSROOT" install
+    make install
 }
 
 # Download and compile libgcrypt
@@ -2383,7 +2383,7 @@ get_libgcrypt()
     echo -e "${GREEN}Compiling libgcrypt...${RESET}"
     ./configure \
         --host="${ARCH}"-linux-musl \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
         CC="${CC_STATIC}" \
@@ -2397,7 +2397,7 @@ get_libgcrypt()
         LDFLAGS="-static -static-libgcc -no-pie -Wl,-static -L${PREFIX}/lib -L${SYSROOT}/lib -L${SYSROOT}/usr/lib" \
         LIBS="-lgcc"
     make -j$(nproc)
-    make DESTDIR="${SYSROOT}" install
+    make install
 }
 
 # Download and compile libgpg-error
@@ -2431,7 +2431,7 @@ get_libgpg_error()
     echo -e "${GREEN}Compiling libgpg-error...${RESET}"
     ./configure \
         --host="${ARCH}"-linux-musl \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
         CC="${CC_STATIC}" \
@@ -2443,7 +2443,7 @@ get_libgpg_error()
         LDFLAGS="-static -static-libgcc -no-pie -Wl,-static -L${PREFIX}/lib -L${SYSROOT}/lib -L${SYSROOT}/usr/lib" \
         LIBS="-lgcc"
     make -j$(nproc)
-    make DESTDIR="${SYSROOT}" install
+    make install
 }
 
 # Download and compile libid3tag
@@ -2479,7 +2479,7 @@ get_libid3tag()
     echo -e "${GREEN}Compiling libid3tag...${RESET}"
     ./configure \
         --host="$HOST" \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
         AR="$AR" \
@@ -2488,7 +2488,7 @@ get_libid3tag()
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L$SYSROOT/usr/lib"
     make -j$(nproc)
-    make DESTDIR="$SYSROOT" install
+    make install
 }
 
 # Download and compile libidn2
@@ -2522,7 +2522,7 @@ get_libidn2()
     echo -e "${GREEN}Compiling libidn2...${RESET}"
     ./configure \
         --host="$HOST" \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
         CC="$CC_STATIC" \
@@ -2531,7 +2531,7 @@ get_libidn2()
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${SYSROOT}/lib"
     make -j$(nproc)
-    make DESTDIR="${SYSROOT}" install
+    make install
 }
 
 # Download and compile libksba
@@ -2565,7 +2565,7 @@ get_libksba()
     echo -e "${GREEN}Compiling libksba...${RESET}"
     ./configure \
         --host="${ARCH}"-linux-musl \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
         CC="${CC_STATIC}" \
@@ -2579,7 +2579,7 @@ get_libksba()
         LDFLAGS="-static -static-libgcc -no-pie -Wl,-static -L${PREFIX}/lib -L${SYSROOT}/lib -L${SYSROOT}/usr/lib" \
         LIBS="-lgcc"
     make -j$(nproc)
-    make DESTDIR="${SYSROOT}" install
+    make install
 }
 
 # Download and compile liblua
@@ -2654,7 +2654,7 @@ get_libmad()
     echo -e "${GREEN}Compiling libmad...${RESET}"
     ./configure \
         --host="$HOST" \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
         AR="$AR" \
@@ -2663,7 +2663,7 @@ get_libmad()
         CFLAGS="${CFLAGS}" \
         LDFLAGS="-static -L$SYSROOT/usr/lib"
     make CFLAGS="${CFLAGS}" -j$(nproc)
-    make DESTDIR="$SYSROOT" install
+    make install
 }
 
 # Download and compile libnl
@@ -2697,7 +2697,7 @@ get_libnl()
     echo -e "${GREEN}Compiling libnl...${RESET}"
     ./configure \
         --host="${HOST}" \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
         CC="${CC_STATIC}" \
@@ -2705,7 +2705,7 @@ get_libnl()
         RANLIB="${RANLIB}" \
         CFLAGS="${CFLAGS_NOPIE}"
     make -j$(nproc)
-    make DESTDIR="${SYSROOT}" install
+    make install
 }
 
 # Download and compile libpcap
@@ -2739,7 +2739,7 @@ get_libpcap()
     echo -e "${GREEN}Compiling libpcap...${RESET}"
     ./configure \
         --host="$HOST" \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
         --disable-examples-build \
@@ -2751,7 +2751,7 @@ get_libpcap()
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${SYSROOT}/lib"
     make -j$(nproc)
-    make DESTDIR="${SYSROOT}" install
+    make install
 }
 
 # Download and compile libsmi
@@ -2789,7 +2789,7 @@ get_libsmi()
     echo -e "${GREEN}Compiling libsmi...${RESET}"
     ./configure \
         --host="$HOST" \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
         --disable-examples-build \
@@ -2802,7 +2802,7 @@ get_libsmi()
         LDFLAGS="-static -L${SYSROOT}/lib" \
         YACC="bison -y"
     make -j$(nproc)
-    make DESTDIR="$SYSROOT" install
+    make install
 }
 
 # Compile our own static library of C software floating-point routines from
@@ -2959,7 +2959,7 @@ get_libssh2()
     echo -e "${GREEN}Compiling libssh2...${RESET}"
     ./configure \
         --host="$HOST" \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
         --disable-examples-build \
@@ -2972,7 +2972,7 @@ get_libssh2()
         LDFLAGS="-static -L${SYSROOT}/lib" \
         LIBS="-lssl -lcrypto"
     make -j$(nproc)
-    make DESTDIR="$SYSROOT" install
+    make install
 
     # Fix "library was moved" error
     find "$SYSROOT/usr/lib" -name "*.la" -exec sed -i "s|^libdir=.*|libdir='${SYSROOT}/usr/lib'|" {} \;
@@ -3022,7 +3022,7 @@ get_libt3config()
     # Compile and install $ARCH version
     echo -e "${GREEN}Compiling libt3config ($ARCH)...${RESET}"
     ./configure \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         CC="${CC}" \
         CXX="${CXX}" \
         AR="${AR}" \
@@ -3032,7 +3032,7 @@ get_libt3config()
         CFLAGS="${CFLAGS_COMMON}" \
         LDFLAGS="--sysroot=${SYSROOT} -L${SYSROOT}/usr/lib"
     make -j$(nproc)
-    make DESTDIR="${SYSROOT}" install
+    make install
 
     # Modify libtool archive's libdir to target the cross-compiler's, and not
     # the host's
@@ -3078,7 +3078,7 @@ get_libt3highlight()
     # Compile and install
     echo -e "${GREEN}Compiling libt3highlight...${RESET}"
     ./configure \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         CC="${CC}" \
         CXX="${CXX}" \
         AR="${AR}" \
@@ -3088,7 +3088,7 @@ get_libt3highlight()
         CFLAGS="${CFLAGS_COMMON}" \
         LDFLAGS="--sysroot=${SYSROOT} -L${SYSROOT}/usr/lib -L${PREFIX}/lib"
     make -j$(nproc)
-    make DESTDIR="${SYSROOT}" install
+    make install
 
     # Modify libtool archive's libdir to target the cross-compiler's, and not
     # the host's
@@ -3153,7 +3153,7 @@ get_libt3key()
     # Compile and install libt3key
     echo -e "${GREEN}Compiling libt3key...${RESET}"
     ./configure \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         CC="${CC}" \
         CXX="${CXX}" \
         AR="${AR}" \
@@ -3163,7 +3163,7 @@ get_libt3key()
         CFLAGS="${CFLAGS_COMMON}" \
         LDFLAGS="--sysroot=${SYSROOT} -L${SYSROOT}/usr/lib -L${PREFIX}/lib"
     make -j$(nproc)
-    make DESTDIR="${SYSROOT}" install || true
+    make install || true
 
     # Modify libtool archive's libdir to target the cross-compiler's, and not
     # the host's
@@ -3226,7 +3226,7 @@ get_libt3widget()
     # Compile and install
     echo -e "${GREEN}Compiling libt3widget...${RESET}"
     ./configure \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         CC="${CC}" \
         CXX="${CXX}" \
         AR="${AR}" \
@@ -3243,7 +3243,7 @@ get_libt3widget()
     fi
 
     make -j$(nproc)
-    make DESTDIR="${SYSROOT}" install
+    make install
 
     # Modify libtool archive's libdir to target the cross-compiler's, and not
     # the host's
@@ -3292,7 +3292,7 @@ get_libt3window()
     # Compile and install
     echo -e "${GREEN}Compiling libt3window...${RESET}"
     ./configure \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         CC="${CC}" \
         CXX="${CXX}" \
         AR="${AR}" \
@@ -3302,7 +3302,7 @@ get_libt3window()
         CFLAGS="${CFLAGS_COMMON}" \
         LDFLAGS="--sysroot=${SYSROOT} -L${SYSROOT}/usr/lib -L${PREFIX}/lib"
     make -j$(nproc)
-    make DESTDIR="${SYSROOT}" install
+    make install
 
     # Modify libtool archive's libdir to target the cross-compiler's, and not
     # the host's
@@ -3345,7 +3345,7 @@ get_libtasn1()
     echo -e "${GREEN}Compiling libtasn1...${RESET}"
     ./configure \
         --host="$HOST" \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
         CC="$CC_STATIC" \
@@ -3354,7 +3354,7 @@ get_libtasn1()
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${SYSROOT}/lib"
     make -j$(nproc)
-    make DESTDIR="${SYSROOT}" install
+    make install
 }
 
 # Download and compile libtool and libltdl
@@ -3401,7 +3401,7 @@ get_libtool_tilde()
     echo -e "${GREEN}Compiling libltdl...${RESET}"
     ./configure \
         --host="${ARCH}"-linux-musl \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
         --enable-ltdl-install \
@@ -3412,7 +3412,7 @@ get_libtool_tilde()
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="--sysroot=${SYSROOT} -L${SYSROOT}/lib"
     make -j$(nproc)
-    make DESTDIR="${SYSROOT}" install
+    make install
 }
 
 # Download and compile libtranscript
@@ -3447,7 +3447,7 @@ get_libtranscript()
         echo -e "${GREEN}Compiling libtranscript library...${RESET}"
         ./configure \
             --host="${ARCH}"-linux-musl \
-            --prefix=/usr \
+            --prefix="${SYSROOT}/usr" \
             CC="${CC}" \
             CXX="${CXX}" \
             AR="${AR}" \
@@ -3458,7 +3458,7 @@ get_libtranscript()
         make -j$(nproc)
         rm -rf "$SYSROOT/usr/lib/transcript1"
         mkdir -p "$SYSROOT/usr/lib/transcript1"
-        make DESTDIR="${SYSROOT}" install
+        make install
 
         # Modify libtool archive's libdir to target the cross-compiler's, and not
         # the host's
@@ -3518,7 +3518,7 @@ get_libunistring()
     echo -e "${GREEN}Compiling libunistring...${RESET}"
     ./configure \
         --host="${ARCH}"-linux-musl \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
         CC="${CC_STATIC}" \
@@ -3529,7 +3529,7 @@ get_libunistring()
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -static-libgcc -no-pie -Wl,-static -L${PREFIX}/lib -L${SYSROOT}/lib"
     make -j$(nproc)
-    make DESTDIR="${SYSROOT}" install
+    make install
 }
 
 # Download and compile liburcu
@@ -3606,7 +3606,7 @@ get_libuuid()
     ./autogen.sh
     ./configure \
         --host="${HOST}" \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --disable-all-programs \
         --enable-libuuid \
         CC="${CC_STATIC}" \
@@ -3615,7 +3615,7 @@ get_libuuid()
         LDFLAGS="-L${PREFIX}/lib -static" \
         PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig"
     make TINFO_LIBS="" -j$(nproc)
-    make DESTDIR="$SYSROOT" install
+    make install
 }
 
 # Download and compile libuv
@@ -3864,7 +3864,7 @@ get_nettle()
     echo -e "${GREEN}Compiling Nettle...${RESET}"
     ./configure \
         --host="$HOST" \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
         CC="$CC_STATIC" \
@@ -3873,7 +3873,7 @@ get_nettle()
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${SYSROOT}/lib"
     make -j$(nproc)
-    make DESTDIR="${SYSROOT}" install
+    make install
 }
 
 # Download and compile nPth
@@ -3907,7 +3907,7 @@ get_npth()
     echo -e "${GREEN}Compiling nPth...${RESET}"
     ./configure \
         --host="${ARCH}"-linux-musl \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
         CC="${CC_STATIC}" \
@@ -3919,7 +3919,7 @@ get_npth()
         LDFLAGS="-static -static-libgcc -no-pie -Wl,-static -L${PREFIX}/lib -L${SYSROOT}/lib -L${SYSROOT}/usr/lib" \
         LIBS="-lgcc"
     make -j$(nproc)
-    make DESTDIR="${SYSROOT}" install
+    make install
 }
 
 # Download and compile OpenSSL
@@ -3989,7 +3989,7 @@ get_pcre2()
     echo -e "${GREEN}Compiling PCRE2...${RESET}"
     ./configure \
         --host="${ARCH}"-linux-musl \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
         CC="${CC_STATIC}" \
@@ -4000,7 +4000,7 @@ get_pcre2()
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -static-libgcc -no-pie -Wl,-static -L${PREFIX}/lib -L${SYSROOT}/lib"
     make -j$(nproc)
-    make DESTDIR="${SYSROOT}" install
+    make install
 }
 
 # Download and compile Snappy
@@ -4115,9 +4115,9 @@ get_zlib()
     CFLAGS="${CFLAGS_NOPIE}" \
     ./configure \
         --static \
-        --prefix=/usr
+        --prefix="${SYSROOT}/usr" \
     make -j$(nproc)
-    make DESTDIR="$SYSROOT" install
+    make install
 
     echo -e "${GREEN}Compiling minizip...${RESET}"
     cd contrib/minizip
@@ -4127,11 +4127,11 @@ get_zlib()
     LDFLAGS="-L${SYSROOT}/usr/lib" \
     ./configure \
         --host="${HOST}" \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --disable-shared \
         --enable-static
     make -j$(nproc)
-    make DESTDIR="$SYSROOT" install
+    make install
 }
 
 # Download and compile Zstandard
@@ -5013,9 +5013,9 @@ get_xorgproto()
 
     # Compile and install
     echo -e "${GREEN}Compiling xorgproto...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --enable-legacy --with-sysroot="$SYSROOT" CC="$CC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --enable-legacy --with-sysroot="$SYSROOT" CC="$CC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
     make -j$(nproc)
-    sudo make DESTDIR="$SYSROOT" install
+    make install
 }
 
 get_libxdmcp()
@@ -5050,9 +5050,17 @@ get_libxdmcp()
 
     # Compile and install
     echo -e "${GREEN}Compiling libXdmcp...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    ./configure \
+        --host="$HOST" \
+        --prefix="${SYSROOT}/usr" \
+        --disable-shared \
+        --enable-static \
+        CC="$CC_STATIC" \
+        AR="$AR" \
+        RANLIB="$RANLIB" \
+        STRIP="$STRIP"
     make -j$(nproc)
-    make install DESTDIR="$SYSROOT"
+    make install
 }
 
 get_libxau()
@@ -5087,9 +5095,9 @@ get_libxau()
 
     # Compile and install
     echo -e "${GREEN}Compiling libXau...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
     make -j$(nproc)
-    make install DESTDIR="$SYSROOT"
+    make install
 }
 
 get_xcbproto()
@@ -5124,9 +5132,9 @@ get_xcbproto()
 
     # Compile and install
     echo -e "${GREEN}Compiling xcb-proto...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
     make -j$(nproc)
-    make install DESTDIR="$SYSROOT"
+    make install
 }
 
 get_libxcb()
@@ -5161,9 +5169,17 @@ get_libxcb()
 
     # Compile and install
     echo -e "${GREEN}Compiling libxcb...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    ./configure \
+        --host="$HOST" \
+        --prefix="${SYSROOT}/usr" \
+        --disable-shared \
+        --enable-static \
+        CC="$CC_STATIC" \
+        AR="$AR" \
+        RANLIB="$RANLIB" \
+        STRIP="$STRIP"
     make -j$(nproc)
-    make install DESTDIR="$SYSROOT"
+    make install
 }
 
 get_xtrans()
@@ -5198,9 +5214,9 @@ get_xtrans()
 
     # Compile and install
     echo -e "${GREEN}Compiling xtrans...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
     make -j$(nproc)
-    sudo make DESTDIR="$SYSROOT" install
+    sudo make install
 }
 
 get_libx11()
@@ -5235,9 +5251,9 @@ get_libx11()
 
     # Compile and install
     echo -e "${GREEN}Compiling libX11...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static --with-sysroot="$SYSROOT" CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static --with-sysroot="$SYSROOT" CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
     make -j$(nproc)
-    make install DESTDIR="$SYSROOT"
+    make install
 }
 
 get_libxext()
@@ -5272,9 +5288,9 @@ get_libxext()
 
     # Compile and install
     echo -e "${GREEN}Compiling libXext...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
     make -j$(nproc)
-    sudo make DESTDIR="$SYSROOT" install
+    make install
 }
 
 get_libxfixes()
@@ -5309,9 +5325,9 @@ get_libxfixes()
 
     # Compile and install
     echo -e "${GREEN}Compiling libXfixes...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
     make -j$(nproc)
-    sudo make DESTDIR="$SYSROOT" install
+    make install
 }
 
 get_libxi()
@@ -5346,9 +5362,9 @@ get_libxi()
 
     # Compile and install
     echo -e "${GREEN}Compiling libXi...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
     make -j$(nproc)
-    sudo make DESTDIR="$SYSROOT" install
+    make install
 }
 
 get_libxtst()
@@ -5383,9 +5399,9 @@ get_libxtst()
 
     # Compile and install
     echo -e "${GREEN}Compiling libXtst...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
     make -j$(nproc)
-    sudo make DESTDIR="$SYSROOT" install
+    make install
 }
 
 get_libice()
@@ -5420,9 +5436,9 @@ get_libice()
 
     # Compile and install
     echo -e "${GREEN}Compiling libICE...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
     make -j$(nproc)
-    sudo make DESTDIR="$SYSROOT" install
+    make install
 }
 
 get_libsm()
@@ -5457,9 +5473,9 @@ get_libsm()
 
     # Compile and install
     echo -e "${GREEN}Compiling libSM...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
     make -j$(nproc)
-    sudo make DESTDIR="$SYSROOT" install
+    make install
 }
 
 get_libxt()
@@ -5494,9 +5510,9 @@ get_libxt()
 
     # Compile and install
     echo -e "${GREEN}Compiling libXt...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
     make -j$(nproc)
-    sudo make DESTDIR="$SYSROOT" install
+    make install
 }
 
 get_libpng()
@@ -5532,9 +5548,9 @@ get_libpng()
 
     # Compile and install
     echo -e "${GREEN}Compiling libpng...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
     make -j$(nproc)
-    sudo make DESTDIR="$SYSROOT" install
+    make install
 }
 
 get_libxpm()
@@ -5569,9 +5585,9 @@ get_libxpm()
 
     # Compile and install
     echo -e "${GREEN}Compiling libXpm...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static --with-sysroot="$SYSROOT" CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP" LIBS="-lX11 -lxcb -lXau -lXdmcp -lSM -lICE"
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static --with-sysroot="$SYSROOT" CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP" LIBS="-lX11 -lxcb -lXau -lXdmcp -lSM -lICE"
     make -j$(nproc)
-    sudo make DESTDIR="$SYSROOT" install
+    make install
 }
 
 get_libxmu()
@@ -5606,9 +5622,9 @@ get_libxmu()
 
     # Compile and install
     echo -e "${GREEN}Compiling libXmu...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
     make -j$(nproc)
-    sudo make DESTDIR="$SYSROOT" install
+    make install
 }
 
 get_utilmacros()
@@ -5643,9 +5659,9 @@ get_utilmacros()
 
     # Compile and install
     echo -e "${GREEN}Compiling util-macros...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
     make -j$(nproc)
-    sudo make DESTDIR="$SYSROOT" install
+    make install
 }
 
 get_freetype()
@@ -5682,7 +5698,7 @@ get_freetype()
     echo -e "${GREEN}Compiling freetype...${RESET}"
     ./configure \
         --host="$HOST" \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --disable-shared \
         --enable-static \
         --with-brotli=no \
@@ -5691,7 +5707,7 @@ get_freetype()
         RANLIB="$RANLIB" \
         STRIP="$STRIP"
     make -j$(nproc)
-    sudo make DESTDIR="$SYSROOT" install
+    make install
 }
 
 get_libexpat()
@@ -5726,9 +5742,9 @@ get_libexpat()
 
     # Compile and install
     echo -e "${GREEN}Compiling libexpat...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static --without-examples --without-tests CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static --without-examples --without-tests CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
     make -j$(nproc)
-    sudo make DESTDIR="$SYSROOT" install
+    make install
 }
 
 get_fontconfig()
@@ -5765,7 +5781,7 @@ get_fontconfig()
     echo -e "${GREEN}Compiling fontconfig...${RESET}"
     ./configure \
         --host="$HOST" \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --disable-shared \
         --enable-static \
         --disable-docs \
@@ -5775,7 +5791,7 @@ get_fontconfig()
         STRIP="$STRIP" \
         LIBS="-lz -lm"
     make -j$(nproc)
-    sudo make DESTDIR="$SYSROOT" install
+    make install
 }
 
 get_libxrender()
@@ -5810,9 +5826,9 @@ get_libxrender()
 
     # Compile and install
     echo -e "${GREEN}Compiling libXrender...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
     make -j$(nproc)
-    sudo make DESTDIR="$SYSROOT" install
+    make install
 }
 
 get_libxft()
@@ -5847,9 +5863,9 @@ get_libxft()
 
     # Compile and install
     echo -e "${GREEN}Compiling libXft...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
     make -j$(nproc)
-    sudo make DESTDIR="$SYSROOT" install
+    make install
 }
 
 get_libfontenc()
@@ -5884,9 +5900,9 @@ get_libfontenc()
 
     # Compile and install
     echo -e "${GREEN}Compiling libfontenc...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
     make -j$(nproc)
-    sudo make DESTDIR="$SYSROOT" install
+    make install
 }
 
 get_libxfont()
@@ -5921,9 +5937,9 @@ get_libxfont()
 
     # Compile and install
     echo -e "${GREEN}Compiling libXfont...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
     make -j$(nproc)
-    make install DESTDIR="$SYSROOT"
+    install
 }
 
 get_fontutil()
@@ -5958,9 +5974,9 @@ get_fontutil()
 
     # Compile and install
     echo -e "${GREEN}Compiling font-util...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
     make -j$(nproc)
-    make install DESTDIR="$SYSROOT"
+    make install
 }
 
 get_fonts()
@@ -5988,9 +6004,12 @@ get_fonts()
         [ -f $ARC ] || wget $URI
         tar xf $ARC
         cd $FONT
-        ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static --with-fontdir=/usr/lib/X11/fonts/misc
+        ./configure \
+            --host="$HOST" \
+            --prefix=/usr \
+            --with-fontdir=/usr/lib/X11/fonts/misc
         make -j$(nproc)
-        make install DESTDIR="$SYSROOT"
+        make DESTDIR="${SYSROOT}" install
         cd ..
     done
 
@@ -6064,9 +6083,9 @@ get_libxaw()
 
     # Compile and install
     echo -e "${GREEN}Compiling libXaw...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
     make -j$(nproc)
-    make install DESTDIR="$SYSROOT"
+    make install
 }
 
 get_libxkbfile()
@@ -6101,9 +6120,9 @@ get_libxkbfile()
 
     # Compile and install
     echo -e "${GREEN}Compiling libxkbfile...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
     make -j$(nproc)
-    make install DESTDIR="$SYSROOT"
+    make install
 }
 
 get_xbitmaps()
@@ -6138,9 +6157,9 @@ get_xbitmaps()
 
     # Compile and install
     echo -e "${GREEN}Compiling xbitmaps...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
     make -j$(nproc)
-    make install DESTDIR="$SYSROOT"
+    make install
 
     # Also install bitmaps to root filesystem
     sudo mkdir -p "${DESTDIR}"/usr/include/X11/bitmaps
@@ -6180,7 +6199,7 @@ get_openmotif()
     # Compile and install
     echo -e "${GREEN}Compiling OpenMotif...${RESET}"
     ./configure --host="$HOST" \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --with-x \
         --enable-static \
         --disable-shared \
@@ -6196,8 +6215,8 @@ get_openmotif()
 
     make -j"$(nproc)" -C lib
     make -j"$(nproc)" -C include 
-    make -C lib install DESTDIR="$SYSROOT"
-    make -C include install DESTDIR="$SYSROOT"
+    make -C lib install
+    make -C include install
 }
 
 get_xbiff()
@@ -6232,7 +6251,7 @@ get_xbiff()
 
     # Compile and install
     echo -e "${GREEN}Compiling xbiff...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static --x-includes="$SYSROOT/usr/include" --x-libraries="$SYSROOT/usr/lib" CC="$CC_STATIC" LIBS="-lXaw7 -lXmu -lXpm -lXt -lSM -lICE -lXext -lX11 -lxcb -lXau -lXdmcp"
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static --x-includes="$SYSROOT/usr/include" --x-libraries="$SYSROOT/usr/lib" CC="$CC_STATIC" LIBS="-lXaw7 -lXmu -lXpm -lXt -lSM -lICE -lXext -lX11 -lxcb -lXau -lXdmcp"
     make -j$(nproc)
     sudo make DESTDIR="${DESTDIR}" install
 }
