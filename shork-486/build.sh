@@ -87,6 +87,7 @@ EXCLUDED_BB_CMDS=()
 EXCLUDED_FEATURES=()
 INCLUDED_BB_CMDS=()
 INCLUDED_FEATURES=()
+JOBS=$(nproc)
 MICRO_TARGET_DISK=4
 MINI_TARGET_DISK=8
 ROOT_PART_SIZE=0
@@ -1085,6 +1086,25 @@ fi
 ## House keeping                                    ##
 ######################################################
 
+# Makes sure sudo remains 'alive' for the entire build process to avoid the
+# user needing to reenter their password several times
+get_sudo()
+{
+    # Nothing to do in Docker or when already root
+    if [ -n "$IN_DOCKER" ] || [ "$(id -u)" -eq 0 ]; then
+        return
+    fi
+
+    sudo -v || exit 1
+    ( while true; do
+        sudo -n true 2>/dev/null
+        sleep 60
+        kill -0 "$$" 2>/dev/null || exit
+    done ) &
+    SUDO_PID=$!
+    trap 'kill "$SUDO_PID" 2>/dev/null' EXIT
+}
+
 # Fixes directory and file permissions after root build
 fix_perms()
 {
@@ -1525,7 +1545,7 @@ get_gpm()
         CFLAGS="${CFLAGS_NOPIE} -fcommon" \
         CPPFLAGS="-I${SYSROOT}/include -I${PREFIX}/include -DHAVE_FORKPTY" \
         LDFLAGS="-static -Wl,--gc-sections -s -L${PREFIX}/lib"
-    make -j$(nproc)
+    make -j"$JOBS"
     if $INCLUDE_GPM; then
         make DESTDIR="$DESTDIR" install
     fi
@@ -1583,7 +1603,7 @@ get_ncurses()
             CFLAGS="-fPIC" \
             CPPFLAGS="-D_XOPEN_SOURCE=600 -I${PREFIX}/include" \
             LDFLAGS="-static -L${PREFIX}/lib"
-        make -j$(nproc)
+        make -j"$JOBS"
         make install.libs install.includes
     fi
 
@@ -1622,7 +1642,7 @@ get_tic()
         --enable-widec \
         CC="${CC_STATIC}" \
         CFLAGS="${CFLAGS_NOPIE}"
-    make -C progs tic -j$(nproc)
+    make -C progs tic -j"$JOBS"
     install -D progs/tic "${DESTDIR}/usr/bin/tic"
 }
 
@@ -1664,7 +1684,7 @@ get_brotli()
         -DCMAKE_INSTALL_PREFIX="${SYSROOT}/usr" \
         -DBUILD_SHARED_LIBS=OFF \
         -DBROTLI_DISABLE_TESTS=ON
-    cmake --build build -j$(nproc)
+    cmake --build build -j"$JOBS"
     cmake --install build --prefix "${SYSROOT}/usr"
 }
 
@@ -1706,7 +1726,7 @@ get_cares()
         RANLIB="$RANLIB" \
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${SYSROOT}/lib"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -1752,7 +1772,7 @@ get_curl()
             --without-brotli \
             --without-zstd \
             --disable-shared
-        make -j$(nproc) LDFLAGS="${LDFLAGS_COMMON}"
+        make -j"$JOBS" LDFLAGS="${LDFLAGS_COMMON}"
         echo -e "${GREEN}Installing cURL for toolchain...${RESET}"
         make install
     else
@@ -1808,7 +1828,7 @@ get_gccgo()
         --prefix="$GCCGO_PREFIX" \
         --with-sysroot="$GCCGO_SYSROOT" \
         --disable-multilib
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
     cd "${CURR_DIR}/build"
 
@@ -1866,7 +1886,7 @@ get_gccgo()
         --disable-shared \
         --disable-threads \
         --disable-libgcov
-    make -j$(nproc) all-gcc
+    make -j"$JOBS" all-gcc
     make install-gcc
     cd "${CURR_DIR}/build"
 
@@ -1924,7 +1944,7 @@ get_gccgo()
         --disable-multilib \
         --enable-languages=go \
         --disable-bootstrap
-    make -j$(nproc) all-gcc
+    make -j"$JOBS" all-gcc
     make install-gcc
     cd "${CURR_DIR}/build"
 }
@@ -2016,7 +2036,7 @@ get_gmp()
         RANLIB="$RANLIB" \
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${SYSROOT}/lib"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -2065,7 +2085,7 @@ get_gnutls()
         RANLIB="$RANLIB" \
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${SYSROOT}/lib -L${SYSROOT}/usr/lib"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -2139,7 +2159,7 @@ get_krb5()
         RANLIB="$RANLIB" \
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${SYSROOT}/lib"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 
     sed -i '/# linking, we would output "-lkrb5support \$LIBS \$DL_LIB" here\./a\    lib_flags="$lib_flags -lkrb5support $LIBS $DL_LIB"' "${SYSROOT}/usr/bin/krb5-config"
@@ -2189,7 +2209,7 @@ get_libao()
         CPPFLAGS="-I$SYSROOT/usr/include" \
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-L$SYSROOT/usr/lib"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 
     # FOLLOWING NO LONGER NEEDED SINCE MPG321 PATCHES OUT REAL LIBAO USAGE
@@ -2245,7 +2265,7 @@ get_libassuan()
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -static-libgcc -no-pie -Wl,-static -L${PREFIX}/lib -L${SYSROOT}/lib -L${SYSROOT}/usr/lib" \
         LIBS="-lgcc"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -2275,7 +2295,7 @@ get_libcap()
 
     # Compile and install
     echo -e "${GREEN}Compiling libcap...${RESET}"
-    make -j$(nproc) \
+    make -j"$JOBS" \
         CC="${CC_STATIC}" \
         AR="${AR}" \
         RANLIB="${RANLIB}" \
@@ -2321,7 +2341,7 @@ get_libevent()
     echo -e "${GREEN}Compiling libevent...${RESET}"
     ./autogen.sh
     ./configure --host="${HOST}" --prefix="${PREFIX}" --disable-shared  --enable-static --disable-samples --disable-openssl CC="${CC}"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -2363,7 +2383,7 @@ get_libffi()
         RANLIB="$RANLIB" \
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${SYSROOT}/lib"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -2411,7 +2431,7 @@ get_libgcrypt()
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -static-libgcc -no-pie -Wl,-static -L${PREFIX}/lib -L${SYSROOT}/lib -L${SYSROOT}/usr/lib" \
         LIBS="-lgcc"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -2457,7 +2477,7 @@ get_libgpg_error()
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -static-libgcc -no-pie -Wl,-static -L${PREFIX}/lib -L${SYSROOT}/lib -L${SYSROOT}/usr/lib" \
         LIBS="-lgcc"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -2502,7 +2522,7 @@ get_libid3tag()
         RANLIB="$RANLIB" \
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L$SYSROOT/usr/lib"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -2545,7 +2565,7 @@ get_libidn2()
         RANLIB="$RANLIB" \
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${SYSROOT}/lib"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -2593,7 +2613,7 @@ get_libksba()
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -static-libgcc -no-pie -Wl,-static -L${PREFIX}/lib -L${SYSROOT}/lib -L${SYSROOT}/usr/lib" \
         LIBS="-lgcc"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -2626,7 +2646,7 @@ get_liblua()
 
     # Compile and install
     echo -e "${GREEN}Compiling liblua...${RESET}"
-    make -j$(nproc) linux \
+    make -j"$JOBS" linux \
         CC="${CC_STATIC}" \
         AR="${AR} rcu" \
         RANLIB="${RANLIB}" \
@@ -2677,7 +2697,7 @@ get_libmad()
         RANLIB="$RANLIB" \
         CFLAGS="${CFLAGS}" \
         LDFLAGS="-static -L$SYSROOT/usr/lib"
-    make CFLAGS="${CFLAGS}" -j$(nproc)
+    make CFLAGS="${CFLAGS}" -j"$JOBS"
     make install
 }
 
@@ -2719,7 +2739,7 @@ get_libnl()
         AR="${AR}" \
         RANLIB="${RANLIB}" \
         CFLAGS="${CFLAGS_NOPIE}"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -2765,7 +2785,7 @@ get_libpcap()
         RANLIB="$RANLIB" \
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${SYSROOT}/lib"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -2816,7 +2836,7 @@ get_libsmi()
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${SYSROOT}/lib" \
         YACC="bison -y"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -2940,7 +2960,7 @@ get_libssh()
         -DWITH_ZLIB=ON \
         -DWITH_GCRYPT=ON \
         -DWITH_SFTP=ON
-    cmake --build build -j$(nproc)
+    cmake --build build -j"$JOBS"
     cmake --install build --prefix "${SYSROOT}/usr"
 }
 
@@ -2986,7 +3006,7 @@ get_libssh2()
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${SYSROOT}/lib" \
         LIBS="-lssl -lcrypto"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 
     # Fix "library was moved" error
@@ -3029,7 +3049,7 @@ get_libt3config()
             echo -e "${GREEN}Compiling libt3config (native)...${RESET}"
             ./configure \
                 --prefix="${CURR_DIR}/build/native-tools"
-            make -j$(nproc)
+            make -j"$JOBS"
             make install
         )
     fi
@@ -3046,7 +3066,7 @@ get_libt3config()
         LIBTOOL="${PREFIX}/bin/i486-linux-musl-libtool" \
         CFLAGS="${CFLAGS_COMMON}" \
         LDFLAGS="--sysroot=${SYSROOT} -L${SYSROOT}/usr/lib"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 
     # Modify libtool archive's libdir to target the cross-compiler's, and not
@@ -3102,7 +3122,7 @@ get_libt3highlight()
         LIBTOOL="${PREFIX}/bin/i486-linux-musl-libtool" \
         CFLAGS="${CFLAGS_COMMON}" \
         LDFLAGS="--sysroot=${SYSROOT} -L${SYSROOT}/usr/lib -L${PREFIX}/lib"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 
     # Modify libtool archive's libdir to target the cross-compiler's, and not
@@ -3155,7 +3175,7 @@ get_libt3key()
             echo -e "${GREEN}Compiling t3keyc...${RESET}"
             ./configure \
                 --prefix="${CURR_DIR}/build/native-tools"
-            make -j$(nproc)
+            make -j"$JOBS"
             make install
         )
     fi
@@ -3177,7 +3197,7 @@ get_libt3key()
         LIBTOOL="${PREFIX}/bin/i486-linux-musl-libtool" \
         CFLAGS="${CFLAGS_COMMON}" \
         LDFLAGS="--sysroot=${SYSROOT} -L${SYSROOT}/usr/lib -L${PREFIX}/lib"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install || true
 
     # Modify libtool archive's libdir to target the cross-compiler's, and not
@@ -3257,7 +3277,7 @@ get_libt3widget()
         find "$SYSROOT/usr/lib" -name "*.la" -exec sed -i "s|^libdir=.*|libdir='${SYSROOT}/usr/lib'|" {} \;
     fi
 
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 
     # Modify libtool archive's libdir to target the cross-compiler's, and not
@@ -3316,7 +3336,7 @@ get_libt3window()
         LIBTOOL="${PREFIX}/bin/i486-linux-musl-libtool" \
         CFLAGS="${CFLAGS_COMMON}" \
         LDFLAGS="--sysroot=${SYSROOT} -L${SYSROOT}/usr/lib -L${PREFIX}/lib"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 
     # Modify libtool archive's libdir to target the cross-compiler's, and not
@@ -3368,7 +3388,7 @@ get_libtasn1()
         RANLIB="$RANLIB" \
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${SYSROOT}/lib"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -3426,7 +3446,7 @@ get_libtool_tilde()
         RANLIB="${RANLIB}" \
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="--sysroot=${SYSROOT} -L${SYSROOT}/lib"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -3470,7 +3490,7 @@ get_libtranscript()
             RANLIB="${RANLIB}" \
             CFLAGS="${CFLAGS_COMMON}" \
             LDFLAGS="--sysroot=${SYSROOT} -L${SYSROOT}/usr/lib -lltdl"
-        make -j$(nproc)
+        make -j"$JOBS"
         rm -rf "$SYSROOT/usr/lib/transcript1"
         mkdir -p "$SYSROOT/usr/lib/transcript1"
         make install
@@ -3488,7 +3508,7 @@ get_libtranscript()
         
         # Compile and install libtranscript codec modules
         echo -e "${GREEN}Compiling libtranscript codec modules...${RESET}"
-        make -f mk/libtranscript -j$(nproc) modules tables
+        make -f mk/libtranscript -j"$JOBS" modules tables
         mkdir -p "$SYSROOT/usr/lib/transcript1"
         find src/modules src/tables -maxdepth 1 -name '*.ltc' -exec cp {} "$SYSROOT/usr/lib/transcript1/" \;
     else
@@ -3543,7 +3563,7 @@ get_libunistring()
         RANLIB="${RANLIB}" \
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -static-libgcc -no-pie -Wl,-static -L${PREFIX}/lib -L${SYSROOT}/lib"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -3584,7 +3604,7 @@ get_liburcu()
         RANLIB="$RANLIB" \
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${SYSROOT}/lib"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -3629,7 +3649,7 @@ get_libuuid()
         CPPFLAGS="-I${PREFIX}/include" \
         LDFLAGS="-L${PREFIX}/lib -static" \
         PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig"
-    make TINFO_LIBS="" -j$(nproc)
+    make TINFO_LIBS="" -j"$JOBS"
     make install
 }
 
@@ -3672,7 +3692,7 @@ get_libuv()
         -DBUILD_SHARED_LIBS=OFF \
         -DLIBUV_BUILD_TESTS=OFF \
         -DLIBUV_BUILD_BENCH=OFF
-    cmake --build build -j$(nproc)
+    cmake --build build -j"$JOBS"
     cmake --install build --prefix "${SYSROOT}/usr"
 }
 
@@ -3708,7 +3728,7 @@ get_libxlsxwriter()
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L$PREFIX/lib -L$SYSROOT/usr/lib" \
         MINIZIP=1 \
-        -j$(nproc)
+        -j"$JOBS"
     cp -r include/* "$PREFIX/include/"
     cp src/libxlsxwriter.a "$PREFIX/lib/"
 }
@@ -3745,7 +3765,7 @@ get_libxml2()
         --disable-shared \
         --enable-static \
         CC="${CC_STATIC}"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 
     mkdir -p "${SYSROOT}/usr/lib/pkgconfig" "${SYSROOT}/usr/include"
@@ -3798,7 +3818,7 @@ get_libzip()
         -DBUILD_DOC=OFF \
         -DBUILD_REGRESS=OFF \
         -DBUILD_FUZZERS=OFF
-    make zip -j$(nproc)
+    make zip -j"$JOBS"
     cp lib/libzip.a "${PREFIX}/lib/"
     cp zipconf.h "${PREFIX}/include/"
     cp lib/zip.h "${PREFIX}/include/"
@@ -3830,7 +3850,7 @@ get_lz4()
 
     # Compile and install
     echo -e "${GREEN}Compiling LZ4...${RESET}"
-    make -j$(nproc) \
+    make -j"$JOBS" \
         CC="${CC_STATIC}" \
         AR="${AR}" \
         RANLIB="${RANLIB}" \
@@ -3887,7 +3907,7 @@ get_nettle()
         RANLIB="$RANLIB" \
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${SYSROOT}/lib"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -3933,7 +3953,7 @@ get_npth()
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -static-libgcc -no-pie -Wl,-static -L${PREFIX}/lib -L${SYSROOT}/lib -L${SYSROOT}/usr/lib" \
         LIBS="-lgcc"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -3969,7 +3989,7 @@ get_openssl()
         CC="${CC} -latomic" \
         AR="${AR}" \
         RANLIB="${RANLIB}"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install_sw
 }
 
@@ -4014,7 +4034,7 @@ get_pcre2()
         RANLIB="${RANLIB}" \
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -static-libgcc -no-pie -Wl,-static -L${PREFIX}/lib -L${SYSROOT}/lib"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -4059,7 +4079,7 @@ get_snappy()
         -DBUILD_SHARED_LIBS=OFF \
         -DSNAPPY_BUILD_TESTS=OFF \
         -DSNAPPY_BUILD_BENCHMARKS=OFF
-    cmake --build build -j$(nproc)
+    cmake --build build -j"$JOBS"
     cmake --install build --prefix "${SYSROOT}/usr"
 }
 
@@ -4089,7 +4109,7 @@ get_xxhash()
 
     # Compile and install
     echo -e "${GREEN}Compiling xxHash...${RESET}"
-    make -j$(nproc) \
+    make -j"$JOBS" \
         CC="${CC_STATIC}" \
         AR="${AR}" \
         CFLAGS="${CFLAGS_NOPIE}" \
@@ -4131,7 +4151,7 @@ get_zlib()
     ./configure \
         --static \
         --prefix="${SYSROOT}/usr" \
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 
     echo -e "${GREEN}Compiling minizip...${RESET}"
@@ -4145,7 +4165,7 @@ get_zlib()
         --prefix="${SYSROOT}/usr" \
         --disable-shared \
         --enable-static
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -4189,7 +4209,7 @@ get_zstd()
         -DZSTD_BUILD_STATIC=ON \
         -DZSTD_BUILD_PROGRAMS=OFF \
         -DZSTD_BUILD_TESTS=OFF
-    cmake --build build -j$(nproc)
+    cmake --build build -j"$JOBS"
     cmake --install build --prefix "${SYSROOT}/usr"
 }
 
@@ -4451,7 +4471,7 @@ get_busybox()
 
     # Compile and install
     echo -e "${GREEN}Compiling BusyBox...${RESET}"
-    make ARCH=x86 -j$(nproc)
+    make ARCH=x86 -j"$JOBS"
     make ARCH=x86 install
 
     echo -e "${GREEN}Installing BusyBox as the basis of our root filesystem...${RESET}"
@@ -4500,7 +4520,7 @@ get_strace()
         CC="${CC_STATIC} " \
         CFLAGS="${CFLAGS_NOPIE} -ffunction-sections -fdata-sections" \
         LDFLAGS="-static -Wl,--gc-sections"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install DESTDIR="${DESTDIR}"
 }
 
@@ -4580,7 +4600,7 @@ get_util_linux()
     # Inject -lgpm flag into Makefile
     sed -i 's/^LIBS = /LIBS = -lgpm /' Makefile
    
-    make TINFO_LIBS="" -j$(nproc)
+    make TINFO_LIBS="" -j"$JOBS"
     for bin in lscpu partx whereis; do
         install -D -m 755 "${bin}" "${DESTDIR}/usr/bin/${bin}"
     done
@@ -4892,7 +4912,7 @@ compile_kernel()
 
     echo -e "${GREEN}Compiling Linux kernel...${RESET}"
     make ARCH=x86 olddefconfig
-    make ARCH=x86 bzImage -j$(nproc)
+    make ARCH=x86 bzImage -j"$JOBS"
     $STRIP vmlinux
 
     echo -e "${GREEN}Installing Linux kernel image...${RESET}"
@@ -4902,7 +4922,7 @@ compile_kernel()
     if $ENABLE_MODULES; then
         KRN_BUILT_VER=$(make ARCH=x86 -s kernelrelease)
         echo -e "${GREEN}Compiling Linux kernel modules...${RESET}"
-        make ARCH=x86 modules -j$(nproc)
+        make ARCH=x86 modules -j"$JOBS"
 
         echo -e "${GREEN}Installing Linux kernel modules...${RESET}"
         make ARCH=x86 modules_install \
@@ -5029,7 +5049,7 @@ get_xorgproto()
     # Compile and install
     echo -e "${GREEN}Compiling xorgproto...${RESET}"
     ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --enable-legacy --with-sysroot="$SYSROOT" CC="$CC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -5074,7 +5094,7 @@ get_libxdmcp()
         AR="$AR" \
         RANLIB="$RANLIB" \
         STRIP="$STRIP"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -5111,7 +5131,7 @@ get_libxau()
     # Compile and install
     echo -e "${GREEN}Compiling libXau...${RESET}"
     ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -5156,7 +5176,7 @@ get_xcbproto()
         AR="$AR" \
         RANLIB="$RANLIB" \
         STRIP="$STRIP"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 
     # Prevent doubled SYSROOT
@@ -5204,7 +5224,7 @@ get_libxcb()
         AR="$AR" \
         RANLIB="$RANLIB" \
         STRIP="$STRIP"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -5241,7 +5261,7 @@ get_xtrans()
     # Compile and install
     echo -e "${GREEN}Compiling xtrans...${RESET}"
     ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -5278,7 +5298,7 @@ get_libx11()
     # Compile and install
     echo -e "${GREEN}Compiling libX11...${RESET}"
     ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static --with-sysroot="$SYSROOT" CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -5315,7 +5335,7 @@ get_libxext()
     # Compile and install
     echo -e "${GREEN}Compiling libXext...${RESET}"
     ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -5352,7 +5372,7 @@ get_libxfixes()
     # Compile and install
     echo -e "${GREEN}Compiling libXfixes...${RESET}"
     ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -5389,7 +5409,7 @@ get_libxi()
     # Compile and install
     echo -e "${GREEN}Compiling libXi...${RESET}"
     ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -5426,7 +5446,7 @@ get_libxtst()
     # Compile and install
     echo -e "${GREEN}Compiling libXtst...${RESET}"
     ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -5463,7 +5483,7 @@ get_libice()
     # Compile and install
     echo -e "${GREEN}Compiling libICE...${RESET}"
     ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -5500,7 +5520,7 @@ get_libsm()
     # Compile and install
     echo -e "${GREEN}Compiling libSM...${RESET}"
     ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -5537,7 +5557,7 @@ get_libxt()
     # Compile and install
     echo -e "${GREEN}Compiling libXt...${RESET}"
     ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -5575,7 +5595,7 @@ get_libpng()
     # Compile and install
     echo -e "${GREEN}Compiling libpng...${RESET}"
     ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -5612,7 +5632,7 @@ get_libxpm()
     # Compile and install
     echo -e "${GREEN}Compiling libXpm...${RESET}"
     ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static --with-sysroot="$SYSROOT" CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP" LIBS="-lX11 -lxcb -lXau -lXdmcp -lSM -lICE"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -5649,7 +5669,7 @@ get_libxmu()
     # Compile and install
     echo -e "${GREEN}Compiling libXmu...${RESET}"
     ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -5686,7 +5706,7 @@ get_utilmacros()
     # Compile and install
     echo -e "${GREEN}Compiling util-macros...${RESET}"
     ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -5732,7 +5752,7 @@ get_freetype()
         AR="$AR" \
         RANLIB="$RANLIB" \
         STRIP="$STRIP"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -5769,7 +5789,7 @@ get_libexpat()
     # Compile and install
     echo -e "${GREEN}Compiling libexpat...${RESET}"
     ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static --without-examples --without-tests CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -5816,7 +5836,7 @@ get_fontconfig()
         RANLIB="$RANLIB" \
         STRIP="$STRIP" \
         LIBS="-lz -lm"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -5853,7 +5873,7 @@ get_libxrender()
     # Compile and install
     echo -e "${GREEN}Compiling libXrender...${RESET}"
     ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -5890,7 +5910,7 @@ get_libxft()
     # Compile and install
     echo -e "${GREEN}Compiling libXft...${RESET}"
     ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -5927,7 +5947,7 @@ get_libfontenc()
     # Compile and install
     echo -e "${GREEN}Compiling libfontenc...${RESET}"
     ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -5972,7 +5992,7 @@ get_libxfont()
         AR="$AR" \
         RANLIB="$RANLIB" \
         STRIP="$STRIP"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -6009,7 +6029,7 @@ get_fontutil()
     # Compile and install
     echo -e "${GREEN}Compiling font-util...${RESET}"
     ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -6042,7 +6062,7 @@ get_fonts()
             --host="$HOST" \
             --prefix=/usr \
             --with-fontdir=/usr/lib/X11/fonts/misc
-        make -j$(nproc)
+        make -j"$JOBS"
         make DESTDIR="${SYSROOT}" install
         cd ..
     done
@@ -6118,7 +6138,7 @@ get_libxaw()
     # Compile and install
     echo -e "${GREEN}Compiling libXaw...${RESET}"
     ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -6155,7 +6175,7 @@ get_libxkbfile()
     # Compile and install
     echo -e "${GREEN}Compiling libxkbfile...${RESET}"
     ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -6192,7 +6212,7 @@ get_xbitmaps()
     # Compile and install
     echo -e "${GREEN}Compiling xbitmaps...${RESET}"
     ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 
     # Also install bitmaps to root filesystem
@@ -6286,7 +6306,7 @@ get_xbiff()
     # Compile and install
     echo -e "${GREEN}Compiling xbiff...${RESET}"
     ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static --x-includes="$SYSROOT/usr/include" --x-libraries="$SYSROOT/usr/lib" CC="$CC_STATIC" LIBS="-lXaw7 -lXmu -lXpm -lXt -lSM -lICE -lXext -lX11 -lxcb -lXau -lXdmcp"
-    make -j$(nproc)
+    make -j"$JOBS"
     make DESTDIR="${DESTDIR}" install
 }
 
@@ -6377,7 +6397,7 @@ get_tinyx()
         CFLAGS="-O2 -march=i486 -mtune=i486 -fomit-frame-pointer -ffast-math -mno-fancy-math-387 -pipe --sysroot=$SYSROOT" \
         LDFLAGS="-static -L$SYSROOT/usr/lib --sysroot=$SYSROOT" \
         LIBS="$LINK_LIBS" \XSERVERCFLAGS_CFLAGS="-I$SYSROOT/usr/include -I$SYSROOT/usr/include/freetype2" XSERVERLIBS_LIBS="$LINK_LIBS"
-    make -j$(nproc)
+    make -j"$JOBS"
     make DESTDIR="$DESTDIR" install
 }
 
@@ -6420,7 +6440,7 @@ get_twm()
         CFLAGS="-O2 -march=i486 -mtune=i486 -fomit-frame-pointer -ffast-math -pipe --sysroot=$SYSROOT" \
         CPPFLAGS="-I$SYSROOT/usr/include" \
         LDFLAGS="-static -L$SYSROOT/usr/lib --sysroot=$SYSROOT"
-    make -j$(nproc)
+    make -j"$JOBS"
     make DESTDIR="${DESTDIR}" install
 }
 
@@ -6539,7 +6559,7 @@ get_st()
 
     # Compile and install
     echo -e "${GREEN}Compiling st...${RESET}"
-    make -j$(nproc) \
+    make -j"$JOBS" \
         CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP" \
         CFLAGS="-O2 -march=i486 -mtune=i486 -fomit-frame-pointer -ffast-math -pipe" \
         CPPFLAGS="-I$SYSROOT/usr/include -I$SYSROOT/usr/include/freetype2" \
@@ -6578,7 +6598,7 @@ get_xcalc()
     # Compile and install
     echo -e "${GREEN}Compiling xcalc...${RESET}"
     ./configure --host="$HOST" --prefix=/usr --x-includes="$SYSROOT/usr/include" --x-libraries="$SYSROOT/usr/lib" CC="$CC_STATIC" LIBS="-lXaw7 -lXmu -lXt -lXpm -lXft -lfontconfig -lfreetype -lpng -lexpat -lXrender -lXext -lxcb -lXau -lXdmcp -lSM -lICE -lX11 -lz"
-    make -j$(nproc)
+    make -j"$JOBS"
     make DESTDIR="$DESTDIR" install
 }
 
@@ -6612,7 +6632,7 @@ get_xclock()
     # Compile and install
     echo -e "${GREEN}Compiling xclock...${RESET}"
     ./configure --host="$HOST" --prefix=/usr --x-includes="$SYSROOT/usr/include" --x-libraries="$SYSROOT/usr/lib" CC="$CC_STATIC" LIBS="-lXaw7 -lXmu -lXt -lXpm -lXft -lfontconfig -lfreetype -lpng -lexpat -lXrender -lXext -lxcb -lXau -lXdmcp -lSM -lICE -lX11 -lz"
-    make -j$(nproc)
+    make -j"$JOBS"
     make DESTDIR="${DESTDIR}" install
 }
 
@@ -6646,7 +6666,7 @@ get_xedit()
     # Compile and install
     echo -e "${GREEN}Compiling xedit...${RESET}"
     ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static --x-includes="$SYSROOT/usr/include" --x-libraries="$SYSROOT/usr/lib" CC="$CC_STATIC" LIBS="-lXaw7 -lXmu -lXt -lXpm -lXext -lSM -lICE -lX11 -lxcb -lXau -lXdmcp"
-    make -j$(nproc)
+    make -j"$JOBS"
     make DESTDIR="${DESTDIR}" install
 }
 
@@ -6680,7 +6700,7 @@ get_xeyes()
     # Compile and install
     echo -e "${GREEN}Compiling xeyes...${RESET}"
     ./configure --host="$HOST" --prefix=/usr --x-includes="$SYSROOT/usr/include" --x-libraries="$SYSROOT/usr/lib" CC="$CC_STATIC" LIBS="-lXaw7 -lXmu -lXpm -lXt -lSM -lICE -lXext -lX11 -lxcb -lXau -lXdmcp"
-    make -j$(nproc)
+    make -j"$JOBS"
     make DESTDIR="${DESTDIR}" install
 }
 
@@ -6764,7 +6784,7 @@ get_xload()
     # Compile and install
     echo -e "${GREEN}Compiling xload...${RESET}"
     ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static --x-includes="$SYSROOT/usr/include" --x-libraries="$SYSROOT/usr/lib" CC="$CC_STATIC" LIBS="-lXaw7 -lXmu -lXpm -lXt -lSM -lICE -lXext -lX11 -lxcb -lXau -lXdmcp"
-    make -j$(nproc)
+    make -j"$JOBS"
     make DESTDIR="${DESTDIR}" install
 }
 
@@ -6798,7 +6818,7 @@ get_xset()
     # Compile and install
     echo -e "${GREEN}Compiling xset...${RESET}"
     ./configure --host="$HOST" --prefix=/usr --x-includes="$SYSROOT/usr/include" --x-libraries="$SYSROOT/usr/lib" CC="$CC_STATIC" LIBS="-lxcb -lXau -lXdmcp"
-    make -j$(nproc)
+    make -j"$JOBS"
     make DESTDIR="${DESTDIR}" install
 }
 
@@ -7118,7 +7138,7 @@ get_prog_git()
             CURSES_LIBS="-L${PREFIX}/lib -lncursesw -Wl,--end-group"
     fi
 
-    make -j$(nproc)
+    make -j"$JOBS"
     make DESTDIR="$DESTDIR" INSTALL_OWNER= install
 }
 
@@ -7227,7 +7247,7 @@ get_prog_tar()
             CURSES_CFLAGS="${CFLAGS_NOPIE} -I${PREFIX}/include" \
             CURSES_LIBS="-L${PREFIX}/lib -lncursesw -Wl,--end-group"
     fi
-    make -j$(nproc)
+    make -j"$JOBS"
     make DESTDIR="$DESTDIR" INSTALL_OWNER= install
 }
 
@@ -7317,26 +7337,26 @@ get_bind9_dnsutils()
         LDFLAGS="-L${SYSROOT}/usr/lib"
 
     echo -e "${GREEN}Compiling lib prerequisites...${RESET}"
-    make -j$(nproc) -C lib
+    make -j"$JOBS" -C lib
 
     echo -e "${GREEN}Compiling arpaname and mdig...${RESET}"
-    make -j$(nproc) -C bin/tools arpaname mdig LDFLAGS="${LDFLAGS_COMMON} -Wl,-u,isc__initialize -L${SYSROOT}/usr/lib"
+    make -j"$JOBS" -C bin/tools arpaname mdig LDFLAGS="${LDFLAGS_COMMON} -Wl,-u,isc__initialize -L${SYSROOT}/usr/lib"
     install -Dm755 bin/tools/arpaname "${DESTDIR}/usr/bin/arpaname"
     install -Dm755 bin/tools/mdig "${DESTDIR}/usr/bin/mdig"
 
     echo -e "${GREEN}Compiling delv...${RESET}"
     make bind.keys.h
-    make -j$(nproc) -C bin/delv LDFLAGS="${LDFLAGS_COMMON} -Wl,-u,isc__initialize -L${SYSROOT}/usr/lib"
+    make -j"$JOBS" -C bin/delv LDFLAGS="${LDFLAGS_COMMON} -Wl,-u,isc__initialize -L${SYSROOT}/usr/lib"
     install -Dm755 bin/delv/delv "${DESTDIR}/usr/bin/delv"
 
     echo -e "${GREEN}Compiling dig, host and nslookup...${RESET}"
-    make -j$(nproc) -C bin/dig dig host nslookup LDFLAGS="${LDFLAGS_COMMON} -Wl,-u,isc__initialize -L${SYSROOT}/usr/lib"
+    make -j"$JOBS" -C bin/dig dig host nslookup LDFLAGS="${LDFLAGS_COMMON} -Wl,-u,isc__initialize -L${SYSROOT}/usr/lib"
     for bin in dig host nslookup; do
         install -Dm755 bin/dig/$bin "${DESTDIR}/usr/bin/$bin"
     done
 
     echo -e "${GREEN}Compiling nsupdate...${RESET}"
-    make -j$(nproc) -C bin/nsupdate LDFLAGS="${LDFLAGS_COMMON} -Wl,-u,isc__initialize -L${SYSROOT}/usr/lib"
+    make -j"$JOBS" -C bin/nsupdate LDFLAGS="${LDFLAGS_COMMON} -Wl,-u,isc__initialize -L${SYSROOT}/usr/lib"
     install -Dm755 bin/nsupdate/nsupdate "${DESTDIR}/usr/bin/nsupdate"
 }
 
@@ -7425,7 +7445,7 @@ get_dropbear()
         RANLIB="${RANLIB}" \
         CFLAGS="${CFLAGS_COMMON_486SX}" \
         LDFLAGS="-static"
-    make PROGRAMS="dbclient scp" -j$(nproc)
+    make PROGRAMS="dbclient scp" -j"$JOBS"
     make DESTDIR="$DESTDIR" install PROGRAMS="dbclient scp"
     ln -sf dbclient "${DESTDIR}/usr/bin/ssh"
 }
@@ -7510,7 +7530,7 @@ get_file()
         RANLIB="${RANLIB}" \
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static"
-    make -j$(nproc)
+    make -j"$JOBS"
     make DESTDIR="$DESTDIR" install
 }
 
@@ -7620,7 +7640,7 @@ get_git()
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${PREFIX}/lib"
     cp "$CONFIGS_DIR"/git.config.mak config.mak
-    make NO_RUST=1 -j$(nproc)
+    make NO_RUST=1 -j"$JOBS"
     if $BUILD_PKGS; then
         make NO_RUST=1 DESTDIR="$STAGE_DIR" install
         make_pkg \
@@ -7671,7 +7691,7 @@ get_htop()
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${PREFIX}/lib" \
         LIBS="-lgpm"
-    make -j$(nproc)
+    make -j"$JOBS"
     cp htop "${DESTDIR}"/usr/bin
 }
 
@@ -7711,7 +7731,7 @@ get_hwinfo()
         ENABLE_SYSFS=1 \
         ENABLE_UDEV=1 \
         ENABLE_X86EMU=1
-        -j$(nproc)
+        -j"$JOBS"
     make DESTDIR="$DESTDIR" install
 }
 
@@ -7750,7 +7770,7 @@ get_joe()
         --prefix=/usr \
         --sysconfdir=/etc \
         CC="${CC_STATIC}"
-    make -j$(nproc)
+    make -j"$JOBS"
     make DESTDIR="$DESTDIR" install
 }
 
@@ -7784,7 +7804,7 @@ get_lapifetch()
 
     # Compile and install
     echo -e "${GREEN}Compiling lapifetch...${RESET}"
-    make -j$(nproc) CXX="${CXX_STATIC}"
+    make -j"$JOBS" CXX="${CXX_STATIC}"
     make DESTDIR="$DESTDIR" install
 }
 
@@ -7843,7 +7863,7 @@ get_lua()
 
     # Compile and install
     echo -e "${GREEN}Compiling Lua...${RESET}"
-    make -j$(nproc) CC="${CC_STATIC}" AR="${AR} rcu" RANLIB="${RANLIB}" STRIP="${STRIP}"
+    make -j"$JOBS" CC="${CC_STATIC}" AR="${AR} rcu" RANLIB="${RANLIB}" STRIP="${STRIP}"
     install -m755 lua "${DESTDIR}/usr/bin/lua"
 }
 
@@ -7920,7 +7940,7 @@ get_mg()
     echo -e "${GREEN}Compiling Mg...${RESET}"
     ./autogen.sh
     ./configure --host="${HOST}" --prefix=/usr CC="${CC}" AR="${AR}" RANLIB="${RANLIB}" CFLAGS="${CFLAGS_NOPIE}"
-    make -j$(nproc)
+    make -j"$JOBS"
     make DESTDIR="$DESTDIR" install
 
     # Symlink emacs to mg if GNU Emacs isn't included
@@ -8104,7 +8124,7 @@ get_mpg321()
 
     sed -i "s|-L/usr/lib -lao|-L${SYSROOT}/usr/lib -lao|g" Makefile
 
-    make -j$(nproc)
+    make -j"$JOBS"
     make DESTDIR="$DESTDIR" install
 }
 
@@ -8163,7 +8183,7 @@ get_nano()
     grep -rl "\-ltinfo" . | xargs -r sed -i 's/-ltinfo//g' 2>/dev/null || true
     grep -rl "TINFO_LIBS" . | xargs -r sed -i 's/TINFO_LIBS.*/TINFO_LIBS = /' 2>/dev/null || true
 
-    make TINFO_LIBS="" LIBS="-lncursesw -lgpm" -j$(nproc)
+    make TINFO_LIBS="" LIBS="-lncursesw -lgpm" -j"$JOBS"
     make DESTDIR="$DESTDIR" install
     nm "${DESTDIR}/usr/bin/nano" 2>/dev/null | grep -i gpm
 }
@@ -8200,7 +8220,7 @@ get_nasm()
         CC="${CC_STATIC}" \
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-L${PREFIX}/lib -static"
-    make -j$(nproc)
+    make -j"$JOBS"
     install -D -m 755 nasm "${DESTDIR}/usr/bin/nasm"
     install -D -m 755 ndisasm "${DESTDIR}/usr/bin/ndisasm"
 }
@@ -8309,7 +8329,7 @@ get_perl()
         -Uuseithreads \
         --disable-mod=re \
         -Dnoextensions="threads threads/shared Socket IPC/SysV Sys/Syslog Time/HiRes I18N/Langinfo Digest/MD5 MIME/Base64 Unicode/Normalize Compress/Raw/Zlib Compress/Raw/Bzip2 XS/APItest XS/Typemap"
-    make -j$(nproc)
+    make -j"$JOBS"
     make DESTDIR="$DESTDIR" install
 
     # Make sure we have all the .pm files we need
@@ -8370,7 +8390,7 @@ get_sc_im()
             -DXLSX -DODS -DXLSX_EXPORT" \
         LDLIBS="-lxlsxwriter -lxml2 -lzip -lz -lm -lncursesw -ltinfo -lpthread -lgpm" \
         LDFLAGS="-static -L${PREFIX}/lib" \
-        -j$(nproc)
+        -j"$JOBS"
     make -C src DESTDIR="${DESTDIR}" prefix=/usr install
 }
 
@@ -8407,7 +8427,7 @@ get_tcc()
     # Compile and install
     echo -e "${GREEN}Compiling Tiny C Compiler...${RESET}"
     ./configure --cpu=i386 --cc="$CC_STATIC" --enable-cross --enable-static
-    make cross-i386 -j$(nproc)
+    make cross-i386 -j"$JOBS"
     make DESTDIR="$DESTDIR" install
 }
 
@@ -8487,7 +8507,7 @@ get_tilde()
         printf '\t%s $(CFLAGS) -c -o $@ $<\n' "${CC}"
     } >> Makefile
 
-    make -j$(nproc)
+    make -j"$JOBS"
     make DESTDIR="${DESTDIR}" install
 }
 
@@ -8580,7 +8600,7 @@ get_tnftp()
         STRIP="${STRIP}" \
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS=""
-    make -j$(nproc)
+    make -j"$JOBS"
     make DESTDIR="$DESTDIR" install
     ln -sf tnftp "${DESTDIR}/usr/bin/ftp"
 }
@@ -8699,7 +8719,7 @@ get_tshark()
         -DENABLE_SINSP=OFF \
         -DENABLE_CPUINFO=OFF \
         -DENABLE_PLUGINS=OFF
-    cmake --build build -j$(nproc)
+    cmake --build build -j"$JOBS"
     cmake --install build
 }
 
@@ -8764,7 +8784,7 @@ get_vim()
         CFLAGS="${CFLAGS_NOPIE}" \
         CPPFLAGS="${CFLAGS_NOPIE} -DHAVE_FORKPTY" \
         LDFLAGS="-static -Wl,--gc-sections -s -L${PREFIX}/lib"
-    make -j$(nproc)
+    make -j"$JOBS"
     make DESTDIR="$DESTDIR" install
 
     make_swap_wrap "${DESTDIR}/usr/bin/vim"
@@ -8828,7 +8848,7 @@ get_shorkbin()
     # Compile and install
     echo -e "${GREEN}Compiling shorkbin...${RESET}"
     make clean
-    make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+    make -j"$JOBS" CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
     make DESTDIR="$DESTDIR" install
 }
 
@@ -8856,7 +8876,7 @@ get_shorkdir()
 
     # Compile and install
     echo -e "${GREEN}Compiling shorkdir...${RESET}"
-    make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+    make -j"$JOBS" CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
     make DESTDIR="$DESTDIR" install
 }
 
@@ -8920,14 +8940,14 @@ get_shorkfetch()
     echo -e "${GREEN}Compiling shorkfetch...${RESET}"
     make clean
     if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
-        make -j$(nproc) \
+        make -j"$JOBS" \
             X86_ONLY=1 \
             CC="${CC_STATIC}" \
             AR="${AR}" \
             RANLIB="${RANLIB}" \
             STRIP="${STRIP}"
     elif [ "$ID" == "shork-diskette" ]; then
-        make -j$(nproc) \
+        make -j"$JOBS" \
             X86_ONLY=1 \
             SHORK_DISKETTE=1 \
             NO_STR_CLEANING=1 \
@@ -8965,9 +8985,9 @@ get_shorkhelp()
     echo -e "${GREEN}Compiling shorkhelp...${RESET}"
     make clean
     if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
-        make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+        make -j"$JOBS" CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
     elif [ "$ID" == "shork-diskette" ]; then
-        make EMBEDDED=1 -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+        make EMBEDDED=1 -j"$JOBS" CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
     fi
     make DESTDIR="$DESTDIR" install
 }
@@ -9026,9 +9046,9 @@ get_shorkset()
     make clean
     echo -e "${GREEN}Compiling shorkset...${RESET}"
     if $ENABLE_FB_VBE; then
-        make FB=1 -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+        make FB=1 -j"$JOBS" CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
     else
-        make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+        make -j"$JOBS" CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
     fi
     make DESTDIR="$DESTDIR" install
 }
@@ -9058,7 +9078,7 @@ get_shorkstall()
     # Compile and install
     make clean
     echo -e "${GREEN}Compiling shorkstall...${RESET}"
-    make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+    make -j"$JOBS" CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
     make DESTDIR="$DESTDIR" install
 }
 
@@ -9092,7 +9112,7 @@ get_shorklocomotive()
 
     # Compile and install
     echo -e "${GREEN}Compiling shorklocomotive...${RESET}"
-    make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+    make -j"$JOBS" CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
     make DESTDIR="$DESTDIR" install
 
     # Symlink shorklocomotive to sl
@@ -9123,7 +9143,7 @@ get_shorkmatrix()
 
     # Compile and install
     echo -e "${GREEN}Compiling shorkmatrix...${RESET}"
-    make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+    make -j"$JOBS" CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
     make DESTDIR="$DESTDIR" install
     ln -sf shorkmatrix "${DESTDIR}/usr/bin/cmatrix"
 }
@@ -9158,7 +9178,7 @@ get_shorkmines()
 
     # Compile and install
     echo -e "${GREEN}Compiling shorkmines...${RESET}"
-    make CC="${CC_STATIC}" EMBEDDED=1 SYSROOT="$PREFIX" -j$(nproc)
+    make CC="${CC_STATIC}" EMBEDDED=1 SYSROOT="$PREFIX" -j"$JOBS"
     make DESTDIR="${DESTDIR}" PREFIX="/usr" install
 
     # Symlink shorkmines to terminal-mines
@@ -9189,7 +9209,7 @@ get_shorksay()
 
     # Compile and install
     echo -e "${GREEN}Compiling shorksay...${RESET}"
-    make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+    make -j"$JOBS" CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
     make DESTDIR="$DESTDIR" install
 
     # Symlink shorksay to cowsay
@@ -11871,6 +11891,8 @@ generate_report()
 }
 
 
+
+get_sudo()
 
 fix_perms
 

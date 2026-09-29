@@ -339,7 +339,7 @@ Whilst you *can* build SHORK 486 proper immediately - which produces a SHORK 486
 
 ### Native building
 
-If you are using an Arch, Debian or Fedora-based Linux distribution, run `build.sh` whilst in the `shork-486` directory. If you have not used the configurator, you will be prompted some questions to answer throughout the process. You will need to install some prerequisite packages, as listed below. If you are missing any, you will be prompted to install them - the build script can install them for you, or quit to allow you to review and install them manually.
+If you are using an Arch, Debian or Fedora-based Linux distribution, run `build.sh` whilst in the `shork-486` directory. If you have not used the configurator, you will be prompted some questions to answer throughout the process. You will need to install some prerequisite packages, as listed below. If you are missing any, you will be prompted to install them - the build script can install them for you, or quit to allow you to review and install them manually. `sudo` is required for some parts such as mounting/umounting, creating/deleting loop devices, deleting stubborn result directories, and normalising result filesystem permissions.
 
 #### Required Arch host packages
 
