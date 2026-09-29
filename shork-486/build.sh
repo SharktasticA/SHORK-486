@@ -135,11 +135,13 @@ CFLAGS_COMMON_486SX="-Os -m32 -march=${ARCH} -mtune=${ARCH} -mhard-float \
     -I${PREFIX}/include/ncursesw -L${PREFIX}/lib"
 CFLAGS_NOPIE_486SX="${CFLAGS_COMMON_486SX} -no-pie -fno-pie -fno-pic"
 LDLIBS_COMMON_486SX=""
+LDFLAGS_COMMON_486SX="-L${SYSROOT}/lib -all-static"
 
 if [ "$ARCH_TARGET" = "486SX" ]; then
     CFLAGS_NOPIE="${CFLAGS_NOPIE_486SX}"
     CFLAGS_COMMON="${CFLAGS_COMMON_486SX}"
     LDLIBS_COMMON="${LDLIBS_COMMON_486SX}"
+    LDFLAGS_COMMON="${LDFLAGS_COMMON_486SX}"
 fi
 
 # Other common locations
@@ -1713,13 +1715,11 @@ get_curl()
         tar xf $CURL_ARC
         cd $CURL
 
-        LIBATOMIC_A="$($CC_STATIC -print-file-name=libatomic.a)"
-
         # Compile and install
         echo -e "${GREEN}Compiling cURL...${RESET}"
         CPPFLAGS="-I$SYSROOT/include" \
         LDFLAGS="-L$SYSROOT/lib -static" \
-        LIBS="-lssl -lcrypto -lpthread -ldl ${LIBATOMIC_A}" \
+        LIBS="-lssl -lcrypto -lpthread -ldl -latomic" \
         CC="${CC_STATIC}" \
         CFLAGS="${CFLAGS_NOPIE}" \
         ./configure \
@@ -1733,7 +1733,7 @@ get_curl()
             --without-brotli \
             --without-zstd \
             --disable-shared
-        make -j$(nproc)
+        make -j$(nproc) LDFLAGS="${LDFLAGS_COMMON}"
         echo -e "${GREEN}Installing cURL for toolchain...${RESET}"
         make install
     else
@@ -7049,6 +7049,7 @@ get_prog_git()
     export PKG_CONFIG_LIBDIR="${SYSROOT}/usr/lib/pkgconfig:${SYSROOT}/lib/pkgconfig"
     export PKG_CONFIG_PATH=""
     export PKG_CONFIG_SYSROOT_DIR="${SYSROOT}"
+    export CONFIG_SHELL="/bin/sh"
 
     # Compile program
     echo -e "${GREEN}Compiling $NAME...${RESET}"
@@ -7058,7 +7059,14 @@ get_prog_git()
     if $AUTORECONF; then
         autoreconf -fi
     fi
+    if [ -f ./bootstrap.sh ]; then
+        ./bootstrap.sh
+    fi
     if [ -x ./configure ] || [ -f ./configure ]; then
+        CC="${CC_STATIC}" \
+        CFLAGS="${CFLAGS_NOPIE} ${EXTRA_CFLAGS} -ffunction-sections -fdata-sections" \
+        LDFLAGS="-static -Wl,--gc-sections -s -L${PREFIX}/lib ${EXTRA_LDFLAGS}" \
+        LIBS="-Wl,--start-group ${EXTRA_LIBS}" \
         ./configure \
             --host="${HOST}" \
             "${CONFIGURE_PREFIX}" \
@@ -7073,20 +7081,14 @@ get_prog_git()
             CFLAGS="${CFLAGS_NOPIE} ${EXTRA_CFLAGS} -ffunction-sections -fdata-sections" \
             CPPFLAGS="-I${SYSROOT}/include -I${PREFIX}/include -I${PREFIX}/include/ncursesw -DHAVE_FORKPTY" \
             LDFLAGS="-static -Wl,--gc-sections -s -L${PREFIX}/lib ${EXTRA_LDFLAGS}" \
-            LIBS="${EXTRA_LIBS}" \
+            LIBS="-Wl,--start-group ${EXTRA_LIBS}" \
             LIBEVENT_CFLAGS="${CFLAGS_NOPIE}" \
             LIBEVENT_LIBS="-L${PREFIX}/lib -levent" \
-            CURSES_CFLAGS="${CFLAGS_NOPIE}" \
-            CURSES_LIBS="-L${PREFIX}/lib -lncursesw"
+            CURSES_CFLAGS="${CFLAGS_NOPIE} -I${PREFIX}/include" \
+            CURSES_LIBS="-L${PREFIX}/lib -lncursesw -Wl,--end-group"
     fi
 
-    # Fix glib/libtool pulling shared libatomic instead of static
-    LIBATOMIC_A="$($CC -print-file-name=libatomic.a)"
-    LIBATOMIC_LA="${SYSROOT}/lib/libatomic.la"
-    find . -name '*.la' -exec sed -i  -e "s|-latomic|${LIBATOMIC_A}|g" -e "s|${LIBATOMIC_LA}|${LIBATOMIC_A}|g" {} +
-    find . -name 'Makefile' -exec sed -i -e "s|-latomic|${LIBATOMIC_A}|g" {} +
-
-    make -j$(nproc)
+    make -j$(nproc) LDFLAGS="${LDFLAGS_COMMON}"
     sudo make DESTDIR="$DESTDIR" install
 }
 
@@ -7195,7 +7197,7 @@ get_prog_tar()
             CURSES_CFLAGS="${CFLAGS_NOPIE} -I${PREFIX}/include" \
             CURSES_LIBS="-L${PREFIX}/lib -lncursesw -Wl,--end-group"
     fi
-    make -j$(nproc)
+    make -j$(nproc) LDFLAGS="${LDFLAGS_COMMON}"
     sudo make DESTDIR="$DESTDIR" install
 }
 
@@ -7288,23 +7290,23 @@ get_bind9_dnsutils()
     make -j$(nproc) -C lib
 
     echo -e "${GREEN}Compiling arpaname and mdig...${RESET}"
-    make -j$(nproc) -C bin/tools arpaname mdig LDFLAGS="-all-static -Wl,-u,isc__initialize -L${SYSROOT}/usr/lib -L${SYSROOT}/lib"
+    make -j$(nproc) -C bin/tools arpaname mdig LDFLAGS="${LDFLAGS_COMMON} -Wl,-u,isc__initialize -L${SYSROOT}/usr/lib"
     sudo install -Dm755 bin/tools/arpaname "${DESTDIR}/usr/bin/arpaname"
     sudo install -Dm755 bin/tools/mdig "${DESTDIR}/usr/bin/mdig"
 
     echo -e "${GREEN}Compiling delv...${RESET}"
     make bind.keys.h
-    make -j$(nproc) -C bin/delv LDFLAGS="-all-static -Wl,-u,isc__initialize -L${SYSROOT}/usr/lib -L${SYSROOT}/lib"
+    make -j$(nproc) -C bin/delv LDFLAGS="${LDFLAGS_COMMON} -Wl,-u,isc__initialize -L${SYSROOT}/usr/lib"
     sudo install -Dm755 bin/delv/delv "${DESTDIR}/usr/bin/delv"
 
     echo -e "${GREEN}Compiling dig, host and nslookup...${RESET}"
-    make -j$(nproc) -C bin/dig dig host nslookup LDFLAGS="-all-static -Wl,-u,isc__initialize -L${SYSROOT}/usr/lib -L${SYSROOT}/lib"
+    make -j$(nproc) -C bin/dig dig host nslookup LDFLAGS="${LDFLAGS_COMMON} -Wl,-u,isc__initialize -L${SYSROOT}/usr/lib"
     for bin in dig host nslookup; do
         sudo install -Dm755 bin/dig/$bin "${DESTDIR}/usr/bin/$bin"
     done
 
     echo -e "${GREEN}Compiling nsupdate...${RESET}"
-    make -j$(nproc) -C bin/nsupdate LDFLAGS="-all-static -Wl,-u,isc__initialize -L${SYSROOT}/usr/lib -L${SYSROOT}/lib"
+    make -j$(nproc) -C bin/nsupdate LDFLAGS="${LDFLAGS_COMMON} -Wl,-u,isc__initialize -L${SYSROOT}/usr/lib"
     sudo install -Dm755 bin/nsupdate/nsupdate "${DESTDIR}/usr/bin/nsupdate"
 }
 
@@ -8484,7 +8486,6 @@ get_tn5250()
     fi
 
     INTER_HEADERS="$($CC -print-file-name=include)"
-    LIBATOMIC_A="$($CC -print-file-name=libatomic.a)"
 
     export CC="$CC"
     export CFLAGS="${CFLAGS_NOPIE} -nostdinc -I${INTER_HEADERS} -I${PREFIX}/${ARCH}-linux-musl/include"
@@ -8501,8 +8502,8 @@ get_tn5250()
         --enable-static \
         AR="${AR}" \
         RANLIB="${RANLIB}" \
-        LIBS="-lssl -lcrypto -lncursesw ${LIBATOMIC_A} -lpthread -ldl -lgpm"
-    make -j"$(nproc)"
+        LIBS="-lssl -lcrypto -lncursesw -latomic -lpthread -ldl -lgpm"
+    make -j"$(nproc)" LDFLAGS="${LDFLAGS_COMMON}"
     sudo make DESTDIR="${DESTDIR}" install
 }
 
@@ -12425,7 +12426,6 @@ if $INCLUDE_MICROPYTHON; then
     get_micropython
 fi
 if $INCLUDE_MIDNIGHT_CMDR; then
-    #LIBATOMIC_A="$($CC -print-file-name=libatomic.a)"
     get_prog_git \
         "usr/bin" \
         "mc" \
