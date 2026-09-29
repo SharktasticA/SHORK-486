@@ -126,7 +126,7 @@ STRIP="${PREFIX}/bin/${ARCH}-linux-musl-strip"
 SYSROOT="${PREFIX}/${ARCH}-linux-musl"
 
 # Standardised compiler flags
-CLAGS_SOFTFP="-mno-fancy-math-387 -msoft-float -mno-80387 \
+CFLAGS_SOFTFP="-mno-fancy-math-387 -msoft-float -mno-80387 \
     -mno-fp-ret-in-387"
 CFLAGS_COMMON_486SX="-Os -m32 -march=${ARCH} -mtune=${ARCH} -mhard-float \
     -D__gnuc_va_list=va_list -D__NR_landlock_create_ruleset=444 \
@@ -1193,7 +1193,7 @@ copy_sysfile()
     fi
 
     # Copy file
-    "${CMD[@]}" cp -a "$SRC" "$DST"
+    "${CMD[@]}" cp "$SRC" "$DST"
 
     # Replace all placeholders with their respective values
     "${CMD[@]}" sed -i \
@@ -5147,9 +5147,20 @@ get_xcbproto()
 
     # Compile and install
     echo -e "${GREEN}Compiling xcb-proto...${RESET}"
-    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    ./configure \
+        --host="$HOST" \
+        --prefix="${SYSROOT}/usr" \
+        --disable-shared \
+        --enable-static \
+        CC="$CC_STATIC" \
+        AR="$AR" \
+        RANLIB="$RANLIB" \
+        STRIP="$STRIP"
     make -j$(nproc)
     make install
+
+    # Prevent doubled SYSROOT
+    sed -i 's|\${pc_sysrootdir}||g' "$SYSROOT/usr/share/pkgconfig/xcb-proto.pc"
 }
 
 get_libxcb()
