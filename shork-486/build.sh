@@ -704,10 +704,17 @@ if [ "$ENABLE_NET_ETH" = true ]; then
     # Ensure MODULES is enabled NET_ETH 
     ENABLE_MODULES=true
 else
-    # If networking support is disabled, make sure networking-based programs and features are also disabled
+    # If networking support is disabled, make sure networking-based programs
+    # and features are also disabled
     ENABLE_NET_PCMCIA=false
+    INCLUDE_BIND9_DNSUTILS=false
+    INCLUDE_CHRONY=false
+    INCLUDE_CURL=false
     INCLUDE_DROPBEAR=false
     INCLUDE_GIT=false
+    INCLUDE_MIDNIGHT_CMDR
+    INCLUDE_LYNX=false
+    INCLUDE_TN5250=false
     INCLUDE_TNFTP=false
 fi
 
@@ -4379,6 +4386,9 @@ get_busybox()
         if $ENABLE_NET_ETH; then
             echo -e "${GREEN}Enabling BusyBox's networking utilities...${RESET}"
             merge_bb_frag "${CONFIGS_DIR}/busybox/busybox.config.net.frag"
+            if ! $ENABLE_MULTIUSER_REAL; then
+                disable_bb_feat "CONFIG_FEATURE_FTPD_AUTHENTICATION"
+            fi
         fi
 
         if $ENABLE_USB; then
@@ -11354,6 +11364,12 @@ get_included_busybox_commands()
     # Added 2026-09-29
     check_bb_config "CONFIG_POWEROFF" ""
     check_bb_config "CONFIG_REBOOT" ""
+
+    # Added 2026-09-30
+    check_bb_config "CONFIG_FTPD" ""
+    check_bb_config "CONFIG_INETD" ""
+    check_bb_config "CONFIG_TELNETD" ""
+    check_bb_config "CONFIG_TFTPD" ""
 
     readarray -t INCLUDED_BB_CMDS < <(printf '%s\n' "${INCLUDED_BB_CMDS[@]}" | sort)
     readarray -t EXCLUDED_BB_CMDS < <(printf '%s\n' "${EXCLUDED_BB_CMDS[@]}" | sort)

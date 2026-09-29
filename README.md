@@ -1,6 +1,6 @@
 # SHORK 486, DISC & DISKETTE
 
-SHORK 486 is a free and open-source operating system for 486 and Pentium (P5) era vintage personal computers. The aim is to produce a 32-bit Linux distribution that is lean and functional, but still capable on such PCs, often with my '90s IBM ThinkPads in mind. A default SHORK 486 system aims to work with at least 16MiB system memory and take up no more than ~120MiB on your disk. Despite those constraints, the default SHORK 486 experience includes [Linux kernel 7.2.8](KERNEL.md), many typical Linux commands, custom SHORK Utilities such as shorkdir (TUI file browser) and shorkfetch (*fetch clone), a terminal multiplexer, a C compiler, Lua intepreter, Python 3.4-syntax interpreter and dialog for shell script TUI widgets, a text web browser, an FTP, SCP and SSH client, Git source control client, the ed, Mg, nano and vi editors, a spreadsheet editor, a minesweeper- and Tetris-clone game, DOS and ext\* filesystem tools, IDE and SCSI CD-ROM and DVD-ROM support, SCSI tape drive support, ISA, PCI and PCMCIA ethernet support, support for most major national keyboard layouts, and a cute ASCII shark welcome screen!
+SHORK 486 is a free and open-source operating system for 486 and Pentium (P5) era vintage personal computers. The aim is to produce a 32-bit Linux distribution that is lean and functional, but still capable on such PCs, often with my '90s IBM ThinkPads in mind. A default SHORK 486 system aims to work with at least 16MiB system memory and take up no more than ~120MiB on your disk. Despite those constraints, the default SHORK 486 experience includes [Linux kernel 7.2.8](KERNEL.md), many typical Linux commands thanks to BusyBox, custom SHORK Utilities such as shorkdir (TUI file browser) and shorkfetch (*fetch clone), a terminal multiplexer, a C compiler, Lua intepreter, Python 3.4-syntax interpreter and dialog for shell script TUI widgets, a text web browser, an FTP, SCP and SSH client, Git source control client, the ed, Mg, nano and vi editors, a spreadsheet editor, minesweeper- and Tetris-clone games, DOS and ext2/3/4 filesystem tools, IDE and SCSI CD-ROM and DVD-ROM support, SCSI tape drive support, ISA, PCI and PCMCIA ethernet support, FTP, Telnet and TFTP daemons, support for most major national keyboard layouts, and a cute ASCII shark welcome screen!
 
 A build configurator is available to alter the SHORK 486 Operating System to your liking. For example, you can select the "mini" build type that requires just 8MiB RAM and ~8MiB disk space, whilst still including most typical commands as before, some custom SHORK Utilities, and the ed and vi editors. You can also configure SHORK 486 for symmetric multiprocessing support, multi-user support (if not "micro" or "mini" build) and serial console use, and pick and choose specific software and other features to include. Versions of SHORK 486 that can be burned to a CD (SHORK DISC) or small enough to fit on a 1.44MB floppy diskette (SHORK DISKETTE) are also available.
 
@@ -106,9 +106,13 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 
 <p><code>ar, arch, ascii, ash, awk, base32, base64, basename, bc, beep, blkid, bunzip2, bzcat, bzip2, cal, cat, cksum, chmod, chvt, clear, comm, cp, cpio, crc32, crontab, cut, date, dc, dd, df, diff, dirname, dmesg, dos2unix, du, echo, ed, egrep, eject, env, expand, expr, factor, fallocate, false, fdflush, fdformat, fdisk, fgrep, find, fold, free, fuser, getfattr, getopt, grep, gunzip, gzip, halt, head, hexdump, hexedit, hostid, hostname, hwclock, init, install, iostat, kill, killall, less, link, ln, loadkmap, ls, lsblk, lscpu, lsof, lspci, lsscsi, lzcat, lzma, lzop, lzopcat, man, mdev, md5sum, mkdir, mkdosfs/mkfs.vfat, mke2fs/mkfs.ext2, mkfifo, mknod, mktemp, mkswap, more, mount, mountpoint, mv, nice, nl, nohup, nproc, od, partprobe, paste, patch, pgrep, pidof, pkill, pmap, poweroff printenv, printf, ps, pstree, pwd, pwdx, readlink, realpath, reboot, rev, rm, rmdir, sed, seq, setfattr, setfont, sha1sum, sha256sum, sha384sum, sha3sum, sha512sum, shred, showkey, shuf, sleep, sort, split, stat, strings, stty, sum, swapoff, swapon, sync, tac, tail, tar, taskset, tee, test, time, timeout, top, touch, tr, tree, true, truncate, tsort, tty, umount, uname, uncompress, unexpand, uniq, unix2dos, unlink, unlzma, unlzop, unxz, unzip, uptime, usleep, uudecode, uuencode, uuidgen, vi, vmstat, volname, watch, wc, which, whoami, xargs, xxd, xz, xzcat, yes, zcat</code></p>
 
-#### Edition/option-dependent
+#### Multi-user support enabled
 
-<p><code>addgroup, adduser, chgrp, chown, chpasswd, chroot, cryptpw, delgroup, deluser, depmod, dnsdomainname, ftpget, ftpput, getty, id, ifconfig, insmod, ip, ipcalc, login, logname, losetup, lsmod, lsusb, mkpasswd, modinfo, modprobe, nc, netcat, netstat, nslookup, passwd, ping, pscan, rmmod, route, su, sulogin, telnet, traceroute, udhcpc, users, w, wget, who, whois</code></p>
+<p><code>addgroup, adduser, chgrp, chown, chpasswd, chroot, cryptpw, delgroup, deluser, getty, id, login, logname, mkpasswd, passwd, su, sulogin, users, w and who</code></p>
+
+#### Networking support enabled
+
+<p><code>dnsdomainname, ftpd, ftpget, ftpput, ifconfig, inetd, ip, ipcalc, nc, netcat, netstat, nslookup, ping, pscan, route, telnet, telnetd, tftpd, traceroute, udhcpc, wget and whois</code></p>
 
 ### Bundled software
 
@@ -490,13 +494,13 @@ Selecting "Yes" here will enable symmetric multiprocessing (SMP) support in SHOR
 
 #### Ethernet Networking Support
 
-Selecting "Yes" here will enable ethernet networking support in SHORK 486. BusyBox will include implementations for the `dnsdomainname`, `ftpget`, `ftpput`, `ifconfig`, `ip`, `ipcalc`, `nc`, `netcat`, `netstat`, `nslookup`, `ping`, `pscan`, `route`, `telnet`, `traceroute`, `udhcpc`, `wget` and `whois` commands. You will be allowed to select bundled software and options that require an internet connection in the subsequent prompts.
+Selecting "Yes" here will enable ethernet networking support in SHORK 486. BusyBox will include many relevant networking utilties and daemons. If making a custom build, you will be allowed to select bundled software and options that require an internet connection in the subsequent prompts.
 
 
 
 #### Multi-User Support
 
-Selecting "Yes" here will enable multi-user and password-protected user support in SHORK 486. BusyBox will include implementations for the `addgroup`, `adduser`, `chgrp`, `chown`, `chpasswd`, `chroot`, `cryptpw`, `delgroup`, `deluser`, `getty`, `id`, `login`, `logname`, `mkpasswd`, `passwd`, `su`, `sulogin`, `users`, `w` and `who` commands, and the sudo package (`sudo`, `sudoedit` and `visudo`) will be included. You will be asked to input a root password in the following prompt.
+Selecting "Yes" here will enable multi-user and password-protected user support in SHORK 486. BusyBox will include many relevant user management utilities, and the sudo package (`sudo`, `sudoedit` and `visudo`) will be included. You will be asked to input a root password in the following prompt.
 
 
 
