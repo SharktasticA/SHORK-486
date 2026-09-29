@@ -29,7 +29,7 @@ DEFAULT_MIN_DISK=120
 MAX_DEF_SWAP=16
 MAX_MIN_DISK=690
 MICRO_DEF_SWAP=0
-MICRO_MIN_DISK=6
+MICRO_MIN_DISK=4
 MINI_DEF_SWAP=0
 MINI_MIN_DISK=8
 OFFLINE_DEF_SWAP=8
@@ -698,7 +698,7 @@ if [ "$ID" == "shork-486" ]; then
         "terminal"  "Remote session & file transfer (16MiB RAM, 8MiB swap, 70MiB disk)" \
         "offline"   "Default w/o networking         (12MiB RAM, 8MiB swap, 65MiB disk)" \
         "mini"      "Small configuration            (8MiB RAM, 8MiB disk)" \
-        "micro"     "Extremely tiny configuration   (7MiB RAM, 6MiB disk)" \
+        "micro"     "Extremely tiny configuration   (7MiB RAM, 4MiB disk)" \
         "custom"    "Requirements depend on subsequent choices" \
         3>&1 1>&2 2>&3)
 

@@ -87,7 +87,7 @@ EXCLUDED_BB_CMDS=()
 EXCLUDED_FEATURES=()
 INCLUDED_BB_CMDS=()
 INCLUDED_FEATURES=()
-MICRO_TARGET_DISK=6
+MICRO_TARGET_DISK=4
 MINI_TARGET_DISK=8
 ROOT_PART_SIZE=0
 TOTAL_DISK_SIZE=0
@@ -10130,9 +10130,7 @@ build_filesystem()
     chmod +x "${CURR_DIR}"/sysfiles/*/rc
     chmod +x "${CURR_DIR}"/sysfiles/*/rc.micro
     chmod +x "${CURR_DIR}"/sysfiles/default.script
-    chmod +x "${CURR_DIR}"/sysfiles/poweroff
     chmod +x "${CURR_DIR}"/shorkutils/shorkgui
-    chmod +x "${CURR_DIR}"/sysfiles/shutdown
 
     echo -e "${GREEN}Copying system files...${RESET}"
     copy_sysfile "${CURR_DIR}"/sysfiles/hostname "${DESTDIR}"/etc/hostname
@@ -10148,8 +10146,6 @@ build_filesystem()
             copy_sysfile "${CURR_DIR}"/sysfiles/goodbye-100 "${DESTDIR}"/banners/goodbye-100
             copy_sysfile "${CURR_DIR}"/sysfiles/goodbye-128 "${DESTDIR}"/banners/goodbye-128
             copy_sysfile "${CURR_DIR}"/sysfiles/passwd "${DESTDIR}"/etc/passwd
-            copy_sysfile "${CURR_DIR}"/sysfiles/poweroff "${DESTDIR}"/sbin/poweroff
-            copy_sysfile "${CURR_DIR}"/sysfiles/shutdown "${DESTDIR}"/sbin/shutdown
         else
             copy_sysfile "${CURR_DIR}"/sysfiles/486/rc.micro "${DESTDIR}"/etc/init.d/rc
             copy_sysfile "${CURR_DIR}"/sysfiles/486/profile.micro "${DESTDIR}"/etc/profile
@@ -11354,6 +11350,10 @@ get_included_busybox_commands()
     check_bb_config "CONFIG_NETSTAT" ""
     check_bb_config "CONFIG_NSLOOKUP" ""
     check_bb_config "CONFIG_PSCAN" ""
+
+    # Added 2026-09-29
+    check_bb_config "CONFIG_POWEROFF" ""
+    check_bb_config "CONFIG_REBOOT" ""
 
     readarray -t INCLUDED_BB_CMDS < <(printf '%s\n' "${INCLUDED_BB_CMDS[@]}" | sort)
     readarray -t EXCLUDED_BB_CMDS < <(printf '%s\n' "${EXCLUDED_BB_CMDS[@]}" | sort)
