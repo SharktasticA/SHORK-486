@@ -81,10 +81,12 @@ mount -t sysfs sysfs /sys
 log "Disabling watermark boosting"
 echo 0 > /proc/sys/vm/watermark_boost_factor
 
-# Lower # of RAM the kernel tries to keelp free avoid OOM killer
+# Lower # of RAM the kernel tries to keep free avoid OOM killer
 read MFK_DEFAULT < /proc/sys/vm/min_free_kbytes
-log "Lowering min_free_kbytes: $MFK_DEFAULT to 1024"
-echo 1024 > /proc/sys/vm/min_free_kbytes
+if [ "$MFK_DEFAULT" -gt 1024 ] 2>/dev/null; then
+    log "Lowering min_free_kbytes: $MFK_DEFAULT to 1024"
+    echo 1024 > /proc/sys/vm/min_free_kbytes
+fi
 
 if [ -f /etc/fstab ]; then
     # Activate swap if present
