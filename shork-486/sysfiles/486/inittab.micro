@@ -1,0 +1,8 @@
+::sysinit:/etc/init.d/rc
+
+tty1::respawn:/bin/sh -l -c 'cd "$HOME" || cd /home; exec /bin/sh -l'
+tty2::askfirst:/bin/sh -l -c 'echo "@DIST@ on tty2"; cd "$HOME" || cd /home; exec /bin/sh -l'
+tty3::askfirst:/bin/sh -l -c 'echo "@DIST@ on tty3"; cd "$HOME" || cd /home; exec /bin/sh -l'
+
+::ctrlaltdel:/sbin/reboot
+::shutdown:/bin/umount -a -r

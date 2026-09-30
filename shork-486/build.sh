@@ -10360,7 +10360,11 @@ build_filesystem()
     else
         if [ "$ID" == "shork-486" ]; then
             mkdir -p "${DESTDIR}"/root
-            copy_sysfile "${CURR_DIR}"/sysfiles/486/inittab.nogetty "${DESTDIR}"/etc/inittab
+            if [ "$BUILD_TYPE" == "micro" ]; then
+                copy_sysfile "${CURR_DIR}"/sysfiles/486/inittab.micro "${DESTDIR}"/etc/inittab
+            else
+                copy_sysfile "${CURR_DIR}"/sysfiles/486/inittab.nogetty "${DESTDIR}"/etc/inittab
+            fi
         elif [ "$ID" == "shork-disc" ]; then
             mkdir -p "${DESTDIR}"/root
             copy_sysfile "${CURR_DIR}"/sysfiles/disc/inittab "${DESTDIR}"/etc/inittab
