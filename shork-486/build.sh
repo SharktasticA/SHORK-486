@@ -7330,14 +7330,17 @@ get_ctris()
     sudo make install DESTDIR="${DESTDIR}/usr/bin"
 }
 
-
 # Download and compile Dropbear
 get_dropbear()
 {
     cd "${CURR_DIR}/build"
 
     # Skip if already compiled
-    if [ -f "${DESTDIR}/usr/bin/dbclient" ] && [ -f "${DESTDIR}/usr/bin/scp" ]; then
+    if [ -f "${DESTDIR}/usr/bin/dbclient" ] &&
+        [ -f "${DESTDIR}/usr/bin/scp" ] &&
+        { [ "$ENABLE_MULTIUSER_REAL" != true ] ||
+        { [ -f "${DESTDIR}/usr/bin/dropbearkey" ] &&
+        [ -f "${DESTDIR}/usr/sbin/dropbear" ]; }; }; then
         echo -e "${LIGHT_RED}Dropbear already compiled, skipping...${RESET}"
         return
     fi
@@ -7361,6 +7364,11 @@ get_dropbear()
         -e '/^#define DROPBEAR_CLI_IMMEDIATE_AUTH/c\#define DROPBEAR_CLI_IMMEDIATE_AUTH 1' \
         src/default_options.h
 
+    local DB_PROGRAMS="dbclient scp"
+    if $ENABLE_MULTIUSER_REAL; then
+        DB_PROGRAMS="dropbear dropbearkey ${DB_PROGRAMS}"
+    fi
+
     # Compile and install
     echo -e "${GREEN}Compiling Dropbear...${RESET}"
     unset LIBS
@@ -7378,11 +7386,14 @@ get_dropbear()
         CC="${CC}" \
         AR="${AR}" \
         RANLIB="${RANLIB}" \
-        CFLAGS="${CFLAGS_COMMON_486SX}" \
+        CFLAGS="${CFLAGS_COMMON}" \
         LDFLAGS="-static"
-    make PROGRAMS="dbclient scp" -j$(nproc)
-    sudo make DESTDIR="$DESTDIR" install PROGRAMS="dbclient scp"
+    make PROGRAMS="${DB_PROGRAMS}" -j$(nproc)
+    sudo make DESTDIR="$DESTDIR" install PROGRAMS="${DB_PROGRAMS}"
     sudo ln -sf dbclient "${DESTDIR}/usr/bin/ssh"
+    if $ENABLE_MULTIUSER_REAL; then
+        sudo ln -sf dropbear "${DESTDIR}/usr/sbin/sshd"
+    fi
 }
 
 # Download FreeDOS for dosemu2

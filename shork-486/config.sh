@@ -1326,6 +1326,12 @@ fi
 BUNDLED_ITEMS=()
 
 if [ "$ENABLE_NET_ETH" == true ]; then
+    # sshd is useless without multi-user, so don't advertise it
+    DROPBEAR_DESC="*SCP & SSH client + SSH daemon (1.1MiB)"
+    if ! $ENABLE_MULTIUSER_REAL; then
+        DROPBEAR_DESC="*SCP & SSH client (0.4MiB)"
+    fi
+
     BUNDLED_ITEMS+=(
         "bind9-dnsutils"    "DNS query & update tools (48MiB)"                      "$(val "$INCLUDE_BIND9_DNSUTILS")"
         "c3270"             "3270 terminal emulator (1.8MiB, EXPERIMENTAL)"         "$(val "$INCLUDE_C3270")"
@@ -1336,7 +1342,7 @@ if [ "$ENABLE_NET_ETH" == true ]; then
         "curl"              "HTTP client & transfer utility (8MiB)"                 "$(val "$INCLUDE_CURL")"
         "dialog"            "*Shell script TUI widgets (0.5MiB)"                    "$(val "$INCLUDE_DIALOG")"
         "dosfstools"        "*FAT12/16/32 filesystem utilities (0.8MiB)"            "$(val "$INCLUDE_DOSFSTOOLS")"
-        "dropbear"          "*SCP & SSH client (0.4MiB)"                            "$(val "$INCLUDE_DROPBEAR")"
+        "dropbear"          "$DROPBEAR_DESC"                                        "$(val "$INCLUDE_DROPBEAR")"
         "e2fsprogs"         "*ext2/3/4 filesystem utilities (4MiB)"                 "$(val "$INCLUDE_E2FSPROGS")"
         "file"              "*†File type identification (10MiB)"                    "$(val "$INCLUDE_FILE")"
         "gcc"               "†GCC + binutils + musl (215MiB)"                       "$(val "$INCLUDE_GCC")"
