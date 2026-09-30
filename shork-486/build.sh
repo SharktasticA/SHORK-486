@@ -706,10 +706,17 @@ if [ "$ENABLE_NET_ETH" = true ]; then
     # Ensure MODULES is enabled NET_ETH 
     ENABLE_MODULES=true
 else
-    # If networking support is disabled, make sure networking-based programs and features are also disabled
+    # If networking support is disabled, make sure networking-based programs
+    # and features are also disabled
     ENABLE_NET_PCMCIA=false
+    INCLUDE_BIND9_DNSUTILS=false
+    INCLUDE_CHRONY=false
+    INCLUDE_CURL=false
     INCLUDE_DROPBEAR=false
     INCLUDE_GIT=false
+    INCLUDE_MIDNIGHT_CMDR=false
+    INCLUDE_LYNX=false
+    INCLUDE_TN5250=false
     INCLUDE_TNFTP=false
 fi
 
@@ -1480,14 +1487,27 @@ get_musl_cross()
 {
     cd "${CURR_DIR}/build"
 
+    # Download cross
     if [ ! -f "${CROSS}.tgz" ]; then
         echo -e "${GREEN}Downloading ${CROSS}...${RESET}"
         wget "https://musl.cc/${CROSS}.tgz"
     fi
 
+    # Look for SYSROOT path stamp to see if this project has changed
+    # directories and thus SYSROOT needs regenerating
+    if [ -d "${CROSS}" ]; then
+        if [ ! -f "${CROSS}/.sysroot-path" ] ||
+            [ "$(cat "${CROSS}/.sysroot-path")" != "${SYSROOT}" ]; then
+            echo -e "${YELLOW}WARNING: existing toolchain was configured for a different path - regenerating...${RESET}"
+            rm -rf "${CROSS}" 2>/dev/null || sudo rm -rf "${CROSS}"
+        fi
+    fi
+
+    # Extract cross
     if [ ! -d "${CROSS}" ]; then
         echo -e "${GREEN}Extracting ${CROSS}...${RESET}"
         tar xvf "${CROSS}.tgz"
+        echo "${SYSROOT}" > "${CROSS}/.sysroot-path"
     fi
 
     # Fix libatomic.la was moved (etc.)
@@ -4283,7 +4303,8 @@ get_patched_xlinux()
 
     # Compile and install
     echo -e "${GREEN}Compiling ISOLINUX/EXTLINUX/SYSLINUX...${RESET}"
-    CFLAGS="-fcommon" make bios
+    env -u LDFLAGS -u CPPFLAGS -u CC -u AR -u RANLIB -u STRIP -u LD \
+        CFLAGS="-fcommon" make bios
 }
 
 
@@ -4414,6 +4435,9 @@ get_busybox()
         if $ENABLE_NET_ETH; then
             echo -e "${GREEN}Enabling BusyBox's networking utilities...${RESET}"
             merge_bb_frag "${CONFIGS_DIR}/busybox/busybox.config.net.frag"
+            if ! $ENABLE_MULTIUSER_REAL; then
+                disable_bb_feat "CONFIG_FEATURE_FTPD_AUTHENTICATION"
+            fi
         fi
 
         if $ENABLE_USB; then
@@ -7395,14 +7419,17 @@ get_ctris()
     make install DESTDIR="${DESTDIR}/usr/bin"
 }
 
-
 # Download and compile Dropbear
 get_dropbear()
 {
     cd "${CURR_DIR}/build"
 
     # Skip if already compiled
-    if [ -f "${DESTDIR}/usr/bin/dbclient" ] && [ -f "${DESTDIR}/usr/bin/scp" ]; then
+    if [ -f "${DESTDIR}/usr/bin/dbclient" ] &&
+        [ -f "${DESTDIR}/usr/bin/scp" ] &&
+        { [ "$ENABLE_MULTIUSER_REAL" != true ] ||
+        { [ -f "${DESTDIR}/usr/bin/dropbearkey" ] &&
+        [ -f "${DESTDIR}/usr/sbin/dropbear" ]; }; }; then
         echo -e "${LIGHT_RED}Dropbear already compiled, skipping...${RESET}"
         return
     fi
@@ -7426,6 +7453,11 @@ get_dropbear()
         -e '/^#define DROPBEAR_CLI_IMMEDIATE_AUTH/c\#define DROPBEAR_CLI_IMMEDIATE_AUTH 1' \
         src/default_options.h
 
+    local DB_PROGRAMS="dbclient scp"
+    if $ENABLE_MULTIUSER_REAL; then
+        DB_PROGRAMS="dropbear dropbearkey ${DB_PROGRAMS}"
+    fi
+
     # Compile and install
     echo -e "${GREEN}Compiling Dropbear...${RESET}"
     unset LIBS
@@ -7434,7 +7466,6 @@ get_dropbear()
         --prefix=/usr \
         --disable-zlib \
         --disable-loginfunc \
-        --disable-syslog \
         --disable-lastlog \
         --disable-utmp \
         --disable-utmpx \
@@ -7443,11 +7474,14 @@ get_dropbear()
         CC="${CC}" \
         AR="${AR}" \
         RANLIB="${RANLIB}" \
-        CFLAGS="${CFLAGS_COMMON_486SX}" \
+        CFLAGS="${CFLAGS_COMMON}" \
         LDFLAGS="-static"
-    make PROGRAMS="dbclient scp" -j"$JOBS"
-    make DESTDIR="$DESTDIR" install PROGRAMS="dbclient scp"
+    make PROGRAMS="${DB_PROGRAMS}" -j$(nproc)
+    make DESTDIR="$DESTDIR" install PROGRAMS="${DB_PROGRAMS}"
     ln -sf dbclient "${DESTDIR}/usr/bin/ssh"
+    if $ENABLE_MULTIUSER_REAL; then
+        ln -sf dropbear "${DESTDIR}/usr/sbin/sshd"
+    fi
 }
 
 # Download FreeDOS for dosemu2
@@ -10326,7 +10360,11 @@ build_filesystem()
     else
         if [ "$ID" == "shork-486" ]; then
             mkdir -p "${DESTDIR}"/root
-            copy_sysfile "${CURR_DIR}"/sysfiles/486/inittab.nogetty "${DESTDIR}"/etc/inittab
+            if [ "$BUILD_TYPE" == "micro" ]; then
+                copy_sysfile "${CURR_DIR}"/sysfiles/486/inittab.micro "${DESTDIR}"/etc/inittab
+            else
+                copy_sysfile "${CURR_DIR}"/sysfiles/486/inittab.nogetty "${DESTDIR}"/etc/inittab
+            fi
         elif [ "$ID" == "shork-disc" ]; then
             mkdir -p "${DESTDIR}"/root
             copy_sysfile "${CURR_DIR}"/sysfiles/disc/inittab "${DESTDIR}"/etc/inittab
@@ -11428,6 +11466,13 @@ get_included_busybox_commands()
     # Added 2026-09-29
     check_bb_config "CONFIG_POWEROFF" ""
     check_bb_config "CONFIG_REBOOT" ""
+
+    # Added 2026-09-30
+    check_bb_config "CONFIG_FTPD" ""
+    check_bb_config "CONFIG_INETD" ""
+    check_bb_config "CONFIG_TELNETD" ""
+    check_bb_config "CONFIG_TFTPD" ""
+    check_bb_config "CONFIG_TFTP" ""
 
     readarray -t INCLUDED_BB_CMDS < <(printf '%s\n' "${INCLUDED_BB_CMDS[@]}" | sort)
     readarray -t EXCLUDED_BB_CMDS < <(printf '%s\n' "${EXCLUDED_BB_CMDS[@]}" | sort)

@@ -21,15 +21,19 @@ PCMCIA_BRIDGES="i82092 i82365 pd6729 tcic"
 
 
 
+# Prints a given line of text centred across the given width
+centre_text()
+{
+    PAD=$((${2} - ${#1}))
+    printf "%*s%s%*s\n" $((PAD - PAD / 2)) '' "$1" $((PAD / 2)) ''
+}
+
 # Provides a systemd-style log message
 log()
 {
     MSG="$1"
-    if [ -r /proc/uptime ]; then
-        UP="$(IFS=' '; set -- $(cat /proc/uptime); echo "$1")"
-    else
-        UP="0"
-    fi
+    UP=0
+    [ -r /proc/uptime ] && IFS=' ' read UP _ < /proc/uptime
     printf "[%10s] %s\n" "$UP" "$MSG"
 }
 
@@ -73,6 +77,17 @@ mount -t proc  proc  /proc
 log "Mounting /sys"
 mount -t sysfs sysfs /sys
 
+# Disable watermark boosting to help avoid OOM killer
+log "Disabling watermark boosting"
+echo 0 > /proc/sys/vm/watermark_boost_factor
+
+# Lower # of RAM the kernel tries to keep free avoid OOM killer
+read MFK_DEFAULT < /proc/sys/vm/min_free_kbytes
+if [ "$MFK_DEFAULT" -gt 1024 ] 2>/dev/null; then
+    log "Lowering min_free_kbytes: $MFK_DEFAULT to 1024"
+    echo 1024 > /proc/sys/vm/min_free_kbytes
+fi
+
 if [ -f /etc/fstab ]; then
     # Activate swap if present
     if grep -q swap /etc/fstab; then
@@ -90,8 +105,7 @@ fi
 # Mount devpts for pseudo-terminals
 log "Mounting /dev/pts"
 mkdir -p /dev/pts
-mount -t devpts devpts /dev/pts
-chmod 666 /dev/pts
+mount -t devpts -o gid=5,mode=620,ptmxmode=666 devpts /dev/pts
 
 # Create /var/run for utmp when multi-user
 if [ -d /home ]; then
@@ -111,7 +125,7 @@ log "Creating required device nodes"
 [ -c /dev/tty1 ] || mknod -m 620 /dev/tty1 c 4 1
 
 # Generate module.dep if present and empty
-KRN_VER="$(uname -r)"
+read KRN_VER < /proc/sys/kernel/osrelease
 if [ -f "/lib/modules/$KRN_VER/modules.dep" ] && [ ! -s "/lib/modules/$KRN_VER/modules.dep" ]; then
     log "Generating modules.dep"
     depmod -b / "$KRN_VER" 2>/dev/null
@@ -119,9 +133,9 @@ fi
 
 # Set hostname
 if [ -r /etc/hostname ]; then
-    HOSTNAME="$(cat /etc/hostname)"
+    read HOSTNAME < /etc/hostname
     log "Setting hostname: $HOSTNAME"
-    hostname "$HOSTNAME"
+    echo "$HOSTNAME" > /proc/sys/kernel/hostname
 fi
 
 export ENV=/etc/profile
@@ -230,50 +244,32 @@ done
 
 # Prepare to show the welcome banner
 log "Showing welcome banner"
+sleep 1
 clear
 
 # Show welcome banner, OS name and author name
 if [ -f /banners/welcome ]; then
-    TERM_WIDTH=$(stty size 2>/dev/null | awk '{print $2}')
+    SIZE="$(stty size 2>/dev/null)"
+    TERM_WIDTH="${SIZE#* }"
+    case "$TERM_WIDTH" in ''|*[!0-9]*) TERM_WIDTH=80 ;; esac
+
     BANNER_WIDTH=36
-    BUFFER=""
-    
     TOTAL_PAD=$((TERM_WIDTH - BANNER_WIDTH))
     RIGHT_PAD=$((TOTAL_PAD / 2))
     LEFT_PAD=$((TOTAL_PAD - RIGHT_PAD))
 
-    # Print top border
-    BUFFER="$(printf "%*s\n" "$TERM_WIDTH" '')"
-
+    printf "\x1b[37;44m"
+    printf "%*s\n" "$TERM_WIDTH" ''
     while IFS= read -r line; do
-        BUFFER="${BUFFER}$(printf "%*s%s%*s\n" "$LEFT_PAD" '' "$line" "$RIGHT_PAD" '')"
-    done < banners/welcome
-    BUFFER="${BUFFER}$(printf "%*s\n" "$TERM_WIDTH" '')"
+        printf "%*s%s%*s\n" "$LEFT_PAD" '' "$line" "$RIGHT_PAD" ''
+    done < /banners/welcome
+    printf "%*s\n" "$TERM_WIDTH" ''
 
     if [ "$TERM_WIDTH" -gt 40 ]; then
-        # Show OS name
-        OS="@DIST@"
-        TOTAL_PAD=$((TERM_WIDTH - ${#OS}))
-        RIGHT_PAD=$((TOTAL_PAD / 2))
-        LEFT_PAD=$((TOTAL_PAD - RIGHT_PAD))
-        BUFFER="${BUFFER}$(printf "%*s%s%*s\n" "$LEFT_PAD" '' "$OS" "$RIGHT_PAD" '')"
-
-        # Show author
-        AUTHOR="Kali (links.sharktastica.co.uk)"
-        TOTAL_PAD=$((TERM_WIDTH - ${#AUTHOR}))
-        RIGHT_PAD=$((TOTAL_PAD / 2))
-        LEFT_PAD=$((TOTAL_PAD - RIGHT_PAD))
-        BUFFER="${BUFFER}$(printf "%*s%s%*s\n" "$LEFT_PAD" '' "$AUTHOR" "$RIGHT_PAD" '')"
-
-        # Print bottom border
-        BUFFER="${BUFFER}$(printf "%*s" "$TERM_WIDTH" '')"
+        centre_text "@DIST@" "$TERM_WIDTH"
+        centre_text "Kali (links.sharktastica.co.uk)" "$TERM_WIDTH"
+        printf "%*s" "$TERM_WIDTH" ''
     fi
-
-    # Set terminal to white on blue
-    printf "\x1b[37;44m"
-    # Print buffer
-    printf "%s" "$BUFFER"
-    # Reset colour
     printf "\x1b[0m"
 fi
 
@@ -282,3 +278,5 @@ printf "\n"
 if [ ! -d /home ]; then
     printf "\n"
 fi
+
+echo "$MFK_DEFAULT" > /proc/sys/vm/min_free_kbytes

@@ -11,5 +11,6 @@
 
 # groupname:password:GID:members
 root:x:0:
+tty:x:5:
 sudo:x:27:
 shadow:x:42:
