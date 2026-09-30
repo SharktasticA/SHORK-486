@@ -1,5 +1,10 @@
 #!/bin/sh
 
+if [ ! -d /sys/class/net/eth0 ] || ! ifconfig eth0 2>/dev/null | grep -q "UP"; then
+    echo "ERROR: internet connection required" >&2
+    exit 1
+fi
+
 # Create some dummy data for our servers
 mkdir -p /srv/ftp /srv/tftp
 echo "Hello, user! (FTP)" > /srv/ftp/hello.txt

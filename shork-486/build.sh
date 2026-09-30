@@ -7466,7 +7466,6 @@ get_dropbear()
         --prefix=/usr \
         --disable-zlib \
         --disable-loginfunc \
-        --disable-syslog \
         --disable-lastlog \
         --disable-utmp \
         --disable-utmpx \

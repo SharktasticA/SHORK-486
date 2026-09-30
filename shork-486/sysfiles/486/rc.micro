@@ -4,11 +4,8 @@
 log()
 {
     MSG="$1"
-    if [ -r /proc/uptime ]; then
-        UP="$(IFS=' '; set -- $(cat /proc/uptime); echo "$1")"
-    else
-        UP="0"
-    fi
+    UP=0
+    [ -r /proc/uptime ] && IFS=' ' read UP _ < /proc/uptime
     printf "[%10s] %s\n" "$UP" "$MSG"
 }
 
@@ -18,11 +15,21 @@ mount -t proc  proc  /proc
 log "Mounting /sys"
 mount -t sysfs sysfs /sys
 
+# Disable watermark boosting to help avoid OOM killer
+log "Disabling watermark boosting"
+echo 0 > /proc/sys/vm/watermark_boost_factor
+
+# Lower # of RAM the kernel tries to keep free avoid OOM killer
+read MFK_DEFAULT < /proc/sys/vm/min_free_kbytes
+if [ "$MFK_DEFAULT" -gt 1024 ] 2>/dev/null; then
+    log "Lowering min_free_kbytes: $MFK_DEFAULT to 1024"
+    echo 1024 > /proc/sys/vm/min_free_kbytes
+fi
+
 # Mount devpts for pseudo-terminals
 log "Mounting /dev/pts"
 mkdir -p /dev/pts
-mount -t devpts devpts /dev/pts
-chmod 666 /dev/pts
+mount -t devpts -o gid=5,mode=620,ptmxmode=666 devpts /dev/pts
 
 # Required device nodes
 log "Creating required device nodes"
@@ -39,13 +46,6 @@ if [ -r /etc/hostname ]; then
 fi
 
 export ENV=/etc/profile
-
-# Flush any ttyX_seen flags
-for FLAG in /tmp/.tty*_seen; do
-    [ -e "$FLAG" ] || continue
-    log "Flushing ttyX_seen flag: $FLAG"
-    rm -f "$FLAG"
-done
 
 # Prepare to show the welcome banner
 log "Showing welcome banner"

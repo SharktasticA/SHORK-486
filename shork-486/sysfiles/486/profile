@@ -17,7 +17,7 @@ export HOME=/root
 export USER=root
 export LOGNAME=root
 export SHELL=/bin/sh
-export PS1='\[\033[0;37m\]\[\033[40m\]\w$ '
+export PS1='\[\033[0;37m\]\w$ \[\033[0m\]'
 export LC_ALL=C
 
 export PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin

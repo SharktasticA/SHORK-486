@@ -105,8 +105,7 @@ fi
 # Mount devpts for pseudo-terminals
 log "Mounting /dev/pts"
 mkdir -p /dev/pts
-mount -t devpts devpts /dev/pts
-chmod 666 /dev/pts
+mount -t devpts -o gid=5,mode=620,ptmxmode=666 devpts /dev/pts
 
 # Create /var/run for utmp when multi-user
 if [ -d /home ]; then
@@ -245,6 +244,7 @@ done
 
 # Prepare to show the welcome banner
 log "Showing welcome banner"
+sleep 1
 clear
 
 # Show welcome banner, OS name and author name
