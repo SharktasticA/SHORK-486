@@ -4290,7 +4290,8 @@ get_patched_xlinux()
 
     # Compile and install
     echo -e "${GREEN}Compiling ISOLINUX/EXTLINUX/SYSLINUX...${RESET}"
-    CFLAGS="-fcommon" make bios
+    env -u LDFLAGS -u CPPFLAGS -u CC -u AR -u RANLIB -u STRIP -u LD \
+        CFLAGS="-fcommon" make bios
 }
 
 
