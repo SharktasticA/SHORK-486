@@ -1487,14 +1487,27 @@ get_musl_cross()
 {
     cd "${CURR_DIR}/build"
 
+    # Download cross
     if [ ! -f "${CROSS}.tgz" ]; then
         echo -e "${GREEN}Downloading ${CROSS}...${RESET}"
         wget "https://musl.cc/${CROSS}.tgz"
     fi
 
+    # Look for SYSROOT path stamp to see if this project has changed
+    # directories and thus SYSROOT needs regenerating
+    if [ -d "${CROSS}" ]; then
+        if [ ! -f "${CROSS}/.sysroot-path" ] ||
+            [ "$(cat "${CROSS}/.sysroot-path")" != "${SYSROOT}" ]; then
+            echo -e "${YELLOW}WARNING: existing toolchain was configured for a different path - regenerating...${RESET}"
+            rm -rf "${CROSS}" 2>/dev/null || sudo rm -rf "${CROSS}"
+        fi
+    fi
+
+    # Extract cross
     if [ ! -d "${CROSS}" ]; then
         echo -e "${GREEN}Extracting ${CROSS}...${RESET}"
         tar xvf "${CROSS}.tgz"
+        echo "${SYSROOT}" > "${CROSS}/.sysroot-path"
     fi
 
     # Fix libatomic.la was moved (etc.)
