@@ -87,6 +87,7 @@ EXCLUDED_BB_CMDS=()
 EXCLUDED_FEATURES=()
 INCLUDED_BB_CMDS=()
 INCLUDED_FEATURES=()
+JOBS=$(nproc)
 MICRO_TARGET_DISK=4
 MINI_TARGET_DISK=8
 ROOT_PART_SIZE=0
@@ -126,7 +127,7 @@ STRIP="${PREFIX}/bin/${ARCH}-linux-musl-strip"
 SYSROOT="${PREFIX}/${ARCH}-linux-musl"
 
 # Standardised compiler flags
-CLAGS_SOFTFP="-mno-fancy-math-387 -msoft-float -mno-80387 \
+CFLAGS_SOFTFP="-mno-fancy-math-387 -msoft-float -mno-80387 \
     -mno-fp-ret-in-387"
 CFLAGS_COMMON_486SX="-Os -m32 -march=${ARCH} -mtune=${ARCH} -mhard-float \
     -D__gnuc_va_list=va_list -D__NR_landlock_create_ruleset=444 \
@@ -135,11 +136,13 @@ CFLAGS_COMMON_486SX="-Os -m32 -march=${ARCH} -mtune=${ARCH} -mhard-float \
     -I${PREFIX}/include/ncursesw -L${PREFIX}/lib"
 CFLAGS_NOPIE_486SX="${CFLAGS_COMMON_486SX} -no-pie -fno-pie -fno-pic"
 LDLIBS_COMMON_486SX=""
+LDFLAGS_COMMON_486SX="-L${SYSROOT}/lib -all-static"
 
 if [ "$ARCH_TARGET" = "486SX" ]; then
     CFLAGS_NOPIE="${CFLAGS_NOPIE_486SX}"
     CFLAGS_COMMON="${CFLAGS_COMMON_486SX}"
     LDLIBS_COMMON="${LDLIBS_COMMON_486SX}"
+    LDFLAGS_COMMON="${LDFLAGS_COMMON_486SX}"
 fi
 
 # Other common locations
@@ -608,7 +611,6 @@ while [ $# -gt 0 ]; do
             ;;
         --skip-kernel)
             SKIP_KRN=true
-            DONT_DEL_ROOT=true
             ;;
         --use-torvalds)
             USE_TORVALDS=true
@@ -1091,6 +1093,25 @@ fi
 ## House keeping                                    ##
 ######################################################
 
+# Makes sure sudo remains 'alive' for the entire build process to avoid the
+# user needing to reenter their password several times
+get_sudo()
+{
+    # Nothing to do in Docker or when already root
+    if [ -n "$IN_DOCKER" ] || [ "$(id -u)" -eq 0 ]; then
+        return
+    fi
+
+    sudo -v || exit 1
+    ( while true; do
+        sudo -n true 2>/dev/null
+        sleep 60
+        kill -0 "$$" 2>/dev/null || exit
+    done ) &
+    SUDO_PID=$!
+    trap 'kill "$SUDO_PID" 2>/dev/null' EXIT
+}
+
 # Fixes directory and file permissions after root build
 fix_perms()
 {
@@ -1160,10 +1181,10 @@ copy_config()
     [ -f "$SRC" ] || return 1
 
     # Copy file
-    sudo cp "$SRC" "$DST"
+    cp "$SRC" "$DST"
 
     # Replace all placeholders with their respective values
-    sudo sed -i -e "s|@CC@|$CC|g" \
+    sed -i -e "s|@CC@|$CC|g" \
         -e "s|@CC_STATIC@|$CC_STATIC|g" \
         -e "s|@AR@|$AR|g" \
         -e "s|@ARCH@|$ARCH|g" \
@@ -1181,17 +1202,28 @@ copy_config()
 copy_sysfile()
 {
     # Input parameters
-    SRC="$1"
-    DST="$2"
+    local SRC="$1"
+    local DST="$2"
+    local USE_SUDO="${3:-false}"
 
     # Ensure source exists
     [ -f "$SRC" ] || return 1
 
+    local CMD=()
+    if [ "$USE_SUDO" = "true" ]; then
+        CMD=(sudo)
+    fi
+
+    # Ensure the destination is writable if it exists
+    if [ -e "$DST" ]; then
+        "${CMD[@]}" chmod u+w "$DST" 2>/dev/null || true
+    fi
+
     # Copy file
-    sudo cp "$SRC" "$DST"
+    "${CMD[@]}" cp "$SRC" "$DST"
 
     # Replace all placeholders with their respective values
-    sudo sed -i \
+    "${CMD[@]}" sed -i \
         -e "s|@ARCH@|$ARCH|g" \
         -e "s|@BUG_REPORT_URL@|$BUG_REPORT_URL|g" \
         -e "s|@DIST@|$DIST|g" \
@@ -1415,8 +1447,7 @@ get_prerequisites()
         fi
     else
         # Skip if inside Docker as Dockerfile already installs prerequisites
-        echo -e "${LIGHT_RED}Running inside Docker, skipping installing \
-        prerequisite packages...${RESET}"
+        echo -e "${LIGHT_RED}Running inside Docker, skipping installing prerequisite packages...${RESET}"
     fi
 }
 
@@ -1456,15 +1487,25 @@ get_musl_cross()
 {
     cd "${CURR_DIR}/build"
 
-    echo -e "${GREEN}Downloading ${CROSS}...${RESET}"
-    [ -f "${CROSS}.tgz" ] || wget "https://musl.cc/${CROSS}.tgz"
-    [ -d "${CROSS}" ] || tar xvf "${CROSS}.tgz"
+    if [ ! -f "${CROSS}.tgz" ]; then
+        echo -e "${GREEN}Downloading ${CROSS}...${RESET}"
+        wget "https://musl.cc/${CROSS}.tgz"
+    fi
+
+    if [ ! -d "${CROSS}" ]; then
+        echo -e "${GREEN}Extracting ${CROSS}...${RESET}"
+        tar xvf "${CROSS}.tgz"
+    fi
 
     # Fix libatomic.la was moved (etc.)
     find "${PREFIX}" -name '*.la' -print0 | while IFS= read -r -d '' la; do
-        actual_dir="$(dirname "$la")"
-        sed -i "s#^libdir=.*#libdir='${actual_dir}'#" "$la"
+        ACTUAL_DIR="$(dirname "$la")"
+        sed -i "s#^libdir=.*#libdir='${ACTUAL_DIR}'#" "$la"
     done
+
+    # We don't need a shared libatomic
+    rm -f "${SYSROOT}/lib/libatomic.so"
+    ln -sf libatomic.a "${SYSROOT}/lib/libatomic.so"
 }
 
 # Download and compile gpm for ncurses mouse support
@@ -1511,9 +1552,9 @@ get_gpm()
         CFLAGS="${CFLAGS_NOPIE} -fcommon" \
         CPPFLAGS="-I${SYSROOT}/include -I${PREFIX}/include -DHAVE_FORKPTY" \
         LDFLAGS="-static -Wl,--gc-sections -s -L${PREFIX}/lib"
-    make -j$(nproc)
+    make -j"$JOBS"
     if $INCLUDE_GPM; then
-        sudo make DESTDIR="$DESTDIR" install
+        make DESTDIR="$DESTDIR" install
     fi
 
     cp "${CURR_DIR}/build/gpm/src/headers/gpm.h" "${PREFIX}/include/gpm.h"
@@ -1569,7 +1610,7 @@ get_ncurses()
             CFLAGS="-fPIC" \
             CPPFLAGS="-D_XOPEN_SOURCE=600 -I${PREFIX}/include" \
             LDFLAGS="-static -L${PREFIX}/lib"
-        make -j$(nproc)
+        make -j"$JOBS"
         make install.libs install.includes
     fi
 
@@ -1608,8 +1649,8 @@ get_tic()
         --enable-widec \
         CC="${CC_STATIC}" \
         CFLAGS="${CFLAGS_NOPIE}"
-    make -C progs tic -j$(nproc)
-    sudo install -D progs/tic "${DESTDIR}/usr/bin/tic"
+    make -C progs tic -j"$JOBS"
+    install -D progs/tic "${DESTDIR}/usr/bin/tic"
 }
 
 # Download and compile Brotli
@@ -1647,11 +1688,11 @@ get_brotli()
         -DCMAKE_STRIP="${STRIP}" \
         -DCMAKE_C_FLAGS="-Os -march=${ARCH}" \
         -DCMAKE_BUILD_TYPE=MinSizeRel \
-        -DCMAKE_INSTALL_PREFIX=/usr \
+        -DCMAKE_INSTALL_PREFIX="${SYSROOT}/usr" \
         -DBUILD_SHARED_LIBS=OFF \
         -DBROTLI_DISABLE_TESTS=ON
-    cmake --build build -j$(nproc)
-    sudo cmake --install build --prefix "${SYSROOT}/usr"
+    cmake --build build -j"$JOBS"
+    cmake --install build --prefix "${SYSROOT}/usr"
 }
 
 # Download and compile c-ares 
@@ -1684,7 +1725,7 @@ get_cares()
     echo -e "${GREEN}Compiling c-ares...${RESET}"
     ./configure \
         --host="$HOST" \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
         CC="$CC_STATIC" \
@@ -1692,8 +1733,8 @@ get_cares()
         RANLIB="$RANLIB" \
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${SYSROOT}/lib"
-    make -j$(nproc)
-    make DESTDIR="$SYSROOT" install
+    make -j"$JOBS"
+    make install
 }
 
 # Download and compile cURL
@@ -1720,13 +1761,11 @@ get_curl()
         tar xf $CURL_ARC
         cd $CURL
 
-        LIBATOMIC_A="$($CC_STATIC -print-file-name=libatomic.a)"
-
         # Compile and install
         echo -e "${GREEN}Compiling cURL...${RESET}"
         CPPFLAGS="-I$SYSROOT/include" \
         LDFLAGS="-L$SYSROOT/lib -static" \
-        LIBS="-lssl -lcrypto -lpthread -ldl ${LIBATOMIC_A}" \
+        LIBS="-lssl -lcrypto -lpthread -ldl -latomic" \
         CC="${CC_STATIC}" \
         CFLAGS="${CFLAGS_NOPIE}" \
         ./configure \
@@ -1740,7 +1779,7 @@ get_curl()
             --without-brotli \
             --without-zstd \
             --disable-shared
-        make -j$(nproc)
+        make -j"$JOBS" LDFLAGS="${LDFLAGS_COMMON}"
         echo -e "${GREEN}Installing cURL for toolchain...${RESET}"
         make install
     else
@@ -1749,7 +1788,7 @@ get_curl()
 
     if $INCLUDE_CURL && [ ! -f "${DESTDIR}/usr/bin/curl" ]; then
         echo -e "${GREEN}Installing cURL for system...${RESET}"
-        sudo install -D -m 755 "$SYSROOT/bin/curl" "${DESTDIR}/usr/bin/curl"
+        install -D -m 755 "$SYSROOT/bin/curl" "${DESTDIR}/usr/bin/curl"
     fi
 }
 
@@ -1796,7 +1835,7 @@ get_gccgo()
         --prefix="$GCCGO_PREFIX" \
         --with-sysroot="$GCCGO_SYSROOT" \
         --disable-multilib
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
     cd "${CURR_DIR}/build"
 
@@ -1854,7 +1893,7 @@ get_gccgo()
         --disable-shared \
         --disable-threads \
         --disable-libgcov
-    make -j$(nproc) all-gcc
+    make -j"$JOBS" all-gcc
     make install-gcc
     cd "${CURR_DIR}/build"
 
@@ -1912,7 +1951,7 @@ get_gccgo()
         --disable-multilib \
         --enable-languages=go \
         --disable-bootstrap
-    make -j$(nproc) all-gcc
+    make -j"$JOBS" all-gcc
     make install-gcc
     cd "${CURR_DIR}/build"
 }
@@ -1952,7 +1991,7 @@ get_glib()
     # Compile and install
     echo -e "${GREEN}Compiling GLib...${RESET}"
     meson setup _build \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --cross-file meson-cross.ini \
         --default-library=static \
         -Dtests=false \
@@ -1962,7 +2001,7 @@ get_glib()
         -Dlibelf=disabled \
         -Dsysprof=disabled
     ninja -C _build
-    DESTDIR="${SYSROOT}" ninja -C _build install
+    ninja -C _build install
 }
 
 # Download and compile GMP
@@ -1996,7 +2035,7 @@ get_gmp()
     echo -e "${GREEN}Compiling GMP...${RESET}"
     ./configure \
         --host="$HOST" \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
         CC="$CC_STATIC" \
@@ -2004,8 +2043,8 @@ get_gmp()
         RANLIB="$RANLIB" \
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${SYSROOT}/lib"
-    make -j$(nproc)
-    make DESTDIR="${SYSROOT}" install
+    make -j"$JOBS"
+    make install
 }
 
 # Download and compile GnuTLS
@@ -2040,15 +2079,11 @@ get_gnutls()
     export PKG_CONFIG_SYSROOT_DIR="${SYSROOT}"
     export PKG_CONFIG="pkg-config --static"
 
-    # TODO: find a better solution - perhaps change all prefix to $SYSROOT/usr?
-    #LIBUNISTRING_LA="${SYSROOT}/usr/lib/libunistring.a"
-    #sed -i "s|/usr/lib/libunistring\.la|${LIBUNISTRING_LA}|g" "${SYSROOT}/usr/lib/libidn2.la"
-
     # Compile and install
     echo -e "${GREEN}Compiling GnuTLS...${RESET}"
     ./configure \
         --host="$HOST" \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
         --without-p11-kit \
@@ -2057,8 +2092,8 @@ get_gnutls()
         RANLIB="$RANLIB" \
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${SYSROOT}/lib -L${SYSROOT}/usr/lib"
-    make -j$(nproc)
-    make DESTDIR="${SYSROOT}" install
+    make -j"$JOBS"
+    make install
 }
 
 # Download and compile loadkeys
@@ -2121,7 +2156,7 @@ get_krb5()
     echo -e "${GREEN}Compiling Kerberos...${RESET}"
     ./configure \
         --host="$HOST" \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
         --without-tcl \
@@ -2131,8 +2166,8 @@ get_krb5()
         RANLIB="$RANLIB" \
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${SYSROOT}/lib"
-    make -j$(nproc)
-    make DESTDIR="${SYSROOT}" install
+    make -j"$JOBS"
+    make install
 
     sed -i '/# linking, we would output "-lkrb5support \$LIBS \$DL_LIB" here\./a\    lib_flags="$lib_flags -lkrb5support $LIBS $DL_LIB"' "${SYSROOT}/usr/bin/krb5-config"
 }
@@ -2168,7 +2203,7 @@ get_libao()
     ./configure \
         --host="$HOST" \
         --build=x86_64-linux-gnu \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --disable-shared \
         --enable-static \
         --disable-alsa \
@@ -2181,16 +2216,16 @@ get_libao()
         CPPFLAGS="-I$SYSROOT/usr/include" \
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-L$SYSROOT/usr/lib"
-    make -j$(nproc)
-    make DESTDIR="$SYSROOT" install
+    make -j"$JOBS"
+    make install
 
     # FOLLOWING NO LONGER NEEDED SINCE MPG321 PATCHES OUT REAL LIBAO USAGE
-    #sudo mkdir -p "${DESTDIR}"/lib
-    #sudo mkdir -p "${DESTDIR}"/usr/lib/ao/plugins-4/
-    #sudo cp $SYSROOT/lib/libc.so "${DESTDIR}"/lib/
-    #sudo cp $SYSROOT/usr/lib/libao.so* "${DESTDIR}"/usr/lib/
-    #sudo cp $SYSROOT/usr/lib/ao/plugins-4/liboss.so "${DESTDIR}"/usr/lib/ao/plugins-4/
-    #sudo ln -sf libc.so "${DESTDIR}"/lib/ld-musl-i386.so.1
+    #mkdir -p "${DESTDIR}"/lib
+    #mkdir -p "${DESTDIR}"/usr/lib/ao/plugins-4/
+    #cp $SYSROOT/lib/libc.so "${DESTDIR}"/lib/
+    #cp $SYSROOT/usr/lib/libao.so* "${DESTDIR}"/usr/lib/
+    #cp $SYSROOT/usr/lib/ao/plugins-4/liboss.so "${DESTDIR}"/usr/lib/ao/plugins-4/
+    #ln -sf libc.so "${DESTDIR}"/lib/ld-musl-i386.so.1
 }
 
 # Download and compile libassuan
@@ -2224,7 +2259,7 @@ get_libassuan()
     echo -e "${GREEN}Compiling libassuan...${RESET}"
     ./configure \
         --host="${ARCH}"-linux-musl \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
         CC="${CC_STATIC}" \
@@ -2237,8 +2272,8 @@ get_libassuan()
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -static-libgcc -no-pie -Wl,-static -L${PREFIX}/lib -L${SYSROOT}/lib -L${SYSROOT}/usr/lib" \
         LIBS="-lgcc"
-    make -j$(nproc)
-    make DESTDIR="${SYSROOT}" install
+    make -j"$JOBS"
+    make install
 }
 
 # Download and compile libcap
@@ -2267,7 +2302,7 @@ get_libcap()
 
     # Compile and install
     echo -e "${GREEN}Compiling libcap...${RESET}"
-    make -j$(nproc) \
+    make -j"$JOBS" \
         CC="${CC_STATIC}" \
         AR="${AR}" \
         RANLIB="${RANLIB}" \
@@ -2313,7 +2348,7 @@ get_libevent()
     echo -e "${GREEN}Compiling libevent...${RESET}"
     ./autogen.sh
     ./configure --host="${HOST}" --prefix="${PREFIX}" --disable-shared  --enable-static --disable-samples --disable-openssl CC="${CC}"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -2347,7 +2382,7 @@ get_libffi()
     echo -e "${GREEN}Compiling libffi...${RESET}"
     ./configure \
         --host="$HOST" \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
         CC="$CC_STATIC" \
@@ -2355,8 +2390,8 @@ get_libffi()
         RANLIB="$RANLIB" \
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${SYSROOT}/lib"
-    make -j$(nproc)
-    make DESTDIR="$SYSROOT" install
+    make -j"$JOBS"
+    make install
 }
 
 # Download and compile libgcrypt
@@ -2390,7 +2425,7 @@ get_libgcrypt()
     echo -e "${GREEN}Compiling libgcrypt...${RESET}"
     ./configure \
         --host="${ARCH}"-linux-musl \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
         CC="${CC_STATIC}" \
@@ -2403,8 +2438,8 @@ get_libgcrypt()
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -static-libgcc -no-pie -Wl,-static -L${PREFIX}/lib -L${SYSROOT}/lib -L${SYSROOT}/usr/lib" \
         LIBS="-lgcc"
-    make -j$(nproc)
-    make DESTDIR="${SYSROOT}" install
+    make -j"$JOBS"
+    make install
 }
 
 # Download and compile libgpg-error
@@ -2438,7 +2473,7 @@ get_libgpg_error()
     echo -e "${GREEN}Compiling libgpg-error...${RESET}"
     ./configure \
         --host="${ARCH}"-linux-musl \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
         CC="${CC_STATIC}" \
@@ -2449,8 +2484,8 @@ get_libgpg_error()
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -static-libgcc -no-pie -Wl,-static -L${PREFIX}/lib -L${SYSROOT}/lib -L${SYSROOT}/usr/lib" \
         LIBS="-lgcc"
-    make -j$(nproc)
-    make DESTDIR="${SYSROOT}" install
+    make -j"$JOBS"
+    make install
 }
 
 # Download and compile libid3tag
@@ -2486,7 +2521,7 @@ get_libid3tag()
     echo -e "${GREEN}Compiling libid3tag...${RESET}"
     ./configure \
         --host="$HOST" \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
         AR="$AR" \
@@ -2494,8 +2529,8 @@ get_libid3tag()
         RANLIB="$RANLIB" \
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L$SYSROOT/usr/lib"
-    make -j$(nproc)
-    make DESTDIR="$SYSROOT" install
+    make -j"$JOBS"
+    make install
 }
 
 # Download and compile libidn2
@@ -2529,7 +2564,7 @@ get_libidn2()
     echo -e "${GREEN}Compiling libidn2...${RESET}"
     ./configure \
         --host="$HOST" \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
         CC="$CC_STATIC" \
@@ -2537,8 +2572,8 @@ get_libidn2()
         RANLIB="$RANLIB" \
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${SYSROOT}/lib"
-    make -j$(nproc)
-    make DESTDIR="${SYSROOT}" install
+    make -j"$JOBS"
+    make install
 }
 
 # Download and compile libksba
@@ -2572,7 +2607,7 @@ get_libksba()
     echo -e "${GREEN}Compiling libksba...${RESET}"
     ./configure \
         --host="${ARCH}"-linux-musl \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
         CC="${CC_STATIC}" \
@@ -2585,8 +2620,8 @@ get_libksba()
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -static-libgcc -no-pie -Wl,-static -L${PREFIX}/lib -L${SYSROOT}/lib -L${SYSROOT}/usr/lib" \
         LIBS="-lgcc"
-    make -j$(nproc)
-    make DESTDIR="${SYSROOT}" install
+    make -j"$JOBS"
+    make install
 }
 
 # Download and compile liblua
@@ -2618,7 +2653,7 @@ get_liblua()
 
     # Compile and install
     echo -e "${GREEN}Compiling liblua...${RESET}"
-    make -j$(nproc) linux \
+    make -j"$JOBS" linux \
         CC="${CC_STATIC}" \
         AR="${AR} rcu" \
         RANLIB="${RANLIB}" \
@@ -2661,7 +2696,7 @@ get_libmad()
     echo -e "${GREEN}Compiling libmad...${RESET}"
     ./configure \
         --host="$HOST" \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
         AR="$AR" \
@@ -2669,8 +2704,8 @@ get_libmad()
         RANLIB="$RANLIB" \
         CFLAGS="${CFLAGS}" \
         LDFLAGS="-static -L$SYSROOT/usr/lib"
-    make CFLAGS="${CFLAGS}" -j$(nproc)
-    make DESTDIR="$SYSROOT" install
+    make CFLAGS="${CFLAGS}" -j"$JOBS"
+    make install
 }
 
 # Download and compile libnl
@@ -2704,15 +2739,15 @@ get_libnl()
     echo -e "${GREEN}Compiling libnl...${RESET}"
     ./configure \
         --host="${HOST}" \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
         CC="${CC_STATIC}" \
         AR="${AR}" \
         RANLIB="${RANLIB}" \
         CFLAGS="${CFLAGS_NOPIE}"
-    make -j$(nproc)
-    make DESTDIR="${SYSROOT}" install
+    make -j"$JOBS"
+    make install
 }
 
 # Download and compile libpcap
@@ -2746,7 +2781,7 @@ get_libpcap()
     echo -e "${GREEN}Compiling libpcap...${RESET}"
     ./configure \
         --host="$HOST" \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
         --disable-examples-build \
@@ -2757,8 +2792,8 @@ get_libpcap()
         RANLIB="$RANLIB" \
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${SYSROOT}/lib"
-    make -j$(nproc)
-    make DESTDIR="${SYSROOT}" install
+    make -j"$JOBS"
+    make install
 }
 
 # Download and compile libsmi
@@ -2796,7 +2831,7 @@ get_libsmi()
     echo -e "${GREEN}Compiling libsmi...${RESET}"
     ./configure \
         --host="$HOST" \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
         --disable-examples-build \
@@ -2808,8 +2843,8 @@ get_libsmi()
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${SYSROOT}/lib" \
         YACC="bison -y"
-    make -j$(nproc)
-    make DESTDIR="$SYSROOT" install
+    make -j"$JOBS"
+    make install
 }
 
 # Compile our own static library of C software floating-point routines from
@@ -2879,7 +2914,7 @@ get_libsoftfp()
 
     ${AR} rcs libsoftfp.a *.o
     ${RANLIB} libsoftfp.a
-    sudo install -m644 libsoftfp.a "${PREFIX}"/lib/
+    install -m644 libsoftfp.a "${PREFIX}"/lib/
 }
 
 # Download and compile libssh
@@ -2922,7 +2957,7 @@ get_libssh()
         -DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=ONLY \
         -DCMAKE_C_FLAGS="-Os -march=${ARCH}" \
         -DCMAKE_BUILD_TYPE=MinSizeRel \
-        -DCMAKE_INSTALL_PREFIX=/usr \
+        -DCMAKE_INSTALL_PREFIX="${SYSROOT}/usr" \
         -DBUILD_SHARED_LIBS=OFF \
         -DWITH_STATIC_LIB=ON \
         -DWITH_EXAMPLES=OFF \
@@ -2932,8 +2967,8 @@ get_libssh()
         -DWITH_ZLIB=ON \
         -DWITH_GCRYPT=ON \
         -DWITH_SFTP=ON
-    cmake --build build -j$(nproc)
-    sudo cmake --install build --prefix "${SYSROOT}/usr"
+    cmake --build build -j"$JOBS"
+    cmake --install build --prefix "${SYSROOT}/usr"
 }
 
 # Download and compile libssh2
@@ -2966,7 +3001,7 @@ get_libssh2()
     echo -e "${GREEN}Compiling libssh2...${RESET}"
     ./configure \
         --host="$HOST" \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
         --disable-examples-build \
@@ -2978,8 +3013,8 @@ get_libssh2()
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${SYSROOT}/lib" \
         LIBS="-lssl -lcrypto"
-    make -j$(nproc)
-    make DESTDIR="$SYSROOT" install
+    make -j"$JOBS"
+    make install
 
     # Fix "library was moved" error
     find "$SYSROOT/usr/lib" -name "*.la" -exec sed -i "s|^libdir=.*|libdir='${SYSROOT}/usr/lib'|" {} \;
@@ -3021,7 +3056,7 @@ get_libt3config()
             echo -e "${GREEN}Compiling libt3config (native)...${RESET}"
             ./configure \
                 --prefix="${CURR_DIR}/build/native-tools"
-            make -j$(nproc)
+            make -j"$JOBS"
             make install
         )
     fi
@@ -3029,7 +3064,7 @@ get_libt3config()
     # Compile and install $ARCH version
     echo -e "${GREEN}Compiling libt3config ($ARCH)...${RESET}"
     ./configure \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         CC="${CC}" \
         CXX="${CXX}" \
         AR="${AR}" \
@@ -3038,8 +3073,8 @@ get_libt3config()
         LIBTOOL="${PREFIX}/bin/i486-linux-musl-libtool" \
         CFLAGS="${CFLAGS_COMMON}" \
         LDFLAGS="--sysroot=${SYSROOT} -L${SYSROOT}/usr/lib"
-    make -j$(nproc)
-    make DESTDIR="${SYSROOT}" install
+    make -j"$JOBS"
+    make install
 
     # Modify libtool archive's libdir to target the cross-compiler's, and not
     # the host's
@@ -3085,7 +3120,7 @@ get_libt3highlight()
     # Compile and install
     echo -e "${GREEN}Compiling libt3highlight...${RESET}"
     ./configure \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         CC="${CC}" \
         CXX="${CXX}" \
         AR="${AR}" \
@@ -3094,8 +3129,8 @@ get_libt3highlight()
         LIBTOOL="${PREFIX}/bin/i486-linux-musl-libtool" \
         CFLAGS="${CFLAGS_COMMON}" \
         LDFLAGS="--sysroot=${SYSROOT} -L${SYSROOT}/usr/lib -L${PREFIX}/lib"
-    make -j$(nproc)
-    make DESTDIR="${SYSROOT}" install
+    make -j"$JOBS"
+    make install
 
     # Modify libtool archive's libdir to target the cross-compiler's, and not
     # the host's
@@ -3147,7 +3182,7 @@ get_libt3key()
             echo -e "${GREEN}Compiling t3keyc...${RESET}"
             ./configure \
                 --prefix="${CURR_DIR}/build/native-tools"
-            make -j$(nproc)
+            make -j"$JOBS"
             make install
         )
     fi
@@ -3160,7 +3195,7 @@ get_libt3key()
     # Compile and install libt3key
     echo -e "${GREEN}Compiling libt3key...${RESET}"
     ./configure \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         CC="${CC}" \
         CXX="${CXX}" \
         AR="${AR}" \
@@ -3169,8 +3204,8 @@ get_libt3key()
         LIBTOOL="${PREFIX}/bin/i486-linux-musl-libtool" \
         CFLAGS="${CFLAGS_COMMON}" \
         LDFLAGS="--sysroot=${SYSROOT} -L${SYSROOT}/usr/lib -L${PREFIX}/lib"
-    make -j$(nproc)
-    make DESTDIR="${SYSROOT}" install || true
+    make -j"$JOBS"
+    make install || true
 
     # Modify libtool archive's libdir to target the cross-compiler's, and not
     # the host's
@@ -3233,7 +3268,7 @@ get_libt3widget()
     # Compile and install
     echo -e "${GREEN}Compiling libt3widget...${RESET}"
     ./configure \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         CC="${CC}" \
         CXX="${CXX}" \
         AR="${AR}" \
@@ -3249,8 +3284,8 @@ get_libt3widget()
         find "$SYSROOT/usr/lib" -name "*.la" -exec sed -i "s|^libdir=.*|libdir='${SYSROOT}/usr/lib'|" {} \;
     fi
 
-    make -j$(nproc)
-    make DESTDIR="${SYSROOT}" install
+    make -j"$JOBS"
+    make install
 
     # Modify libtool archive's libdir to target the cross-compiler's, and not
     # the host's
@@ -3299,7 +3334,7 @@ get_libt3window()
     # Compile and install
     echo -e "${GREEN}Compiling libt3window...${RESET}"
     ./configure \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         CC="${CC}" \
         CXX="${CXX}" \
         AR="${AR}" \
@@ -3308,8 +3343,8 @@ get_libt3window()
         LIBTOOL="${PREFIX}/bin/i486-linux-musl-libtool" \
         CFLAGS="${CFLAGS_COMMON}" \
         LDFLAGS="--sysroot=${SYSROOT} -L${SYSROOT}/usr/lib -L${PREFIX}/lib"
-    make -j$(nproc)
-    make DESTDIR="${SYSROOT}" install
+    make -j"$JOBS"
+    make install
 
     # Modify libtool archive's libdir to target the cross-compiler's, and not
     # the host's
@@ -3352,7 +3387,7 @@ get_libtasn1()
     echo -e "${GREEN}Compiling libtasn1...${RESET}"
     ./configure \
         --host="$HOST" \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
         CC="$CC_STATIC" \
@@ -3360,8 +3395,8 @@ get_libtasn1()
         RANLIB="$RANLIB" \
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${SYSROOT}/lib"
-    make -j$(nproc)
-    make DESTDIR="${SYSROOT}" install
+    make -j"$JOBS"
+    make install
 }
 
 # Download and compile libtool and libltdl
@@ -3408,7 +3443,7 @@ get_libtool_tilde()
     echo -e "${GREEN}Compiling libltdl...${RESET}"
     ./configure \
         --host="${ARCH}"-linux-musl \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
         --enable-ltdl-install \
@@ -3418,8 +3453,8 @@ get_libtool_tilde()
         RANLIB="${RANLIB}" \
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="--sysroot=${SYSROOT} -L${SYSROOT}/lib"
-    make -j$(nproc)
-    make DESTDIR="${SYSROOT}" install
+    make -j"$JOBS"
+    make install
 }
 
 # Download and compile libtranscript
@@ -3454,7 +3489,7 @@ get_libtranscript()
         echo -e "${GREEN}Compiling libtranscript library...${RESET}"
         ./configure \
             --host="${ARCH}"-linux-musl \
-            --prefix=/usr \
+            --prefix="${SYSROOT}/usr" \
             CC="${CC}" \
             CXX="${CXX}" \
             AR="${AR}" \
@@ -3462,10 +3497,10 @@ get_libtranscript()
             RANLIB="${RANLIB}" \
             CFLAGS="${CFLAGS_COMMON}" \
             LDFLAGS="--sysroot=${SYSROOT} -L${SYSROOT}/usr/lib -lltdl"
-        make -j$(nproc)
+        make -j"$JOBS"
         rm -rf "$SYSROOT/usr/lib/transcript1"
         mkdir -p "$SYSROOT/usr/lib/transcript1"
-        make DESTDIR="${SYSROOT}" install
+        make install
 
         # Modify libtool archive's libdir to target the cross-compiler's, and not
         # the host's
@@ -3480,7 +3515,7 @@ get_libtranscript()
         
         # Compile and install libtranscript codec modules
         echo -e "${GREEN}Compiling libtranscript codec modules...${RESET}"
-        make -f mk/libtranscript -j$(nproc) modules tables
+        make -f mk/libtranscript -j"$JOBS" modules tables
         mkdir -p "$SYSROOT/usr/lib/transcript1"
         find src/modules src/tables -maxdepth 1 -name '*.ltc' -exec cp {} "$SYSROOT/usr/lib/transcript1/" \;
     else
@@ -3488,9 +3523,9 @@ get_libtranscript()
     fi
 
     # Copy needed .ltc codec plugins
-    sudo mkdir -p "${DESTDIR}/usr/lib/transcript1"
+    mkdir -p "${DESTDIR}/usr/lib/transcript1"
     for CODEC in ascii.ltc iso88591.ltc utf8.ltc iso885921999.ltc iso8859131998.ltc iso8859151999.ltc; do
-        sudo cp "$SYSROOT/usr/lib/transcript1/$CODEC" "${DESTDIR}/usr/lib/transcript1/"
+        cp "$SYSROOT/usr/lib/transcript1/$CODEC" "${DESTDIR}/usr/lib/transcript1/"
     done
 }
 
@@ -3525,7 +3560,7 @@ get_libunistring()
     echo -e "${GREEN}Compiling libunistring...${RESET}"
     ./configure \
         --host="${ARCH}"-linux-musl \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
         CC="${CC_STATIC}" \
@@ -3535,8 +3570,8 @@ get_libunistring()
         RANLIB="${RANLIB}" \
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -static-libgcc -no-pie -Wl,-static -L${PREFIX}/lib -L${SYSROOT}/lib"
-    make -j$(nproc)
-    make DESTDIR="${SYSROOT}" install
+    make -j"$JOBS"
+    make install
 }
 
 # Download and compile liburcu
@@ -3576,7 +3611,7 @@ get_liburcu()
         RANLIB="$RANLIB" \
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${SYSROOT}/lib"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 }
 
@@ -3613,7 +3648,7 @@ get_libuuid()
     ./autogen.sh
     ./configure \
         --host="${HOST}" \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --disable-all-programs \
         --enable-libuuid \
         CC="${CC_STATIC}" \
@@ -3621,8 +3656,8 @@ get_libuuid()
         CPPFLAGS="-I${PREFIX}/include" \
         LDFLAGS="-L${PREFIX}/lib -static" \
         PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig"
-    make TINFO_LIBS="" -j$(nproc)
-    make DESTDIR="$SYSROOT" install
+    make TINFO_LIBS="" -j"$JOBS"
+    make install
 }
 
 # Download and compile libuv
@@ -3660,12 +3695,12 @@ get_libuv()
         -DCMAKE_STRIP="${STRIP}" \
         -DCMAKE_C_FLAGS="-Os -march=${ARCH}" \
         -DCMAKE_BUILD_TYPE=MinSizeRel \
-        -DCMAKE_INSTALL_PREFIX=/usr \
+        -DCMAKE_INSTALL_PREFIX="${SYSROOT}/usr" \
         -DBUILD_SHARED_LIBS=OFF \
         -DLIBUV_BUILD_TESTS=OFF \
         -DLIBUV_BUILD_BENCH=OFF
-    cmake --build build -j$(nproc)
-    sudo cmake --install build --prefix "${SYSROOT}/usr"
+    cmake --build build -j"$JOBS"
+    cmake --install build --prefix "${SYSROOT}/usr"
 }
 
 # Download and compile libxlsxwriter
@@ -3700,7 +3735,7 @@ get_libxlsxwriter()
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L$PREFIX/lib -L$SYSROOT/usr/lib" \
         MINIZIP=1 \
-        -j$(nproc)
+        -j"$JOBS"
     cp -r include/* "$PREFIX/include/"
     cp src/libxlsxwriter.a "$PREFIX/lib/"
 }
@@ -3737,7 +3772,7 @@ get_libxml2()
         --disable-shared \
         --enable-static \
         CC="${CC_STATIC}"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install
 
     mkdir -p "${SYSROOT}/usr/lib/pkgconfig" "${SYSROOT}/usr/include"
@@ -3772,7 +3807,7 @@ get_libzip()
 
     # Compile and install
     echo -e "${GREEN}Compiling libzip...${RESET}"
-    cmake -DCMAKE_INSTALL_PREFIX="$PREFIX" \
+    cmake -DCMAKE_INSTALL_PREFIX="${SYSROOT}/usr" \
         -DCMAKE_C_COMPILER="$CC_STATIC" \
         -DCMAKE_SYSTEM_NAME=Linux \
         -DCMAKE_SYSTEM_PROCESSOR="${ARCH}" \
@@ -3790,7 +3825,7 @@ get_libzip()
         -DBUILD_DOC=OFF \
         -DBUILD_REGRESS=OFF \
         -DBUILD_FUZZERS=OFF
-    make zip -j$(nproc)
+    make zip -j"$JOBS"
     cp lib/libzip.a "${PREFIX}/lib/"
     cp zipconf.h "${PREFIX}/include/"
     cp lib/zip.h "${PREFIX}/include/"
@@ -3822,7 +3857,7 @@ get_lz4()
 
     # Compile and install
     echo -e "${GREEN}Compiling LZ4...${RESET}"
-    make -j$(nproc) \
+    make -j"$JOBS" \
         CC="${CC_STATIC}" \
         AR="${AR}" \
         RANLIB="${RANLIB}" \
@@ -3871,7 +3906,7 @@ get_nettle()
     echo -e "${GREEN}Compiling Nettle...${RESET}"
     ./configure \
         --host="$HOST" \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
         CC="$CC_STATIC" \
@@ -3879,8 +3914,8 @@ get_nettle()
         RANLIB="$RANLIB" \
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${SYSROOT}/lib"
-    make -j$(nproc)
-    make DESTDIR="${SYSROOT}" install
+    make -j"$JOBS"
+    make install
 }
 
 # Download and compile nPth
@@ -3914,7 +3949,7 @@ get_npth()
     echo -e "${GREEN}Compiling nPth...${RESET}"
     ./configure \
         --host="${ARCH}"-linux-musl \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
         CC="${CC_STATIC}" \
@@ -3925,8 +3960,8 @@ get_npth()
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -static-libgcc -no-pie -Wl,-static -L${PREFIX}/lib -L${SYSROOT}/lib -L${SYSROOT}/usr/lib" \
         LIBS="-lgcc"
-    make -j$(nproc)
-    make DESTDIR="${SYSROOT}" install
+    make -j"$JOBS"
+    make install
 }
 
 # Download and compile OpenSSL
@@ -3961,7 +3996,7 @@ get_openssl()
         CC="${CC} -latomic" \
         AR="${AR}" \
         RANLIB="${RANLIB}"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install_sw
 }
 
@@ -3996,7 +4031,7 @@ get_pcre2()
     echo -e "${GREEN}Compiling PCRE2...${RESET}"
     ./configure \
         --host="${ARCH}"-linux-musl \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
         CC="${CC_STATIC}" \
@@ -4006,8 +4041,8 @@ get_pcre2()
         RANLIB="${RANLIB}" \
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -static-libgcc -no-pie -Wl,-static -L${PREFIX}/lib -L${SYSROOT}/lib"
-    make -j$(nproc)
-    make DESTDIR="${SYSROOT}" install
+    make -j"$JOBS"
+    make install
 }
 
 # Download and compile Snappy
@@ -4047,12 +4082,12 @@ get_snappy()
         -DCMAKE_C_FLAGS="-Os -march=${ARCH}" \
         -DCMAKE_CXX_FLAGS="-Os -march=${ARCH}" \
         -DCMAKE_BUILD_TYPE=MinSizeRel \
-        -DCMAKE_INSTALL_PREFIX=/usr \
+        -DCMAKE_INSTALL_PREFIX="${SYSROOT}/usr" \
         -DBUILD_SHARED_LIBS=OFF \
         -DSNAPPY_BUILD_TESTS=OFF \
         -DSNAPPY_BUILD_BENCHMARKS=OFF
-    cmake --build build -j$(nproc)
-    sudo cmake --install build --prefix "${SYSROOT}/usr"
+    cmake --build build -j"$JOBS"
+    cmake --install build --prefix "${SYSROOT}/usr"
 }
 
 # Download and compile xxHash
@@ -4081,7 +4116,7 @@ get_xxhash()
 
     # Compile and install
     echo -e "${GREEN}Compiling xxHash...${RESET}"
-    make -j$(nproc) \
+    make -j"$JOBS" \
         CC="${CC_STATIC}" \
         AR="${AR}" \
         CFLAGS="${CFLAGS_NOPIE}" \
@@ -4122,9 +4157,9 @@ get_zlib()
     CFLAGS="${CFLAGS_NOPIE}" \
     ./configure \
         --static \
-        --prefix=/usr
-    make -j$(nproc)
-    make DESTDIR="$SYSROOT" install
+        --prefix="${SYSROOT}/usr" \
+    make -j"$JOBS"
+    make install
 
     echo -e "${GREEN}Compiling minizip...${RESET}"
     cd contrib/minizip
@@ -4134,11 +4169,11 @@ get_zlib()
     LDFLAGS="-L${SYSROOT}/usr/lib" \
     ./configure \
         --host="${HOST}" \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --disable-shared \
         --enable-static
-    make -j$(nproc)
-    make DESTDIR="$SYSROOT" install
+    make -j"$JOBS"
+    make install
 }
 
 # Download and compile Zstandard
@@ -4176,13 +4211,13 @@ get_zstd()
         -DCMAKE_STRIP="${STRIP}" \
         -DCMAKE_C_FLAGS="-Os -march=${ARCH}" \
         -DCMAKE_BUILD_TYPE=MinSizeRel \
-        -DCMAKE_INSTALL_PREFIX=/usr \
+        -DCMAKE_INSTALL_PREFIX="${SYSROOT}/usr" \
         -DZSTD_BUILD_SHARED=OFF \
         -DZSTD_BUILD_STATIC=ON \
         -DZSTD_BUILD_PROGRAMS=OFF \
         -DZSTD_BUILD_TESTS=OFF
-    cmake --build build -j$(nproc)
-    sudo cmake --install build --prefix "${SYSROOT}/usr"
+    cmake --build build -j"$JOBS"
+    cmake --install build --prefix "${SYSROOT}/usr"
 }
 
 # Download and compile x86emu
@@ -4244,18 +4279,18 @@ get_patched_xlinux()
     fi
 
     # Patches for fixing "x.bin: too big (y > z)" issues
-    sudo sed -i 's/\$maxsize = \$padsize = 440;/\$maxsize = \$padsize = 500;/' mbr/checksize.pl
-    sudo sed -i 's/\$maxsize = \$padsize = 432;/\$maxsize = \$padsize = 500;/' mbr/checksize.pl
-    sudo sed -i 's/\$maxsize = \$padsize = 439;/\$maxsize = \$padsize = 500;/' mbr/checksize.pl
+    sed -i 's/\$maxsize = \$padsize = 440;/\$maxsize = \$padsize = 500;/' mbr/checksize.pl
+    sed -i 's/\$maxsize = \$padsize = 432;/\$maxsize = \$padsize = 500;/' mbr/checksize.pl
+    sed -i 's/\$maxsize = \$padsize = 439;/\$maxsize = \$padsize = 500;/' mbr/checksize.pl
 
     # Fedora 44+ seems to need this specific patch...
     if $IS_FEDORA; then
-        sudo sed -i 's/-pie//g' core/Makefile
+        sed -i 's/-pie//g' core/Makefile
     fi
 
     # Compile and install
     echo -e "${GREEN}Compiling ISOLINUX/EXTLINUX/SYSLINUX...${RESET}"
-    CFLAGS="-fcommon" sudo make bios
+    CFLAGS="-fcommon" make bios
 }
 
 
@@ -4446,7 +4481,7 @@ get_busybox()
 
     # Compile and install
     echo -e "${GREEN}Compiling BusyBox...${RESET}"
-    make ARCH=x86 -j$(nproc)
+    make ARCH=x86 -j"$JOBS"
     make ARCH=x86 install
 
     echo -e "${GREEN}Installing BusyBox as the basis of our root filesystem...${RESET}"
@@ -4495,7 +4530,7 @@ get_strace()
         CC="${CC_STATIC} " \
         CFLAGS="${CFLAGS_NOPIE} -ffunction-sections -fdata-sections" \
         LDFLAGS="-static -Wl,--gc-sections"
-    make -j$(nproc)
+    make -j"$JOBS"
     make install DESTDIR="${DESTDIR}"
 }
 
@@ -4575,12 +4610,12 @@ get_util_linux()
     # Inject -lgpm flag into Makefile
     sed -i 's/^LIBS = /LIBS = -lgpm /' Makefile
    
-    make TINFO_LIBS="" -j$(nproc)
+    make TINFO_LIBS="" -j"$JOBS"
     for bin in lscpu partx whereis; do
-        sudo install -D -m 755 "${bin}" "${DESTDIR}/usr/bin/${bin}"
+        install -D -m 755 "${bin}" "${DESTDIR}/usr/bin/${bin}"
     done
     for bin in cfdisk fdisk sfdisk; do
-        sudo install -D -m 755 "${bin}" "${DESTDIR}/usr/sbin/${bin}"
+        install -D -m 755 "${bin}" "${DESTDIR}/usr/sbin/${bin}"
     done
 
     # Fix potential linking issues with ncurses
@@ -4793,7 +4828,7 @@ compile_kernel()
     cd "${CURR_DIR}/build/linux/"
 
     # Remove "-dirty" suffix until I can clone the kernel to my own repo
-    sudo sed -i "s/printf '%s' -dirty/printf '%s'/" scripts/setlocalversion
+    sed -i "s/printf '%s' -dirty/printf '%s'/" scripts/setlocalversion
 
     # Apply our patches
     if [[ "$LINUX_VER" == 7.3* ]]; then
@@ -4887,22 +4922,22 @@ compile_kernel()
 
     echo -e "${GREEN}Compiling Linux kernel...${RESET}"
     make ARCH=x86 olddefconfig
-    make ARCH=x86 bzImage -j$(nproc)
+    make ARCH=x86 bzImage -j"$JOBS"
     $STRIP vmlinux
 
     echo -e "${GREEN}Installing Linux kernel image...${RESET}"
-    sudo mv arch/x86/boot/bzImage "${CURR_DIR}/build" || true
+    mv arch/x86/boot/bzImage "${CURR_DIR}/build" || true
 
     sudo rm -rf "${CURR_DIR}/build/modules/"*
     if $ENABLE_MODULES; then
         KRN_BUILT_VER=$(make ARCH=x86 -s kernelrelease)
         echo -e "${GREEN}Compiling Linux kernel modules...${RESET}"
-        make ARCH=x86 modules -j$(nproc)
+        make ARCH=x86 modules -j"$JOBS"
 
         echo -e "${GREEN}Installing Linux kernel modules...${RESET}"
-        sudo make ARCH=x86 modules_install \
+        make ARCH=x86 modules_install \
             INSTALL_MOD_PATH="${CURR_DIR}/build/modules"
-        sudo "${DESTDIR}/sbin/depmod" -b "${CURR_DIR}/build/modules" \
+        "${DESTDIR}/sbin/depmod" -b "${CURR_DIR}/build/modules" \
             "$KRN_BUILT_VER"
     fi
 }
@@ -4950,7 +4985,7 @@ copy_modules()
     if [ -d "${CURR_DIR}/build/modules" ] && 
         [ -n "$(ls -A "${CURR_DIR}/build/modules" 2>/dev/null)" ]; then
         echo -e "${GREEN}Copying Linux kernel modules...${RESET}"
-        sudo cp -a --remove-destination "${CURR_DIR}/build/modules/." \
+        cp -a --remove-destination "${CURR_DIR}/build/modules/." \
             "${DESTDIR}/"
     fi
 }
@@ -4981,7 +5016,7 @@ get_v86d()
 
     # Compile and install
     echo -e "${GREEN}Compiling v86d...${RESET}"
-    sudo cp "$CONFIGS_DIR"/v86d.config.h config.h
+    cp "$CONFIGS_DIR"/v86d.config.h config.h
     make clean >/dev/null 2>&1
     make CC="$CC -m32 -static -no-pie" v86d
     install -Dm755 v86d "${DESTDIR}/sbin/v86d"
@@ -5023,15 +5058,15 @@ get_xorgproto()
 
     # Compile and install
     echo -e "${GREEN}Compiling xorgproto...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --enable-legacy --with-sysroot="$SYSROOT" CC="$CC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
-    sudo make DESTDIR="$SYSROOT" install
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --enable-legacy --with-sysroot="$SYSROOT" CC="$CC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    make -j"$JOBS"
+    make install
 }
 
 get_libxdmcp()
 {
     # Prevent hard-coded paths poisoning the cross-compilation linker
-    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+    find "$SYSROOT/usr/lib" -name "*.la" -delete
 
     cd "${CURR_DIR}/build"
 
@@ -5060,15 +5095,23 @@ get_libxdmcp()
 
     # Compile and install
     echo -e "${GREEN}Compiling libXdmcp...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
-    make install DESTDIR="$SYSROOT"
+    ./configure \
+        --host="$HOST" \
+        --prefix="${SYSROOT}/usr" \
+        --disable-shared \
+        --enable-static \
+        CC="$CC_STATIC" \
+        AR="$AR" \
+        RANLIB="$RANLIB" \
+        STRIP="$STRIP"
+    make -j"$JOBS"
+    make install
 }
 
 get_libxau()
 {
     # Prevent hard-coded paths poisoning the cross-compilation linker
-    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+    find "$SYSROOT/usr/lib" -name "*.la" -delete
 
     cd "${CURR_DIR}/build"
 
@@ -5097,15 +5140,15 @@ get_libxau()
 
     # Compile and install
     echo -e "${GREEN}Compiling libXau...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
-    make install DESTDIR="$SYSROOT"
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    make -j"$JOBS"
+    make install
 }
 
 get_xcbproto()
 {
     # Prevent hard-coded paths poisoning the cross-compilation linker
-    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+    find "$SYSROOT/usr/lib" -name "*.la" -delete
 
     cd "${CURR_DIR}/build"
 
@@ -5134,15 +5177,26 @@ get_xcbproto()
 
     # Compile and install
     echo -e "${GREEN}Compiling xcb-proto...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
-    make install DESTDIR="$SYSROOT"
+    ./configure \
+        --host="$HOST" \
+        --prefix="${SYSROOT}/usr" \
+        --disable-shared \
+        --enable-static \
+        CC="$CC_STATIC" \
+        AR="$AR" \
+        RANLIB="$RANLIB" \
+        STRIP="$STRIP"
+    make -j"$JOBS"
+    make install
+
+    # Prevent doubled SYSROOT
+    sed -i 's|\${pc_sysrootdir}||g' "$SYSROOT/usr/share/pkgconfig/xcb-proto.pc"
 }
 
 get_libxcb()
 {
     # Prevent hard-coded paths poisoning the cross-compilation linker
-    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+    find "$SYSROOT/usr/lib" -name "*.la" -delete
 
     cd "${CURR_DIR}/build"
 
@@ -5171,15 +5225,23 @@ get_libxcb()
 
     # Compile and install
     echo -e "${GREEN}Compiling libxcb...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
-    make install DESTDIR="$SYSROOT"
+    ./configure \
+        --host="$HOST" \
+        --prefix="${SYSROOT}/usr" \
+        --disable-shared \
+        --enable-static \
+        CC="$CC_STATIC" \
+        AR="$AR" \
+        RANLIB="$RANLIB" \
+        STRIP="$STRIP"
+    make -j"$JOBS"
+    make install
 }
 
 get_xtrans()
 {
     # Prevent hard-coded paths poisoning the cross-compilation linker
-    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+    find "$SYSROOT/usr/lib" -name "*.la" -delete
 
     cd "${CURR_DIR}/build"
 
@@ -5208,15 +5270,15 @@ get_xtrans()
 
     # Compile and install
     echo -e "${GREEN}Compiling xtrans...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
-    sudo make DESTDIR="$SYSROOT" install
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    make -j"$JOBS"
+    make install
 }
 
 get_libx11()
 {
     # Prevent hard-coded paths poisoning the cross-compilation linker
-    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+    find "$SYSROOT/usr/lib" -name "*.la" -delete
 
     cd "${CURR_DIR}/build"
 
@@ -5245,15 +5307,15 @@ get_libx11()
 
     # Compile and install
     echo -e "${GREEN}Compiling libX11...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static --with-sysroot="$SYSROOT" CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
-    make install DESTDIR="$SYSROOT"
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static --with-sysroot="$SYSROOT" CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    make -j"$JOBS"
+    make install
 }
 
 get_libxext()
 {
     # Prevent hard-coded paths poisoning the cross-compilation linker
-    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+    find "$SYSROOT/usr/lib" -name "*.la" -delete
 
     cd "${CURR_DIR}/build"
 
@@ -5282,15 +5344,15 @@ get_libxext()
 
     # Compile and install
     echo -e "${GREEN}Compiling libXext...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
-    sudo make DESTDIR="$SYSROOT" install
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    make -j"$JOBS"
+    make install
 }
 
 get_libxfixes()
 {
     # Prevent hard-coded paths poisoning the cross-compilation linker
-    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+    find "$SYSROOT/usr/lib" -name "*.la" -delete
 
     cd "${CURR_DIR}/build"
 
@@ -5319,15 +5381,15 @@ get_libxfixes()
 
     # Compile and install
     echo -e "${GREEN}Compiling libXfixes...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
-    sudo make DESTDIR="$SYSROOT" install
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    make -j"$JOBS"
+    make install
 }
 
 get_libxi()
 {
     # Prevent hard-coded paths poisoning the cross-compilation linker
-    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+    find "$SYSROOT/usr/lib" -name "*.la" -delete
 
     cd "${CURR_DIR}/build"
 
@@ -5356,15 +5418,15 @@ get_libxi()
 
     # Compile and install
     echo -e "${GREEN}Compiling libXi...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
-    sudo make DESTDIR="$SYSROOT" install
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    make -j"$JOBS"
+    make install
 }
 
 get_libxtst()
 {
     # Prevent hard-coded paths poisoning the cross-compilation linker
-    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+    find "$SYSROOT/usr/lib" -name "*.la" -delete
 
     cd "${CURR_DIR}/build"
 
@@ -5393,15 +5455,15 @@ get_libxtst()
 
     # Compile and install
     echo -e "${GREEN}Compiling libXtst...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
-    sudo make DESTDIR="$SYSROOT" install
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    make -j"$JOBS"
+    make install
 }
 
 get_libice()
 {
     # Prevent hard-coded paths poisoning the cross-compilation linker
-    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+    find "$SYSROOT/usr/lib" -name "*.la" -delete
 
     cd "${CURR_DIR}/build"
 
@@ -5430,15 +5492,15 @@ get_libice()
 
     # Compile and install
     echo -e "${GREEN}Compiling libICE...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
-    sudo make DESTDIR="$SYSROOT" install
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    make -j"$JOBS"
+    make install
 }
 
 get_libsm()
 {
     # Prevent hard-coded paths poisoning the cross-compilation linker
-    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+    find "$SYSROOT/usr/lib" -name "*.la" -delete
 
     cd "${CURR_DIR}/build"
 
@@ -5467,15 +5529,15 @@ get_libsm()
 
     # Compile and install
     echo -e "${GREEN}Compiling libSM...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
-    sudo make DESTDIR="$SYSROOT" install
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    make -j"$JOBS"
+    make install
 }
 
 get_libxt()
 {
     # Prevent hard-coded paths poisoning the cross-compilation linker
-    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+    find "$SYSROOT/usr/lib" -name "*.la" -delete
 
     cd "${CURR_DIR}/build"
 
@@ -5504,15 +5566,15 @@ get_libxt()
 
     # Compile and install
     echo -e "${GREEN}Compiling libXt...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
-    sudo make DESTDIR="$SYSROOT" install
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    make -j"$JOBS"
+    make install
 }
 
 get_libpng()
 {
     # Prevent hard-coded paths poisoning the cross-compilation linker
-    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+    find "$SYSROOT/usr/lib" -name "*.la" -delete
 
     cd "${CURR_DIR}/build"
 
@@ -5542,15 +5604,15 @@ get_libpng()
 
     # Compile and install
     echo -e "${GREEN}Compiling libpng...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
-    sudo make DESTDIR="$SYSROOT" install
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    make -j"$JOBS"
+    make install
 }
 
 get_libxpm()
 {
     # Prevent hard-coded paths poisoning the cross-compilation linker
-    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+    find "$SYSROOT/usr/lib" -name "*.la" -delete
 
     cd "${CURR_DIR}/build"
 
@@ -5579,15 +5641,15 @@ get_libxpm()
 
     # Compile and install
     echo -e "${GREEN}Compiling libXpm...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static --with-sysroot="$SYSROOT" CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP" LIBS="-lX11 -lxcb -lXau -lXdmcp -lSM -lICE"
-    make -j$(nproc)
-    sudo make DESTDIR="$SYSROOT" install
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static --with-sysroot="$SYSROOT" CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP" LIBS="-lX11 -lxcb -lXau -lXdmcp -lSM -lICE"
+    make -j"$JOBS"
+    make install
 }
 
 get_libxmu()
 {
     # Prevent hard-coded paths poisoning the cross-compilation linker
-    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+    find "$SYSROOT/usr/lib" -name "*.la" -delete
 
     cd "${CURR_DIR}/build"
 
@@ -5616,15 +5678,15 @@ get_libxmu()
 
     # Compile and install
     echo -e "${GREEN}Compiling libXmu...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
-    sudo make DESTDIR="$SYSROOT" install
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    make -j"$JOBS"
+    make install
 }
 
 get_utilmacros()
 {
     # Prevent hard-coded paths poisoning the cross-compilation linker
-    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+    find "$SYSROOT/usr/lib" -name "*.la" -delete
 
     cd "${CURR_DIR}/build"
 
@@ -5653,15 +5715,15 @@ get_utilmacros()
 
     # Compile and install
     echo -e "${GREEN}Compiling util-macros...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
-    sudo make DESTDIR="$SYSROOT" install
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    make -j"$JOBS"
+    make install
 }
 
 get_freetype()
 {
     # Prevent hard-coded paths poisoning the cross-compilation linker
-    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+    find "$SYSROOT/usr/lib" -name "*.la" -delete
 
     cd "${CURR_DIR}/build"
 
@@ -5692,7 +5754,7 @@ get_freetype()
     echo -e "${GREEN}Compiling freetype...${RESET}"
     ./configure \
         --host="$HOST" \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --disable-shared \
         --enable-static \
         --with-brotli=no \
@@ -5700,14 +5762,14 @@ get_freetype()
         AR="$AR" \
         RANLIB="$RANLIB" \
         STRIP="$STRIP"
-    make -j$(nproc)
-    sudo make DESTDIR="$SYSROOT" install
+    make -j"$JOBS"
+    make install
 }
 
 get_libexpat()
 {
     # Prevent hard-coded paths poisoning the cross-compilation linker
-    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+    find "$SYSROOT/usr/lib" -name "*.la" -delete
 
     cd "${CURR_DIR}/build"
 
@@ -5736,15 +5798,15 @@ get_libexpat()
 
     # Compile and install
     echo -e "${GREEN}Compiling libexpat...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static --without-examples --without-tests CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
-    sudo make DESTDIR="$SYSROOT" install
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static --without-examples --without-tests CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    make -j"$JOBS"
+    make install
 }
 
 get_fontconfig()
 {
     # Prevent hard-coded paths poisoning the cross-compilation linker
-    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+    find "$SYSROOT/usr/lib" -name "*.la" -delete
     
     cd "${CURR_DIR}/build"
 
@@ -5775,7 +5837,7 @@ get_fontconfig()
     echo -e "${GREEN}Compiling fontconfig...${RESET}"
     ./configure \
         --host="$HOST" \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --disable-shared \
         --enable-static \
         --disable-docs \
@@ -5784,14 +5846,14 @@ get_fontconfig()
         RANLIB="$RANLIB" \
         STRIP="$STRIP" \
         LIBS="-lz -lm"
-    make -j$(nproc)
-    sudo make DESTDIR="$SYSROOT" install
+    make -j"$JOBS"
+    make install
 }
 
 get_libxrender()
 {
     # Prevent hard-coded paths poisoning the cross-compilation linker
-    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+    find "$SYSROOT/usr/lib" -name "*.la" -delete
 
     cd "${CURR_DIR}/build"
 
@@ -5820,15 +5882,15 @@ get_libxrender()
 
     # Compile and install
     echo -e "${GREEN}Compiling libXrender...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
-    sudo make DESTDIR="$SYSROOT" install
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    make -j"$JOBS"
+    make install
 }
 
 get_libxft()
 {
     # Prevent hard-coded paths poisoning the cross-compilation linker
-    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+    find "$SYSROOT/usr/lib" -name "*.la" -delete
 
     cd "${CURR_DIR}/build"
 
@@ -5857,15 +5919,15 @@ get_libxft()
 
     # Compile and install
     echo -e "${GREEN}Compiling libXft...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
-    sudo make DESTDIR="$SYSROOT" install
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    make -j"$JOBS"
+    make install
 }
 
 get_libfontenc()
 {
     # Prevent hard-coded paths poisoning the cross-compilation linker
-    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+    find "$SYSROOT/usr/lib" -name "*.la" -delete
 
     cd "${CURR_DIR}/build"
 
@@ -5894,15 +5956,15 @@ get_libfontenc()
 
     # Compile and install
     echo -e "${GREEN}Compiling libfontenc...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
-    sudo make DESTDIR="$SYSROOT" install
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    make -j"$JOBS"
+    make install
 }
 
 get_libxfont()
 {
     # Prevent hard-coded paths poisoning the cross-compilation linker
-    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+    find "$SYSROOT/usr/lib" -name "*.la" -delete
 
     cd "${CURR_DIR}/build"
 
@@ -5931,15 +5993,23 @@ get_libxfont()
 
     # Compile and install
     echo -e "${GREEN}Compiling libXfont...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
-    make install DESTDIR="$SYSROOT"
+    ./configure \
+        --host="$HOST" \
+        --prefix="${SYSROOT}/usr" \
+        --disable-shared \
+        --enable-static \
+        CC="$CC_STATIC" \
+        AR="$AR" \
+        RANLIB="$RANLIB" \
+        STRIP="$STRIP"
+    make -j"$JOBS"
+    make install
 }
 
 get_fontutil()
 {
     # Prevent hard-coded paths poisoning the cross-compilation linker
-    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+    find "$SYSROOT/usr/lib" -name "*.la" -delete
 
     cd "${CURR_DIR}/build"
 
@@ -5968,15 +6038,15 @@ get_fontutil()
 
     # Compile and install
     echo -e "${GREEN}Compiling font-util...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
-    make install DESTDIR="$SYSROOT"
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    make -j"$JOBS"
+    make install
 }
 
 get_fonts()
 {
     # Prevent hard-coded paths poisoning the cross-compilation linker
-    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+    find "$SYSROOT/usr/lib" -name "*.la" -delete
 
     cd "${CURR_DIR}/build"
 
@@ -5998,24 +6068,27 @@ get_fonts()
         [ -f $ARC ] || wget $URI
         tar xf $ARC
         cd $FONT
-        ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static --with-fontdir=/usr/lib/X11/fonts/misc
-        make -j$(nproc)
-        make install DESTDIR="$SYSROOT"
+        ./configure \
+            --host="$HOST" \
+            --prefix=/usr \
+            --with-fontdir=/usr/lib/X11/fonts/misc
+        make -j"$JOBS"
+        make DESTDIR="${SYSROOT}" install
         cd ..
     done
 
     echo -e "${GREEN}Installing bitmap fonts...${RESET}"
-    sudo mkdir -p "$BIT_FONT_DIR"
+    mkdir -p "$BIT_FONT_DIR"
     for f in 6x13.pcf.gz 7x14.pcf.gz 8x13.pcf.gz 9x15.pcf.gz cursor.pcf.gz; do
         if [ -f "$SYSROOT/usr/lib/X11/fonts/misc/$f" ]; then
-            sudo cp "$SYSROOT"/usr/lib/X11/fonts/misc/$f "$BIT_FONT_DIR"
+            cp "$SYSROOT"/usr/lib/X11/fonts/misc/$f "$BIT_FONT_DIR"
         fi
     done
-    echo "fixed -misc-fixed-medium-r-normal--14-130-75-75-c-70-iso10646-1" | sudo tee "$BIT_FONT_DIR/fonts.alias" > /dev/null
+    echo "fixed -misc-fixed-medium-r-normal--14-130-75-75-c-70-iso10646-1" | tee "$BIT_FONT_DIR/fonts.alias" > /dev/null
     cd "${DESTDIR}"/usr/lib/X11/fonts/misc
     sudo rm -f fonts.dir fonts.scale
-    sudo mkfontscale .
-    sudo mkfontdir .
+    mkfontscale .
+    mkfontdir .
 
 
 
@@ -6026,26 +6099,26 @@ get_fonts()
     IBMPM_ARC="${IBMPM}.zip"
     IBMPM_URI="https://github.com/IBM/plex/releases/download/%40ibm%2Fplex-mono%401.1.0/${IBMPM_ARC}"
 
-    sudo mkdir -p "$OTF_FONT_DIR/$IBMPM"
+    mkdir -p "$OTF_FONT_DIR/$IBMPM"
     [ -f $IBMPM_ARC ] || wget $IBMPM_URI
     unzip -oj "$IBMPM_ARC" "ibm-plex-mono/fonts/complete/otf/IBMPlexMono-Regular.otf" -d "${CURR_DIR}"/build/plex
     unzip -oj "$IBMPM_ARC" "ibm-plex-mono/LICENSE.txt" -d "${CURR_DIR}"/build/plex
     cd plex
-    sudo cp IBMPlexMono-Regular.otf "$OTF_FONT_DIR"/ibm-plex-mono
+    cp IBMPlexMono-Regular.otf "$OTF_FONT_DIR"/ibm-plex-mono
 
 
 
-    sudo mkdir -p "${DESTDIR}"/var/cache/fontconfig
+    mkdir -p "${DESTDIR}"/var/cache/fontconfig
     sudo chmod 777 "${DESTDIR}"/var/cache/fontconfig
-    sudo mkdir -p "${DESTDIR}"/etc/fonts
+    mkdir -p "${DESTDIR}"/etc/fonts
     copy_sysfile "${CURR_DIR}"/sysfiles/fonts.conf "${DESTDIR}"/etc/fonts/fonts.conf
-    sudo fc-cache -r "${DESTDIR}/usr/share/fonts"
+    fc-cache -r "${DESTDIR}/usr/share/fonts"
 }
 
 get_libxaw()
 {
     # Prevent hard-coded paths poisoning the cross-compilation linker
-    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+    find "$SYSROOT/usr/lib" -name "*.la" -delete
 
     cd "${CURR_DIR}/build"
 
@@ -6074,15 +6147,15 @@ get_libxaw()
 
     # Compile and install
     echo -e "${GREEN}Compiling libXaw...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
-    make install DESTDIR="$SYSROOT"
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    make -j"$JOBS"
+    make install
 }
 
 get_libxkbfile()
 {
     # Prevent hard-coded paths poisoning the cross-compilation linker
-    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+    find "$SYSROOT/usr/lib" -name "*.la" -delete
 
     cd "${CURR_DIR}/build"
 
@@ -6111,15 +6184,15 @@ get_libxkbfile()
 
     # Compile and install
     echo -e "${GREEN}Compiling libxkbfile...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
-    make install DESTDIR="$SYSROOT"
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    make -j"$JOBS"
+    make install
 }
 
 get_xbitmaps()
 {
     # Prevent hard-coded paths poisoning the cross-compilation linker
-    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+    find "$SYSROOT/usr/lib" -name "*.la" -delete
 
     cd "${CURR_DIR}/build"
 
@@ -6148,19 +6221,19 @@ get_xbitmaps()
 
     # Compile and install
     echo -e "${GREEN}Compiling xbitmaps...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
-    make -j$(nproc)
-    make install DESTDIR="$SYSROOT"
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    make -j"$JOBS"
+    make install
 
     # Also install bitmaps to root filesystem
-    sudo mkdir -p "${DESTDIR}"/usr/include/X11/bitmaps
-    sudo cp "$SYSROOT"/usr/include/X11/bitmaps/* "${DESTDIR}"/usr/include/X11/bitmaps
+    mkdir -p "${DESTDIR}"/usr/include/X11/bitmaps
+    cp "$SYSROOT"/usr/include/X11/bitmaps/* "${DESTDIR}"/usr/include/X11/bitmaps
 }
 
 get_openmotif()
 {
     # Prevent hard-coded paths poisoning the cross-compilation linker
-    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+    find "$SYSROOT/usr/lib" -name "*.la" -delete
 
     cd "${CURR_DIR}/build"
 
@@ -6190,7 +6263,7 @@ get_openmotif()
     # Compile and install
     echo -e "${GREEN}Compiling OpenMotif...${RESET}"
     ./configure --host="$HOST" \
-        --prefix=/usr \
+        --prefix="${SYSROOT}/usr" \
         --with-x \
         --enable-static \
         --disable-shared \
@@ -6201,19 +6274,19 @@ get_openmotif()
         CFLAGS="--sysroot=${SYSROOT} -O2 -march=${ARCH} -I${SYSROOT}/usr/include -Wno-error -Wno-maybe-uninitialized -Wno-array-bounds -Wno-int-in-bool-context"
 
     # Patch for "undefined reference to 'main'"
-    sudo sed -i 's/^LEX =.*/LEX = flex/' tools/wml/Makefile
-    echo "int main(int argc, char **argv) { return 0; }" | sudo tee -a tools/wml/wmluiltok.l
+    sed -i 's/^LEX =.*/LEX = flex/' tools/wml/Makefile
+    echo "int main(int argc, char **argv) { return 0; }" | tee -a tools/wml/wmluiltok.l
 
     make -j"$(nproc)" -C lib
     make -j"$(nproc)" -C include 
-    make -C lib install DESTDIR="$SYSROOT"
-    make -C include install DESTDIR="$SYSROOT"
+    make -C lib install
+    make -C include install
 }
 
 get_xbiff()
 {
     # Prevent hard-coded paths poisoning the cross-compilation linker
-    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+    find "$SYSROOT/usr/lib" -name "*.la" -delete
 
     cd "${CURR_DIR}/build"
 
@@ -6242,9 +6315,9 @@ get_xbiff()
 
     # Compile and install
     echo -e "${GREEN}Compiling xbiff...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static --x-includes="$SYSROOT/usr/include" --x-libraries="$SYSROOT/usr/lib" CC="$CC_STATIC" LIBS="-lXaw7 -lXmu -lXpm -lXt -lSM -lICE -lXext -lX11 -lxcb -lXau -lXdmcp"
-    make -j$(nproc)
-    sudo make DESTDIR="${DESTDIR}" install
+    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static --x-includes="$SYSROOT/usr/include" --x-libraries="$SYSROOT/usr/lib" CC="$CC_STATIC" LIBS="-lXaw7 -lXmu -lXpm -lXt -lSM -lICE -lXext -lX11 -lxcb -lXau -lXdmcp"
+    make -j"$JOBS"
+    make DESTDIR="${DESTDIR}" install
 }
 
 prepare_x11()
@@ -6298,7 +6371,7 @@ get_tinyx()
     fi
 
     # Prevent hard-coded paths poisoning the cross-compilation linker
-    sudo find "$SYSROOT/usr/lib" -name "*.la" -delete
+    find "$SYSROOT/usr/lib" -name "*.la" -delete
 
     # Download source
     if [ -d tinyx ]; then
@@ -6334,7 +6407,7 @@ get_tinyx()
         CFLAGS="-O2 -march=i486 -mtune=i486 -fomit-frame-pointer -ffast-math -mno-fancy-math-387 -pipe --sysroot=$SYSROOT" \
         LDFLAGS="-static -L$SYSROOT/usr/lib --sysroot=$SYSROOT" \
         LIBS="$LINK_LIBS" \XSERVERCFLAGS_CFLAGS="-I$SYSROOT/usr/include -I$SYSROOT/usr/include/freetype2" XSERVERLIBS_LIBS="$LINK_LIBS"
-    make -j$(nproc)
+    make -j"$JOBS"
     make DESTDIR="$DESTDIR" install
 }
 
@@ -6367,7 +6440,7 @@ get_twm()
     export ACLOCAL_PATH="$SYSROOT/usr/share/aclocal"
 
     # Patch to rename "TWM Icon Manager" to "Tasklist"
-    #sudo sed -i 's/"%s Icon Manager"/"Tasklist"/' src/iconmgr.c
+    #sed -i 's/"%s Icon Manager"/"Tasklist"/' src/iconmgr.c
 
     # Compile and install
     echo -e "${GREEN}Compiling TWM...${RESET}"
@@ -6377,7 +6450,7 @@ get_twm()
         CFLAGS="-O2 -march=i486 -mtune=i486 -fomit-frame-pointer -ffast-math -pipe --sysroot=$SYSROOT" \
         CPPFLAGS="-I$SYSROOT/usr/include" \
         LDFLAGS="-static -L$SYSROOT/usr/lib --sysroot=$SYSROOT"
-    make -j$(nproc)
+    make -j"$JOBS"
     make DESTDIR="${DESTDIR}" install
 }
 
@@ -6405,8 +6478,8 @@ get_nedit()
         git checkout "$NEDIT_VER"
     fi
 
-    sudo sed -i 's|-I../Microline||g' makefiles/Makefile.linux
-    sudo sed -i 's|../Microline/XmL/libXmL.a||g' makefiles/Makefile.linux
+    sed -i 's|-I../Microline||g' makefiles/Makefile.linux
+    sed -i 's|../Microline/XmL/libXmL.a||g' makefiles/Makefile.linux
 
     export CFLAGS="--sysroot=${SYSROOT} -O2 -march=${ARCH} -I${SYSROOT}/usr/include"
     export LDFLAGS="--sysroot=${SYSROOT} -L${SYSROOT}/usr/lib"
@@ -6414,8 +6487,8 @@ get_nedit()
     # Compile and install
     echo -e "${GREEN}Compiling NEdit...${RESET}"
 
-    sudo cp makefiles/Makefile.linux util/Makefile
-    sudo cp makefiles/Makefile.linux source/Makefile
+    cp makefiles/Makefile.linux util/Makefile
+    cp makefiles/Makefile.linux source/Makefile
     cd util
     make CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}" CFLAGS="${CFLAGS}" LDFLAGS="${LDFLAGS}"
 
@@ -6452,7 +6525,7 @@ get_oneko()
     # Compile and install
     echo -e "${GREEN}Compiling oneko...${RESET}"
     "$CC_STATIC" -Wno-parentheses -std=c11 -pedantic -D_DEFAULT_SOURCE -I"$SYSROOT/usr/include" "${CURR_DIR}/build/oneko/oneko.c" -L"$SYSROOT/usr/lib" -lX11 -lxcb -lXau -lXdmcp -lXext -lc -lm -o oneko
-    sudo cp oneko "${DESTDIR}"/usr/bin/
+    cp oneko "${DESTDIR}"/usr/bin/
 }
 
 get_st()
@@ -6479,24 +6552,24 @@ get_st()
     fi
 
     # Patch to fix "select: function not implemented" error
-    sudo sed -i 's/pselect(\(.*\), NULL)/select(\1)/' st.c
-    sudo sed -i 's/pselect(\(.*\), NULL)/select(\1)/' x.c
+    sed -i 's/pselect(\(.*\), NULL)/select(\1)/' st.c
+    sed -i 's/pselect(\(.*\), NULL)/select(\1)/' x.c
     
     # Patch to fix st launching as "Untitled" in TWM
-    sudo sed -i '/CWColormap, &xw\.attrs);/a XTextProperty prop; char *name = "Terminal"; XStringListToTextProperty(&name, 1, &prop); XSetWMName(xw.dpy, xw.win, &prop); XSetWMIconName(xw.dpy, xw.win, &prop);' x.c
+    sed -i '/CWColormap, &xw\.attrs);/a XTextProperty prop; char *name = "Terminal"; XStringListToTextProperty(&name, 1, &prop); XSetWMName(xw.dpy, xw.win, &prop); XSetWMIconName(xw.dpy, xw.win, &prop);' x.c
 
     # Patch to make sure st uses our fixed font
-    sudo sed -i 's/^static char \*font.*/static char *font = "fixed:pixelsize=14";/' config.def.h
+    sed -i 's/^static char \*font.*/static char *font = "fixed:pixelsize=14";/' config.def.h
 
     # Patch to change default TERM value
-    sudo sed -i 's|st-256color|linux|g' config.def.h
+    sed -i 's|st-256color|linux|g' config.def.h
 
     # Patch to disable cursor blinking
     sed -i 's/^static unsigned int blinktimeout = .*/static unsigned int blinktimeout = 0;/' config.def.h
 
     # Compile and install
     echo -e "${GREEN}Compiling st...${RESET}"
-    make -j$(nproc) \
+    make -j"$JOBS" \
         CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP" \
         CFLAGS="-O2 -march=i486 -mtune=i486 -fomit-frame-pointer -ffast-math -pipe" \
         CPPFLAGS="-I$SYSROOT/usr/include -I$SYSROOT/usr/include/freetype2" \
@@ -6535,7 +6608,7 @@ get_xcalc()
     # Compile and install
     echo -e "${GREEN}Compiling xcalc...${RESET}"
     ./configure --host="$HOST" --prefix=/usr --x-includes="$SYSROOT/usr/include" --x-libraries="$SYSROOT/usr/lib" CC="$CC_STATIC" LIBS="-lXaw7 -lXmu -lXt -lXpm -lXft -lfontconfig -lfreetype -lpng -lexpat -lXrender -lXext -lxcb -lXau -lXdmcp -lSM -lICE -lX11 -lz"
-    make -j$(nproc)
+    make -j"$JOBS"
     make DESTDIR="$DESTDIR" install
 }
 
@@ -6569,7 +6642,7 @@ get_xclock()
     # Compile and install
     echo -e "${GREEN}Compiling xclock...${RESET}"
     ./configure --host="$HOST" --prefix=/usr --x-includes="$SYSROOT/usr/include" --x-libraries="$SYSROOT/usr/lib" CC="$CC_STATIC" LIBS="-lXaw7 -lXmu -lXt -lXpm -lXft -lfontconfig -lfreetype -lpng -lexpat -lXrender -lXext -lxcb -lXau -lXdmcp -lSM -lICE -lX11 -lz"
-    make -j$(nproc)
+    make -j"$JOBS"
     make DESTDIR="${DESTDIR}" install
 }
 
@@ -6603,7 +6676,7 @@ get_xedit()
     # Compile and install
     echo -e "${GREEN}Compiling xedit...${RESET}"
     ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static --x-includes="$SYSROOT/usr/include" --x-libraries="$SYSROOT/usr/lib" CC="$CC_STATIC" LIBS="-lXaw7 -lXmu -lXt -lXpm -lXext -lSM -lICE -lX11 -lxcb -lXau -lXdmcp"
-    make -j$(nproc)
+    make -j"$JOBS"
     make DESTDIR="${DESTDIR}" install
 }
 
@@ -6637,7 +6710,7 @@ get_xeyes()
     # Compile and install
     echo -e "${GREEN}Compiling xeyes...${RESET}"
     ./configure --host="$HOST" --prefix=/usr --x-includes="$SYSROOT/usr/include" --x-libraries="$SYSROOT/usr/lib" CC="$CC_STATIC" LIBS="-lXaw7 -lXmu -lXpm -lXt -lSM -lICE -lXext -lX11 -lxcb -lXau -lXdmcp"
-    make -j$(nproc)
+    make -j"$JOBS"
     make DESTDIR="${DESTDIR}" install
 }
 
@@ -6665,22 +6738,22 @@ get_xli()
     fi
 
     # Patch to remove JPEG support
-    sudo sed -i -e 's/jpeg\.c//g' -e 's/jpeg\.o//g' -e 's/rle\.c//g' -e 's/rle\.o//g' -e 's/rlelib\.c//g' -e 's/rlelib\.o//g' Makefile.std
-    sudo sed -i '/jpegIdent/d' imagetypes.c
-    sudo sed -i '/jpegLoad/d' imagetypes.c
-    sudo sed -i '/rleIdent/d' imagetypes.c
-    sudo sed -i '/rleLoad/d' imagetypes.c
+    sed -i -e 's/jpeg\.c//g' -e 's/jpeg\.o//g' -e 's/rle\.c//g' -e 's/rle\.o//g' -e 's/rlelib\.c//g' -e 's/rlelib\.o//g' Makefile.std
+    sed -i '/jpegIdent/d' imagetypes.c
+    sed -i '/jpegLoad/d' imagetypes.c
+    sed -i '/rleIdent/d' imagetypes.c
+    sed -i '/rleLoad/d' imagetypes.c
 
     # Patch to add missing string.h headers in various files
-    sudo sed -i '1i #include <string.h>' ddxli.c pcd.c png.c zoom.c
+    sed -i '1i #include <string.h>' ddxli.c pcd.c png.c zoom.c
 
     # Patch to disable gamma correction logic
-    sudo sed -i 's/make_gamma(/ \/\/ make_gamma(/g' bright.c send.c
-    sudo sed -i 's/gammacorrect(/ \/\/ gammacorrect(/g' xli.c
+    sed -i 's/make_gamma(/ \/\/ make_gamma(/g' bright.c send.c
+    sed -i 's/gammacorrect(/ \/\/ gammacorrect(/g' xli.c
 
     # Patch to add explicit linking of X11 components
-    sudo sed -i -e 's/^LIBS=.*/LIBS= -lX11 -lXext -lxcb -lXau -lXdmcp -lpng -lz -lm/' Makefile.std
-    sudo sed -i -e 's/^\t$(MAKE) all CC=/\t$(MAKE) CC=/' Makefile.std
+    sed -i -e 's/^LIBS=.*/LIBS= -lX11 -lXext -lxcb -lXau -lXdmcp -lpng -lz -lm/' Makefile.std
+    sed -i -e 's/^\t$(MAKE) all CC=/\t$(MAKE) CC=/' Makefile.std
   
     # Compile and install
     echo -e "${GREEN}Compiling xli...${RESET}"
@@ -6716,12 +6789,12 @@ get_xload()
     cd $XLOAD
 
     # Patch to avoid "setgid failed: function not implemented" error
-    sudo sed -i '/^#if !defined(_WIN32) || defined(__CYGWIN__)/,/^#endif/d' xload.c
+    sed -i '/^#if !defined(_WIN32) || defined(__CYGWIN__)/,/^#endif/d' xload.c
 
     # Compile and install
     echo -e "${GREEN}Compiling xload...${RESET}"
     ./configure --host="$HOST" --prefix=/usr --disable-shared --enable-static --x-includes="$SYSROOT/usr/include" --x-libraries="$SYSROOT/usr/lib" CC="$CC_STATIC" LIBS="-lXaw7 -lXmu -lXpm -lXt -lSM -lICE -lXext -lX11 -lxcb -lXau -lXdmcp"
-    make -j$(nproc)
+    make -j"$JOBS"
     make DESTDIR="${DESTDIR}" install
 }
 
@@ -6755,7 +6828,7 @@ get_xset()
     # Compile and install
     echo -e "${GREEN}Compiling xset...${RESET}"
     ./configure --host="$HOST" --prefix=/usr --x-includes="$SYSROOT/usr/include" --x-libraries="$SYSROOT/usr/lib" CC="$CC_STATIC" LIBS="-lxcb -lXau -lXdmcp"
-    make -j$(nproc)
+    make -j"$JOBS"
     make DESTDIR="${DESTDIR}" install
 }
 
@@ -6790,7 +6863,7 @@ get_console_fonts()
     [ -d $DIR ] || tar xf $ARC
     cd $DIR
 
-    sudo cp "${CURR_DIR}/configs/console-setup.Makefile" Makefile
+    cp "${CURR_DIR}/configs/console-setup.Makefile" Makefile
 
     echo -e "${GREEN}Compiling console-setup fonts...${RESET}"
     make
@@ -6808,7 +6881,7 @@ get_console_fonts()
         if [[ "$NEW" == "$BASE" ]] || [[ -e "${DESTDIR}/usr/share/consolefonts/${NEW}.psf" ]]; then
             continue
         fi
-        sudo mv "$PSF" "${DESTDIR}/usr/share/consolefonts/${NEW}.psf"
+        mv "$PSF" "${DESTDIR}/usr/share/consolefonts/${NEW}.psf"
     done
     cd "${CURR_DIR}"/build
 
@@ -6838,7 +6911,7 @@ get_console_fonts()
         cd "IBM3161-font"
     fi
     echo -e "${GREEN}Installing IBM3161-font...${RESET}"
-    sudo cp linux-console/IBM3161.psf "${DESTDIR}/usr/share/consolefonts/Uni-IBM3161-16.psf"
+    cp linux-console/IBM3161.psf "${DESTDIR}/usr/share/consolefonts/Uni-IBM3161-16.psf"
 
     # Download IBM3161-font's licence file
     [ -f LICENSE.txt ] || wget -q https://unifoundry.com/LICENSE.txt -O LICENSE.txt
@@ -6855,8 +6928,8 @@ get_console_fonts()
         cd "Inconsolata-psf"
     fi
     echo -e "${GREEN}Installing Inconsolata-psf...${RESET}"
-    sudo cp Inconsolata-16b.psf "${DESTDIR}/usr/share/consolefonts/CP1252-InconsolataBold-16.psf"
-    sudo cp Inconsolata-16r.psf "${DESTDIR}/usr/share/consolefonts/CP1252-Inconsolata-16.psf"
+    cp Inconsolata-16b.psf "${DESTDIR}/usr/share/consolefonts/CP1252-InconsolataBold-16.psf"
+    cp Inconsolata-16r.psf "${DESTDIR}/usr/share/consolefonts/CP1252-Inconsolata-16.psf"
 
     cd "${DESTDIR}"
 }
@@ -6957,13 +7030,13 @@ get_keymaps()
         -e 's/\bquotesinglbase\b/VoidSymbol/g'
 
     # Copy keymaps
-    sudo mkdir -p "${DESTDIR}"/usr/share/keymaps/
+    mkdir -p "${DESTDIR}"/usr/share/keymaps/
     for ((i=0; i<${#KEYMAPS[@]}; i+=2)); do
         DST="${DESTDIR}/usr/share/keymaps/${KEYMAPS[i+1]}.kmap.bin"
         if [ ! -f "$DST" ]; then
             echo -e "${GREEN}Copying keymap ${KEYMAPS[i+1]}...${RESET}"
             SRC="${CURR_DIR}/build/${DIR}/keymaps/i386/${KEYMAPS[i]}.kmap"
-            sudo "${CURR_DIR}/build/kbd/src/loadkeys" -b "$SRC" | sudo tee "$DST" > /dev/null
+            "${CURR_DIR}/build/kbd/src/loadkeys" -b "$SRC" | tee "$DST" > /dev/null
         else
             echo -e "${LIGHT_RED}${KEYMAPS[i+1]} keymap already installed, skipping...${RESET}"
         fi
@@ -7036,6 +7109,7 @@ get_prog_git()
     export PKG_CONFIG_LIBDIR="${SYSROOT}/usr/lib/pkgconfig:${SYSROOT}/lib/pkgconfig"
     export PKG_CONFIG_PATH=""
     export PKG_CONFIG_SYSROOT_DIR="${SYSROOT}"
+    export CONFIG_SHELL="/bin/sh"
 
     # Compile program
     echo -e "${GREEN}Compiling $NAME...${RESET}"
@@ -7045,7 +7119,14 @@ get_prog_git()
     if $AUTORECONF; then
         autoreconf -fi
     fi
+    if [ -f ./bootstrap.sh ]; then
+        ./bootstrap.sh
+    fi
     if [ -x ./configure ] || [ -f ./configure ]; then
+        CC="${CC_STATIC}" \
+        CFLAGS="${CFLAGS_NOPIE} ${EXTRA_CFLAGS} -ffunction-sections -fdata-sections" \
+        LDFLAGS="-static -Wl,--gc-sections -s -L${PREFIX}/lib ${EXTRA_LDFLAGS}" \
+        LIBS="-Wl,--start-group ${EXTRA_LIBS}" \
         ./configure \
             --host="${HOST}" \
             "${CONFIGURE_PREFIX}" \
@@ -7060,21 +7141,15 @@ get_prog_git()
             CFLAGS="${CFLAGS_NOPIE} ${EXTRA_CFLAGS} -ffunction-sections -fdata-sections" \
             CPPFLAGS="-I${SYSROOT}/include -I${PREFIX}/include -I${PREFIX}/include/ncursesw -DHAVE_FORKPTY" \
             LDFLAGS="-static -Wl,--gc-sections -s -L${PREFIX}/lib ${EXTRA_LDFLAGS}" \
-            LIBS="${EXTRA_LIBS}" \
+            LIBS="-Wl,--start-group ${EXTRA_LIBS}" \
             LIBEVENT_CFLAGS="${CFLAGS_NOPIE}" \
             LIBEVENT_LIBS="-L${PREFIX}/lib -levent" \
-            CURSES_CFLAGS="${CFLAGS_NOPIE}" \
-            CURSES_LIBS="-L${PREFIX}/lib -lncursesw"
+            CURSES_CFLAGS="${CFLAGS_NOPIE} -I${PREFIX}/include" \
+            CURSES_LIBS="-L${PREFIX}/lib -lncursesw -Wl,--end-group"
     fi
 
-    # Fix glib/libtool pulling shared libatomic instead of static
-    LIBATOMIC_A="$($CC -print-file-name=libatomic.a)"
-    LIBATOMIC_LA="${SYSROOT}/lib/libatomic.la"
-    find . -name '*.la' -exec sed -i  -e "s|-latomic|${LIBATOMIC_A}|g" -e "s|${LIBATOMIC_LA}|${LIBATOMIC_A}|g" {} +
-    find . -name 'Makefile' -exec sed -i -e "s|-latomic|${LIBATOMIC_A}|g" {} +
-
-    make -j$(nproc)
-    sudo make DESTDIR="$DESTDIR" install
+    make -j"$JOBS"
+    make DESTDIR="$DESTDIR" INSTALL_OWNER= install
 }
 
 # Download a program from a tarball source and compile with configure
@@ -7182,8 +7257,8 @@ get_prog_tar()
             CURSES_CFLAGS="${CFLAGS_NOPIE} -I${PREFIX}/include" \
             CURSES_LIBS="-L${PREFIX}/lib -lncursesw -Wl,--end-group"
     fi
-    make -j$(nproc)
-    sudo make DESTDIR="$DESTDIR" install
+    make -j"$JOBS"
+    make DESTDIR="$DESTDIR" INSTALL_OWNER= install
 }
 
 # Creates a shell script that takes the place of the given binary and calls for
@@ -7196,9 +7271,9 @@ make_swap_wrap()
 
         if [ -f "$BIN_FULL_PATH" ] && [ ! -f "$BIN_FULL_PATH.real" ]; then
             echo -e "${GREEN}Configure swap wrap for $BIN_FULL_PATH...${RESET}"
-            sudo mv "$BIN_FULL_PATH" "$BIN_FULL_PATH.real"
-            sudo cp "$CURR_DIR/sysfiles/swap_wrap_template" "$BIN_FULL_PATH"
-            sudo sed -i "s|@BIN_FULL_PATH@|${BIN_REAL_PATH}.real|g" "$BIN_FULL_PATH"
+            mv "$BIN_FULL_PATH" "$BIN_FULL_PATH.real"
+            cp "$CURR_DIR/sysfiles/swap_wrap_template" "$BIN_FULL_PATH"
+            sed -i "s|@BIN_FULL_PATH@|${BIN_REAL_PATH}.real|g" "$BIN_FULL_PATH"
             sudo chmod 755 "$BIN_FULL_PATH"
         fi
     fi
@@ -7272,27 +7347,27 @@ get_bind9_dnsutils()
         LDFLAGS="-L${SYSROOT}/usr/lib"
 
     echo -e "${GREEN}Compiling lib prerequisites...${RESET}"
-    make -j$(nproc) -C lib
+    make -j"$JOBS" -C lib
 
     echo -e "${GREEN}Compiling arpaname and mdig...${RESET}"
-    make -j$(nproc) -C bin/tools arpaname mdig LDFLAGS="-all-static -Wl,-u,isc__initialize -L${SYSROOT}/usr/lib -L${SYSROOT}/lib"
-    sudo install -Dm755 bin/tools/arpaname "${DESTDIR}/usr/bin/arpaname"
-    sudo install -Dm755 bin/tools/mdig "${DESTDIR}/usr/bin/mdig"
+    make -j"$JOBS" -C bin/tools arpaname mdig LDFLAGS="${LDFLAGS_COMMON} -Wl,-u,isc__initialize -L${SYSROOT}/usr/lib"
+    install -Dm755 bin/tools/arpaname "${DESTDIR}/usr/bin/arpaname"
+    install -Dm755 bin/tools/mdig "${DESTDIR}/usr/bin/mdig"
 
     echo -e "${GREEN}Compiling delv...${RESET}"
     make bind.keys.h
-    make -j$(nproc) -C bin/delv LDFLAGS="-all-static -Wl,-u,isc__initialize -L${SYSROOT}/usr/lib -L${SYSROOT}/lib"
-    sudo install -Dm755 bin/delv/delv "${DESTDIR}/usr/bin/delv"
+    make -j"$JOBS" -C bin/delv LDFLAGS="${LDFLAGS_COMMON} -Wl,-u,isc__initialize -L${SYSROOT}/usr/lib"
+    install -Dm755 bin/delv/delv "${DESTDIR}/usr/bin/delv"
 
     echo -e "${GREEN}Compiling dig, host and nslookup...${RESET}"
-    make -j$(nproc) -C bin/dig dig host nslookup LDFLAGS="-all-static -Wl,-u,isc__initialize -L${SYSROOT}/usr/lib -L${SYSROOT}/lib"
+    make -j"$JOBS" -C bin/dig dig host nslookup LDFLAGS="${LDFLAGS_COMMON} -Wl,-u,isc__initialize -L${SYSROOT}/usr/lib"
     for bin in dig host nslookup; do
-        sudo install -Dm755 bin/dig/$bin "${DESTDIR}/usr/bin/$bin"
+        install -Dm755 bin/dig/$bin "${DESTDIR}/usr/bin/$bin"
     done
 
     echo -e "${GREEN}Compiling nsupdate...${RESET}"
-    make -j$(nproc) -C bin/nsupdate LDFLAGS="-all-static -Wl,-u,isc__initialize -L${SYSROOT}/usr/lib -L${SYSROOT}/lib"
-    sudo install -Dm755 bin/nsupdate/nsupdate "${DESTDIR}/usr/bin/nsupdate"
+    make -j"$JOBS" -C bin/nsupdate LDFLAGS="${LDFLAGS_COMMON} -Wl,-u,isc__initialize -L${SYSROOT}/usr/lib"
+    install -Dm755 bin/nsupdate/nsupdate "${DESTDIR}/usr/bin/nsupdate"
 }
 
 # Download and compile Ctris
@@ -7327,7 +7402,7 @@ get_ctris()
 
     # Compile and install
     echo -e "${GREEN}Compiling CTris...${RESET}"
-    sudo make install DESTDIR="${DESTDIR}/usr/bin"
+    make install DESTDIR="${DESTDIR}/usr/bin"
 }
 
 # Download and compile Dropbear
@@ -7389,10 +7464,10 @@ get_dropbear()
         CFLAGS="${CFLAGS_COMMON}" \
         LDFLAGS="-static"
     make PROGRAMS="${DB_PROGRAMS}" -j$(nproc)
-    sudo make DESTDIR="$DESTDIR" install PROGRAMS="${DB_PROGRAMS}"
-    sudo ln -sf dbclient "${DESTDIR}/usr/bin/ssh"
+    make DESTDIR="$DESTDIR" install PROGRAMS="${DB_PROGRAMS}"
+    ln -sf dbclient "${DESTDIR}/usr/bin/ssh"
     if $ENABLE_MULTIUSER_REAL; then
-        sudo ln -sf dropbear "${DESTDIR}/usr/sbin/sshd"
+        ln -sf dropbear "${DESTDIR}/usr/sbin/sshd"
     fi
 }
 
@@ -7476,8 +7551,8 @@ get_file()
         RANLIB="${RANLIB}" \
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static"
-    make -j$(nproc)
-    sudo make DESTDIR="$DESTDIR" install
+    make -j"$JOBS"
+    make DESTDIR="$DESTDIR" install
 }
 
 # Download and extract GCC + musl
@@ -7510,9 +7585,9 @@ get_gcc()
         for LIB in "${DESTDIR}"/opt/${ARCH}-linux-musl-native/lib/*.so*; do
             [ -e "$LIB" ] || continue
             TARGET="${LIB#"$DESTDIR"}"
-            sudo ln -sf "$TARGET" "${DESTDIR}/lib/"
+            ln -sf "$TARGET" "${DESTDIR}/lib/"
         done
-        sudo ln -sf /opt/i486-linux-musl-native/lib/libc.so "${DESTDIR}/lib/ld-musl-i386.so.1"
+        ln -sf /opt/i486-linux-musl-native/lib/libc.so "${DESTDIR}/lib/ld-musl-i386.so.1"
     else
         echo -e "${LIGHT_RED}${ARCH}-linux-musl-native already extracted, skipping...${RESET}"
     fi
@@ -7521,33 +7596,33 @@ get_gcc()
 
     if $INCLUDE_LUA; then
         echo -e "${GREEN}Installing Lua headers and library...${RESET}"
-        sudo install -D -m 644 "${CURR_DIR}/build/lua/liblua.a" "$GCC_SYSROOT/lib/liblua.a"
-        sudo install -D -m 644 "${CURR_DIR}/build/lua/lua.h" "$GCC_SYSROOT/include/lua.h"
-        sudo install -D -m 644 "${CURR_DIR}/build/lua/luaconf.h" "$GCC_SYSROOT/include/luaconf.h"
-        sudo install -D -m 644 "${CURR_DIR}/build/lua/lualib.h" "$GCC_SYSROOT/include/lualib.h"
-        sudo install -D -m 644 "${CURR_DIR}/build/lua/lauxlib.h" "$GCC_SYSROOT/include/lauxlib.h"
+        install -D -m 644 "${CURR_DIR}/build/lua/liblua.a" "$GCC_SYSROOT/lib/liblua.a"
+        install -D -m 644 "${CURR_DIR}/build/lua/lua.h" "$GCC_SYSROOT/include/lua.h"
+        install -D -m 644 "${CURR_DIR}/build/lua/luaconf.h" "$GCC_SYSROOT/include/luaconf.h"
+        install -D -m 644 "${CURR_DIR}/build/lua/lualib.h" "$GCC_SYSROOT/include/lualib.h"
+        install -D -m 644 "${CURR_DIR}/build/lua/lauxlib.h" "$GCC_SYSROOT/include/lauxlib.h"
     fi
 
     if $NEED_CURL; then
         echo -e "${GREEN}Installing libcurl and related headers...${RESET}"
-        sudo mkdir -p "$GCC_SYSROOT/include/curl"
-        sudo cp "$SYSROOT/include/curl/"*.h "$GCC_SYSROOT/include/curl/"
-        sudo install -D -m 644 "$SYSROOT/lib/libcurl.a" "$GCC_SYSROOT/lib/libcurl.a"
+        mkdir -p "$GCC_SYSROOT/include/curl"
+        cp "$SYSROOT/include/curl/"*.h "$GCC_SYSROOT/include/curl/"
+        install -D -m 644 "$SYSROOT/lib/libcurl.a" "$GCC_SYSROOT/lib/libcurl.a"
     fi
 
     if $NEED_OPENSSL; then
         echo -e "${GREEN}Installing OpenSSL and related headers...${RESET}"
-        sudo mkdir -p "$GCC_SYSROOT/include/openssl"
-        sudo cp "$SYSROOT/include/openssl/"*.h "$GCC_SYSROOT/include/openssl/"
-        sudo install -D -m 644 "$SYSROOT/lib/libssl.a" "$GCC_SYSROOT/lib/libssl.a"
-        sudo install -D -m 644 "$SYSROOT/lib/libcrypto.a" "$GCC_SYSROOT/lib/libcrypto.a"
+        mkdir -p "$GCC_SYSROOT/include/openssl"
+        cp "$SYSROOT/include/openssl/"*.h "$GCC_SYSROOT/include/openssl/"
+        install -D -m 644 "$SYSROOT/lib/libssl.a" "$GCC_SYSROOT/lib/libssl.a"
+        install -D -m 644 "$SYSROOT/lib/libcrypto.a" "$GCC_SYSROOT/lib/libcrypto.a"
     fi
 
     if $NEED_ZLIB; then
         echo -e "${GREEN}Installing zlib and related headers...${RESET}"
-        sudo install -D -m 644 "$SYSROOT/usr/include/zlib.h" "$GCC_SYSROOT/include/zlib.h"
-        sudo install -D -m 644 "$SYSROOT/usr/include/zconf.h" "$GCC_SYSROOT/include/zconf.h"
-        sudo install -D -m 644 "$SYSROOT/usr/lib/libz.a" "$GCC_SYSROOT/lib/libz.a"
+        install -D -m 644 "$SYSROOT/usr/include/zlib.h" "$GCC_SYSROOT/include/zlib.h"
+        install -D -m 644 "$SYSROOT/usr/include/zconf.h" "$GCC_SYSROOT/include/zconf.h"
+        install -D -m 644 "$SYSROOT/usr/lib/libz.a" "$GCC_SYSROOT/lib/libz.a"
     fi
 }
 
@@ -7585,10 +7660,10 @@ get_git()
         RANLIB="${RANLIB}" \
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${PREFIX}/lib"
-    sudo cp "$CONFIGS_DIR"/git.config.mak config.mak
-    make NO_RUST=1 -j$(nproc)
+    cp "$CONFIGS_DIR"/git.config.mak config.mak
+    make NO_RUST=1 -j"$JOBS"
     if $BUILD_PKGS; then
-        sudo make NO_RUST=1 DESTDIR="$STAGE_DIR" install
+        make NO_RUST=1 DESTDIR="$STAGE_DIR" install
         make_pkg \
             "Git" \
             "$GIT_SRC" \
@@ -7598,7 +7673,7 @@ get_git()
             "$GIT_VER_DATE" \
             "TODO"
     else
-        sudo make NO_RUST=1 DESTDIR="$DESTDIR" install
+        make NO_RUST=1 DESTDIR="$DESTDIR" install
     fi
 }
 
@@ -7637,8 +7712,8 @@ get_htop()
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${PREFIX}/lib" \
         LIBS="-lgpm"
-    make -j$(nproc)
-    sudo cp htop "${DESTDIR}"/usr/bin
+    make -j"$JOBS"
+    cp htop "${DESTDIR}"/usr/bin
 }
 
 # Download and compile hwinfo
@@ -7677,8 +7752,8 @@ get_hwinfo()
         ENABLE_SYSFS=1 \
         ENABLE_UDEV=1 \
         ENABLE_X86EMU=1
-        -j$(nproc)
-    sudo make DESTDIR="$DESTDIR" install
+        -j"$JOBS"
+    make DESTDIR="$DESTDIR" install
 }
 
 # Download and compile JOE
@@ -7716,8 +7791,8 @@ get_joe()
         --prefix=/usr \
         --sysconfdir=/etc \
         CC="${CC_STATIC}"
-    make -j$(nproc)
-    sudo make DESTDIR="$DESTDIR" install
+    make -j"$JOBS"
+    make DESTDIR="$DESTDIR" install
 }
 
 # Download and compile lapifetch
@@ -7750,8 +7825,8 @@ get_lapifetch()
 
     # Compile and install
     echo -e "${GREEN}Compiling lapifetch...${RESET}"
-    make -j$(nproc) CXX="${CXX_STATIC}"
-    sudo make DESTDIR="$DESTDIR" install
+    make -j"$JOBS" CXX="${CXX_STATIC}"
+    make DESTDIR="$DESTDIR" install
 }
 
 # Download and copy lsb-release-minimal
@@ -7779,7 +7854,7 @@ get_lsb_release_minimal()
 
     # Compile and install
     echo -e "${GREEN}Copying lsb-release-minimal...${RESET}"
-    sudo cp lsb_release "${DESTDIR}"/usr/bin/lsb_release
+    cp lsb_release "${DESTDIR}"/usr/bin/lsb_release
     sudo chmod +x "${DESTDIR}"/usr/bin/lsb_release
 }
 
@@ -7809,7 +7884,7 @@ get_lua()
 
     # Compile and install
     echo -e "${GREEN}Compiling Lua...${RESET}"
-    make -j$(nproc) CC="${CC_STATIC}" AR="${AR} rcu" RANLIB="${RANLIB}" STRIP="${STRIP}"
+    make -j"$JOBS" CC="${CC_STATIC}" AR="${AR} rcu" RANLIB="${RANLIB}" STRIP="${STRIP}"
     install -m755 lua "${DESTDIR}/usr/bin/lua"
 }
 
@@ -7849,7 +7924,7 @@ get_memtester()
 
     # Compile program
     echo -e "${GREEN}Compiling memtester...${RESET}"
-    sudo make install
+    make install
 }
 
 # Download and compile Mg
@@ -7877,17 +7952,17 @@ get_mg()
     fi
 
     # Patch to prevent "~" backup files from spawning after saving
-    sudo sed -i 's/int	  	 nobackups = 0;/int	  	 nobackups = 1;/g' src/main.c
+    sed -i 's/int	  	 nobackups = 0;/int	  	 nobackups = 1;/g' src/main.c
 
     # Remove tutorial hint as we will delete the docs later to save space
-    sudo sed -i 's/| C-h t  tutorial//g' src/help.c
+    sed -i 's/| C-h t  tutorial//g' src/help.c
 
     # Compile and install
     echo -e "${GREEN}Compiling Mg...${RESET}"
     ./autogen.sh
     ./configure --host="${HOST}" --prefix=/usr CC="${CC}" AR="${AR}" RANLIB="${RANLIB}" CFLAGS="${CFLAGS_NOPIE}"
-    make -j$(nproc)
-    sudo make DESTDIR="$DESTDIR" install
+    make -j"$JOBS"
+    make DESTDIR="$DESTDIR" install
 
     # Symlink emacs to mg if GNU Emacs isn't included
     if [ "$INCLUDE_EMACS" = false ]; then
@@ -7950,8 +8025,8 @@ get_micro()
         -gccgoflags="-m32 -march=i486 -mtune=i486 -static -fno-if-conversion -fno-if-conversion2 -fno-tree-loop-if-convert" \
         -o micro \
         ./cmd/micro
-    sudo install -d "${DESTDIR}/usr/bin"
-    sudo install -m755 micro "${DESTDIR}/usr/bin/micro"
+    install -d "${DESTDIR}/usr/bin"
+    install -m755 micro "${DESTDIR}/usr/bin/micro"
     unset GOOS GOARCH CGO_ENABLED CC CGO_CFLAGS CGO_LDFLAGS
 }
 
@@ -8004,11 +8079,11 @@ get_micropython()
         MICROPY_PY_BTREE=0 \
         VARIANT=standard
     install -d "${DESTDIR}/usr/bin"
-    sudo install -m 755 build-standard/micropython "${DESTDIR}/usr/bin/micropython"
+    install -m 755 build-standard/micropython "${DESTDIR}/usr/bin/micropython"
 
     # Symlink python and python3 to mg
-    sudo ln -sf micropython "${DESTDIR}/usr/bin/python"
-    sudo ln -sf micropython "${DESTDIR}/usr/bin/python3"
+    ln -sf micropython "${DESTDIR}/usr/bin/python"
+    ln -sf micropython "${DESTDIR}/usr/bin/python3"
 }
 
 # Download and compile mpg321
@@ -8070,8 +8145,8 @@ get_mpg321()
 
     sed -i "s|-L/usr/lib -lao|-L${SYSROOT}/usr/lib -lao|g" Makefile
 
-    make -j$(nproc)
-    sudo make DESTDIR="$DESTDIR" install
+    make -j"$JOBS"
+    make DESTDIR="$DESTDIR" install
 }
 
 # Download and compile nano
@@ -8129,8 +8204,8 @@ get_nano()
     grep -rl "\-ltinfo" . | xargs -r sed -i 's/-ltinfo//g' 2>/dev/null || true
     grep -rl "TINFO_LIBS" . | xargs -r sed -i 's/TINFO_LIBS.*/TINFO_LIBS = /' 2>/dev/null || true
 
-    make TINFO_LIBS="" LIBS="-lncursesw -lgpm" -j$(nproc)
-    sudo make DESTDIR="$DESTDIR" install
+    make TINFO_LIBS="" LIBS="-lncursesw -lgpm" -j"$JOBS"
+    make DESTDIR="$DESTDIR" install
     nm "${DESTDIR}/usr/bin/nano" 2>/dev/null | grep -i gpm
 }
 
@@ -8166,9 +8241,9 @@ get_nasm()
         CC="${CC_STATIC}" \
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-L${PREFIX}/lib -static"
-    make -j$(nproc)
-    sudo install -D -m 755 nasm "${DESTDIR}/usr/bin/nasm"
-    sudo install -D -m 755 ndisasm "${DESTDIR}/usr/bin/ndisasm"
+    make -j"$JOBS"
+    install -D -m 755 nasm "${DESTDIR}/usr/bin/nasm"
+    install -D -m 755 ndisasm "${DESTDIR}/usr/bin/ndisasm"
 }
 
 # Download and compile nbsdgames
@@ -8201,7 +8276,7 @@ get_nbsdgames()
 
     # Compile and install
     echo -e "${GREEN}Compiling nbsdgames...${RESET}"
-    sudo make install \
+    make install \
         CC="${CC_STATIC}" \
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="-static -L${PREFIX}/lib" \
@@ -8275,8 +8350,8 @@ get_perl()
         -Uuseithreads \
         --disable-mod=re \
         -Dnoextensions="threads threads/shared Socket IPC/SysV Sys/Syslog Time/HiRes I18N/Langinfo Digest/MD5 MIME/Base64 Unicode/Normalize Compress/Raw/Zlib Compress/Raw/Bzip2 XS/APItest XS/Typemap"
-    make -j$(nproc)
-    sudo make DESTDIR="$DESTDIR" install
+    make -j"$JOBS"
+    make DESTDIR="$DESTDIR" install
 
     # Make sure we have all the .pm files we need
     PERL_LIBDIR="${DESTDIR}/usr/lib/perl5/${PERL_VER}"
@@ -8287,8 +8362,8 @@ get_perl()
         rel="$(echo "$PKG" | sed 's/::/\//g').pm"
         DEST="${PERL_LIBDIR}/${rel}"
         if [ ! -f "$DEST" ]; then
-            sudo mkdir -p "$(dirname "$DEST")"
-            sudo cp "$PM_SRC" "$DEST"
+            mkdir -p "$(dirname "$DEST")"
+            cp "$PM_SRC" "$DEST"
             echo "Copying: $rel"
         fi
     done
@@ -8336,8 +8411,8 @@ get_sc_im()
             -DXLSX -DODS -DXLSX_EXPORT" \
         LDLIBS="-lxlsxwriter -lxml2 -lzip -lz -lm -lncursesw -ltinfo -lpthread -lgpm" \
         LDFLAGS="-static -L${PREFIX}/lib" \
-        -j$(nproc)
-    sudo make -C src DESTDIR="${DESTDIR}" prefix=/usr install
+        -j"$JOBS"
+    make -C src DESTDIR="${DESTDIR}" prefix=/usr install
 }
 
 # Download and compile Tiny C Compiler
@@ -8373,8 +8448,8 @@ get_tcc()
     # Compile and install
     echo -e "${GREEN}Compiling Tiny C Compiler...${RESET}"
     ./configure --cpu=i386 --cc="$CC_STATIC" --enable-cross --enable-static
-    sudo make cross-i386 -j$(nproc)
-    sudo make DESTDIR="$DESTDIR" install
+    make cross-i386 -j"$JOBS"
+    make DESTDIR="$DESTDIR" install
 }
 
 # Download and compile Tilde
@@ -8453,8 +8528,8 @@ get_tilde()
         printf '\t%s $(CFLAGS) -c -o $@ $<\n' "${CC}"
     } >> Makefile
 
-    make -j$(nproc)
-    sudo make DESTDIR="${DESTDIR}" install
+    make -j"$JOBS"
+    make DESTDIR="${DESTDIR}" install
 }
 
 # Download and compile tn5250
@@ -8482,7 +8557,6 @@ get_tn5250()
     fi
 
     INTER_HEADERS="$($CC -print-file-name=include)"
-    LIBATOMIC_A="$($CC -print-file-name=libatomic.a)"
 
     export CC="$CC"
     export CFLAGS="${CFLAGS_NOPIE} -nostdinc -I${INTER_HEADERS} -I${PREFIX}/${ARCH}-linux-musl/include"
@@ -8499,9 +8573,9 @@ get_tn5250()
         --enable-static \
         AR="${AR}" \
         RANLIB="${RANLIB}" \
-        LIBS="-lssl -lcrypto -lncursesw ${LIBATOMIC_A} -lpthread -ldl -lgpm"
-    make -j"$(nproc)"
-    sudo make DESTDIR="${DESTDIR}" install
+        LIBS="-lssl -lcrypto -lncursesw -latomic -lpthread -ldl -lgpm"
+    make -j"$(nproc)" LDFLAGS="${LDFLAGS_COMMON}"
+    make DESTDIR="${DESTDIR}" install
 }
 
 # Download and compile tnftp
@@ -8547,8 +8621,8 @@ get_tnftp()
         STRIP="${STRIP}" \
         CFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS=""
-    make -j$(nproc)
-    sudo make DESTDIR="$DESTDIR" install
+    make -j"$JOBS"
+    make DESTDIR="$DESTDIR" install
     ln -sf tnftp "${DESTDIR}/usr/bin/ftp"
 }
 
@@ -8666,7 +8740,7 @@ get_tshark()
         -DENABLE_SINSP=OFF \
         -DENABLE_CPUINFO=OFF \
         -DENABLE_PLUGINS=OFF
-    cmake --build build -j$(nproc)
+    cmake --build build -j"$JOBS"
     cmake --install build
 }
 
@@ -8731,8 +8805,8 @@ get_vim()
         CFLAGS="${CFLAGS_NOPIE}" \
         CPPFLAGS="${CFLAGS_NOPIE} -DHAVE_FORKPTY" \
         LDFLAGS="-static -Wl,--gc-sections -s -L${PREFIX}/lib"
-    make -j$(nproc)
-    sudo make DESTDIR="$DESTDIR" install
+    make -j"$JOBS"
+    make DESTDIR="$DESTDIR" install
 
     make_swap_wrap "${DESTDIR}/usr/bin/vim"
 }
@@ -8767,7 +8841,7 @@ get_shorkcommon_sh()
 
     # Copy
     echo -e "${GREEN}Copying shorkcommon-sh...${RESET}"
-    sudo cp shorkcommon.sh "${DESTDIR}"/usr/bin/shorkcommon.sh
+    cp shorkcommon.sh "${DESTDIR}"/usr/bin/shorkcommon.sh
 }
 
 # Download and compile shorkbin
@@ -8795,8 +8869,8 @@ get_shorkbin()
     # Compile and install
     echo -e "${GREEN}Compiling shorkbin...${RESET}"
     make clean
-    make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
-    sudo make DESTDIR="$DESTDIR" install
+    make -j"$JOBS" CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+    make DESTDIR="$DESTDIR" install
 }
 
 # Download and compile shorkdir
@@ -8823,8 +8897,8 @@ get_shorkdir()
 
     # Compile and install
     echo -e "${GREEN}Compiling shorkdir...${RESET}"
-    make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
-    sudo make DESTDIR="$DESTDIR" install
+    make -j"$JOBS" CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+    make DESTDIR="$DESTDIR" install
 }
 
 # Download and compile shorkfetch
@@ -8887,14 +8961,14 @@ get_shorkfetch()
     echo -e "${GREEN}Compiling shorkfetch...${RESET}"
     make clean
     if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
-        make -j$(nproc) \
+        make -j"$JOBS" \
             X86_ONLY=1 \
             CC="${CC_STATIC}" \
             AR="${AR}" \
             RANLIB="${RANLIB}" \
             STRIP="${STRIP}"
     elif [ "$ID" == "shork-diskette" ]; then
-        make -j$(nproc) \
+        make -j"$JOBS" \
             X86_ONLY=1 \
             SHORK_DISKETTE=1 \
             NO_STR_CLEANING=1 \
@@ -8903,7 +8977,7 @@ get_shorkfetch()
             RANLIB="${RANLIB}" \
             STRIP="${STRIP}"
     fi
-    sudo make DESTDIR="$DESTDIR" install
+    make DESTDIR="$DESTDIR" install
 }
 
 # Download and compile shorkhelp
@@ -8932,11 +9006,11 @@ get_shorkhelp()
     echo -e "${GREEN}Compiling shorkhelp...${RESET}"
     make clean
     if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
-        make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+        make -j"$JOBS" CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
     elif [ "$ID" == "shork-diskette" ]; then
-        make EMBEDDED=1 -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+        make EMBEDDED=1 -j"$JOBS" CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
     fi
-    sudo make DESTDIR="$DESTDIR" install
+    make DESTDIR="$DESTDIR" install
 }
 
 # Download and copy shorkoff
@@ -8963,7 +9037,7 @@ get_shorkoff()
 
     # Copy
     echo -e "${GREEN}Copying shorkoff...${RESET}"
-    sudo cp shorkoff.486 "${DESTDIR}"/sbin/shorkoff
+    cp shorkoff.486 "${DESTDIR}"/sbin/shorkoff
     sudo chmod +x "${DESTDIR}"/sbin/shorkoff
 }
 
@@ -8993,11 +9067,11 @@ get_shorkset()
     make clean
     echo -e "${GREEN}Compiling shorkset...${RESET}"
     if $ENABLE_FB_VBE; then
-        make FB=1 -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+        make FB=1 -j"$JOBS" CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
     else
-        make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+        make -j"$JOBS" CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
     fi
-    sudo make DESTDIR="$DESTDIR" install
+    make DESTDIR="$DESTDIR" install
 }
 
 # Download and compile shorkstall
@@ -9025,8 +9099,8 @@ get_shorkstall()
     # Compile and install
     make clean
     echo -e "${GREEN}Compiling shorkstall...${RESET}"
-    make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
-    sudo make DESTDIR="$DESTDIR" install
+    make -j"$JOBS" CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+    make DESTDIR="$DESTDIR" install
 }
 
 
@@ -9059,11 +9133,11 @@ get_shorklocomotive()
 
     # Compile and install
     echo -e "${GREEN}Compiling shorklocomotive...${RESET}"
-    make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
-    sudo make DESTDIR="$DESTDIR" install
+    make -j"$JOBS" CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+    make DESTDIR="$DESTDIR" install
 
     # Symlink shorklocomotive to sl
-    sudo ln -sf sl "${DESTDIR}/usr/bin/shorklocomotive"
+    ln -sf sl "${DESTDIR}/usr/bin/shorklocomotive"
 }
 
 # Download and compile shorkmatrix
@@ -9090,9 +9164,9 @@ get_shorkmatrix()
 
     # Compile and install
     echo -e "${GREEN}Compiling shorkmatrix...${RESET}"
-    make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
-    sudo make DESTDIR="$DESTDIR" install
-    sudo ln -sf shorkmatrix "${DESTDIR}/usr/bin/cmatrix"
+    make -j"$JOBS" CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+    make DESTDIR="$DESTDIR" install
+    ln -sf shorkmatrix "${DESTDIR}/usr/bin/cmatrix"
 }
 
 # Download and compile shorkmines
@@ -9125,11 +9199,11 @@ get_shorkmines()
 
     # Compile and install
     echo -e "${GREEN}Compiling shorkmines...${RESET}"
-    make CC="${CC_STATIC}" EMBEDDED=1 SYSROOT="$PREFIX" -j$(nproc)
-    sudo make DESTDIR="${DESTDIR}" PREFIX="/usr" install
+    make CC="${CC_STATIC}" EMBEDDED=1 SYSROOT="$PREFIX" -j"$JOBS"
+    make DESTDIR="${DESTDIR}" PREFIX="/usr" install
 
     # Symlink shorkmines to terminal-mines
-    sudo ln -sf shorkmines "${DESTDIR}/usr/bin/terminal-mines"
+    ln -sf shorkmines "${DESTDIR}/usr/bin/terminal-mines"
 }
 
 # Download and compile shorksay
@@ -9156,11 +9230,11 @@ get_shorksay()
 
     # Compile and install
     echo -e "${GREEN}Compiling shorksay...${RESET}"
-    make -j$(nproc) CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
-    sudo make DESTDIR="$DESTDIR" install
+    make -j"$JOBS" CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+    make DESTDIR="$DESTDIR" install
 
     # Symlink shorksay to cowsay
-    sudo ln -sf shorksay "${DESTDIR}/usr/bin/cowsay"
+    ln -sf shorksay "${DESTDIR}/usr/bin/cowsay"
 }
 
 
@@ -9278,12 +9352,12 @@ trim_fat()
         sudo rm -rf "${DESTDIR}/opt/${ARCH}-linux-musl-native/share"
         for bin in "${DESTDIR}"/opt/${ARCH}-linux-musl-native/bin/*; do
             if [ -f "$bin" ]; then
-                sudo "$STRIP" "$bin" 2>/dev/null || true
+                "$STRIP" "$bin" 2>/dev/null || true
             fi
         done
         for bin in "${DESTDIR}"/opt/${ARCH}-linux-musl-native/libexec/gcc/${ARCH}-linux-musl/11.2.1/*; do
             if [ -f "$bin" ]; then
-                sudo "$STRIP" "$bin" 2>/dev/null || true
+                "$STRIP" "$bin" 2>/dev/null || true
             fi
         done
     fi
@@ -9295,7 +9369,7 @@ trim_fat()
         sudo rm -f git-shell git-cvsserver scalar
         sudo rm -rf "${DESTDIR}/usr/share/gitweb" "${DESTDIR}/usr/share/perl5" "${DESTDIR}/usr/share/git-core/templates"
         # Create empty directory otherwise Git will complain
-        sudo mkdir -p "${DESTDIR}/usr/share/git-core/templates"
+        mkdir -p "${DESTDIR}/usr/share/git-core/templates"
     fi
 
     if $INCLUDE_GNUPG; then
@@ -9343,8 +9417,8 @@ trim_fat()
     fi
 
     if $INCLUDE_LYNX; then
-        sudo sed -i '/^#/d' "${DESTDIR}"/usr/etc/lynx.lss
-        sudo sed -i '/^#/d' "${DESTDIR}"/usr/etc/lynx.cfg
+        sed -i '/^#/d' "${DESTDIR}"/usr/etc/lynx.lss
+        sed -i '/^#/d' "${DESTDIR}"/usr/etc/lynx.cfg
     fi
 
     if $INCLUDE_MIDNIGHT_CMDR; then
@@ -9453,7 +9527,7 @@ trim_fat()
         "${DESTDIR}"/sbin \
         "${DESTDIR}"/usr/bin; do
         for bin in "$dir"/*; do
-            [ -f "$bin" ] && sudo "$STRIP" "$bin" 2>/dev/null || true
+            [ -f "$bin" ] && "$STRIP" "$bin" 2>/dev/null || true
         done
     done
 }
@@ -9952,7 +10026,7 @@ copy_licences()
     fi
 
     if [ -f "${DESTDIR}/usr/bin/oneko" ]; then
-        echo "Public domain" | sudo tee "${DESTDIR}/LICENCES/oneko.txt" > /dev/null
+        echo "Public domain" | tee "${DESTDIR}/LICENCES/oneko.txt" > /dev/null
         CSV+="\noneko,public domain,oneko.txt"
     fi
 
@@ -10125,8 +10199,8 @@ copy_licences()
 copy_tests()
 {
     echo -e "${GREEN}Copying test suite...${RESET}"
-    sudo mkdir -p "${DESTDIR}"/tests
-    sudo cp -rf "${CURR_DIR}"/tests/* "${DESTDIR}"/tests
+    mkdir -p "${DESTDIR}"/tests
+    cp -rf "${CURR_DIR}"/tests/* "${DESTDIR}"/tests
     sudo chmod +x "${DESTDIR}"/tests/*.sh
     sudo chmod +x "${DESTDIR}"/tests/*/*.sh
     cd "${DESTDIR}"
@@ -10145,7 +10219,7 @@ build_filesystem()
     cd "${DESTDIR}"
 
     echo -e "${GREEN}Creating required directories...${RESET}"
-    sudo mkdir -p {dev,proc,etc/init.d,sys,tmp,usr/share,usr/libexec,banners,mnt,var/games,var/run}
+    mkdir -p {dev,proc,etc/init.d,sys,tmp,usr/share,usr/libexec,banners,mnt,var/games,var/run}
 
     echo -e "${GREEN}Configure permissions...${RESET}"
     chmod +x "${CURR_DIR}"/sysfiles/*/rc
@@ -10184,23 +10258,23 @@ build_filesystem()
 
     if [ "$BUILD_TYPE" != "micro" ] && [ "$BUILD_TYPE" != "mini" ]; then
         echo -e "${GREEN}Copying and compiling terminfo database...${RESET}"
-        sudo mkdir -p "${DESTDIR}"/usr/share/terminfo/src/
-        sudo cp "${CURR_DIR}"/sysfiles/terminfo.src "${DESTDIR}"/usr/share/terminfo/src/
-        sudo tic -x -1 -o "${DESTDIR}"/usr/share/terminfo "${DESTDIR}"/usr/share/terminfo/src/terminfo.src
+        mkdir -p "${DESTDIR}"/usr/share/terminfo/src/
+        cp "${CURR_DIR}"/sysfiles/terminfo.src "${DESTDIR}"/usr/share/terminfo/src/
+        tic -x -1 -o "${DESTDIR}"/usr/share/terminfo "${DESTDIR}"/usr/share/terminfo/src/terminfo.src
     fi
 
     if $INCLUDE_DOSEMU2; then
-        sudo mkdir -p "${DESTDIR}"/etc/dosemu
-        sudo mkdir -p "${DESTDIR}"/root/.dosemu
+        mkdir -p "${DESTDIR}"/etc/dosemu
+        mkdir -p "${DESTDIR}"/root/.dosemu
         copy_sysfile "${CURR_DIR}"/sysfiles/dosemu.conf "${DESTDIR}"/etc/dosemu/dosemu.conf
         copy_sysfile "${CURR_DIR}"/sysfiles/dosemurc "${DESTDIR}"/root/.dosemu/dosemurc
-        sudo mkdir -p "${DESTDIR}"/var/run/user/0
+        mkdir -p "${DESTDIR}"/var/run/user/0
         sudo chmod 700 "${DESTDIR}"/var/run/user/0
     fi
 
     if $INCLUDE_GUI; then
         echo -e "${GREEN}Installing files needed for SHORKGUI...${RESET}"
-        sudo mkdir -p {usr/share/backgrounds,usr/share/X11/app-defaults}
+        mkdir -p {usr/share/backgrounds,usr/share/X11/app-defaults}
         copy_sysfile "${CURR_DIR}"/shorkutils/shorkgui "${DESTDIR}"/usr/bin/shorkgui
         copy_sysfile "${CURR_DIR}"/sysfiles/shork-486-dark.png "${DESTDIR}"/usr/share/backgrounds/shork-486-dark.png
         copy_sysfile "${CURR_DIR}"/sysfiles/shork-486-light.png "${DESTDIR}"/usr/share/backgrounds/shork-486-light.png
@@ -10214,13 +10288,13 @@ build_filesystem()
 
     if $INCLUDE_GIT; then
         echo -e "${GREEN}Copying pre-defined Git settings...${RESET}"
-        sudo mkdir -p "${DESTDIR}"/usr/etc
+        mkdir -p "${DESTDIR}"/usr/etc
         copy_sysfile "${CURR_DIR}"/sysfiles/gitconfig "${DESTDIR}"/usr/etc/gitconfig
     fi
 
     if $INCLUDE_GNUPG; then
         echo -e "${GREEN}Copying pre-defined GnuPG settings...${RESET}"
-        sudo mkdir -p "${DESTDIR}"/etc/gnupg
+        mkdir -p "${DESTDIR}"/etc/gnupg
         copy_sysfile "${CURR_DIR}"/sysfiles/gpg-agent.conf "${DESTDIR}"/etc/gnupg/gpg-agent.conf
     fi
 
@@ -10228,7 +10302,7 @@ build_filesystem()
         get_keymaps
         if [ -n "$SET_KEYMAP" ] && [ -f "${DESTDIR}/etc/shorkset.conf" ]; then
             echo -e "${GREEN}Setting default keymap...${RESET}"
-            sudo sed -i "s|^KEYMAP=.*|KEYMAP=\"$SET_KEYMAP\"|" "${DESTDIR}/etc/shorkset.conf"
+            sed -i "s|^KEYMAP=.*|KEYMAP=\"$SET_KEYMAP\"|" "${DESTDIR}/etc/shorkset.conf"
         fi
     fi
 
@@ -10240,8 +10314,8 @@ build_filesystem()
     if $ENABLE_MULTIUSER_REAL; then
         echo -e "${GREEN}Copying mutli-user-related files...${RESET}"
 
-        sudo mkdir -p "${DESTDIR}"/home
-        sudo mkdir -p "${DESTDIR}"/root
+        mkdir -p "${DESTDIR}"/home
+        mkdir -p "${DESTDIR}"/root
         sudo chmod 700 "${DESTDIR}"/root
 
         copy_sysfile "${CURR_DIR}"/sysfiles/486/inittab.getty "${DESTDIR}"/etc/inittab
@@ -10252,15 +10326,15 @@ build_filesystem()
         if [ -n "$ROOT_PASSWD" ]; then
             ROOT_PASSWD_LINE="root:$ROOT_PASSWD:0:0:99999:7:::"
             if ! grep -Fxq "$ROOT_PASSWD_LINE" "${DESTDIR}/etc/shadow"; then
-                printf '%s\n' "$ROOT_PASSWD_LINE" | sudo tee -a "${DESTDIR}/etc/shadow" >/dev/null
+                printf '%s\n' "$ROOT_PASSWD_LINE" | tee -a "${DESTDIR}/etc/shadow" >/dev/null
             fi
         fi
 
         # Remove hard-coded variables intended for single-user builds
-        sudo sed -i '/^export HOME=\/root$/d' "${DESTDIR}/etc/profile"
-        sudo sed -i '/^export USER=root$/d' "${DESTDIR}/etc/profile"
-        sudo sed -i '/^export LOGNAME=root$/d' "${DESTDIR}/etc/profile"
-        sudo sed -i '/^export LOGIN_TIMEOUT=0$/d' "${DESTDIR}/etc/profile"
+        sed -i '/^export HOME=\/root$/d' "${DESTDIR}/etc/profile"
+        sed -i '/^export USER=root$/d' "${DESTDIR}/etc/profile"
+        sed -i '/^export LOGNAME=root$/d' "${DESTDIR}/etc/profile"
+        sed -i '/^export LOGIN_TIMEOUT=0$/d' "${DESTDIR}/etc/profile"
 
         if $INCLUDE_SUDO; then
             echo -e "${GREEN}Copying sudo configuration...${RESET}"
@@ -10272,10 +10346,10 @@ build_filesystem()
         fi
     else
         if [ "$ID" == "shork-486" ]; then
-            sudo mkdir -p "${DESTDIR}"/root
+            mkdir -p "${DESTDIR}"/root
             copy_sysfile "${CURR_DIR}"/sysfiles/486/inittab.nogetty "${DESTDIR}"/etc/inittab
         elif [ "$ID" == "shork-disc" ]; then
-            sudo mkdir -p "${DESTDIR}"/root
+            mkdir -p "${DESTDIR}"/root
             copy_sysfile "${CURR_DIR}"/sysfiles/disc/inittab "${DESTDIR}"/etc/inittab
         elif [ "$ID" == "shork-diskette" ]; then
             copy_sysfile "${CURR_DIR}"/sysfiles/diskette/inittab "${DESTDIR}"/etc/inittab
@@ -10284,8 +10358,8 @@ build_filesystem()
 
     if $ENABLE_NET_ETH; then
         echo -e "${GREEN}Copying networking-related files...${RESET}"
-        sudo mkdir -p "${DESTDIR}"/etc/iproute2
-        sudo mkdir -p "${DESTDIR}"/usr/share/udhcpc
+        mkdir -p "${DESTDIR}"/etc/iproute2
+        mkdir -p "${DESTDIR}"/usr/share/udhcpc
         copy_sysfile "${CURR_DIR}"/sysfiles/default.script "${DESTDIR}"/usr/share/udhcpc/default.script
         copy_sysfile "${CURR_DIR}"/sysfiles/resolv.conf "${DESTDIR}"/etc/resolv.conf
         copy_sysfile "${CURR_DIR}"/sysfiles/services "${DESTDIR}"/etc/services
@@ -10296,16 +10370,16 @@ build_filesystem()
         echo -e "${GREEN}Configuring system files for serial console mode...${RESET}"
 
         if $ENABLE_MULTIUSER_REAL; then
-            sudo sed -i "s/^tty1::respawn:\/sbin\/getty -n 38400 tty1/${SERIAL_CON_PORT}::respawn:\/sbin\/getty -L ${SERIAL_CON_PORT} 115200 vt100/" "${DESTDIR}/etc/inittab"
+            sed -i "s/^tty1::respawn:\/sbin\/getty -n 38400 tty1/${SERIAL_CON_PORT}::respawn:\/sbin\/getty -L ${SERIAL_CON_PORT} 115200 vt100/" "${DESTDIR}/etc/inittab"
         else
-            sudo sed -i "s/^tty1::respawn/${SERIAL_CON_PORT}::respawn/" "${DESTDIR}/etc/inittab"
+            sed -i "s/^tty1::respawn/${SERIAL_CON_PORT}::respawn/" "${DESTDIR}/etc/inittab"
         fi
-        sudo sed -i "/^tty[23]::respawn/d" "${DESTDIR}/etc/inittab"
+        sed -i "/^tty[23]::respawn/d" "${DESTDIR}/etc/inittab"
     fi
 
     if $INCLUDE_NANO; then
         echo -e "${GREEN}Copying pre-defined nano settings...${RESET}"
-        sudo mkdir -p "${DESTDIR}"/usr/etc
+        mkdir -p "${DESTDIR}"/usr/etc
         copy_sysfile "${CURR_DIR}"/sysfiles/nanorc "${DESTDIR}"/usr/etc/nanorc
     fi
 
@@ -10314,7 +10388,7 @@ build_filesystem()
         # **Work offloaded to Python**
         echo -e "${GREEN}Generating pci.ids database...${RESET}"
         cd "${CURR_DIR}"/
-        sudo python3 -c "from helpers import *; build_pci_ids()"
+        python3 -c "from helpers import *; build_pci_ids()"
     fi
 
     if $INCLUDE_TMUX; then
@@ -10325,14 +10399,14 @@ build_filesystem()
     if $NEED_OPENSSL; then
         # Use host's CA certifications for OpenSSL HTTPS support
         echo -e "${GREEN}Installing CA certificates for OpenSSL HTTPS support...${RESET}"
-        sudo mkdir -p "${DESTDIR}"/etc/ssl
+        mkdir -p "${DESTDIR}"/etc/ssl
         copy_sysfile /etc/ssl/certs/ca-certificates.crt "${DESTDIR}"/etc/ssl/cert.pem
     fi
 
     # Copy any payload
     if [ "$ID" == "shork-disc" ]; then
         find "${CURR_DIR}/payload/" -mindepth 1 -not -name "notice.txt" | while read -r item; do
-            sudo cp -r "$item" "${DESTDIR}/root/"
+            cp -r "$item" "${DESTDIR}/root/"
         done
     fi
 
@@ -10501,7 +10575,7 @@ install_extlinux_bootloader()
 
     if $ENABLE_MENU; then
         echo -e "${GREEN}Installing menu-based EXTLINUX bootloader...${RESET}"
-        copy_sysfile "${CURR_DIR}"/sysfiles/486/syslinux.cfg.menu  "/mnt/${ID}/boot/syslinux/syslinux.cfg"
+        copy_sysfile "${CURR_DIR}"/sysfiles/486/syslinux.cfg.menu  "/mnt/${ID}/boot/syslinux/syslinux.cfg" true
         
         SYSLINUX_DIRS="
         /usr/lib/syslinux/modules/bios
@@ -10528,7 +10602,7 @@ install_extlinux_bootloader()
         copy_syslinux_file libmenu.c32
     else
         echo -e "${GREEN}Installing boot-only EXTLINUX bootloader...${RESET}"
-        copy_sysfile "${CURR_DIR}"/sysfiles/486/syslinux.cfg.boot  "/mnt/${ID}/boot/syslinux/syslinux.cfg"
+        copy_sysfile "${CURR_DIR}"/sysfiles/486/syslinux.cfg.boot  "/mnt/${ID}/boot/syslinux/syslinux.cfg" true
     fi
 
     if $ENABLE_BOOT_PART; then
@@ -10572,10 +10646,10 @@ install_grub_bootloader()
 
     if $ENABLE_MENU; then
         echo -e "${GREEN}Installing menu-based GRUB bootloader...${RESET}"
-        copy_sysfile "${CURR_DIR}"/sysfiles/486/grub.cfg.menu "/mnt/${ID}/boot/grub/grub.cfg"
+        copy_sysfile "${CURR_DIR}"/sysfiles/486/grub.cfg.menu "/mnt/${ID}/boot/grub/grub.cfg" true
     else
         echo -e "${GREEN}Installing boot-only GRUB bootloader...${RESET}"
-        copy_sysfile "${CURR_DIR}"/sysfiles/486/grub.cfg.boot "/mnt/${ID}/boot/grub/grub.cfg"
+        copy_sysfile "${CURR_DIR}"/sysfiles/486/grub.cfg.boot "/mnt/${ID}/boot/grub/grub.cfg" true
     fi
 
     if $ENABLE_BOOT_PART; then
@@ -10632,7 +10706,7 @@ install_isolinux_bootloader()
     # Copy main bootloader binary
     if $FIX_EXTLINUX; then
         BOOTLDR_USED="patched ISOLINUX"
-        sudo cp "${CURR_DIR}/build/syslinux/bios/core/isolinux.bin" "${DESTDIR}/boot/isolinux"
+        cp "${CURR_DIR}/build/syslinux/bios/core/isolinux.bin" "${DESTDIR}/boot/isolinux"
     else
         ISOLINUX_BIN_CANS="
         /usr/lib/ISOLINUX/isolinux.bin
@@ -10643,7 +10717,7 @@ install_isolinux_bootloader()
         ISOLINUX_BIN_FOUND=false
         for c in $ISOLINUX_BIN_CANS; do
             if [ -f "$c" ]; then
-                sudo cp "$c" "${DESTDIR}/boot/isolinux"
+                cp "$c" "${DESTDIR}/boot/isolinux"
                 ISOLINUX_BIN_FOUND=true
                 break
             fi
@@ -10667,7 +10741,7 @@ install_isolinux_bootloader()
     {
         for d in $SYSLINUX_DIRS; do
             if [ -f "$d/$1" ]; then
-                sudo cp "$d/$1" "${DESTDIR}/boot/isolinux"
+                cp "$d/$1" "${DESTDIR}/boot/isolinux"
                 return 0
             fi
         done
@@ -10965,7 +11039,7 @@ build_disc_img()
 {
     cd "${CURR_DIR}"/build/
 
-    sudo mkdir -p "${DESTDIR}/boot/isolinux"
+    mkdir -p "${DESTDIR}/boot/isolinux"
 
     # Install bootloader
     install_isolinux_bootloader
@@ -10976,19 +11050,19 @@ build_disc_img()
 
     # If required, specify the target scancode set
     if [[ $SCANCODE_SET != -1 ]]; then
-        sudo sed -i "s/atkbd.extra=1/atkbd.set=${SCANCODE_SET} atkbd.extra=1/" "${DESTDIR}/boot/isolinux/isolinux.cfg"
+        sed -i "s/atkbd.extra=1/atkbd.set=${SCANCODE_SET} atkbd.extra=1/" "${DESTDIR}/boot/isolinux/isolinux.cfg"
     fi
 
     # Disable vdso32 if ENABLE_NO_VDS032
     if [ "$ENABLE_NO_VDS032" = true ]; then
-        sudo sed -i "s/vdso32=1/vdso32=0/" "${DESTDIR}/boot/isolinux/isolinux.cfg"
+        sed -i "s/vdso32=1/vdso32=0/" "${DESTDIR}/boot/isolinux/isolinux.cfg"
     fi
 
     # Install the kernel
     echo -e "${GREEN}Copying kernel image...${RESET}"
-    sudo cp bzImage "${DESTDIR}/boot/bzImage"
+    cp bzImage "${DESTDIR}/boot/bzImage"
 
-    sudo genisoimage \
+    genisoimage \
         -o "${CURR_DIR}/images/${ID}.iso" \
         -b boot/isolinux/isolinux.bin \
         -c boot/isolinux/boot.cat \
@@ -11047,7 +11121,7 @@ build_diskette_img()
 
     # Copy SYSLINUX configuration
     echo -e "${GREEN}Copying SYSLINUX configuration...${RESET}"
-    copy_sysfile "${CURR_DIR}"/sysfiles/diskette/syslinux.cfg  "/mnt/${ID}/syslinux.cfg"
+    copy_sysfile "${CURR_DIR}"/sysfiles/diskette/syslinux.cfg  "/mnt/${ID}/syslinux.cfg" true
 
     # If required, specify the target scancode set
     if [[ $SCANCODE_SET != -1 ]]; then
@@ -11846,6 +11920,7 @@ generate_report()
 
 
 
+get_sudo
 fix_perms
 
 mkdir -p {build/modules,"${STAGE_DIR}",build/staging,images,packages}
@@ -12430,7 +12505,6 @@ if $INCLUDE_MICROPYTHON; then
     get_micropython
 fi
 if $INCLUDE_MIDNIGHT_CMDR; then
-    #LIBATOMIC_A="$($CC -print-file-name=libatomic.a)"
     get_prog_git \
         "usr/bin" \
         "mc" \
