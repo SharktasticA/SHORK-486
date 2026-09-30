@@ -11370,6 +11370,7 @@ get_included_busybox_commands()
     check_bb_config "CONFIG_INETD" ""
     check_bb_config "CONFIG_TELNETD" ""
     check_bb_config "CONFIG_TFTPD" ""
+    check_bb_config "CONFIG_TFTP" ""
 
     readarray -t INCLUDED_BB_CMDS < <(printf '%s\n' "${INCLUDED_BB_CMDS[@]}" | sort)
     readarray -t EXCLUDED_BB_CMDS < <(printf '%s\n' "${EXCLUDED_BB_CMDS[@]}" | sort)
