@@ -1194,6 +1194,8 @@ if [ "$BUILD_TYPE" != "mini" ] && [ "$BUILD_TYPE" != "micro" ] &&
                 USE_EXISTING=$?
                 if [ "$USE_EXISTING" -eq 0 ]; then
                     break
+                else
+                    ROOT_PASSWD=""
                 fi
             fi
 
