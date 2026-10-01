@@ -9012,7 +9012,7 @@ get_shorkhelp()
 
     # Download source
     echo -e "${GREEN}Downloading shorkhelp...${RESET}"
-    git clone https://github.com/SharktasticA/shorkhelp.git
+    git clone --recurse-submodules https://github.com/SharktasticA/shorkhelp
     cd shorkhelp
 
     # Compile and install
