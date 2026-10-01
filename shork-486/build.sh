@@ -9073,7 +9073,7 @@ get_shorkset()
 
     # Download source
     echo -e "${GREEN}Downloading shorkset...${RESET}"
-    git clone https://github.com/SharktasticA/shorkset.git
+    git clone --recurse-submodules https://github.com/SharktasticA/shorkset.git
     cd shorkset
 
     # Compile and install
