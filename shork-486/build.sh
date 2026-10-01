@@ -8094,9 +8094,8 @@ get_micropython()
     install -d "${DESTDIR}/usr/bin"
     install -m 755 build-standard/micropython "${DESTDIR}/usr/bin/micropython"
 
-    # Symlink python and python3 to mg
+    # Symlink python to micropython
     ln -sf micropython "${DESTDIR}/usr/bin/python"
-    ln -sf micropython "${DESTDIR}/usr/bin/python3"
 }
 
 # Download and compile mpg321
