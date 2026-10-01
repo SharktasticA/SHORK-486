@@ -74,7 +74,7 @@ SHORK 486 is a free and open-source operating system. Its core is made up of [GP
 
 ### The author
 
-Hi, I'm Kali (he/him) from Cymru (Wales)! I work in research/computer science and software engineering. I author [Admiral Shark's Keyboards (ASK)](https://sharktastica.co.uk), a project to document IBM, Lexmark, Unicomp, Lenovo and TGCS keyboards and related devices. Interest in vintage IBM hardware and ASK set the stage for SHORK. I have several 486 and Pentium-era ThinkPads with keyboards I very much appreciate. My favourite animals are [chondrichthyans](https://sharksrays.org/), hence the shark theme.
+Hi, I'm Kali (he/him) from Cymru (Wales)! I work in research/computer science and software engineering. I author [Admiral Shark's Keyboards (ASK)](https://sharktastica.co.uk), a project to document IBM, Lexmark, Unicomp, Lenovo and TGCS keyboards and related devices. ASK and my overall interest in vintage IBM hardware set the stage for SHORK, as it led me to acquire several 486- and Pentium-era ThinkPads with keyboards I really appreciate and want to incorporate into my daily workflow as much as possible. My favourite animals are [chondrichthyans](https://sharksrays.org/), hence the shark theme.
 
 
 
