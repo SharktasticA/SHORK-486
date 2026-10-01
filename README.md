@@ -34,7 +34,7 @@ The SHORK project includes patching the Linux kernel to keep supporting 486/P5 e
 
 ### Origin & inspirations
 
-In December 2025, [Action Retro](https://www.youtube.com/@ActionRetro) posted a [video on FLOPPINUX](https://www.youtube.com/watch?v=SiHZbnFrHOY), something that turned out to be a very accessible means for me to learn how to make a working Linux system. It foremost inspired me to chase my dream of building a viable modern Linux system for my old IBM ThinkPads. SHORK 486 began as an automated build script based on [FLOPPINUX](https://github.com/w84death/floppinux)'s build instructions, but adapted for producing fixed disk images instead of diskette images. After that, more Linux kernel and BusyBox features were enabled, and other software was compiled to help fulfil that dream. Other inspirations from similar efforts include [Gray386linux](https://github.com/marmolak/gray386linux) and [Ocawesome101's blog post](https://ocawesome101.github.io/486-linux.html) on running Linux on a 486SX.
+I have long wanted my own viable, modern yet lightweight operating system for my early-'90s IBM ThinkPads to allow me to use them with their excellent keyboards as SSH terminals and as writing pads with modern file transfer and source control features. In December 2025, [Action Retro](https://www.youtube.com/@ActionRetro) posted a [video on FLOPPINUX](https://www.youtube.com/watch?v=SiHZbnFrHOY), something that turned out to be a very accessible means for me to learn how to make a working Linux system. SHORK 486 began as an automated build script based on [FLOPPINUX](https://github.com/w84death/floppinux)'s build instructions, but adapted for producing fixed disk images instead of diskette images. After that, more Linux kernel and BusyBox features were enabled, and other software was compiled to help fulfil my dream. Other inspirations from similar efforts include [Gray386linux](https://github.com/marmolak/gray386linux) and [Ocawesome101's blog post](https://ocawesome101.github.io/486-linux.html) on running Linux on a 486SX.
 
 ### Architecture
 
@@ -71,6 +71,10 @@ In the temporary lieu of a package manager, SHORK 486 can be made as one of seve
 ### Licences
 
 SHORK 486 is a free and open-source operating system. Its core is made up of [GPLv3](COPYING) (SHORK, SHORK Utilities, most of SHORK Entertainment), [GPLv2](https://docs.kernel.org/process/license-rules.html) (Linux kernel, BusyBox, SYSLINUX), and [MIT](https://github.com/SharktasticA/shorkmines?tab=MIT-1-ov-file) (SHORKMINES) components. SHORK 486 can also contain bundled software licensed under various permissive, copyleft, and even public-domain-equivalent licences. You can look at the bundled software list later in this README, or at the "Licences" portal in `shorkhelp` when running SHORK 486, to see individual licences. The subdirectories in `shork-486/patches` are also licensed separately since they are derived from the source code of the programs being patched, and a copy of their licence is stored in the relevant subdirectories.
+
+### The author
+
+Hi, I'm Kali (he/him) from Cymru (Wales)! I work in research/computer science and software engineering. I author [Admiral Shark's Keyboards (ASK)](https://sharktastica.co.uk), a project to document IBM, Lexmark, Unicomp, Lenovo and TGCS keyboards and related devices. Interest in vintage IBM hardware and ASK set the stage for SHORK. I have several 486 and Pentium-era ThinkPads with keyboards I very much appreciate. My favourite animals are [chondrichthyans](https://sharksrays.org/), hence the shark theme.
 
 
 
@@ -593,20 +597,20 @@ These build script parameters are provided to help automate its use, especially 
 
 * `build`: Contains the source code repositories, the root filesystem and the kernel image downloaded or made by the build process.
     * Created after a build attempt is made.
-    * Do not directly modify or add files to this directory, as the directory may be deleted and recreated upon running the build script again.
+    * Do not directly modify or add files to this directory, as its contents may be deleted and recreated upon running the build script again.
 
 * `configs`: Contains configuration files used when compiling certain software, most notably SHORK 486's tailored Linux kernel and BusyBox `.config` files.
 
 * `images`: Contains the result raw disk images and an after-build report created by the build process.
     * Created after a build attempt is made.
 
-* `patches`: Contains diff patches for the Linux kernel and BusyBox to restore removed functionality/implement new functionality required for SHORK 486.
+* `patches`: Contains diff patches for the Linux kernel, BusyBox and other bundled software to restore removed functionality and/or implement new functionality required for SHORK 486.
 
 * `payload`: A place to put files you wish to bundle into a SHORK DISC image.
 
-* `release`: 
+* `release`: (TODO)
 
-* `shorkutils`: Contains custom SHORK Utilities to be copied into the root filesystem 
+* `shorkutils`: Contains custom SHORK Utilities to be copied into the root filesystem. (Deprecated)
 
 * `sysfiles`: Contains important system files to be copied into the root filesystem.
 
@@ -616,7 +620,7 @@ These build script parameters are provided to help automate its use, especially 
 
 ### Building SHORK 486
 
-Running `build.sh` directly for natively building SHORK 486 will automatically perform several tasks on the host computer and operating system, including enabling 32-bit packages (Debian), installing prerequisite packages, modifying `PATH`, and creating some environment variables. I would advice you review what the script does to ensure it does not conflict with your existing configuration. Consider Dockerised building to minimise impact to your host operating system.
+Running `build.sh` directly for natively building SHORK 486 will automatically perform several tasks on the host computer and operating system, including installing prerequisite host packages, downloading several gigabytes of required source code, modifying `PATH`, and creating some environment variables. I would advise you review what the script does to ensure it does not conflict with your existing configuration. Consider Dockerised building to minimise impact to your host operating system.
 
 Running `clean.sh` will delete everything `build.sh` has downloaded, created or generated; the `build` and `images` directories and their contents. If you have made any manual changes to anything inside those directories, they will be lost when running this shell script.
 
@@ -634,4 +638,5 @@ SHORK 486 itself, SHORK Utilities and SHORK Entertainment are developed under a 
 
 ## Acknowledgements
 
+* [FLOPPINUX](https://github.com/w84death/floppinux) (CC0-1.0) was the starting point for the SHORK project. It is a great idea and a fun way to learn how to set up your first small Linux system.
 * This product includes software developed by Andrés Martinelli <andmarti@gmail.com> (sc-im).
