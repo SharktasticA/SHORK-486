@@ -148,7 +148,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [GNU Make](https://www.gnu.org/software/make/) | `make` | 4.4.1 | Build automation tool | GPLv3 |✓|||||
 | [GNU Midnight Commander](https://midnight-commander.org/)¶ | `mc`, `mcdiff`, `mcedit`, `mcview` | 4.8.33 | Norton Commander-style file manager | GPLv3 |✓|||||
 | [GNU nano](https://www.nano-editor.org/)¶ | `nano` | 9.2 | Pico-style text editor | GPLv3 |✓|**✓**|✓||✓|
-| [GnuPG & pinentry](https://gnupg.org/)  | e.g. `gpg`, `gpg-agent`, `gpgconf`, `kbxutil`, `pinentry`, `watchgnupg` | 2.5.22 & 1.3.3 | OpenPGP-compliant encryption & signing | GPLv3 |✓|||||
+| [GnuPG & pinentry](https://gnupg.org/)  | e.g. `gpg`, `gpg-agent`, `gpgconf`, `kbxutil`, `pinentry`, `watchgnupg` | 2.5.24 & 1.3.3 | OpenPGP-compliant encryption & signing | GPLv3 |✓|||||
 | [gpm](https://www.nico.schottelius.org/software/gpm/) | `gpm` | 1.20.7 | Virtual console mouse | GPLv2 |✓|✓|✓|✓|✓|
 | [htop](https://github.com/htop-dev/htop)¶ | `htop` | 3.5.3 | Interactive process viewer | GPLv2 |✓|**✓**|✓||✓|
 | [Joe's Own Editor](https://github.com/joe-editor/joe) | `joe` | 4.8 | WordStar & Emacs-blend text editor | GPLv2 |✓||✓|||
@@ -164,7 +164,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [NASM](https://www.nasm.us/) | `nasm`, `ndisasm` | 3.02 | Portable x86 assembler & disassembler | BSD 2-Clause |✓|||||
 | [Ncdu](https://dev.yorhel.nl/ncdu) | `ncdu` | 1.22 | Disk usage analyser | MIT |✓|**✓**|✓||✓|
 | [New BSD Games](https://github.com/abakh/nbsdgames) | `nbsdgames` | 6.0.2 | Terminal games pack (22) | Public domain |✓|||||
-| [PatchELF](https://github.com/nixos/patchelf) | `patchelf` | 0.19.1 | ELF binary patching | GPLv3 |✓|||||
+| [PatchELF](https://github.com/nixos/patchelf) | `patchelf` | 0.19.2 | ELF binary patching | GPLv3 |✓|||||
 | [Perl](https://www.perl.org/) | `perl` | 5.44.0 | General-purpose scripting language | GNU GPLv1 |✓|||||
 | [sc-im](https://github.com/andmarti1424/sc-im) | `sc-im` | 0.8.5 | Terminal spreadsheet editor | BSD 4-Clause |✓|**✓**|✓||✓|
 | [strace](https://github.com/strace/strace) | `strace` | 7.2 | System calls & signals tracer | LGPLv2.1 |✓|**✓**|||✓|
@@ -176,7 +176,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [tn5250](https://github.com/tn5250/tn5250)† | `tn5250` | 0.18.0 | TCP/IP 5250 terminal emulator | LGPLv2.1 |✓|||✓||
 | [tnftp](https://ftp.netbsd.org/pub/NetBSD/misc/tnftp/) | `ftp` | 20260211 | FTP client | BSD 2-Clause |✓|**✓**||✓||
 | [Universal Ctags](https://ctags.io/) | `ctags`, `readtags` | 6.2.1 | Source code object indexing | GPLv2 |✓|||||
-| [util-linux](https://github.com/util-linux/util-linux) | `cfdisk`, `fdisk`\*, `lscpu`, `partx`, `sfdisk`, `whereis` | 2.42.2 | Extra Linux utilities | GPLv2 |✓|**✓**|||✓|
+| [util-linux](https://github.com/util-linux/util-linux) | `cfdisk`, `fdisk`\*, `lscpu`, `partx`, `sfdisk`, `whereis` | 2.42.4 | Extra Linux utilities | GPLv2 |✓|**✓**|||✓|
 | [Vim](https://www.vim.org/)†¶ | `ex`, `view`, `rvim`, `rview`, `vim`, `vimdiff`, `vimtutor`, `xxd`\* | 9.2.1071 | Vi IMproved text editor | Vim |✓||✓|||
 | [x3270](https://github.com/pmattes/x3270)† | `c3270` | 4.5ga6 | 3270 terminal emulator | BSD 3-Clause |✓|||||
 
@@ -231,8 +231,8 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [musl](somethhttps://musl.libc.org/) | 1.2.6 | GCC, Tiny C Compiler | MIT |
 | [ncurses](https://invisible-island.net/ncurses/) | 6.6 | Cscope, CTris, dialog, htop, Lynx, Midnight Commander, nano, Ncdu, New BSD Games, sc-im, SHORKMINES, tic, tmux, tn5250, util-linux, x3270 | MIT |
 | [nPth](https://www.gnupg.org/software/npth/index.html) | 1.8 | GnuPG | LGPLv2.1 |
-| [OpenSSL](https://github.com/openssl/openssl) | 3.6.4 | cURL, Git, Lynx, Midnight Commander, tcpdump, tn5250 | Apache 2.0 |
-| [PCRE2](https://pcre2project.github.io/pcre2/) | 10.48 | GLib, Tilde | BSD 3-Clause w/ PCRE2 exception |
+| [OpenSSL](https://github.com/openssl/openssl) | 3.6.5 | cURL, Git, Lynx, Midnight Commander, tcpdump, tn5250 | Apache 2.0 |
+| [PCRE2](https://pcre2project.github.io/pcre2/) | 10.49 | GLib, Tilde | BSD 3-Clause w/ PCRE2 exception |
 | [zlib](https://github.com/madler/zlib) | 1.3.2 | Git, GLib, GnuPG, libzip | zlib |
 | [Zstandard](https://github.com/Facebook/zstd) | 1.5.7 | GnuTLS | BSD 3-Clause, **GPLv2** |
 
