@@ -45,6 +45,7 @@ REPOS = [
     "xiph/libao",
     "libevent/libevent",
     "libffi/libffi",
+    "gitzone83/libsmi",
     "libssh2/libssh2",
     "libuv/libuv",
     "wfeldt/libx86emu",

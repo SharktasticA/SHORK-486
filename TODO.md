@@ -29,10 +29,7 @@
 * links
 * pkg-config
 * SQLite
-* sshd
 * SWIG
-* tcpdump
-* telnetd
 * tshark (Wireshark)
-    * Already successfully compiled - high RAM usage and faults
+    * Already compiled - high RAM usage and faults
 * w3m

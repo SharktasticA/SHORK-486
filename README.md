@@ -169,6 +169,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [sc-im](https://github.com/andmarti1424/sc-im) | `sc-im` | 0.8.5 | Terminal spreadsheet editor | BSD 4-Clause |✓|**✓**|✓||✓|
 | [strace](https://github.com/strace/strace) | `strace` | 7.2 | System calls & signals tracer | LGPLv2.1 |✓|**✓**|||✓|
 | [sudo](https://www.sudo.ws/)‖ | `sudo`, `sudoedit`, `visudo` | 1.9.17p2 | Run command as root/substitute user | ISC + BSD 2-Clause + BSD 3-Clause + zlib |✓|**✓**|✓|✓|✓|
+| [tcpdump](https://www.tcpdump.org) | `tcpdump` | 4.99.7 | Packet analyzer | BSD 3-Clause |✓|||||
 | [Tilde](https://os.ghalkes.nl/tilde/)¶ | `tilde` | 1.1.3 | GUI-like text editor | GPLv3 |✓||✓|||
 | [Tiny C Compiler](https://bellard.org/tcc/)§ | `tcc` | `e5eedc0` | C compiler | LGPLv2.1 |✓|**✓**|||✓|
 | [tmux](https://github.com/tmux/tmux) | `tmux` | 3.7c | Terminal multiplexer | ISC |✓|**✓**|✓|✓|✓|
@@ -211,6 +212,8 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [libid3tag](https://github.com/markjeee/libid3tag) | 0.15.1b | mpg321 | GPLv2 |
 | [libksba](https://www.gnupg.org/software/libksba/index.html) | 1.8.1 | GnuPG | GPLv3 |
 | [libmad](https://github.com/markjeee/libmad) | 0.15.1b | mpg321 | GPLv2 |
+| [libpcap](https://www.tcpdump.org/) | 1.11.0 | tcpdump | BSD 3-Clause |
+| [libsmi](https://www.ibr.cs.tu-bs.de/projects/libsmi/) | 0.4.8 | tcpdump | BSD-like + Beerware |
 | libss | 1.47.4 | e2fsprogs | MIT SIPB |
 | [libssh2](https://github.com/libssh2/libssh2) | 1.11.1 | Midnight Commander | BSD 3-Clause |
 | [libt3config](https://os.ghalkes.nl/t3/libt3config.html) | 1.0.0 | Tilde | GPLv3 |
@@ -228,7 +231,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [musl](somethhttps://musl.libc.org/) | 1.2.6 | GCC, Tiny C Compiler | MIT |
 | [ncurses](https://invisible-island.net/ncurses/) | 6.6 | Cscope, CTris, dialog, htop, Lynx, Midnight Commander, nano, Ncdu, New BSD Games, sc-im, SHORKMINES, tic, tmux, tn5250, util-linux, x3270 | MIT |
 | [nPth](https://www.gnupg.org/software/npth/index.html) | 1.8 | GnuPG | LGPLv2.1 |
-| [OpenSSL](https://github.com/openssl/openssl) | 3.6.4 | cURL, Git, Lynx, Midnight Commander, tn5250 | Apache 2.0 |
+| [OpenSSL](https://github.com/openssl/openssl) | 3.6.4 | cURL, Git, Lynx, Midnight Commander, tcpdump, tn5250 | Apache 2.0 |
 | [PCRE2](https://pcre2project.github.io/pcre2/) | 10.48 | GLib, Tilde | BSD 3-Clause w/ PCRE2 exception |
 | [zlib](https://github.com/madler/zlib) | 1.3.2 | Git, GLib, GnuPG, libzip | zlib |
 | [Zstandard](https://github.com/Facebook/zstd) | 1.5.7 | GnuTLS | BSD 3-Clause, **GPLv2** |

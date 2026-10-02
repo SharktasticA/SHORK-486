@@ -430,6 +430,10 @@ SUDO_SRC="https://www.sudo.ws/dist"
 SUDO_VER="1.9.17p2"
 TCC_SRC="https://github.com/Tiny-C-Compiler/tinycc-mirror-repository.git"
 TCC_VER="e5eedc0"
+
+TCPDUMP_SRC="https://www.tcpdump.org/release"
+TCPDUMP_VER="4.99.7"
+
 TILDE_VER="1.1.3"
 TMUX_SRC="https://github.com/tmux/tmux.git"
 TMUX_VER="3.7c"
@@ -565,6 +569,7 @@ INCLUDE_SHORKTAINMENT=false
 INCLUDE_STRACE=false
 INCLUDE_TESTS=false
 INCLUDE_TCC=false
+INCLUDE_TCPDUMP=false
 INCLUDE_TILDE=false
 INCLUDE_TMUX=false
 INCLUDE_TN5250=false
@@ -1007,6 +1012,12 @@ if $INCLUDE_SC_IM; then
     NEED_LIBXML2=true
     NEED_LIBZIP=true
     NEED_ZLIB=true
+fi
+
+if $INCLUDE_TCPDUMP; then
+    NEED_LIBPCAP=true
+    NEED_OPENSSL=true
+    NEED_LIBSMI=true
 fi
 
 if $INCLUDE_TILDE; then
@@ -7226,6 +7237,8 @@ get_prog_tar()
     # Apply any desired patches
     if [ "$NAME" = "dosemu2" ]; then
         sed -i '/^int priv_drop(void)$/{n; s/^{$/{\n  if (skip_priv_setting)\n    return 1;/}' src/base/core/priv.c
+    elif [ "$NAME" = "tcpdump" ]; then
+        sed -i 's/if (setgid(getgid()) != 0 || setuid(getuid()) != 0 *)/if ((getuid() != geteuid() || getgid() != getegid()) \&\& (setgid(getgid()) != 0 || setuid(getuid()) != 0))/' tcpdump.c
     fi
 
 
@@ -9895,6 +9908,18 @@ copy_licences()
         CSV+="\nlibmad,GNU GPLv2,libmad.txt"
     fi
 
+    if $NEED_LIBPCAP && 
+        [ -f "${CURR_DIR}/build/libpcap-${LIBPCAP_VER}/LICENSE" ]; then
+        cp "${CURR_DIR}/build/libpcap-${LIBPCAP_VER}/LICENSE" "${DESTDIR}/LICENCES/libpcap.txt" || true
+        CSV+="\nlibpcap,BSD 3-Clause,libpcap.txt"
+    fi
+
+    if $NEED_LIBSMI && 
+        [ -f "${CURR_DIR}/build/libsmi/COPYING" ]; then
+        cp "${CURR_DIR}/build/libsmi/COPYING" "${DESTDIR}/LICENCES/libsmi.txt" || true
+        CSV+="\nlibsmi,BSD-like + Beerware,libsmi.txt"
+    fi
+
     if $INCLUDE_E2FSPROGS &&
         [ -f "${CURR_DIR}/build/e2fsprogs-$E2FSPROGS_VER/lib/ss/data.c" ]; then
         sed -n '/^ \* Copyright/,/warranty\.$/p' "${CURR_DIR}/build/e2fsprogs-$E2FSPROGS_VER/lib/ss/data.c" | sed 's/^ \* \{0,1\}//' > "${DESTDIR}/LICENCES/libss.txt"
@@ -10099,10 +10124,10 @@ copy_licences()
         CSV+="\nsudo,ISC + BSD 2-Clause + BSD 3-Clause + zlib,sudo.txt"
     fi
 
-    if $INCLUDE_TCC && 
-        [ -f "${CURR_DIR}/build/tinycc-mirror-repository/COPYING" ]; then
-        cp "${CURR_DIR}/build/tinycc-mirror-repository/COPYING" "${DESTDIR}/LICENCES/tcc.txt" || true
-        CSV+="\nTiny C Compiler,GNU LGPLv2.1,tcc.txt"
+    if $INCLUDE_TCPDUMP && 
+        [ -f "${CURR_DIR}/build/tcpdump-${TCPDUMP_VER}/LICENSE" ]; then
+        cp "${CURR_DIR}/build/tcpdump-${TCPDUMP_VER}/LICENSE" "${DESTDIR}/LICENCES/tcpdump.txt" || true
+        CSV+="\ntcpdump,BSD 3-Clause,tcpdump.txt"
     fi
 
     if $INCLUDE_CON_FONTS && 
@@ -10121,6 +10146,12 @@ copy_licences()
         [ -f "${CURR_DIR}/build/tilde-$TILDE_VER/COPYING" ]; then
         cp "${CURR_DIR}/build/tilde-$TILDE_VER/COPYING" "${DESTDIR}/LICENCES/tilde.txt" || true
         CSV+="\nTilde,GNU GPLv3,tilde.txt"
+    fi
+
+    if $INCLUDE_TCC && 
+        [ -f "${CURR_DIR}/build/tinycc-mirror-repository/COPYING" ]; then
+        cp "${CURR_DIR}/build/tinycc-mirror-repository/COPYING" "${DESTDIR}/LICENCES/tcc.txt" || true
+        CSV+="\nTiny C Compiler,GNU LGPLv2.1,tcc.txt"
     fi
 
     if [ -f "${DESTDIR}/usr/bin/Xfbdev" ] &&
@@ -11724,6 +11755,7 @@ get_installed_progs_feats()
         check_installed_file "New BSD Games ${NBSDGAMES_VER}" "/usr/bin/nbsdgames"
         check_installed_file "CTris" "/usr/bin/ctris"
         check_installed_file "chrony ${CHRONY_VER}" "/usr/bin/chronyc"
+        check_installed_file "tcpdump ${TCPDUMP_VER}" "/usr/bin/tcpdump"
     fi
     if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
         check_installed_file "util-linux ${UTIL_LINUX_VER}" "/usr/bin/whereis"
@@ -12634,6 +12666,26 @@ if $INCLUDE_TCC; then
     get_tcc
     make_swap_wrap "${DESTDIR}/usr/local/bin/i386-tcc"
     ln -sf /usr/local/bin/i386-tcc "${DESTDIR}"/usr/bin/tcc || true
+fi
+if $INCLUDE_TCPDUMP; then
+    get_prog_tar \
+        "usr/bin" \
+        "tcpdump" \
+        "tcpdump" \
+        "${TCPDUMP_VER}" \
+        "tcpdump-${TCPDUMP_VER}" \
+        ".tar.xz" \
+        "$TCPDUMP_SRC" \
+        "xf" \
+        false \
+        false \
+        "/usr" \
+        "--disable-local-libpcap --with-crypto=$SYSROOT --with-smi=$SYSROOT --without-cap-ng" \
+        "" \
+        "" \
+        "-ldl -lpthread -latomic"
+    # Delete versioned copies
+    rm -f "${DESTDIR}"/usr/bin/tcpdump.[0-9]*
 fi
 if $INCLUDE_TILDE; then
     get_tilde
