@@ -3513,7 +3513,7 @@ get_libtranscript()
         echo -e "${GREEN}Compiling libtranscript library...${RESET}"
         ./configure \
             --host="${ARCH}"-linux-musl \
-            --prefix="${SYSROOT}/usr" \
+            --prefix=/usr \
             CC="${CC}" \
             CXX="${CXX}" \
             AR="${AR}" \
@@ -3524,7 +3524,7 @@ get_libtranscript()
         make -j"$JOBS"
         rm -rf "$SYSROOT/usr/lib/transcript1"
         mkdir -p "$SYSROOT/usr/lib/transcript1"
-        make install
+        make install DESTDIR="${SYSROOT}"
 
         # Modify libtool archive's libdir to target the cross-compiler's, and not
         # the host's
