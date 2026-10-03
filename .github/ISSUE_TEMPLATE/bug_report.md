@@ -1,8 +1,8 @@
 ---
 name: Bug report
-about: Something wrong with SHORK and its core features
+about: Something wrong with SHORK, included software or features
 title: Bug with *SHORK/feature*
-labels: bug
+labels: bug, enhancement
 assignees: ''
 
 ---
