@@ -31,28 +31,40 @@ export PATH
 
 
 
-# Ensures SHORKSET is ran as root and exits if it needs to respawn terminal
-shorkset()
+# Makes sure min_free_kbytes is at least 1024 and swappiness is 100 so that
+# burst memory allocations from swap-wrapped programs are more likely to
+# make it to swap and don't overwhelm the kernel to trigger superfluous OOM 
+_mfk_set()
 {
-    local ret
-    # Only proceed if user is root
-    if [ "$(whoami)" != "root" ]; then
-        if which sudo >/dev/null 2>&1; then
-            sudo /usr/libexec/shorkset "$@" || return
-        else
-            printf "SHORKSET must be ran whilst logged in as root, via \033[0;1;31msu\033[0m, or with \033[0;1;31msudo\033[0m\n" >&2
-            return 1
-        fi
-    else
-        /usr/libexec/shorkset "$@"
+    local CURR
+    read CURR < /proc/sys/vm/min_free_kbytes
+    if ! ls /var/tmp/.sf_mfk.* >/dev/null 2>&1; then
+        $SUDO_BIN sh -c "echo $CURR > /var/tmp/.sf_mfk_orig"
     fi
-    ret=$?
-
-    [ "$ret" -eq 3 ] && exit 0
-    return "$ret"
+    $SUDO_BIN touch "/var/tmp/.sf_mfk.$$"
+    if [ "$CURR" -lt 1024 ]; then
+        $SUDO_BIN sh -c "echo 1024 > /proc/sys/vm/min_free_kbytes"
+        $SUDO_BIN sh -c "echo 100 > /proc/sys/vm/swappiness"
+    fi
 }
 
-# Wraps launching a program with creating a 8-32MiB swapfile for it to help
+# Unregisters current proc as a swap-wrap user, and if the last
+# swap-wrapped-program running, restores min_free_kbytes and swappiness to
+# their original values
+_mfk_unset()
+{
+    local ORIG
+    $SUDO_BIN rm -f "/var/tmp/.sf_mfk.$$"
+    if ! ls /var/tmp/.sf_mfk.* >/dev/null 2>&1; then
+        if read ORIG < /var/tmp/.sf_mfk_orig; then
+            $SUDO_BIN sh -c "echo $ORIG > /proc/sys/vm/min_free_kbytes"
+            $SUDO_BIN sh -c "echo 60 > /proc/sys/vm/swappiness"
+        fi
+        $SUDO_BIN rm -f /var/tmp/.sf_mfk_orig
+    fi
+}
+
+# Wraps launching a program with creating a <=48MiB swapfile for it to help
 # prevent the kernel from OOM-killing it when the system runs out of
 # physical memory
 _swap_wrap()
@@ -91,30 +103,14 @@ _swap_wrap()
 
     local SWAP_DIR="/var/tmp"
     local SWAP_PATH="${SWAP_DIR}/.$(basename "$BIN_PATH")_ramswap.$$"
-    local SWAP_MIN=$((8 * 1024 * 1024))
-    local SWAP_MAX=$((32 * 1024 * 1024))
-    local TARGET_B=$SWAP_MIN
+    local TARGET_B=$((48 * 1048576))
 
-    # Clamp target swap between MIN and MAX, else 2x RAM if in range
-    local RAM_B=$(free -b | awk '/^Mem:/ {print $2}')
-    if [ -z "$RAM_B" ] || [ "$RAM_B" -le 0 ]; then
-        TARGET_B=$SWAP_MIN
-    elif [ "$RAM_B" -lt 16777216 ]; then
-        TARGET_B=$((RAM_B * 4))
-    elif [ "$RAM_B" -lt 25165824 ]; then
-        TARGET_B=$((RAM_B * 3))
-    elif [ "$RAM_B" -gt "$SWAP_MAX" ]; then
-        TARGET_B=$SWAP_MAX
-    else
-        TARGET_B=$((RAM_B * 2))
-    fi
-
-    # Make sure target is less than half root partition free space
+    # If target is more than half of root free space, set it to quater of
+    # said space
     local ROOT_AVAIL_B=$(df -B1 / 2>/dev/null | awk 'NR==2 {print $4}')
     if [ -n "$ROOT_AVAIL_B" ] && [ "$ROOT_AVAIL_B" -gt 0 ]; then
-        if [ "$ROOT_AVAIL_B" -lt $((TARGET_B * 2)) ]; then
-            TARGET_B=$((ROOT_AVAIL_B / 2))
-            [ "$TARGET_B" -gt "$SWAP_MAX" ] && TARGET_B=$SWAP_MAX
+        if [ "$TARGET_B" -gt $((ROOT_AVAIL_B / 2)) ]; then
+            TARGET_B=$((ROOT_AVAIL_B / 4))
         fi
     fi
 
@@ -134,6 +130,7 @@ _swap_wrap()
 
     _swap_cleanup()
     {
+        _mfk_unset
         if [ "$SWAP_OK" = "1" ]; then
             $SUDO_BIN swapoff "$SWAP_PATH" 2>/dev/null
         fi
@@ -141,12 +138,36 @@ _swap_wrap()
         trap - EXIT INT TERM
     }
     trap _swap_cleanup EXIT INT TERM
+    _mfk_set
 
     "$BIN_PATH" "$@"
     local RET=$?
 
     _swap_cleanup
     return $RET
+}
+
+
+
+# Ensures SHORKSET is ran as root and exits if it needs to respawn terminal
+shorkset()
+{
+    local ret
+    # Only proceed if user is root
+    if [ "$(whoami)" != "root" ]; then
+        if which sudo >/dev/null 2>&1; then
+            sudo /usr/libexec/shorkset "$@" || return
+        else
+            printf "SHORKSET must be ran whilst logged in as root, via \033[0;1;31msu\033[0m, or with \033[0;1;31msudo\033[0m\n" >&2
+            return 1
+        fi
+    else
+        /usr/libexec/shorkset "$@"
+    fi
+    ret=$?
+
+    [ "$ret" -eq 3 ] && exit 0
+    return "$ret"
 }
 
 

@@ -16,7 +16,7 @@ set -euo pipefail
 
 TARGET_DIR="${1:-build/root}"
 if [ ! -d "$TARGET_DIR" ]; then
-    echo "ERROR: $TARGET_DIR does not exist\n" >&2
+    echo "ERROR: $TARGET_DIR does not exist" >&2
     exit 1
 fi
 BEFORE_LIST="$(mktemp)"
