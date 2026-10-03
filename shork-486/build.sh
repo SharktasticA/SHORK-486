@@ -8467,8 +8467,11 @@ get_tcc()
     sed -i 's|i386-linux-gnu|local/musl|g' Makefile
     sed -i 's|/lib/ld-linux.so.2|/lib/ld-musl-i386.so.1|g' tcc.h
 
-    # Patch to fix "undefined symbol '__udivmoddi4'"" error
+    # Patch to fix "undefined symbol '__udivmoddi4'" error
     sed -i 's/^static[[:space:]]\+UDWtype __udivmoddi4/UDWtype __udivmoddi4/' lib/libtcc1.c
+
+    # Fix tcc emitting an empty PT_LOAD for empty .data/.bss
+    sed -i 's/if (f != f0) \/\*/if (f != f0 \&\& (s->sh_size || !n)) \/*/' tccelf.c
     
     # Compile and install
     echo -e "${GREEN}Compiling Tiny C Compiler...${RESET}"
