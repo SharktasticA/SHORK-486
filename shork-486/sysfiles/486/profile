@@ -56,12 +56,29 @@ _mfk_unset()
     local ORIG
     $SUDO_BIN rm -f "/var/tmp/.sf_mfk.$$"
     if ! ls /var/tmp/.sf_mfk.* >/dev/null 2>&1; then
-        if read ORIG < /var/tmp/.sf_mfk_orig; then
+        if [ -r /var/tmp/.sf_mfk_orig ] && read ORIG < /var/tmp/.sf_mfk_orig; then
             $SUDO_BIN sh -c "echo $ORIG > /proc/sys/vm/min_free_kbytes"
             $SUDO_BIN sh -c "echo 60 > /proc/sys/vm/swappiness"
         fi
         $SUDO_BIN rm -f /var/tmp/.sf_mfk_orig
     fi
+}
+
+# Finds and removes any stale swap-wrap files and MFK files
+_reap_stale_swaps()
+{
+    local F PID REAPED=0
+    for F in /var/tmp/.sf_mfk.* /var/tmp/.*_ramswap.*; do
+        [ -e "$F" ] || continue
+        PID=${F##*.}
+        [ -d "/proc/$PID" ] && continue
+        case "$F" in
+            *_ramswap.*) $SUDO_BIN swapoff "$F" 2>/dev/null ;;
+        esac
+        $SUDO_BIN rm -f "$F"
+        REAPED=1
+    done
+    [ "$REAPED" -eq 1 ] && _mfk_unset
 }
 
 # Wraps launching a program with creating a <=48MiB swapfile for it to help
@@ -101,6 +118,8 @@ _swap_wrap()
         fi
     fi
 
+    _reap_stale_swaps
+
     local SWAP_DIR="/var/tmp"
     local SWAP_PATH="${SWAP_DIR}/.$(basename "$BIN_PATH")_ramswap.$$"
     local TARGET_B=$((48 * 1048576))
@@ -135,9 +154,9 @@ _swap_wrap()
             $SUDO_BIN swapoff "$SWAP_PATH" 2>/dev/null
         fi
         $SUDO_BIN rm -f "$SWAP_PATH"
-        trap - EXIT INT TERM
+        trap - EXIT INT TERM HUP
     }
-    trap _swap_cleanup EXIT INT TERM
+    trap _swap_cleanup EXIT INT TERM HUP
     _mfk_set
 
     "$BIN_PATH" "$@"
