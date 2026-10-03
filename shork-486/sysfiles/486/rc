@@ -126,7 +126,8 @@ log "Creating required device nodes"
 
 # Generate module.dep if present and empty
 read KRN_VER < /proc/sys/kernel/osrelease
-if [ -f "/lib/modules/$KRN_VER/modules.dep" ] && [ ! -s "/lib/modules/$KRN_VER/modules.dep" ]; then
+if [ -f "/lib/modules/$KRN_VER/modules.dep" ] &&
+    [ ! -s "/lib/modules/$KRN_VER/modules.dep" ]; then
     log "Generating modules.dep"
     depmod -b / "$KRN_VER" 2>/dev/null
 fi
@@ -163,7 +164,8 @@ if [ -x "/usr/libexec/shorkset" ]; then
         fi
 
         # Load persistent keymap
-        if [ "$KEYMAP" != "us" ] && [ -f "/usr/share/keymaps/$KEYMAP.kmap.bin" ]; then
+        if [ "$KEYMAP" != "us" ] &&
+            [ -f "/usr/share/keymaps/$KEYMAP.kmap.bin" ]; then
             log "Loading keymap: $KEYMAP"
             loadkmap < "/usr/share/keymaps/$KEYMAP.kmap.bin"
         fi
@@ -188,13 +190,30 @@ if [ -x "/usr/libexec/shorkset" ]; then
         # Set up networking
         if [ "$NET_ENABLED" -eq 1 ]; then
             log "Networking enabled"
+
+            # Check there are any network interfaces present
+            IFS_FOUND=0
+            i=0
+            while [ "$i" -lt 3 ]; do
+                for N in /sys/class/net/*; do
+                    if [ -e "$N/device" ]; then
+                        IFS_FOUND=1
+                        break 2
+                    fi
+                done
+                i=$((i + 1))
+                log "Waiting for network interfaces: attempt $i"
+                sleep 1
+            done
+
             # Activate desired interfaces
-            if [ -n "$NET_IFS" ]; then
+            if [ "$IFS_FOUND" -eq 1 ] && [ -n "$NET_IFS" ]; then
                 OLD_IFS="$IFS"
                 IFS=","
                 IF_FOUND=0
                 for IF in $NET_IFS; do
-                    if [ -d "/sys/class/net/$IF" ] && [ -e "/sys/class/net/$IF/device" ]; then
+                    if [ -d "/sys/class/net/$IF" ] &&
+                        [ -e "/sys/class/net/$IF/device" ]; then
                         IF_FOUND=1
                         log "Bringing up interface: $IF"
                         ifconfig "$IF" up
@@ -208,13 +227,16 @@ if [ -x "/usr/libexec/shorkset" ]; then
                 done
                 IFS="$OLD_IFS"
                 if [ "$IF_FOUND" -eq 0 ]; then
-                    log "WARNING: no interfaces present"
+                    log "WARNING: no selected network interfaces found"
                 fi
+            elif [ "$IFS_FOUND" -eq 0 ]; then
+                log "WARNING: no network interfaces found"
             fi
         fi
 
         # Load system volume
-        if [ -c /dev/dsp ] && [ "$VOLUME" -ge 0 ] 2>/dev/null && [ "$VOLUME" -le 100 ] 2>/dev/null; then
+        if [ -c /dev/dsp ] && [ "$VOLUME" -ge 0 ] 2>/dev/null &&
+            [ "$VOLUME" -le 100 ] 2>/dev/null; then
             log "Setting system volume: $VOLUME"
             /usr/libexec/shorkset -vl=$VOLUME
         fi
