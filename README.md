@@ -2,7 +2,7 @@
 
 **SHORK 486** is a free and open-source operating system for 486 and Pentium (P5) era vintage personal computers! It is a 32-bit Linux distribution aiming to be lean yet functional, giving such retro hardware the best chance possible to run modern, updated software. A "default" SHORK 486 system aims to work with at least 16MiB of system memory and take up no more than ~120MiB on your disk. Despite those constraints, this experience includes [Linux kernel 7.2.8](KERNEL.md), a BusyBox userspace with many typical Linux commands, custom SHORK Utilities such as SHORKDIR (TUI file browser) and SHORKFETCH (*fetch utility), a terminal multiplexer, a C compiler, Lua intepreter, Python 3.4-syntax interpreter and dialog for shell TUI widgets, a text web browser, FTP, NTP, SCP/SSH, Telnet and TFTP clients and servers, Git source control client, ed, Mg, nano and vi editors, a spreadsheet editor, minesweeper- and Tetris-clone games, DOS and ext2/3/4 filesystem tools, IDE and SCSI CD-ROM and DVD-ROM support, SCSI tape drive support, ISA, PCI and PCMCIA ethernet, support for most major national keyboard layouts, and a cute ASCII shark welcome screen!
 
-A build configurator is available to alter the SHORK 486 Operating System to your liking. For example, you can select the "mini" build type that requires just 8MiB RAM and ~8MiB disk space, whilst still including most typical commands as before, some custom SHORK Utilities, and the ed and vi editors. You can also configure SHORK 486 for symmetric multiprocessing support, multi-user support and serial console use, and pick and choose specific software and other features to include. Versions of SHORK 486 that can be burned to a CD (**SHORK DISC**) or small enough to fit on a 1.44MB floppy diskette (**SHORK DISKETTE**) are also available.
+A build configurator is available to alter the SHORK 486 Operating System to your liking. For example, you can select the "mini" build type that requires just 8MiB RAM and ~8MiB disk space, whilst still including most typical commands as before, some custom SHORK Utilities, and the ed and vi editors. You can also configure SHORK 486 for symmetric multiprocessing support, multi-user support and serial console use, and pick and choose specific software and other features to include. Versions of SHORK 486 that can be burned to a CD (**SHORK DISC**) or small enough to fit on a 1.44MB floppy diskette (**SHORK DISKETTE**) are also available. **Suggestions, feedback, and observations/opinions on performance wanted!**
 
 <p align="center"><img alt="A photo of SHORK 486 running on an IBM ThinkPad 365ED" src="photos/20260721_365ed_shorkfetch_1.jpg" width="100%"></p>
 
@@ -235,7 +235,6 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [PCRE2](https://pcre2project.github.io/pcre2/) | 10.49 | GLib, Tilde | BSD 3-Clause w/ PCRE2 exception |
 | [zlib](https://github.com/madler/zlib) | 1.3.2 | Git, GLib, GnuPG, libzip | zlib |
 | [Zstandard](https://github.com/Facebook/zstd) | 1.5.7 | GnuTLS | BSD 3-Clause, **GPLv2** |
-
 
 ### SHORK Utilities (SHORKUTILS)
 
