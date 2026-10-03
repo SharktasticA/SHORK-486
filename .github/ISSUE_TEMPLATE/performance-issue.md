@@ -1,17 +1,20 @@
 ---
 name: Performance issue
-about: Performance issue with SHORK, included software or feature
-title: "*Insert software/feature name* performance issue"
+about: Performance issue with SHORK, included software or features
+title: "*Insert SHORK/software/feature name* performance issue"
 labels: enhancement
 assignees: ''
 
 ---
 
 **Scenario**
-Describe the performance issue you experienced and what you were doing when you experienced it. Illustrate with screenshots/photos if you think they can help.
+Please describe what you were doing and/or what you were using that experienced poor or below-expectations performance. Include screenshots/photos if you think they will help.
+
+**Expectations**
+Please state what performance you expected for what you were doing. If possible, I'm interested in direct comparison to similar software on 486/Pentium (P5) hardware.
 
 **Reproducing**
-Please outline how one may recreate the scenario. For example, what to run and/or press to get to where you experienced performance issues.
+Please outline how one may recreate the scenario. For example, what I need to run or press to get to where you experienced performance issues.
 
 **Attempted resolutions**
 If you tried to investigate the issue and improve performance yourself, please let me know what you tried.
