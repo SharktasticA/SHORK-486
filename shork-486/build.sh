@@ -446,7 +446,7 @@ TWM_VER="1.0.13.1"
 UTIL_LINUX_SRC="https://github.com/util-linux/util-linux.git"
 UTIL_LINUX_VER="2.42.4"
 VIM_SRC="https://github.com/vim/vim.git"
-VIM_VER="9.2.1071"
+VIM_VER="9.2.1164"
 WIRESHARK_SRC="https://www.wireshark.org/download/src"
 WIRESHARK_VER="4.7.3"
 X86EMU_SRC="https://github.com/wfeldt/libx86emu.git"
@@ -8797,6 +8797,17 @@ get_vim()
         cd "vim"
     fi
 
+    # Forces syntax highlighting on tiny Vim
+    #sed -z -i \
+    #    -e 's/#if defined(FEAT_NORMAL)\n# define FEAT_SYN_HL\n#endif/#define FEAT_SYN_HL/' \
+    #    -e 's/#ifdef FEAT_NORMAL\n# define FEAT_EVAL\n#endif/#define FEAT_EVAL/' \
+    #    -e 's/#ifdef FEAT_NORMAL\n# define FEAT_SEARCH_EXTRA\n#endif/#define FEAT_SEARCH_EXTRA/' \
+    #    src/feature.h
+
+    while IFS= read -r KEY; do
+        sed -i "/\"$KEY\":/d" runtime/autoload/dist/ft.vim
+    done < "${PATCHES_DIR}/vim/9.2_ext_feature_culling.patch"
+
     # Compile program
     echo -e "${GREEN}Compiling Vim...${RESET}"
     PKG_CONFIG=false \
@@ -9309,7 +9320,7 @@ trim_fat()
 
     if $INCLUDE_EMACS; then
         sudo rm -rf "${DESTDIR}/usr/lib/systemd"
-        sudo rm -rf "${DESTDIR}/usr/share/applications"
+        sudo rm -rf "${DESTDIR}/usr/share/applications/"*.desktop
         sudo rm -rf "${DESTDIR}/usr/share/emacs/$EMACS_VER/etc/AUTHORS"
         sudo rm -rf "${DESTDIR}/usr/share/emacs/$EMACS_VER/etc/COPYING"
         sudo rm -rf "${DESTDIR}/usr/share/emacs/$EMACS_VER/etc/copyright-assign.txt"
@@ -9547,6 +9558,8 @@ trim_fat()
         done
         find "${DESTDIR}/usr/share/vim/vim92/syntax" -maxdepth 1 -type d -printf '%f\n' | grep -v '^shared$\|^modula2$' | xargs -I{} sudo rm -rf "${DESTDIR}/usr/share/vim/vim92/syntax/{}"
         find "${DESTDIR}/usr/share/vim/vim92/tutor" -maxdepth 1 -type f ! -name 'tutor1' ! -name 'tutor2' ! -name 'tutor.vim' ! -name 'README.txt' -exec sudo rm -f {} +
+        sudo rm -rf "${DESTDIR}/usr/share/applications/"*.desktop
+        sudo rm -rf "${DESTDIR}/usr/share/icons"
     fi
 
     # find . -type f -print -exec file {} \;
