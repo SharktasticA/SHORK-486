@@ -256,19 +256,19 @@ if [ -f /var/run/gpm.pid ]; then
     rm -f /var/run/gpm.pid
 fi
 
-# Flush any orphaned MFK files created by swap-wrap
-for MFK_FILE in /var/tmp/.sf_mfk*; do
-    [ -e "$MFK_FILE" ] || continue
-    log "Flushing orphaned MFK file: $MFK_FILE"
-    rm -f "$MFK_FILE"
-done
-
-# Flush any orphaned swap files created by swap-wrap
-for SWAP_FILE in /var/tmp/.*_ramswap.*; do
+# Flush any orphaned dynamic swap files
+for SWAP_FILE in /var/tmp/.*_dsf.*; do
     [ -e "$SWAP_FILE" ] || continue
-    log "Flushing orphaned swap file: $SWAP_FILE"
+    log "Flushing orphaned dynamic swap file: $SWAP_FILE"
     swapoff "$SWAP_FILE" 2>/dev/null
     rm -f "$SWAP_FILE"
+done
+
+# Flush any orphaned dynamic swap MFK files
+for MFK_FILE in /var/tmp/.dsf_mfk*; do
+    [ -e "$MFK_FILE" ] || continue
+    log "Flushing orphaned dynamic swap MFK file: $MFK_FILE"
+    rm -f "$MFK_FILE"
 done
 
 # Prepare to show the welcome banner

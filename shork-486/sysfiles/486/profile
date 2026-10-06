@@ -2,7 +2,7 @@
 ## /etc/profile                                     ##
 ######################################################
 ## System-wide shell profile: core environment      ##
-## vars, prompt settings, the swap wrap OOM-        ##
+## vars, prompt settings, the dynamic swap OOM-     ##
 ## protection feature, SHORKSET helper and first-   ##
 ## boot welcome tip.                                ##
 ######################################################
@@ -32,48 +32,48 @@ export PATH
 
 
 # Makes sure min_free_kbytes is at least 1024 and swappiness is 100 so that
-# burst memory allocations from swap-wrapped programs are more likely to
+# burst memory allocations from dynamic-swapped programs are more likely to
 # make it to swap and don't overwhelm the kernel to trigger superfluous OOM 
 _mfk_set()
 {
     local CURR
     read CURR < /proc/sys/vm/min_free_kbytes
-    if ! ls /var/tmp/.sf_mfk.* >/dev/null 2>&1; then
-        $SUDO_BIN sh -c "echo $CURR > /var/tmp/.sf_mfk_orig"
+    if ! ls /var/tmp/.dsf_mfk.* >/dev/null 2>&1; then
+        $SUDO_BIN sh -c "echo $CURR > /var/tmp/.dsf_mfk_orig"
     fi
-    $SUDO_BIN touch "/var/tmp/.sf_mfk.$$"
+    $SUDO_BIN touch "/var/tmp/.dsf_mfk.$$"
     if [ "$CURR" -lt 1024 ]; then
         $SUDO_BIN sh -c "echo 1024 > /proc/sys/vm/min_free_kbytes"
         $SUDO_BIN sh -c "echo 100 > /proc/sys/vm/swappiness"
     fi
 }
 
-# Unregisters current proc as a swap-wrap user, and if the last
-# swap-wrapped-program running, restores min_free_kbytes and swappiness to
-# their original values
+# Unregisters current proc as a dynamic swap user, and if the last
+# dynamic-swapped program running, restores min_free_kbytes and swappiness
+# to their original values
 _mfk_unset()
 {
     local ORIG
-    $SUDO_BIN rm -f "/var/tmp/.sf_mfk.$$"
-    if ! ls /var/tmp/.sf_mfk.* >/dev/null 2>&1; then
-        if [ -r /var/tmp/.sf_mfk_orig ] && read ORIG < /var/tmp/.sf_mfk_orig; then
+    $SUDO_BIN rm -f "/var/tmp/.dsf_mfk.$$"
+    if ! ls /var/tmp/.dsf_mfk.* >/dev/null 2>&1; then
+        if [ -r /var/tmp/.dsf_mfk_orig ] && read ORIG < /var/tmp/.dsf_mfk_orig; then
             $SUDO_BIN sh -c "echo $ORIG > /proc/sys/vm/min_free_kbytes"
             $SUDO_BIN sh -c "echo 60 > /proc/sys/vm/swappiness"
         fi
-        $SUDO_BIN rm -f /var/tmp/.sf_mfk_orig
+        $SUDO_BIN rm -f /var/tmp/.dsf_mfk_orig
     fi
 }
 
-# Finds and removes any stale swap-wrap files and MFK files
+# Finds and removes any stale dynamic swap files and MFK files
 _reap_stale_swaps()
 {
     local F PID REAPED=0
-    for F in /var/tmp/.sf_mfk.* /var/tmp/.*_ramswap.*; do
+    for F in /var/tmp/.dsf_mfk.* /var/tmp/.*_dsf.*; do
         [ -e "$F" ] || continue
         PID=${F##*.}
         [ -d "/proc/$PID" ] && continue
         case "$F" in
-            *_ramswap.*) $SUDO_BIN swapoff "$F" 2>/dev/null ;;
+            *_dsf.*) $SUDO_BIN swapoff "$F" 2>/dev/null ;;
         esac
         $SUDO_BIN rm -f "$F"
         REAPED=1
@@ -81,10 +81,10 @@ _reap_stale_swaps()
     [ "$REAPED" -eq 1 ] && _mfk_unset
 }
 
-# Wraps launching a program with creating a <=48MiB swapfile for it to help
+# Wraps launching a program with creating a <=48MiB swap file for it to help
 # prevent the kernel from OOM-killing it when the system runs out of
 # physical memory
-_swap_wrap()
+_dyn_swap()
 {
     local BIN_PATH="$1"
     shift
@@ -92,6 +92,14 @@ _swap_wrap()
     if [ ! -x "$BIN_PATH" ]; then
         printf "${SHELL}: %s: not found\n" "$(basename "$BIN_PATH")"
         return 127
+    fi
+
+    # Only proceed if dynamic swap is enabled in shorkset.conf
+    DYN_SWAP_ENABLED=0
+    [ -r /etc/shorkset.conf ] && . /etc/shorkset.conf
+    if [ "$DYN_SWAP_ENABLED" != "1" ]; then
+        "$BIN_PATH" "$@"
+        return $?
     fi
 
     # Make sure we don't create swap if something simple like help or version
@@ -107,7 +115,7 @@ _swap_wrap()
     done
 
     # If not root, we need to determine if we have sudo so regular users can
-    # swap wrap
+    # dynamic swap
     local SUDO_BIN=""
     if [ "$(whoami)" != "root" ]; then
         if [ -x /usr/bin/sudo ]; then
@@ -121,7 +129,7 @@ _swap_wrap()
     _reap_stale_swaps
 
     local SWAP_DIR="/var/tmp"
-    local SWAP_PATH="${SWAP_DIR}/.$(basename "$BIN_PATH")_ramswap.$$"
+    local SWAP_PATH="${SWAP_DIR}/.$(basename "$BIN_PATH")_dsf.$$"
     local TARGET_B=$((48 * 1048576))
 
     # If target is more than half of root free space, set it to quater of

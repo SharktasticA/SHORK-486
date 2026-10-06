@@ -486,6 +486,7 @@ TARGET_SWAP=$DEFAULT_TARGET_SWAP
 USE_TORVALDS=false
 
 ENABLE_CDROM=false
+ENABLE_DYN_SWAP=false
 ENABLE_EPOLL=false
 ENABLE_FB_VBE=false
 ENABLE_HELP_VERBOSE=false
@@ -506,7 +507,6 @@ ENABLE_SCSI_EXP=false
 ENABLE_SERIAL_CON=false
 ENABLE_SMP=false
 ENABLE_SOUND=false
-ENABLE_SWAP_WRAP=false
 ENABLE_SYSVIPC=false
 ENABLE_TASKSTATS=false
 ENABLE_USB=false
@@ -7288,18 +7288,18 @@ get_prog_tar()
     make DESTDIR="$DESTDIR" INSTALL_OWNER= install
 }
 
-# Creates a shell script that takes the place of the given binary and calls for
-# /etc/profile's _swap_wrap feature when run
-make_swap_wrap()
+# Creates a shell script that takes the place of the given binary and calls
+# for /etc/profile's dynamic swap feature when run
+init_dyn_swap()
 {
-    if $ENABLE_SWAP_WRAP; then
+    if $ENABLE_DYN_SWAP; then
         local BIN_FULL_PATH="$1"
         local BIN_REAL_PATH="${BIN_FULL_PATH#"$DESTDIR"}"
 
         if [ -f "$BIN_FULL_PATH" ] && [ ! -f "$BIN_FULL_PATH.real" ]; then
-            echo -e "${GREEN}Configure swap wrap for $BIN_FULL_PATH...${RESET}"
+            echo -e "${GREEN}Configure dynamic swap for $BIN_FULL_PATH...${RESET}"
             mv "$BIN_FULL_PATH" "$BIN_FULL_PATH.real"
-            cp "$CURR_DIR/sysfiles/swap_wrap_template" "$BIN_FULL_PATH"
+            cp "$CURR_DIR/sysfiles/dyn_swap_template" "$BIN_FULL_PATH"
             sed -i "s|@BIN_FULL_PATH@|${BIN_REAL_PATH}.real|g" "$BIN_FULL_PATH"
             sudo chmod 755 "$BIN_FULL_PATH"
         fi
@@ -8846,8 +8846,6 @@ get_vim()
         LDFLAGS="-static -Wl,--gc-sections -s -L${PREFIX}/lib"
     make -j"$JOBS"
     make DESTDIR="$DESTDIR" install
-
-    make_swap_wrap "${DESTDIR}/usr/bin/vim"
 }
 
 
@@ -10399,8 +10397,8 @@ build_filesystem()
             echo -e "${GREEN}Copying sudo configuration...${RESET}"
             copy_sysfile "${CURR_DIR}"/sysfiles/sudoers "${DESTDIR}"/etc/sudoers
             copy_sysfile "${CURR_DIR}"/sysfiles/sudo.conf "${DESTDIR}"/etc/sudo.conf
-            if $ENABLE_SWAP_WRAP; then
-                copy_sysfile "${CURR_DIR}"/sysfiles/swap_wrap_sudoers "${DESTDIR}"/etc/sudoers.d/swap_wrap
+            if $ENABLE_DYN_SWAP; then
+                copy_sysfile "${CURR_DIR}"/sysfiles/dyn_swap_sudoers "${DESTDIR}"/etc/sudoers.d/dyn_swap
             fi
         fi
     else
@@ -12360,7 +12358,7 @@ if $INCLUDE_DOSEMU2; then
         "/usr" \
         "--sysconfdir=/etc --disable-x --disable-sdl --disable-fdpp --disable-dj64 --disable-alsa --disable-libao --disable-ladspa --disable-fluidsynth --disable-midimisc --disable-dlplugins"
 
-    make_swap_wrap "${DESTDIR}/usr/bin/dosemu.bin"
+    init_dyn_swap "${DESTDIR}/usr/bin/dosemu.bin"
 
     # Make the dosemu bootstrap script pure shell-compatible and remove
     # unneeded parts
@@ -12429,7 +12427,7 @@ if $INCLUDE_FREEDOS; then
 fi
 if $INCLUDE_GIT; then
     get_git
-    make_swap_wrap "${DESTDIR}/usr/bin/git"
+    init_dyn_swap "${DESTDIR}/usr/bin/git"
 fi
 if $INCLUDE_GNUPG; then
     get_prog_tar \
@@ -12645,7 +12643,7 @@ if $INCLUDE_PATCHELF; then
 fi
 if $INCLUDE_PERL; then
     get_perl
-    make_swap_wrap "${DESTDIR}/usr/bin/perl"
+    init_dyn_swap "${DESTDIR}/usr/bin/perl"
 fi
 if $INCLUDE_SC_IM; then
     get_sc_im
@@ -12680,7 +12678,7 @@ if $INCLUDE_TCC; then
         "" \
         ""
     get_tcc
-    make_swap_wrap "${DESTDIR}/usr/local/bin/i386-tcc"
+    init_dyn_swap "${DESTDIR}/usr/local/bin/i386-tcc"
     ln -sf /usr/local/bin/i386-tcc "${DESTDIR}"/usr/bin/tcc || true
 fi
 if $INCLUDE_TCPDUMP; then
@@ -12728,16 +12726,17 @@ if $INCLUDE_TNFTP; then
 fi
 if $INCLUDE_TSHARK; then
     get_tshark
-    make_swap_wrap "${DESTDIR}/usr/bin/tshark"
+    init_dyn_swap "${DESTDIR}/usr/bin/tshark"
 fi
 if $INCLUDE_VIM; then
     get_vim
+    init_dyn_swap "${DESTDIR}/usr/bin/vim"
 fi
 if $INCLUDE_GCC; then
     get_gcc
-    make_swap_wrap "${DESTDIR}/opt/${ARCH}-linux-musl-native/bin/gcc"
-    make_swap_wrap "${DESTDIR}/opt/${ARCH}-linux-musl-native/bin/g++"
-    make_swap_wrap "${DESTDIR}/opt/${ARCH}-linux-musl-native/bin/gfortran"
+    init_dyn_swap "${DESTDIR}/opt/${ARCH}-linux-musl-native/bin/gcc"
+    init_dyn_swap "${DESTDIR}/opt/${ARCH}-linux-musl-native/bin/g++"
+    init_dyn_swap "${DESTDIR}/opt/${ARCH}-linux-musl-native/bin/gfortran"
 fi
 
 if [ "$BUILD_TYPE" != "micro" ]; then

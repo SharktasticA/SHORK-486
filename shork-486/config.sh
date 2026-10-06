@@ -116,6 +116,7 @@ INCLUDE_TMUX=false
 INCLUDE_UTIL_LINUX=false
 INCLUDE_VIM=false
 INCLUDE_CON_FONTS=false
+ENABLE_DYN_SWAP=false
 ENABLE_FB_VBE=false
 USE_GRUB=false
 INCLUDE_GUI=false
@@ -130,7 +131,6 @@ ENABLE_PCMCIA=false
 ENABLE_SATA=false
 ENABLE_SCSI_EXP=false
 ENABLE_SOUND=false
-ENABLE_SWAP_WRAP=false
 ENABLE_USB=false
 ENABLE_ZSWAP=false
 
@@ -278,6 +278,7 @@ save_env()
         echo "INCLUDE_UTIL_LINUX=$INCLUDE_UTIL_LINUX"
         echo "INCLUDE_VIM=$INCLUDE_VIM"
         echo "INCLUDE_CON_FONTS=$INCLUDE_CON_FONTS"
+        echo "ENABLE_DYN_SWAP=$ENABLE_DYN_SWAP"
         echo "ENABLE_FB_VBE=$ENABLE_FB_VBE"
         echo "USE_GRUB=$USE_GRUB"
         echo "INCLUDE_GUI=$INCLUDE_GUI"
@@ -292,7 +293,6 @@ save_env()
         echo "ENABLE_SATA=$ENABLE_SATA"
         echo "ENABLE_SCSI_EXP=$ENABLE_SCSI_EXP"
         echo "ENABLE_SOUND=$ENABLE_SOUND"
-        echo "ENABLE_SWAP_WRAP=$ENABLE_SWAP_WRAP"
         echo "ENABLE_USB=$ENABLE_USB"
         echo "ENABLE_ZSWAP=$ENABLE_ZSWAP"
     } > .env
@@ -388,6 +388,7 @@ set_mini_vars()
 
     ENABLE_CDROM=false
     INCLUDE_CON_FONTS=false
+    ENABLE_DYN_SWAP=false
     ENABLE_FB_VBE=false
     USE_GRUB=false
     INCLUDE_GUI=false
@@ -402,7 +403,6 @@ set_mini_vars()
     ENABLE_SATA=false
     ENABLE_SCSI_EXP=false
     ENABLE_SOUND=false
-    ENABLE_SWAP_WRAP=false
     ENABLE_USB=false
     ENABLE_ZSWAP=false
 }
@@ -425,6 +425,7 @@ set_terminal_vars()
 
     ENABLE_CDROM=true
     INCLUDE_CON_FONTS=true
+    ENABLE_DYN_SWAP=true
     ENABLE_FB_VBE=true
     ENABLE_HELP_VERBOSE=true
     INCLUDE_KEYMAPS=true
@@ -432,7 +433,6 @@ set_terminal_vars()
     ENABLE_MENU=true
     INCLUDE_PCI_IDS=true
     ENABLE_PCMCIA=true
-    ENABLE_SWAP_WRAP=true
     ENABLE_ZSWAP=true
 }
 
@@ -455,12 +455,12 @@ set_writer_vars()
 
     ENABLE_CDROM=true
     INCLUDE_CON_FONTS=true
+    ENABLE_DYN_SWAP=true
     ENABLE_FB_VBE=true
     ENABLE_HELP_VERBOSE=true
     INCLUDE_KEYMAPS=true
     ENABLE_MENU=true
     INCLUDE_PCI_IDS=true
-    ENABLE_SWAP_WRAP=true
     ENABLE_ZSWAP=true
 }
 
@@ -500,6 +500,7 @@ set_default_vars()
 
     ENABLE_CDROM=true
     INCLUDE_CON_FONTS=true
+    ENABLE_DYN_SWAP=true
     ENABLE_FB_VBE=true
     ENABLE_HELP_VERBOSE=true
     INCLUDE_KEYMAPS=true
@@ -508,7 +509,6 @@ set_default_vars()
     INCLUDE_PCI_IDS=true
     ENABLE_PCMCIA=true
     ENABLE_SCSI_EXP=true
-    ENABLE_SWAP_WRAP=true
     ENABLE_ZSWAP=true
 }
 
@@ -573,7 +573,7 @@ set_max_vars()
 set_custom_vars()
 {
     INCLUDE_KEYMAPS=true
-    ENABLE_SWAP_WRAP=true
+    ENABLE_DYN_SWAP=true
 }
 
 set_disc_vars()

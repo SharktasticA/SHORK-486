@@ -1,0 +1,20 @@
+######################################################
+## /etc/sudoers.d/dyn_swap                          ##
+######################################################
+## Backs _dyn_swap() in /etc/profile, letting any   ##
+## user use the dynamic swap feature without a      ##
+## password.                                        ##
+######################################################
+## Kali (links.sharktastica.co.uk)                  ##
+######################################################
+
+
+
+Cmnd_Alias DYNSWAP = /bin/busybox mkdir -p /var/tmp, \
+                      /bin/busybox fallocate -l * /var/tmp/.*_dsf.*, \
+                      /bin/busybox chmod 600 /var/tmp/.*_dsf.*, \
+                      /bin/busybox mkswap /var/tmp/.*_dsf.*, \
+                      /bin/busybox swapon /var/tmp/.*_dsf.*, \
+                      /bin/busybox swapoff /var/tmp/.*_dsf.*, \
+                      /bin/busybox rm -f /var/tmp/.*_dsf.*
+ALL ALL=(root) NOPASSWD: DYNSWAP

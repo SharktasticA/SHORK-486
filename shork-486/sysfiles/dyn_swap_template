@@ -1,0 +1,3 @@
+#!/bin/sh
+. /etc/profile
+_dyn_swap "@BIN_FULL_PATH@" "$@"
