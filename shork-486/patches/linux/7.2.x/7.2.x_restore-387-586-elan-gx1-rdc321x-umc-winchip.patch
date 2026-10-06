@@ -380,7 +380,7 @@ index 09833c88f..734b58dac 100644
  
  config X86_REQUIRED_FEATURE_FPU
  	def_bool y
-+	depends on X86_64
++	depends on X86_64 || !MATH_EMULATION
  
  config X86_REQUIRED_FEATURE_PAE
  	def_bool y
