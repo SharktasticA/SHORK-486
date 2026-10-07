@@ -1,0 +1,92 @@
+############################################################################
+## 7.0.x_unsupported-486-586-msgs.patch                                   ##
+############################################################################
+## Adds some specific messages and kill point that provides more advice   ##
+## when an unsupported 486 or 586 CPU is detected.                        ##
+############################################################################
+## This patch is a derivative work of the Linux kernel. It is licensed    ##
+## separately under the terms of the GNU GPLv2 licence, and is            ##
+## distributed as part of the SHORK project. See the accompanying COPYING ##
+## file in the parent directory for details.                              ##
+############################################################################
+## Kali (links.sharktastica.co.uk)                                        ##
+############################################################################
+
+diff --git a/arch/x86/boot/cpu.c b/arch/x86/boot/cpu.c
+index feb6dbd7c..8f0cc2ed0 100644
+--- a/arch/x86/boot/cpu.c
++++ b/arch/x86/boot/cpu.c
+@@ -64,7 +64,46 @@ int validate_cpu(void)
+ 
+ 	check_cpu(&cpu_level, &req_level, &err_flags);
+ 
++#ifdef CONFIG_M586MMX
++	u32 mmx_flag = cpu.flags[X86_FEATURE_MMX >> 5] &
++		(1U << (X86_FEATURE_MMX & 31));
++
++	// Normally, CONFIG_M586MMX + family 5 or higher + lack of MMX flag is 
++	// allowed. But to avoid giving the user the wrong impression when MMX 
++	// instructions fail without prior warning, we add a specific message
++	// and kill for it to advise the user there is a better kernel option or
++	// they can try OverDrive MMX.
++	if (cpu_level >= 5 && !mmx_flag)
++	{
++		puts(
++			"This kernel requires an Intel Pentium MMX or better CPU, but "
++			"you are running a\nstandard Pentium or compatible CPU. Please "
++			"use the \"586TSC\" kernel option when\nbuilding SHORK, or "
++			"install an Intel Pentium OverDrive MMX CPU (if compatible).\n"
++		);
++		die();
++	}
++#endif
++
+ 	if (cpu_level < req_level) {
++		// Whilst validate_cpu() would catch this anyway, it relies only on
++		// CPUID family number for the levels, meaning it would call an AMD
++		// K5 or Cyrix 5x86 "i486", which may cause confusion. Instead, we
++		// add a specific message to advise the user there are better
++		// kernel options or they can try OverDrive.
++		if (cpu_level == 4 && req_level == 5)
++		{
++			puts(
++				"This kernel requires a 586-class CPU with the TSC "
++				"register present, such as an\nIntel Pentium, but you are "
++				"likely running a 486-compatible, AMD K5 or Cyrix\n5x86 "
++				"CPU. Please either use the appropriate \"486xx\" or "
++				"\"586\" (w/o TSC) kernel\noption when building SHORK, or "
++				"install an Intel Pentium OverDrive CPU (if\ncompatible).\n"
++			);
++			die();
++		}
++
+ 		printf("This kernel requires an %s CPU, ",
+ 		       cpu_name(req_level));
+ 		printf("but only detected an %s CPU.\n",
+@@ -73,6 +112,26 @@ int validate_cpu(void)
+ 	}
+ 
+ 	if (err_flags) {
++		int only_fpu = (err_flags[0] == (1 << X86_FEATURE_FPU));
++		for (int i = 1; i < NCAPINTS; i++)
++			if (err_flags[i])
++				only_fpu = 0;
++
++		// When 486 but no FPU, we add a specific message to advise the user
++		// there is a better kernel option, or they can try adding a
++		// coprocessor or upgrade CPU.
++		if (cpu_level == 4 && only_fpu) {
++			puts(
++				"This kernel requires a CPU with an FPU, such as a 486DX, "
++				"or an installed x87\ncoprocessor, as it was not compiled "
++				"with x87 math emulation support. Please\neither use the "
++				"\"486SX\" kernel option when building SHORK, populate the "
++				"math\ncoprocessor socket (if present), or install a "
++				"compatible CPU with FPU onboard.\n"
++			);
++			die();
++		}
++
+ 		puts("This kernel requires the following features "
+ 		     "not present on the CPU:\n");
+ 		show_cap_strs(err_flags);

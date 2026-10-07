@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ######################################################
-## SHORK 486 build configurator                     ##
+## SHORK 486 Build Configurator                     ##
 ######################################################
 ## Kali (links.sharktastica.co.uk)                  ##
 ######################################################
@@ -51,6 +51,7 @@ BUILD_TYPE="default"
 TARGET_DISK=8
 ENABLE_BOOT_PART=false
 TARGET_SWAP=0
+TARGET_ARCH="486SX"
 LINUX_VER="7.2.9"
 SCANCODE_SET=-1
 SET_KEYMAP="qwerty_en_us"
@@ -212,6 +213,7 @@ save_env()
         echo "TARGET_DISK=$TARGET_DISK"
         echo "ENABLE_BOOT_PART=$ENABLE_BOOT_PART"
         echo "TARGET_SWAP=$TARGET_SWAP"
+        printf 'TARGET_ARCH=%s\n' "$(printf '"%s"' "$TARGET_ARCH")"
         printf 'LINUX_VER=%s\n' "$(printf '"%s"' "$LINUX_VER")"
         echo "SCANCODE_SET=$SCANCODE_SET"
         printf 'SET_KEYMAP=%s\n' "$(printf '"%s"' "$SET_KEYMAP")"
@@ -922,6 +924,27 @@ fi
 
 
 
+# Get target architecture (all)
+TARGET_ARCH=$(dialog --clear \
+    --backtitle "SHORK 486 Build Configurator" \
+    --title "Target Architecture" \
+    --cancel-label "Quit" \
+    --default-item "$TARGET_ARCH" \
+    --menu "Please select the x86 architecture revision that best includes your target hardware for optimisation purposes. Otherwise, stick with \"486SX\" for the most universal support." 14 $WIDTH 5 \
+    "486SX"     "Intel 486SX + compatible (supports x87 emulation)" \
+    "486DX"     "Intel 486DX/487SX + compatible" \
+    "586"       "AMD K5 & Cyrix 5x86 (\"586\" w/o TSC)" \
+    "586TSC"    "Intel Pentium (586 w/ TSC)" \
+    "586MMX"    "Intel Pentium MMX (586 w/ TSC & MMX) or newer" \
+    3>&1 1>&2 2>&3)
+
+if [[ ! -n "$TARGET_ARCH" ]]; then
+    TARGET_ARCH="486SX"
+    exit 0
+fi
+
+
+
 # Get Linux kernel version (all)
 LINUX_VER=$(dialog --clear \
     --backtitle "SHORK 486 Build Configurator" \
@@ -936,6 +959,7 @@ LINUX_VER=$(dialog --clear \
     3>&1 1>&2 2>&3)
 
 if [[ ! -n "$LINUX_VER" ]]; then
+    LINUX_VER="7.2.9"
     exit 0
 fi
 

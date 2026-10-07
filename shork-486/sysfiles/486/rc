@@ -309,3 +309,4 @@ if [ ! -d /home ]; then
 fi
 
 echo "$MFK_DEFAULT" > /proc/sys/vm/min_free_kbytes
+sleep 0.125

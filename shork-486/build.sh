@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ######################################################
-## SHORK 486 build script                           ##
+## SHORK 486 Builder                                ##
 ######################################################
 ## Kali (links.sharktastica.co.uk)                  ##
 ######################################################
@@ -68,7 +68,6 @@ echo -e "${BLUE}========================${RESET}"
 ######################################################
 
 # General global vars
-ARCH_TARGET="486SX"
 BOOT_PART_SIZE=4
 BOOT_PART_GRUB_MULTI=4
 BOOTLDR_USED=""
@@ -91,6 +90,7 @@ JOBS=$(nproc)
 MICRO_TARGET_DISK=4
 MINI_TARGET_DISK=8
 ROOT_PART_SIZE=0
+TARGET_ARCH="486SX"
 TOTAL_DISK_SIZE=0
 TRIM_FAT=true
 USED_PARAMS=""
@@ -138,7 +138,9 @@ CFLAGS_NOPIE_486SX="${CFLAGS_COMMON_486SX} -no-pie -fno-pie -fno-pic"
 LDLIBS_COMMON_486SX=""
 LDFLAGS_COMMON_486SX="-L${SYSROOT}/lib -all-static"
 
-if [ "$ARCH_TARGET" = "486SX" ]; then
+if [ "$TARGET_ARCH" = "486SX" ] || [ "$TARGET_ARCH" = "486DX" ] ||
+    [ "$TARGET_ARCH" = "586" ] || [ "$TARGET_ARCH" = "586TSC" ] ||
+    [ "$TARGET_ARCH" = "586MMX" ]; then
     CFLAGS_NOPIE="${CFLAGS_NOPIE_486SX}"
     CFLAGS_COMMON="${CFLAGS_COMMON_486SX}"
     LDLIBS_COMMON="${LDLIBS_COMMON_486SX}"
@@ -1289,7 +1291,7 @@ make_pkg()
 
     # Fill out manifest
     sed -i \
-        -e "s|@ARCH@|$ARCH_TARGET|g" \
+        -e "s|@ARCH@|$TARGET_ARCH|g" \
         -e "s|@NAME@|$NAME|g" \
         -e "s|@SRC@|$SRC|g" \
         -e "s|@DESC@|$DESC|g" \
@@ -1304,7 +1306,7 @@ make_pkg()
 
     # Compress into package
     #COMPILE_DATETIME="$(date +"%Y-%m-%d %H:%M:%S")"
-    tar -C "${STAGE_DIR}" -czf "${CURR_DIR}/packages/${ARCH_TARGET}-${NAME_LOW}-${VERSION}.tar.gz" .
+    tar -C "${STAGE_DIR}" -czf "${CURR_DIR}/packages/${TARGET_ARCH}-${NAME_LOW}-${VERSION}.tar.gz" .
 
     # Recreate an empty STAGE_DIR
     #rm -rf "${STAGE_DIR}"
@@ -4685,6 +4687,20 @@ configure_kernel()
 
     FRAGS=""
 
+    if [ "$TARGET_ARCH" = "486DX" ]; then
+        echo -e "${GREEN}Configuring kernel for Intel 486DX/487SX + compatible...${RESET}"
+        FRAGS+="${CONFIGS_DIR}/linux/linux.config.486dx.frag "
+    elif [ "$TARGET_ARCH" = "586" ]; then
+        echo -e "${GREEN}Configuring kernel for AMD K5 & Cyrix 5x86 (\"586\" w/o TSC)...${RESET}"
+        FRAGS+="${CONFIGS_DIR}/linux/linux.config.586.frag "
+    elif [ "$TARGET_ARCH" = "586TSC" ]; then
+        echo -e "${GREEN}Configuring kernel for Intel Pentium (586 w/ TSC)...${RESET}"
+        FRAGS+="${CONFIGS_DIR}/linux/linux.config.586-tsc.frag "
+    elif [ "$TARGET_ARCH" = "586MMX" ]; then
+        echo -e "${GREEN}Configuring kernel for Intel Pentium MMX (586 w/ TSC & MMX) or newer...${RESET}"
+        FRAGS+="${CONFIGS_DIR}/linux/linux.config.586-mxx.frag "
+    fi
+
     if [ "$BUILD_TYPE" != "micro" ]; then
         if $ENABLE_CDROM; then
             echo -e "${GREEN}Enabling kernel-level CD-ROM & DVD-ROM support...${RESET}"
@@ -4944,6 +4960,9 @@ compile_kernel()
 
     echo -e "${GREEN}Applying 7.0.x_387-fpu-clone-sigfpe patch...${RESET}"
     patch -p1 < "${PATCHES_DIR}/linux/7.0.x/7.0.x_fix-387-fpu-clone-sigfpe.patch"
+
+    echo -e "${GREEN}Applying 7.0.x_unsupported-486-586-msgs patch...${RESET}"
+    patch -p1 < "${PATCHES_DIR}/linux/7.0.x/7.0.x_unsupported-486-586-msgs.patch"
 
     echo -e "${GREEN}Compiling Linux kernel...${RESET}"
     make ARCH=x86 olddefconfig
@@ -11790,6 +11809,17 @@ generate_report()
     MINS=$(( TOTAL_SECONDS / 60 ))
     SECS=$(( TOTAL_SECONDS % 60 ))
 
+    TARGET_ARCH_STR="486SX"
+    if [ "$TARGET_ARCH" = "486DX" ]; then
+        TARGET_ARCH_STR="486DX/487SX"
+    elif [ "$TARGET_ARCH" = "586" ]; then
+        TARGET_ARCH_STR="\"586\" w/o TSC"
+    elif [ "$TARGET_ARCH" = "586TSC" ]; then
+        TARGET_ARCH_STR="586 w/ TSC"
+    elif [ "$TARGET_ARCH" = "586MMX" ]; then
+        TARGET_ARCH_STR="586 w/ TSC & MMX"
+    fi
+
     BUSYBOX_VER="${BUSYBOX_VER//_/.}"
 
     local lines=(
@@ -11800,6 +11830,7 @@ generate_report()
         "============================================================================"
         ""
         "OS/version:          $DIST $VERSION"
+        "Architecture:        $TARGET_ARCH_STR"
         "Kernel:              Linux $LINUX_VER"
         "Base:                BusyBox $BUSYBOX_VER"
         "Bootloader:          $BOOTLDR_USED"
