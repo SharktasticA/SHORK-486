@@ -394,7 +394,7 @@ NASM_SRC="https://github.com/netwide-assembler/nasm.git"
 NASM_VER="3.02"
 
 NBSDGAMES_SRC="https://github.com/abakh/nbsdgames.git"
-NBSDGAMES_VER="6.0.2"
+NBSDGAMES_VER="6.0.3"
 
 NCDU_SRC="https://dev.yorhel.nl/download"
 NCDU_VER="1.22"

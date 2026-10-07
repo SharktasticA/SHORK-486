@@ -163,7 +163,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [mt-st](https://github.com/iustin/mt-st) | `mt`, `stinit` | 1.8 | Tape drive tools | GPLv2 |✓|**✓**|||✓|
 | [NASM](https://www.nasm.us/) | `nasm`, `ndisasm` | 3.02 | Portable x86 assembler & disassembler | BSD 2-Clause |✓|||||
 | [Ncdu](https://dev.yorhel.nl/ncdu) | `ncdu` | 1.22 | Disk usage analyser | MIT |✓|**✓**|✓||✓|
-| [New BSD Games](https://github.com/abakh/nbsdgames) | `nbsdgames` | 6.0.2 | Terminal games pack (22) | Public domain |✓|||||
+| [New BSD Games](https://github.com/abakh/nbsdgames) | `nbsdgames` | 6.0.3 | Terminal games pack (22) | Public domain |✓|||||
 | [PatchELF](https://github.com/nixos/patchelf) | `patchelf` | 0.19.2 | ELF binary patching | GPLv3 |✓|||||
 | [Perl](https://www.perl.org/) | `perl` | 5.44.0 | General-purpose scripting language | GNU GPLv1 |✓|||||
 | [sc-im](https://github.com/andmarti1424/sc-im) | `sc-im` | 0.8.5 | Terminal spreadsheet editor | BSD 4-Clause |✓|**✓**|✓||✓|
