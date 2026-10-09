@@ -647,7 +647,7 @@ fi
 ######################################################
 
 # Overrides to ensure the correct estimated RAM requirement is shown in the after-build report
-if [ "$ID" == "shork-486" ]; then
+if [[ "$ID" == "shork-"*86 ]]; then
     if [ "$BUILD_TYPE" = "custom" ]; then
         echo -e "${GREEN}Noting minimum memory requirements for a SHORK 486 custom build...${RESET}"
         if [ "$INCLUDE_GCC" = true ]; then
@@ -4403,7 +4403,7 @@ get_busybox()
     sed -i 's|\\nPlease|Please|' init/init.c
 
     echo -e "${GREEN}Copying base ${DIST} BusyBox .config file...${RESET}"
-    if [ "$ID" == "shork-486" ]; then
+    if [[ "$ID" == "shork-"*86 ]]; then
         cp "$CONFIGS_DIR"/busybox/busybox.config.base .config
     elif [ "$ID" == "shork-disc" ]; then
         cp "$CONFIGS_DIR"/busybox/busybox.config.base.disc .config
@@ -4680,7 +4680,7 @@ configure_kernel()
 {
     echo -e "${GREEN}Copying base ${DIST} kernel configuration file...${RESET}"
 
-    if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
+    if [[ "$ID" == "shork-"*86 ]] || [ "$ID" == "shork-disc" ]; then
         cp "$CONFIGS_DIR"/linux/linux.config.base .config
     elif [ "$ID" == "shork-diskette" ]; then
         cp "$CONFIGS_DIR"/linux/linux.config.base.diskette .config
@@ -4705,7 +4705,7 @@ configure_kernel()
     if [ "$BUILD_TYPE" != "micro" ]; then
         if $ENABLE_CDROM; then
             echo -e "${GREEN}Enabling kernel-level CD-ROM & DVD-ROM support...${RESET}"
-            if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
+            if [[ "$ID" == "shork-"*86 ]] || [ "$ID" == "shork-disc" ]; then
                 FRAGS+="${CONFIGS_DIR}/linux/linux.config.cdrom.frag "
             elif [ "$ID" == "shork-diskette" ]; then
                 FRAGS+="${CONFIGS_DIR}/linux/linux.config.cdrom.diskette.frag "
@@ -9007,7 +9007,7 @@ get_shorkfetch()
     fi
 
     # If not SHORK 486, skip root FS field
-    if [ "$ID" != "shork-486" ]; then
+    if [[ "$ID" != "shork-"*86 ]]; then
         sed -i 's|,root,|,|' src/main.c
     fi
 
@@ -9022,7 +9022,7 @@ get_shorkfetch()
     # Compile and install
     echo -e "${GREEN}Compiling shorkfetch...${RESET}"
     make clean
-    if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
+    if [[ "$ID" == "shork-"*86 ]] || [ "$ID" == "shork-disc" ]; then
         make -j"$JOBS" \
             X86_ONLY=1 \
             CC="${CC_STATIC}" \
@@ -9067,7 +9067,7 @@ get_shorkhelp()
     # Compile and install
     echo -e "${GREEN}Compiling shorkhelp...${RESET}"
     make clean
-    if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
+    if [[ "$ID" == "shork-"*86 ]] || [ "$ID" == "shork-disc" ]; then
         make -j"$JOBS" CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
     elif [ "$ID" == "shork-diskette" ]; then
         make EMBEDDED=1 -j"$JOBS" CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
@@ -9704,7 +9704,7 @@ copy_licences()
         CSV+="\ne2fsprogs,GNU GPLv2 & LGPLv2,e2fsprogs.txt"
     fi
 
-    if [ "$ID" == "shork-486" ] &&
+    if [[ "$ID" == "shork-"*86 ]] &&
        $FIX_EXTLINUX &&
         [ -f "${CURR_DIR}/build/syslinux/COPYING" ]; then
         cp "${CURR_DIR}/build/syslinux/COPYING" "${DESTDIR}/LICENCES/extlinux.txt" || true
@@ -10314,7 +10314,7 @@ build_filesystem()
     copy_sysfile "${CURR_DIR}"/sysfiles/issue "${DESTDIR}"/etc/issue
     copy_sysfile "${CURR_DIR}"/sysfiles/os-release "${DESTDIR}"/etc/os-release
 
-    if [ "$ID" == "shork-486" ]; then
+    if [[ "$ID" == "shork-"*86 ]]; then
         if [ "$BUILD_TYPE" != "micro" ]; then
             copy_sysfile "${CURR_DIR}"/sysfiles/486/rc "${DESTDIR}"/etc/init.d/rc
             copy_sysfile "${CURR_DIR}"/sysfiles/486/profile "${DESTDIR}"/etc/profile
@@ -10437,7 +10437,7 @@ build_filesystem()
             fi
         fi
     else
-        if [ "$ID" == "shork-486" ]; then
+        if [[ "$ID" == "shork-"*86 ]]; then
             mkdir -p "${DESTDIR}"/root
             if [ "$BUILD_TYPE" == "micro" ]; then
                 copy_sysfile "${CURR_DIR}"/sysfiles/486/inittab.micro "${DESTDIR}"/etc/inittab
@@ -11563,7 +11563,7 @@ get_included_busybox_commands()
 get_installed_progs_feats()
 {
     # Kernel features
-    if [ "$ID" == "shork-486" ]; then
+    if [[ "$ID" == "shork-"*86 ]]; then
         if $INCLUDE_GUI; then
             INCLUDED_FEATURES+=("kernel-level event interface support")
         else
@@ -11579,7 +11579,7 @@ get_installed_progs_feats()
         fi
     fi
 
-    if [ "$ID" == "shork-486" ]; then
+    if [[ "$ID" == "shork-"*86 ]]; then
         if $ENABLE_EPOLL; then
             INCLUDED_FEATURES+=("kernel-level eventpoll support")
         else
@@ -11696,7 +11696,7 @@ get_installed_progs_feats()
     fi
 
     # BusyBox features
-    if [ "$ID" == "shork-486" ]; then
+    if [[ "$ID" == "shork-"*86 ]]; then
         if $ENABLE_HELP_VERBOSE; then
             INCLUDED_FEATURES+=("BusyBox verbose --help")
         else
@@ -11705,7 +11705,7 @@ get_installed_progs_feats()
     fi
 
     # Misc features
-    if [ "$ID" == "shork-486" ]; then
+    if [[ "$ID" == "shork-"*86 ]]; then
         if [ -d "${DESTDIR}/usr/share/keymaps" ]; then
             INCLUDED_FEATURES+=("console-data ${CON_DATA_VER} & KBD ${KBD_VER} keymaps pack")
         else
@@ -11725,7 +11725,7 @@ get_installed_progs_feats()
     # SHORKUTILS
     check_installed_file "SHORKFETCH ${SHORKFETCH_VER}" "/usr/bin/shorkfetch"
     check_installed_file "SHORKHELP" "/usr/bin/shorkhelp"
-    if [ "$ID" == "shork-486" ]; then
+    if [[ "$ID" == "shork-"*86 ]]; then
         check_installed_file "SHORKBIN" "/usr/bin/shorkbin"
         check_installed_file "SHORKDIR" "/usr/bin/shorkdir"
         check_installed_file "SHORKGUI" "/usr/bin/shorkgui"
@@ -11745,7 +11745,7 @@ get_installed_progs_feats()
     fi
 
     # SHORKGUI
-    if [ "$ID" == "shork-486" ]; then
+    if [[ "$ID" == "shork-"*86 ]]; then
         check_installed_file "oneko" "/usr/bin/oneko"
         check_installed_file "st" "/usr/bin/st"
         check_installed_file "twm" "/usr/bin/twm"
@@ -11759,7 +11759,7 @@ get_installed_progs_feats()
     fi
 
     # SHORKTUI
-    if [ "$ID" == "shork-486" ]; then
+    if [[ "$ID" == "shork-"*86 ]]; then
         check_installed_file "GCC ${GCC_VER} + musl" "/opt/i486-linux-musl-native/bin/gcc"
         check_installed_file "GNU Binutils ${BINUTILS_VER}" "/opt/i486-linux-musl-native/bin/ar"
         check_installed_file "x3270 ${C3270_VER}" "/usr/bin/c3270"
@@ -11806,7 +11806,7 @@ get_installed_progs_feats()
         check_installed_file "chrony ${CHRONY_VER}" "/usr/bin/chronyc"
         check_installed_file "tcpdump ${TCPDUMP_VER}" "/usr/bin/tcpdump"
     fi
-    if [ "$ID" == "shork-486" ] || [ "$ID" == "shork-disc" ]; then
+    if [[ "$ID" == "shork-"*86 ]] || [ "$ID" == "shork-disc" ]; then
         check_installed_file "util-linux ${UTIL_LINUX_VER}" "/usr/bin/whereis"
         check_installed_file "file ${FILE_VER}" "/usr/bin/file"
         check_installed_file "strace ${STRACE_VER}" "/usr/bin/strace"
@@ -11852,7 +11852,7 @@ generate_report()
         "Bootloader:          $BOOTLDR_USED"
     )
 
-    if [ "$ID" == "shork-486" ]; then
+    if [[ "$ID" == "shork-"*86 ]]; then
         lines+=(
             ""
             "Build type:          $BUILD_TYPE"
@@ -11877,7 +11877,7 @@ generate_report()
         lines+=(".env used:           no")
     fi
 
-    if [ "$ID" == "shork-486" ]; then
+    if [[ "$ID" == "shork-"*86 ]]; then
         lines+=(
             ""
             "Est. minimum RAM:    ${EST_MIN_RAM}"
@@ -11964,7 +11964,7 @@ generate_report()
 
 
 
-    if [ "$ID" == "shork-486" ] && [[ ${#EXCLUDED_BB_CMDS[@]} -gt 0 ]]; then
+    if [[ "$ID" == "shork-"*86 ]] && [[ ${#EXCLUDED_BB_CMDS[@]} -gt 0 ]]; then
         EXCL_BB_CMDS_LINES=()
         line=""
         for CMD in "${EXCLUDED_BB_CMDS[@]}"; do
@@ -12068,7 +12068,7 @@ fi
 if ! $SKIP_KRN; then
     get_kernel
 fi
-if [ "$ID" == "shork-486" ]; then
+if [[ "$ID" == "shork-"*86 ]]; then
     copy_modules
 fi
 
@@ -12788,7 +12788,7 @@ fi
 
 if [ "$BUILD_TYPE" != "micro" ]; then
     get_shorkfetch
-    if [ "$ID" == "shork-486" ]; then
+    if [[ "$ID" == "shork-"*86 ]]; then
         get_shorkhelp
         get_shorkcommon_sh
         get_shorkbin
@@ -12828,10 +12828,10 @@ fi
 if $FIX_EXTLINUX; then
     get_patched_xlinux
 fi
-if [ "$ID" == "shork-486" ] && [ "$USE_GRUB" = false ]; then
+if [[ "$ID" == "shork-"*86 ]] && [ "$USE_GRUB" = false ]; then
     find_mbr_bin
 fi
-if [ "$ID" == "shork-486" ]; then
+if [[ "$ID" == "shork-"*86 ]]; then
     build_disk_img
 elif [ "$ID" == "shork-disc" ]; then
     build_disc_img
@@ -12842,7 +12842,7 @@ fi
 get_included_busybox_commands
 get_installed_progs_feats
 generate_report
-if [ "$ID" == "shork-486" ]; then
+if [[ "$ID" == "shork-"*86 ]]; then
     copy_report
     convert_disk_img
 fi

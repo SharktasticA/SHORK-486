@@ -301,7 +301,7 @@ save_env()
         echo "ENABLE_ZSWAP=$ENABLE_ZSWAP"
     } > .env
 
-    echo "Your desired SHORK 486 build configuration has been saved to a .env file in the current directory. This configuration will automatically be used when SHORK 486 is next built. If you are using the \"--skip-busybox\" or \"--skip-kernel\" build parameters, you may need to build without them for some changes to take effect."
+    echo "Your desired SHORK build configuration has been saved to a .env file in the current directory. This configuration will automatically be used when SHORK is next built. If you are using the \"--skip-busybox\" or \"--skip-kernel\" build parameters, you may need to build without them for some changes to take effect."
 }
 
 val()
@@ -624,7 +624,7 @@ CHOICE=$(dialog --clear \
     --title "Build Environment" \
     --cancel-label "Quit" \
     --default-item "$CHOICE_DEFAULT" \
-    --menu "Select the host environment you plan to build SHORK 486 with." 10 $WIDTH 3 \
+    --menu "Select the host environment you plan to build SHORK with." 10 $WIDTH 3 \
     "Arch"    "Native building on Arch-based distros" \
     "Debian"  "Native building on Debian-based distros/Dockerised building" \
     "Fedora"  "Native building on Fedora-based distros" \
@@ -654,7 +654,7 @@ CHOICE=$(dialog --clear \
     --cancel-label "Quit" \
     --default-item "$ID" \
     --menu "Select which exact SHORK 486-based distribution you wish to build." 10 $WIDTH 3 \
-    "shork-486"         "SHORK 486 (for hard and solid-state disks)" \
+    "shork-486"         "SHORK 486/586 (for hard and solid-state disks)" \
     "shork-disc"        "SHORK DISC (for CD and DVD discs)" \
     "shork-diskette"    "SHORK DISKETTE (for floppy diskettes)" \
     3>&1 1>&2 2>&3)
@@ -703,7 +703,7 @@ if [ "$ID" == "shork-486" ]; then
         --title "Build Type" \
         --cancel-label "Quit" \
         --default-item "$BUILD_TYPE" \
-        --menu "Select the build type, presets for SHORK 486 feature levels. The recommended minimum requirements for each are enclosed in brackets. The \"custom\" option will enable further prompts for software and feature selection." 18 $WIDTH 9 \
+        --menu "Select the build type, presets for SHORK feature levels. The recommended minimum requirements for each are enclosed in brackets. The \"custom\" option will enable further prompts for software and feature selection." 18 $WIDTH 9 \
         "default"   "Typical experience             (16MiB RAM, 8MiB swap, 120MiB disk)" \
         "max"       "Largest configuration          (24MiB RAM, 16MiB swap, 690MiB disk)" \
         "plus"      "Default w/ optional software   (16MiB RAM, 16MiB swap, 670MiB disk)" \
@@ -827,7 +827,7 @@ if [ "$ID" == "shork-486" ]; then
             --backtitle "SHORK 486 Build Configurator" \
             --title "Target Disk Size" \
             --cancel-label "Skip" \
-            --inputbox "Enter a target disk size in mebibytes (between $CURR_MIN_DISK and 4096) to use when creating the disk image containing SHORK 486. Whilst the build script will try to honour this, it may be increased automatically to satisfy 2MiB alignment requirements, or if the combined kernel size, root partition size, optional swap partition size, and partition table overhead exceeds the target disk size." \
+            --inputbox "Enter a target disk size in mebibytes (between $CURR_MIN_DISK and 4096) to use when creating the disk image containing SHORK. Whilst the build script will try to honour this, it may be increased automatically to satisfy 2MiB alignment requirements, or if the combined kernel size, root partition size, optional swap partition size, and partition table overhead exceeds the target disk size." \
             12 $WIDTH "$TARGET_DISK" \
             2>&1 >/dev/tty)
 
@@ -870,7 +870,7 @@ if [ "$ID" == "shork-486" ]; then
             --backtitle "SHORK 486 Build Configurator" \
             --title "Separate Boot Partition" \
             $DEFAULT_FLAG \
-            --yesno "Would you like to create a small, separate boot partition at the start of the disk for SHORK 486's bootloader and Linux kernel image, rather than installing both into the root partition? Because some BIOSes before the mid-1990s do not support reading beyond 1024 cylinders (~504MiB), this can ensure the boot components stay within that limit when the target disk size is 505MiB or larger." \
+            --yesno "Would you like to create a small, separate boot partition at the start of the disk for SHORK's bootloader and Linux kernel image, rather than installing both into the root partition? Because some BIOSes before the mid-1990s do not support reading beyond 1024 cylinders (~504MiB), this can ensure the boot components stay within that limit when the target disk size is 505MiB or larger." \
             10 $WIDTH
 
         CHOICE=$?
@@ -958,7 +958,7 @@ if [ "$SETUP_DYN_SWAP" == true ]; then
         --backtitle "SHORK 486 Build Configurator" \
         --title "Dynamic Swap" \
         $DEFAULT_FLAG \
-        --yesno "Do you want to enable SHORK 486's dynamic swap feature by default? This creates swap files automatically when known memory-intensive programs run, then delete them when they exit. It may be particularly useful for SHORK 486 Writer, Plus or Max when the combined physical and swap partition memory are below 32MiB. It can later be enabled/disabled in SHORKSET." \
+        --yesno "Do you want to enable SHORK's dynamic swap feature by default? This creates swap files automatically when known memory-intensive programs run, then delete them when they exit. It may be particularly useful for SHORK 486/586 Writer, Plus or Max when the combined physical and swap partition memory are below 32MiB. It can later be enabled/disabled in SHORKSET." \
         9 $WIDTH
 
     CHOICE=$?
@@ -976,7 +976,7 @@ TARGET_ARCH=$(dialog --clear \
     --title "Target Architecture" \
     --cancel-label "Quit" \
     --default-item "$TARGET_ARCH" \
-    --menu "Please select the x86 architecture revision that best includes your target hardware for optimisation purposes. Otherwise, stick with \"486SX\" for the most universal support." 14 $WIDTH 5 \
+    --menu "Please select the 486 or 586 architecture revision that best includes your target hardware for optimisation purposes. Otherwise, stick with \"486SX\" for the most universal support. The choice here will decide whether the operating system is called \"SHORK 486\" or \"SHORK 586\"." 14 $WIDTH 5 \
     "486SX"     "Intel 486SX + compatible (supports x87 emulation)" \
     "486DX"     "Intel 486DX/487SX + compatible" \
     "586"       "AMD K5 & Cyrix 5x86 (\"586\" w/o TSC)" \
@@ -987,6 +987,23 @@ TARGET_ARCH=$(dialog --clear \
 if [[ ! -n "$TARGET_ARCH" ]]; then
     TARGET_ARCH="486SX"
     exit 0
+elif [[ "$DIST" == "SHORK "*86* ]]; then
+    case "$TARGET_ARCH" in
+        486*)
+            DIST="${DIST/586/486}"
+            ID="shork-486"
+            if [[ "$HOSTNAME" == "shork-586" ]]; then
+                HOSTNAME="shork-486"
+            fi
+            ;;
+        586*)
+            DIST="${DIST/486/586}"
+            ID="shork-586"
+            if [[ "$HOSTNAME" == "shork-486" ]]; then
+                HOSTNAME="shork-586"
+            fi
+            ;;
+    esac
 fi
 
 
@@ -1022,7 +1039,7 @@ CHOICE=$(dialog --clear \
     --backtitle "SHORK 486 Build Configurator" \
     --title "Keyboard Scancode Set" \
     --default-item "$CHOICE_DEFAULT" \
-    --menu "Do you want to specify an IBM scancode set for SHORK 486 to request? For most AT and PS/2 keyboards, this is likely not needed and can be skipped. But some specific keyboards or computers with integrated keyboards have been known to require a specific one and are listed below.\n\nKnown to require set 3: IBM 9545 ThinkPad 755C" \
+    --menu "Do you want to specify an IBM scancode set for SHORK to request? For most AT and PS/2 keyboards, this is likely not needed and can be skipped. But some specific keyboards or computers with integrated keyboards have been known to require a specific one and are listed below.\n\nKnown to require set 3: IBM 9545 ThinkPad 755C" \
     16 $WIDTH 3 \
     "-"     "Skip (recommended for most)" \
     "2"     "Set 2 (AT & PS/2)" \
@@ -1117,7 +1134,7 @@ if [ "$ID" == "shork-486" ]; then
         --backtitle "SHORK 486 Build Configurator" \
         --title "Symmetric Multiprocessing Support" \
         $DEFAULT_FLAG \
-        --yesno "Do you want to build SHORK 486 with symmetric multiprocessing (SMP) support? This allows you to take advantage of extra processing cores and threads if you are running SHORK 486 on a multi-socket Intel Pentium system, or wanting to use SHORK 486 on much newer hardware. In turn, SMP raises physical memory requirements by ~2MiB if no swap memory is available. SHORK 486 with SMP support can still run on single-thread systems." \
+        --yesno "Do you want to build SHORK with symmetric multiprocessing (SMP) support? This allows you to take advantage of extra processing cores and threads if you are running SHORK on a multi-socket Intel Pentium system, or wanting to use SHORK on much newer hardware. In turn, SMP raises physical memory requirements by ~2MiB if no swap memory is available. SHORK with SMP support can still run on single-thread systems." \
         10 $WIDTH
 
     CHOICE=$?
@@ -1142,7 +1159,7 @@ if [ "$ID" == "shork-486" ] && [ "$BUILD_TYPE" == "custom" ]; then
         --backtitle "SHORK 486 Build Configurator" \
         --title "Ethernet Networking Support" \
         $DEFAULT_FLAG \
-        --yesno "Do you want to enable ethernet networking support in SHORK 486? It includes kernel-level ethernet networking support and BusyBox's networking-related utilities, and you will be able to choose software that requires an internet connection in the next prompt." \
+        --yesno "Do you want to enable ethernet networking support in SHORK? It includes kernel-level ethernet networking support and BusyBox's networking-related utilities, and you will be able to choose software that requires an internet connection in the next prompt." \
         8 $WIDTH
 
     CHOICE=$?
@@ -1242,7 +1259,7 @@ if [ "$BUILD_TYPE" != "mini" ] && [ "$BUILD_TYPE" != "micro" ] &&
         --backtitle "SHORK 486 Build Configurator" \
         --title "Multi-User Support" \
         $DEFAULT_FLAG \
-        --yesno "Do you want to enable multi-user support in SHORK 486? It will enable BusyBox's multi-user-related utilities, sudo, and you will be able to set a root password in the next prompt." \
+        --yesno "Do you want to enable multi-user support in SHORK? It will enable BusyBox's multi-user-related utilities, sudo, and you will be able to set a root password in the next prompt." \
         7 $WIDTH
 
     CHOICE=$?
@@ -1278,7 +1295,7 @@ if [ "$BUILD_TYPE" != "mini" ] && [ "$BUILD_TYPE" != "micro" ] &&
                 --backtitle "SHORK 486 Build Configurator" \
                 --title "Root Password" \
                 --cancel-label "Skip" \
-                --passwordbox "If desired, enter a password for SHORK 486's root user account. It must be at least 8 characters long. If a root password isn't needed or desired, please skip or leave the input box empty." \
+                --passwordbox "If desired, enter a password for SHORK's root user account. It must be at least 8 characters long. If a root password isn't needed or desired, please skip or leave the input box empty." \
                 9 $WIDTH \
                 2>&1 >/dev/tty)
 
@@ -1344,7 +1361,7 @@ if [ "$ID" == "shork-486" ]; then
         --backtitle "SHORK 486 Build Configurator" \
         --title "Serial Console Mode" \
         $DEFAULT_FLAG \
-        --yesno "Do you want to build SHORK 486 in serial console mode? This will configure the system to input and output on a ttyS device instead of ttyX, allowing it to be used remotely over a serial port without manual configuration. You will be able to specify the exact port in the next prompt. Enabling this also disables multiple ttyX support and the menu-based bootloader." \
+        --yesno "Do you want to build SHORK in serial console mode? This will configure the system to input and output on a ttyS device instead of ttyX, allowing it to be used remotely over a serial port without manual configuration. You will be able to specify the exact port in the next prompt. Enabling this also disables multiple ttyX support and the menu-based bootloader." \
         9 $WIDTH
 
     CHOICE=$?
@@ -1513,7 +1530,7 @@ BUNDLED=$(dialog --clear \
     --backtitle "SHORK 486 Build Configurator" \
     --title "Bundled Software" \
     --cancel-label "Skip" \
-    --checklist "Select what software to bundle with SHORK 486.\n* This option would be included in a \"default\" build\n† This option has specific memory requirements (check GitHub repository's README)" $HEIGHT $WIDTH 8 \
+    --checklist "Select what software to bundle with SHORK.\n* This option would be included in a \"default\" build\n† This option has specific memory requirements (check GitHub repository's README)" $HEIGHT $WIDTH 8 \
     "${BUNDLED_ITEMS[@]}" \
     2>&1 >/dev/tty)
 
@@ -1665,7 +1682,7 @@ if [ "$INCLUDE_NASM" = true ] && [ "$INCLUDE_GCC" = false ]; then
         --title "Advisory - +INCLUDE_NASM/-INCLUDE_GCC" \
         --yes-label "Include GCC + binutils + musl" \
         --no-label "Ignore" \
-        --yesno "You have chosen to include NASM but exclude GCC + binutils + musl. Whilst NASM will work without it, SHORK 486 will lack a linker to produce a final binary from NASM's ELF output. If you only intend to produce flat binaries, use ndisasm or provide your own linker, you may ignore this advisory. Otherwise, including GCC + binutils + musl will provide a linker to use." \
+        --yesno "You have chosen to include NASM but exclude GCC + binutils + musl. Whilst NASM will work without it, SHORK will lack a linker to produce a final binary from NASM's ELF output. If you only intend to produce flat binaries, use ndisasm or provide your own linker, you may ignore this advisory. Otherwise, including GCC + binutils + musl will provide a linker to use." \
         9 "$WIDTH"
 
     CHOICE=$?
@@ -1743,7 +1760,7 @@ if [ "$ENABLE_SERIAL_CON" = true ] && [ "$ENABLE_MENU" = true ]; then
         --title "Conflict Resolution - +ENABLE_SERIAL_CON/+ENABLE_MENU" \
         --yes-label "Serial console" \
         --no-label "Menu-based bootloader" \
-        --yesno "You have chosen to enable \"serial console mode\" and \"menu-based bootloader\". A menu-based bootloader is inoperable when using SHORK 486 through a serial console. Do you want to keep serial console mode enabled, or disable it and keep a menu-based bootloader?" \
+        --yesno "You have chosen to enable \"serial console mode\" and \"menu-based bootloader\". A menu-based bootloader is inoperable when using SHORK through a serial console. Do you want to keep serial console mode enabled, or disable it and keep a menu-based bootloader?" \
         8 "$WIDTH"
 
     CHOICE=$?
