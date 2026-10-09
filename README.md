@@ -50,7 +50,7 @@ The SHORK 486 Operating System is a modern and maintained Linux distribution tha
 
 ### Versions
 
-At present, the SHORK 486 Operating System can be built as four versions: SHORK 486, SHORK 586, SHORK DISC and SHORK DISKETTE. **SHORK 486** and **SHORK 586** are for hard and solid-state disks. At present, the difference between them is just optimisation for their respective x86 revision, and which one you get depends on the target architecture you build SHORK for. They otherwise comprise the same feature set and available programs.
+The SHORK 486 Operating System is available in four versions: SHORK 486, SHORK 586, SHORK DISC and SHORK DISKETTE. **SHORK 486** and **SHORK 586** are for hard and solid-state disks. At present, the difference between them is just optimisation for their respective x86 revision, and which one you get depends on the target architecture you build SHORK for. They otherwise comprise the same feature set and available programs.
 
 **SHORK DISC** is for CD and DVD discs, envisioned as a completely immutable system or diagnostic aid, and will eventually be used as SHORK 486's installation media. **SHORK DISKETTE** is for floppy diskettes and is envisioned as a diagnostic aid or a CD-ROM boot disk.
 
