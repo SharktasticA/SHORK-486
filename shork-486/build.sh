@@ -351,7 +351,7 @@ LIBXLSXWRITER_VER="1.2.4"
 LIBXML2_SRC="https://github.com/gnome/libxml2.git"
 LIBXML2_VER="2.15.4"
 LIBZIP_SRC="https://github.com/nih-at/libzip.git"
-LIBZIP_VER="1.11.4"
+LIBZIP_VER="1.12"
 LLVM_SRC="https://github.com/llvm/llvm-project.git"
 LLVM_VER="23.1.1"
 LSB_RELEASE_MIN_SRC="https://github.com/deepin-community/lsb-release-minimal.git"
@@ -372,7 +372,7 @@ MAKE_VER="4.4.1"
 MEMTESTER_SRC="https://fossies.org/linux/misc"
 MEMTESTER_VER="4.7.1"
 MG_SRC="https://github.com/troglobit/mg.git"
-MG_VER="4.1"
+MG_VER="4.2"
 MICRO_SRC="https://github.com/micro-editor/MICRO.git"
 MICRO_VER="2.0.15"
 MICROPYTHON_SRC="https://github.com/micropython/micropython.git"
@@ -438,7 +438,7 @@ TCPDUMP_VER="4.99.7"
 
 TILDE_VER="1.1.3"
 TMUX_SRC="https://github.com/tmux/tmux.git"
-TMUX_VER="3.7c"
+TMUX_VER="3.8"
 TN5250_SRC="https://github.com/tn5250/tn5250.git"
 TN5250_VER="0.18.0"
 TNFTP_SRC="https://ftp.netbsd.org/pub/NetBSD/misc/tnftp"
@@ -8006,7 +8006,12 @@ get_mg()
     # Compile and install
     echo -e "${GREEN}Compiling Mg...${RESET}"
     ./autogen.sh
-    ./configure --host="${HOST}" --prefix=/usr CC="${CC}" AR="${AR}" RANLIB="${RANLIB}" CFLAGS="${CFLAGS_NOPIE}"
+    ./configure --host="${HOST}" \
+        --prefix=/usr \
+        CC="${CC_STATIC}" \
+        AR="${AR}" \
+        RANLIB="${RANLIB}" \
+        CFLAGS="${CFLAGS_NOPIE}"
     make -j"$JOBS"
     make DESTDIR="$DESTDIR" install
 

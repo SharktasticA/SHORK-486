@@ -157,7 +157,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [Lua](https://www.lua.org/) | `lua` | 5.5.1 | Embedded scripting & extensions language | MIT |✓|**✓**|||✓|
 | [Lynx](https://github.com/ThomasDickey/lynx-snapshots)¶ | `lynx` | 2-9-3a | Terminal web browser | GPLv2 |✓|**✓**|||||
 | [memtester](https://pyropus.ca./software/memtester/) | `memtester` | 4.7.1 | Userspace memory subsystem fault tester | GPLv2 |✓|**✓**|✓|✓|✓|
-| [Mg](https://github.com/troglobit/mg) | `mg` | 4.1 | Emacs-style text editor | Unlicense |✓|**✓**|✓||✓|
+| [Mg](https://github.com/troglobit/mg) | `mg` | 4.2 | Emacs-style text editor | Unlicense |✓|**✓**|✓||✓|
 | [MicroPython](https://github.com/micropython/micropython) | `micropython` | 1.29.0 | Python 3.4-syntax intepreter | MIT |✓|**✓**|||✓|
 | [mpg321](https://mpg321.sourceforge.net/)† | `mpg321` | 0.3.2-1 | MP3 player | GPLv2 |✓|||||
 | [mt-st](https://github.com/iustin/mt-st) | `mt`, `stinit` | 1.8 | Tape drive tools | GPLv2 |✓|**✓**|||✓|
@@ -172,7 +172,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [tcpdump](https://www.tcpdump.org) | `tcpdump` | 4.99.7 | Packet analyzer | BSD 3-Clause |✓|||||
 | [Tilde](https://os.ghalkes.nl/tilde/)¶ | `tilde` | 1.1.3 | GUI-like text editor | GPLv3 |✓||✓|||
 | [Tiny C Compiler](https://bellard.org/tcc/)§ | `tcc` | `e5eedc0` | C compiler | LGPLv2.1 |✓|**✓**|||✓|
-| [tmux](https://github.com/tmux/tmux) | `tmux` | 3.7c | Terminal multiplexer | ISC |✓|**✓**|✓|✓|✓|
+| [tmux](https://github.com/tmux/tmux) | `tmux` | 3.8 | Terminal multiplexer | ISC |✓|**✓**|✓|✓|✓|
 | [tn5250](https://github.com/tn5250/tn5250)† | `tn5250` | 0.18.0 | TCP/IP 5250 terminal emulator | LGPLv2.1 |✓|||✓||
 | [tnftp](https://ftp.netbsd.org/pub/NetBSD/misc/tnftp/) | `ftp` | 20260211 | FTP client | BSD 2-Clause |✓|**✓**||✓||
 | [Universal Ctags](https://ctags.io/) | `ctags`, `readtags` | 6.2.1 | Source code object indexing | GPLv2 |✓|||||
@@ -227,7 +227,7 @@ SHORK 486 proper is the main version of the SHORK 486 Operating System that is d
 | [libuv](https://github.com/libuv/libuv) | 1.53.0 | BIND 9 | MIT |
 | [libxlsxwriter](https://github.com/jmcnamara/libxlsxwriter) | 1.2.4 | sc-im | BSD 2-Clause |
 | [libxml2](https://github.com/gnome/libxml2) | 2.15.4 | sc-im, Universal Ctags | MIT |
-| [libzip](https://github.com/nih-at/libzip) | 1.11.4 | Midnight Commander, sc-im | BSD 3-Clause |
+| [libzip](https://github.com/nih-at/libzip) | 1.12 | Midnight Commander, sc-im | BSD 3-Clause |
 | [musl](somethhttps://musl.libc.org/) | 1.2.6 | GCC, Tiny C Compiler | MIT |
 | [ncurses](https://invisible-island.net/ncurses/) | 6.6 | Cscope, CTris, dialog, htop, Lynx, Midnight Commander, nano, Ncdu, New BSD Games, sc-im, SHORKMINES, tic, tmux, tn5250, util-linux, x3270 | MIT |
 | [nPth](https://www.gnupg.org/software/npth/index.html) | 1.8 | GnuPG | LGPLv2.1 |
