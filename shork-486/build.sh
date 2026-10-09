@@ -468,6 +468,7 @@ MBR_BIN=""
 
 # Build parameters/arguments
 ALWAYS_BUILD=false
+ENABLE_DYN_SWAP=false
 FIX_EXTLINUX=false
 IS_ARCH=false
 IS_DEBIAN=false
@@ -479,6 +480,7 @@ ROOT_PASSWD=""
 SCANCODE_SET=-1
 SERIAL_CON_PORT="ttyS0"
 SET_KEYMAP="qwerty_en_us"
+SETUP_DYN_SWAP=false
 SHORKUTILS_RECLONE=false
 SKIP_BB=false
 SKIP_KRN=false
@@ -488,7 +490,6 @@ TARGET_SWAP=$DEFAULT_TARGET_SWAP
 USE_TORVALDS=false
 
 ENABLE_CDROM=false
-ENABLE_DYN_SWAP=false
 ENABLE_EPOLL=false
 ENABLE_FB_VBE=false
 ENABLE_HELP_VERBOSE=false
@@ -7311,7 +7312,7 @@ get_prog_tar()
 # for /etc/profile's dynamic swap feature when run
 init_dyn_swap()
 {
-    if $ENABLE_DYN_SWAP; then
+    if $SETUP_DYN_SWAP; then
         local BIN_FULL_PATH="$1"
         local BIN_REAL_PATH="${BIN_FULL_PATH#"$DESTDIR"}"
 
@@ -10348,6 +10349,15 @@ build_filesystem()
         sudo chmod 700 "${DESTDIR}"/var/run/user/0
     fi
 
+    if [ -f "${DESTDIR}/etc/shorkset.conf" ]; then
+        echo -e "${GREEN}Configuring dynamic swap's default status...${RESET}"
+        if $ENABLE_DYN_SWAP; then
+            sed -i "s|DYN_SWAP_ENABLED=0|DYN_SWAP_ENABLED=1|" "${DESTDIR}/etc/shorkset.conf"
+        else
+            sed -i "s|DYN_SWAP_ENABLED=1|DYN_SWAP_ENABLED=0|" "${DESTDIR}/etc/shorkset.conf"
+        fi
+    fi
+
     if $INCLUDE_GUI; then
         echo -e "${GREEN}Installing files needed for SHORKGUI...${RESET}"
         mkdir -p {usr/share/backgrounds,usr/share/X11/app-defaults}
@@ -10376,7 +10386,8 @@ build_filesystem()
 
     if $INCLUDE_KEYMAPS; then
         get_keymaps
-        if [ -n "$SET_KEYMAP" ] && [ -f "${DESTDIR}/etc/shorkset.conf" ]; then
+        if [ -n "$SET_KEYMAP" ] &&
+            [ -f "${DESTDIR}/etc/shorkset.conf" ]; then
             echo -e "${GREEN}Setting default keymap...${RESET}"
             sed -i "s|^KEYMAP=.*|KEYMAP=\"$SET_KEYMAP\"|" "${DESTDIR}/etc/shorkset.conf"
         fi
@@ -10416,7 +10427,7 @@ build_filesystem()
             echo -e "${GREEN}Copying sudo configuration...${RESET}"
             copy_sysfile "${CURR_DIR}"/sysfiles/sudoers "${DESTDIR}"/etc/sudoers
             copy_sysfile "${CURR_DIR}"/sysfiles/sudo.conf "${DESTDIR}"/etc/sudo.conf
-            if $ENABLE_DYN_SWAP; then
+            if $SETUP_DYN_SWAP; then
                 copy_sysfile "${CURR_DIR}"/sysfiles/dyn_swap_sudoers "${DESTDIR}"/etc/sudoers.d/dyn_swap
             fi
         fi

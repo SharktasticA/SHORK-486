@@ -449,6 +449,8 @@ When running the SHORK 486 Build Configurator, you will be prompted to select th
     * __If target disk size is more than or equal to 20MiB:__
         * Separate boot partition (yes/no)
     * Swap partition size (size in MiB)
+    * __If not "Micro" or "Mini" build type selected:__
+        * Dynamic swap (yes/no)
 * _If SHORK DISKETTE:_
     * Target diskette size (1.44MB or 2.88MB)
 * Target architecture (486SX, 486DX, 586, 586TSC or 586MMX)
@@ -457,7 +459,7 @@ When running the SHORK 486 Build Configurator, you will be prompted to select th
 * _If SHORK 486:_
     * __If not "Micro" or "Mini" build type selected:__
         * Keyboard layout (keymap) (single choice)
-    * Get symmetric multiprocessing support (yes/no)
+    * Symmetric multiprocessing support (yes/no)
     * __If "Custom" build type selected:__
         * Ethernet networking support (yes/no)
 * _If SHORK DISKETTE:_

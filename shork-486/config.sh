@@ -47,10 +47,12 @@ ID="shork-486"
 IS_ARCH=false
 IS_FEDORA=false
 IS_DEBIAN=true
-BUILD_TYPE="default"
+BUILD_TYPE=""
 TARGET_DISK=8
 ENABLE_BOOT_PART=false
 TARGET_SWAP=0
+ENABLE_DYN_SWAP=false
+SETUP_DYN_SWAP=false
 TARGET_ARCH="486SX"
 LINUX_VER="7.2.9"
 SCANCODE_SET=-1
@@ -117,7 +119,6 @@ INCLUDE_TMUX=false
 INCLUDE_UTIL_LINUX=false
 INCLUDE_VIM=false
 INCLUDE_CON_FONTS=false
-ENABLE_DYN_SWAP=false
 ENABLE_FB_VBE=false
 USE_GRUB=false
 INCLUDE_GUI=false
@@ -213,6 +214,8 @@ save_env()
         echo "TARGET_DISK=$TARGET_DISK"
         echo "ENABLE_BOOT_PART=$ENABLE_BOOT_PART"
         echo "TARGET_SWAP=$TARGET_SWAP"
+        echo "ENABLE_DYN_SWAP=$ENABLE_DYN_SWAP"
+        echo "SETUP_DYN_SWAP=$SETUP_DYN_SWAP"
         printf 'TARGET_ARCH=%s\n' "$(printf '"%s"' "$TARGET_ARCH")"
         printf 'LINUX_VER=%s\n' "$(printf '"%s"' "$LINUX_VER")"
         echo "SCANCODE_SET=$SCANCODE_SET"
@@ -280,7 +283,6 @@ save_env()
         echo "INCLUDE_UTIL_LINUX=$INCLUDE_UTIL_LINUX"
         echo "INCLUDE_VIM=$INCLUDE_VIM"
         echo "INCLUDE_CON_FONTS=$INCLUDE_CON_FONTS"
-        echo "ENABLE_DYN_SWAP=$ENABLE_DYN_SWAP"
         echo "ENABLE_FB_VBE=$ENABLE_FB_VBE"
         echo "USE_GRUB=$USE_GRUB"
         echo "INCLUDE_GUI=$INCLUDE_GUI"
@@ -328,10 +330,15 @@ set_mini_vars()
         ENABLE_MULTIUSER_REAL=false
     fi
     # Third argument =true bypasses resetting ENABLE_SMP
-    if [ -z "$2" ] || [ "$2" = false ]; then
+    if [ -z "$3" ] || [ "$3" = false ]; then
         ENABLE_SMP=false
     fi
+    # Four argument =true bypasses resetting ENABLE_DYN_SWAP
+    if [ -z "$4" ] || [ "$4" = false ]; then
+        ENABLE_DYN_SWAP=false
+    fi
 
+    SETUP_DYN_SWAP=false
     ENABLE_NET_ETH=false
 
     INCLUDE_AUTOCONF=false
@@ -390,7 +397,6 @@ set_mini_vars()
 
     ENABLE_CDROM=false
     INCLUDE_CON_FONTS=false
-    ENABLE_DYN_SWAP=false
     ENABLE_FB_VBE=false
     USE_GRUB=false
     INCLUDE_GUI=false
@@ -411,8 +417,9 @@ set_mini_vars()
 
 set_terminal_vars()
 {
-    set_mini_vars true true true
+    set_mini_vars true true true true
 
+    SETUP_DYN_SWAP=true
     ENABLE_NET_ETH=true
 
     INCLUDE_CHRONY=true
@@ -427,7 +434,6 @@ set_terminal_vars()
 
     ENABLE_CDROM=true
     INCLUDE_CON_FONTS=true
-    ENABLE_DYN_SWAP=true
     ENABLE_FB_VBE=true
     ENABLE_HELP_VERBOSE=true
     INCLUDE_KEYMAPS=true
@@ -440,7 +446,9 @@ set_terminal_vars()
 
 set_writer_vars()
 {
-    set_mini_vars true true true
+    set_mini_vars true true true true
+
+    SETUP_DYN_SWAP=true
 
     INCLUDE_HTOP=true
     INCLUDE_GPM=true
@@ -457,7 +465,6 @@ set_writer_vars()
 
     ENABLE_CDROM=true
     INCLUDE_CON_FONTS=true
-    ENABLE_DYN_SWAP=true
     ENABLE_FB_VBE=true
     ENABLE_HELP_VERBOSE=true
     INCLUDE_KEYMAPS=true
@@ -468,8 +475,9 @@ set_writer_vars()
 
 set_default_vars()
 {
-    set_mini_vars true true true
+    set_mini_vars true true true true
 
+    SETUP_DYN_SWAP=true
     ENABLE_NET_ETH=true
 
     INCLUDE_CHRONY=true
@@ -502,7 +510,6 @@ set_default_vars()
 
     ENABLE_CDROM=true
     INCLUDE_CON_FONTS=true
-    ENABLE_DYN_SWAP=true
     ENABLE_FB_VBE=true
     ENABLE_HELP_VERBOSE=true
     INCLUDE_KEYMAPS=true
@@ -574,8 +581,8 @@ set_max_vars()
 
 set_custom_vars()
 {
+    SETUP_DYN_SWAP=true
     INCLUDE_KEYMAPS=true
-    ENABLE_DYN_SWAP=true
 }
 
 set_disc_vars()
@@ -746,54 +753,72 @@ if [ "$ID" == "shork-486" ]; then
         if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
             TARGET_DISK=$DEFAULT_MIN_DISK
             TARGET_SWAP=$DEFAULT_DEF_SWAP
+            ENABLE_BOOT_PART=false
+            ENABLE_DYN_SWAP=true
         fi
     elif [ "$BUILD_TYPE" == "max" ]; then
         CURR_MIN_DISK=$MAX_MIN_DISK
         if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
             TARGET_DISK=$MAX_MIN_DISK
             TARGET_SWAP=$MAX_DEF_SWAP
+            ENABLE_BOOT_PART=true
+            ENABLE_DYN_SWAP=true
         fi
     elif [ "$BUILD_TYPE" == "plus" ]; then
         CURR_MIN_DISK=$PLUS_MIN_DISK
         if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
             TARGET_DISK=$PLUS_MIN_DISK
             TARGET_SWAP=$PLUS_DEF_SWAP
+            ENABLE_BOOT_PART=true
+            ENABLE_DYN_SWAP=true
         fi
     elif [ "$BUILD_TYPE" == "writer" ]; then
         CURR_MIN_DISK=$WRITER_MIN_DISK
         if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
             TARGET_DISK=$WRITER_MIN_DISK
             TARGET_SWAP=$WRITER_DEF_SWAP
+            ENABLE_BOOT_PART=false
+            ENABLE_DYN_SWAP=true
         fi
     elif [ "$BUILD_TYPE" == "offline" ]; then
         CURR_MIN_DISK=$OFFLINE_MIN_DISK
         if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
             TARGET_DISK=$OFFLINE_MIN_DISK
             TARGET_SWAP=$OFFLINE_DEF_SWAP
+            ENABLE_BOOT_PART=false
+            ENABLE_DYN_SWAP=true
         fi
     elif [ "$BUILD_TYPE" == "terminal" ]; then
         CURR_MIN_DISK=$TERM_MIN_DISK
         if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
             TARGET_DISK=$TERM_MIN_DISK
             TARGET_SWAP=$TERM_DEF_SWAP
+            ENABLE_BOOT_PART=false
+            ENABLE_DYN_SWAP=true
         fi
     elif [ "$BUILD_TYPE" == "mini" ]; then
         CURR_MIN_DISK=$MINI_MIN_DISK
         if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
             TARGET_DISK=$MINI_MIN_DISK
             TARGET_SWAP=$MINI_DEF_SWAP
+            ENABLE_BOOT_PART=false
+            ENABLE_DYN_SWAP=false
         fi
     elif [ "$BUILD_TYPE" == "micro" ]; then
         CURR_MIN_DISK=$MICRO_MIN_DISK
         if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
             TARGET_DISK=$MICRO_MIN_DISK
             TARGET_SWAP=$MICRO_DEF_SWAP
+            ENABLE_BOOT_PART=false
+            ENABLE_DYN_SWAP=false
         fi
     elif [ "$BUILD_TYPE" == "custom" ]; then
         CURR_MIN_DISK=$CUSTOM_MIN_DISK
         if [ "$BUILD_TYPE" != "$PREV_BUILD_TYPE" ]; then
             TARGET_DISK=$CUSTOM_MIN_DISK
             TARGET_SWAP=$CUSTOM_DEF_SWAP
+            ENABLE_BOOT_PART=true
+            ENABLE_DYN_SWAP=true
         fi
     fi
 
@@ -922,7 +947,28 @@ elif [ "$ID" == "shork-diskette" ]; then
     fi
 fi
 
+# Get dynamic swap choice (SETUP_DYN_SWAP=true)
+if [ "$SETUP_DYN_SWAP" == true ]; then
+    DEFAULT_FLAG=""
+    if ! $ENABLE_DYN_SWAP; then
+        DEFAULT_FLAG="--defaultno"
+    fi
 
+    dialog --clear \
+        --backtitle "SHORK 486 Build Configurator" \
+        --title "Dynamic Swap" \
+        $DEFAULT_FLAG \
+        --yesno "Do you want to enable SHORK 486's dynamic swap feature by default? This creates swap files automatically when known memory-intensive programs run, then delete them when they exit. It may be particularly useful for SHORK 486 Writer, Plus or Max when the combined physical and swap partition memory are below 32MiB. It can later be enabled/disabled in SHORKSET." \
+        9 $WIDTH
+
+    CHOICE=$?
+
+    if [[ $CHOICE -eq 0 ]]; then
+        ENABLE_DYN_SWAP=true
+    else
+        ENABLE_DYN_SWAP=false
+    fi
+fi
 
 # Get target architecture (all)
 TARGET_ARCH=$(dialog --clear \
@@ -1053,7 +1099,7 @@ if [ "$BUILD_TYPE" != "mini" ] && [ "$BUILD_TYPE" != "micro" ] &&
         --title "Keyboard Layout" \
         --cancel-label "Skip" \
         --default-item "$SET_KEYMAP" \
-        --menu "Select what keyboard layout (keymap) you wish to use. This can later be changed inside SHORK 486 by running shorkset." $HEIGHT $WIDTH 25 \
+        --menu "Select what keyboard layout (keymap) you wish to use. This can later be changed in SHORKSET." $HEIGHT $WIDTH 25 \
         "${KEYMAP_ITEMS[@]}" \
         3>&1 1>&2 2>&3)
 fi
