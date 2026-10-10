@@ -68,6 +68,7 @@ echo -e "${BLUE}========================${RESET}"
 ######################################################
 
 # General global vars
+ARCH="i486"
 BOOT_PART_SIZE=4
 BOOT_PART_GRUB_MULTI=4
 BOOTLDR_USED=""
@@ -97,7 +98,6 @@ USED_PARAMS=""
 USED_WM="TWM"
 
 # Branding
-ARCH="$(cat "${CURR_DIR}"/branding/ARCH | tr -d '\n')"
 BUG_REPORT_URL="$(cat "${CURR_DIR}"/branding/BUG_REPORT_URL | tr -d '\n')"
 DIST="SHORK 486 Mini"
 ID="shork-486"
@@ -110,42 +110,67 @@ VERSION_CODENAME="$(cat "${CURR_DIR}"/branding/VERSION_CODENAME | tr -d '\n')"
 VERSION_ID="$(cat "${CURR_DIR}"/branding/VERSION_ID | tr -d '\n')"
 
 # Common compiler/compiler-related locations
-CROSS="${ARCH}-linux-musl-cross"
+CROSS_ARCH="i486"
+CROSS="${CROSS_ARCH}-linux-musl-cross"
 PREFIX="${CURR_DIR}/build/${CROSS}"
-AR="${PREFIX}/bin/${ARCH}-linux-musl-ar"
-AS="${PREFIX}/bin/${ARCH}-linux-musl-as"
-CC="${PREFIX}/bin/${ARCH}-linux-musl-gcc"
-CC_STATIC="${CURR_DIR}/compilation/${ARCH}-linux-musl-gcc-static"
-CXX="${PREFIX}/bin/${ARCH}-linux-musl-g++"
-CXX_STATIC="${CURR_DIR}/compilation/${ARCH}-linux-musl-gxx-static"
+AR="${PREFIX}/bin/${CROSS_ARCH}-linux-musl-ar"
+AS="${PREFIX}/bin/${CROSS_ARCH}-linux-musl-as"
+CC="${PREFIX}/bin/${CROSS_ARCH}-linux-musl-gcc"
+CC_STATIC="${CURR_DIR}/compilation/${CROSS_ARCH}-linux-musl-gcc-static"
+CXX="${PREFIX}/bin/${CROSS_ARCH}-linux-musl-g++"
+CXX_STATIC="${CURR_DIR}/compilation/${CROSS_ARCH}-linux-musl-gxx-static"
 DESTDIR="${CURR_DIR}/build/root"
-HOST="${ARCH}-linux-musl"
-LD="${PREFIX}/bin/${ARCH}-linux-musl-ld"
-RANLIB="${PREFIX}/bin/${ARCH}-linux-musl-ranlib"
+HOST="${CROSS_ARCH}-linux-musl"
+LD="${PREFIX}/bin/${CROSS_ARCH}-linux-musl-ld"
+RANLIB="${PREFIX}/bin/${CROSS_ARCH}-linux-musl-ranlib"
 STAGE_DIR="${CURR_DIR}/build/stage"
-STRIP="${PREFIX}/bin/${ARCH}-linux-musl-strip"
-SYSROOT="${PREFIX}/${ARCH}-linux-musl"
+STRIP="${PREFIX}/bin/${CROSS_ARCH}-linux-musl-strip"
+SYSROOT="${PREFIX}/${CROSS_ARCH}-linux-musl"
 
 # Standardised compiler flags
 CFLAGS_SOFTFP="-mno-fancy-math-387 -msoft-float -mno-80387 \
     -mno-fp-ret-in-387"
-CFLAGS_COMMON_486SX="-Os -m32 -march=${ARCH} -mtune=${ARCH} -mhard-float \
+CFLAGS_COMMON_486="-Os -m32 -march=i486 -mtune=i486 -mhard-float \
     -D__gnuc_va_list=va_list -D__NR_landlock_create_ruleset=444 \
     -D__NR_landlock_add_rule=445 -D__NR_landlock_restrict_self=446 \
     --sysroot=${SYSROOT} -I$SYSROOT/usr/include -I${PREFIX}/include \
     -I${PREFIX}/include/ncursesw -L${PREFIX}/lib"
-CFLAGS_NOPIE_486SX="${CFLAGS_COMMON_486SX} -no-pie -fno-pie -fno-pic"
-LDLIBS_COMMON_486SX=""
-LDFLAGS_COMMON_486SX="-L${SYSROOT}/lib -all-static"
+CFLAGS_COMMON_586="-Os -m32 -march=i586 -mtune=i586 -mhard-float \
+    -D__gnuc_va_list=va_list -D__NR_landlock_create_ruleset=444 \
+    -D__NR_landlock_add_rule=445 -D__NR_landlock_restrict_self=446 \
+    --sysroot=${SYSROOT} -I$SYSROOT/usr/include -I${PREFIX}/include \
+    -I${PREFIX}/include/ncursesw -L${PREFIX}/lib"
+CFLAGS_COMMON_586TSC="-Os -m32 -march=pentium -mtune=pentium -mhard-float \
+    -D__gnuc_va_list=va_list -D__NR_landlock_create_ruleset=444 \
+    -D__NR_landlock_add_rule=445 -D__NR_landlock_restrict_self=446 \
+    --sysroot=${SYSROOT} -I$SYSROOT/usr/include -I${PREFIX}/include \
+    -I${PREFIX}/include/ncursesw -L${PREFIX}/lib"
+CFLAGS_COMMON_586MMX="-Os -m32 -march=pentium-mmx -mtune=pentium-mmx \
+    -mhard-float -D__gnuc_va_list=va_list \
+    -D__NR_landlock_create_ruleset=444 -D__NR_landlock_add_rule=445 \
+    -D__NR_landlock_restrict_self=446 --sysroot=${SYSROOT} \
+    -I$SYSROOT/usr/include -I${PREFIX}/include \
+    -I${PREFIX}/include/ncursesw -L${PREFIX}/lib"
+LDLIBS_COMMON_486=""
+LDFLAGS_COMMON_486="-L${SYSROOT}/lib -all-static"
 
-if [ "$TARGET_ARCH" = "486SX" ] || [ "$TARGET_ARCH" = "486DX" ] ||
-    [ "$TARGET_ARCH" = "586" ] || [ "$TARGET_ARCH" = "586TSC" ] ||
-    [ "$TARGET_ARCH" = "586MMX" ]; then
-    CFLAGS_NOPIE="${CFLAGS_NOPIE_486SX}"
-    CFLAGS_COMMON="${CFLAGS_COMMON_486SX}"
-    LDLIBS_COMMON="${LDLIBS_COMMON_486SX}"
-    LDFLAGS_COMMON="${LDFLAGS_COMMON_486SX}"
+if [ "$TARGET_ARCH" = "486SX" ] || [ "$TARGET_ARCH" = "486DX" ]; then
+    ARCH="i486"
+    CFLAGS_COMMON="${CFLAGS_COMMON_486}"
+elif [ "$TARGET_ARCH" = "586" ]; then
+    ARCH="i586"
+    CFLAGS_COMMON="${CFLAGS_COMMON_586}"
+elif [ "$TARGET_ARCH" = "586TSC" ]; then
+    CFLAGS_COMMON="${CFLAGS_COMMON_586TSC}"
+    ARCH="i586"
+elif [ "$TARGET_ARCH" = "586MMX" ]; then
+    ARCH="i586"
+    CFLAGS_COMMON="${CFLAGS_COMMON_586MMX}"
 fi
+
+CFLAGS_NOPIE="${CFLAGS_COMMON} -no-pie -fno-pie -fno-pic"
+LDLIBS_COMMON="${LDLIBS_COMMON_486}"
+LDFLAGS_COMMON="${LDFLAGS_COMMON_486}"
 
 # Other common locations
 CONFIGS_DIR="${CURR_DIR}/configs"
@@ -1514,6 +1539,10 @@ get_musl_cross()
             [ "$(cat "${CROSS}/.sysroot-path")" != "${SYSROOT}" ]; then
             echo -e "${YELLOW}WARNING: existing toolchain was configured for a different path - regenerating...${RESET}"
             rm -rf "${CROSS}" 2>/dev/null || sudo rm -rf "${CROSS}"
+        elif [ ! -f "${CROSS}/.target-arch" ] ||
+            [ "$(cat "${CROSS}/.target-arch")" != "${TARGET_ARCH}" ]; then
+            echo -e "${YELLOW}WARNING: existing toolchain was configured for a different target architecture - regenerating...${RESET}"
+            rm -rf "${CROSS}" 2>/dev/null || sudo rm -rf "${CROSS}"
         fi
     fi
 
@@ -1522,6 +1551,7 @@ get_musl_cross()
         echo -e "${GREEN}Extracting ${CROSS}...${RESET}"
         tar xvf "${CROSS}.tgz"
         echo "${SYSROOT}" > "${CROSS}/.sysroot-path"
+        echo "${TARGET_ARCH}" > "${CROSS}/.target-arch"
     fi
 
     # Fix libatomic.la was moved (etc.)
@@ -2285,7 +2315,7 @@ get_libassuan()
     # Compile and install
     echo -e "${GREEN}Compiling libassuan...${RESET}"
     ./configure \
-        --host="${ARCH}"-linux-musl \
+        --host="${CROSS_ARCH}"-linux-musl \
         --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
@@ -2451,7 +2481,7 @@ get_libgcrypt()
     # Compile and install
     echo -e "${GREEN}Compiling libgcrypt...${RESET}"
     ./configure \
-        --host="${ARCH}"-linux-musl \
+        --host="${CROSS_ARCH}"-linux-musl \
         --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
@@ -2499,7 +2529,7 @@ get_libgpg_error()
     # Compile and install
     echo -e "${GREEN}Compiling libgpg-error...${RESET}"
     ./configure \
-        --host="${ARCH}"-linux-musl \
+        --host="${CROSS_ARCH}"-linux-musl \
         --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
@@ -2633,7 +2663,7 @@ get_libksba()
     # Compile and install
     echo -e "${GREEN}Compiling libksba...${RESET}"
     ./configure \
-        --host="${ARCH}"-linux-musl \
+        --host="${CROSS_ARCH}"-linux-musl \
         --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
@@ -3097,7 +3127,7 @@ get_libt3config()
         AR="${AR}" \
         LD="${LD}" \
         RANLIB="${RANLIB}" \
-        LIBTOOL="${PREFIX}/bin/i486-linux-musl-libtool" \
+        LIBTOOL="${PREFIX}/bin/${CROSS_ARCH}-linux-musl-libtool" \
         CFLAGS="${CFLAGS_COMMON}" \
         LDFLAGS="--sysroot=${SYSROOT} -L${SYSROOT}/usr/lib"
     make -j"$JOBS"
@@ -3153,7 +3183,7 @@ get_libt3highlight()
         AR="${AR}" \
         LD="${LD}" \
         RANLIB="${RANLIB}" \
-        LIBTOOL="${PREFIX}/bin/i486-linux-musl-libtool" \
+        LIBTOOL="${PREFIX}/bin/${CROSS_ARCH}-linux-musl-libtool" \
         CFLAGS="${CFLAGS_COMMON}" \
         LDFLAGS="--sysroot=${SYSROOT} -L${SYSROOT}/usr/lib -L${PREFIX}/lib"
     make -j"$JOBS"
@@ -3228,7 +3258,7 @@ get_libt3key()
         AR="${AR}" \
         LD="${LD}" \
         RANLIB="${RANLIB}" \
-        LIBTOOL="${PREFIX}/bin/i486-linux-musl-libtool" \
+        LIBTOOL="${PREFIX}/bin/${CROSS_ARCH}-linux-musl-libtool" \
         CFLAGS="${CFLAGS_COMMON}" \
         LDFLAGS="--sysroot=${SYSROOT} -L${SYSROOT}/usr/lib -L${PREFIX}/lib"
     make -j"$JOBS"
@@ -3301,7 +3331,7 @@ get_libt3widget()
         AR="${AR}" \
         LD="${LD}" \
         RANLIB="${RANLIB}" \
-        LIBTOOL="${PREFIX}/bin/i486-linux-musl-libtool" \
+        LIBTOOL="${PREFIX}/bin/${CROSS_ARCH}-linux-musl-libtool" \
         CFLAGS="${CFLAGS_COMMON}" \
         CXXFLAGS="-I${PREFIX}/include -I${SYSROOT}/usr/include" \
         LDFLAGS="--sysroot=${SYSROOT} -L${SYSROOT}/usr/lib -L${PREFIX}/lib"
@@ -3367,7 +3397,7 @@ get_libt3window()
         AR="${AR}" \
         LD="${LD}" \
         RANLIB="${RANLIB}" \
-        LIBTOOL="${PREFIX}/bin/i486-linux-musl-libtool" \
+        LIBTOOL="${PREFIX}/bin/${CROSS_ARCH}-linux-musl-libtool" \
         CFLAGS="${CFLAGS_COMMON}" \
         LDFLAGS="--sysroot=${SYSROOT} -L${SYSROOT}/usr/lib -L${PREFIX}/lib"
     make -j"$JOBS"
@@ -3432,7 +3462,7 @@ get_libtool_tilde()
     cd "${CURR_DIR}/build"
 
     # Skip if already compiled
-    if [ -f "$SYSROOT/usr/lib/libltdl.a" ]  && [ -f "${PREFIX}/bin/i486-linux-musl-libtool" ]; then
+    if [ -f "$SYSROOT/usr/lib/libltdl.a" ]  && [ -f "${PREFIX}/bin/${CROSS_ARCH}-linux-musl-libtool" ]; then
         echo -e "${LIGHT_RED}libtool already compiled, skipping...${RESET}"
         return
     fi
@@ -3455,21 +3485,21 @@ get_libtool_tilde()
     # Compile and install libtool
     echo -e "${GREEN}Compiling libtool...${RESET}"
     ./configure \
-        --host="${ARCH}"-linux-musl \
+        --host="${CROSS_ARCH}"-linux-musl \
         --prefix=/usr \
         CC="${CC}" \
         AR="${AR}" \
         LD="${LD}" \
         RANLIB="${RANLIB}"
     mkdir -p "${PREFIX}/bin"
-    cp ./libtool "${PREFIX}/bin/i486-linux-musl-libtool"
-    chmod +x "${PREFIX}/bin/i486-linux-musl-libtool"
+    cp ./libtool "${PREFIX}/bin/${CROSS_ARCH}-linux-musl-libtool"
+    chmod +x "${PREFIX}/bin/${CROSS_ARCH}-linux-musl-libtool"
 
     # Compile and install libltdl
     cd "libltdl"
     echo -e "${GREEN}Compiling libltdl...${RESET}"
     ./configure \
-        --host="${ARCH}"-linux-musl \
+        --host="${CROSS_ARCH}"-linux-musl \
         --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
@@ -3515,7 +3545,7 @@ get_libtranscript()
         # Compile and install libtranscript library
         echo -e "${GREEN}Compiling libtranscript library...${RESET}"
         ./configure \
-            --host="${ARCH}"-linux-musl \
+            --host="${CROSS_ARCH}"-linux-musl \
             --prefix=/usr \
             CC="${CC}" \
             CXX="${CXX}" \
@@ -3586,7 +3616,7 @@ get_libunistring()
     # Compile and install
     echo -e "${GREEN}Compiling libunistring...${RESET}"
     ./configure \
-        --host="${ARCH}"-linux-musl \
+        --host="${CROSS_ARCH}"-linux-musl \
         --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
@@ -3975,7 +4005,7 @@ get_npth()
     # Compile and install
     echo -e "${GREEN}Compiling nPth...${RESET}"
     ./configure \
-        --host="${ARCH}"-linux-musl \
+        --host="${CROSS_ARCH}"-linux-musl \
         --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
@@ -4057,7 +4087,7 @@ get_pcre2()
     # Compile and install
     echo -e "${GREEN}Compiling PCRE2...${RESET}"
     ./configure \
-        --host="${ARCH}"-linux-musl \
+        --host="${CROSS_ARCH}"-linux-musl \
         --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
@@ -4412,7 +4442,7 @@ get_busybox()
     fi
 
     # Ensure BusyBox behaves with our toolchain
-    sed -i "s|^CONFIG_CROSS_COMPILER_PREFIX=.*|CONFIG_CROSS_COMPILER_PREFIX=\"${PREFIX}/bin/${ARCH}-linux-musl-\"|" .config
+    sed -i "s|^CONFIG_CROSS_COMPILER_PREFIX=.*|CONFIG_CROSS_COMPILER_PREFIX=\"${PREFIX}/bin/${CROSS_ARCH}-linux-musl-\"|" .config
     sed -i "s|^CONFIG_SYSROOT=.*|CONFIG_SYSROOT=\"${SYSROOT}\"|" .config
     sed -i "s|^CONFIG_EXTRA_CFLAGS=.*|CONFIG_EXTRA_CFLAGS=\"${CFLAGS_NOPIE}\"|" .config
     sed -i "s|^CONFIG_EXTRA_LDFLAGS=.*|CONFIG_EXTRA_LDFLAGS=\"-no-pie -static -L${PREFIX}/lib\"|" .config
@@ -6449,7 +6479,7 @@ get_tinyx()
         --enable-xfbdev \
         CC="${CC_STATIC}" \
         CPPFLAGS="-I$SYSROOT/usr/include -I$SYSROOT/usr/include/freetype2" \
-        CFLAGS="-O2 -march=i486 -mtune=i486 -fomit-frame-pointer -ffast-math -mno-fancy-math-387 -pipe --sysroot=$SYSROOT" \
+        CFLAGS="-O2 -march=${ARCH} -mtune=${ARCH} -fomit-frame-pointer -ffast-math -mno-fancy-math-387 -pipe --sysroot=$SYSROOT" \
         LDFLAGS="-static -L$SYSROOT/usr/lib --sysroot=$SYSROOT" \
         LIBS="$LINK_LIBS" \XSERVERCFLAGS_CFLAGS="-I$SYSROOT/usr/include -I$SYSROOT/usr/include/freetype2" XSERVERLIBS_LIBS="$LINK_LIBS"
     make -j"$JOBS"
@@ -6492,7 +6522,7 @@ get_twm()
     ./autogen.sh
     ./configure --host="$HOST" --prefix=/usr \
         CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP" \
-        CFLAGS="-O2 -march=i486 -mtune=i486 -fomit-frame-pointer -ffast-math -pipe --sysroot=$SYSROOT" \
+        CFLAGS="-O2 -march=${ARCH} -mtune=${ARCH} -fomit-frame-pointer -ffast-math -pipe --sysroot=$SYSROOT" \
         CPPFLAGS="-I$SYSROOT/usr/include" \
         LDFLAGS="-static -L$SYSROOT/usr/lib --sysroot=$SYSROOT"
     make -j"$JOBS"
@@ -6616,7 +6646,7 @@ get_st()
     echo -e "${GREEN}Compiling st...${RESET}"
     make -j"$JOBS" \
         CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP" \
-        CFLAGS="-O2 -march=i486 -mtune=i486 -fomit-frame-pointer -ffast-math -pipe" \
+        CFLAGS="-O2 -march=${ARCH} -mtune=${ARCH} -fomit-frame-pointer -ffast-math -pipe" \
         CPPFLAGS="-I$SYSROOT/usr/include -I$SYSROOT/usr/include/freetype2" \
         LDFLAGS="-static -L$SYSROOT/usr/lib --sysroot=$SYSROOT" \
         LIBS="-lXft -lfontconfig -lfreetype -lXrender -lX11 -lxcb -lXau -lXdmcp -lexpat -lpng -lz -lm"
@@ -7607,10 +7637,10 @@ get_gcc()
     cd "${CURR_DIR}/build"
 
     # Skip if already extracted
-    if [ ! -d "${DESTDIR}/opt/${ARCH}-linux-musl-native" ]; then
-        echo -e "${GREEN}Downloading ${ARCH}-linux-musl-native...${RESET}"
+    if [ ! -d "${DESTDIR}/opt/${CROSS_ARCH}-linux-musl-native" ]; then
+        echo -e "${GREEN}Downloading ${CROSS_ARCH}-linux-musl-native...${RESET}"
 
-        DIR="${ARCH}-linux-musl-native"
+        DIR="${CROSS_ARCH}-linux-musl-native"
         ARC="${DIR}.tgz"
         URI="${GCC_SRC}/${ARC}"
 
@@ -7619,7 +7649,7 @@ get_gcc()
 
         # Extract
         if [ -d "${DESTDIR}/opt/$DIR" ]; then
-            echo -e "${YELLOW}${ARCH}-linux-musl-native's archive is already present, re-extracting...${RESET}"
+            echo -e "${YELLOW}${CROSS_ARCH}-linux-musl-native's archive is already present, re-extracting...${RESET}"
             sudo rm -rf "${DESTDIR}/opt/$DIR"
         fi
         mkdir -p "${DESTDIR}"/opt
@@ -7628,17 +7658,17 @@ get_gcc()
         # Symlink all shared libraries so they're discoverable without needing a
         # custom library path
         mkdir -p "${DESTDIR}"/lib
-        for LIB in "${DESTDIR}"/opt/${ARCH}-linux-musl-native/lib/*.so*; do
+        for LIB in "${DESTDIR}/opt/${CROSS_ARCH}-linux-musl-native/lib/"*.so*; do
             [ -e "$LIB" ] || continue
             TARGET="${LIB#"$DESTDIR"}"
             ln -sf "$TARGET" "${DESTDIR}/lib/"
         done
-        ln -sf /opt/i486-linux-musl-native/lib/libc.so "${DESTDIR}/lib/ld-musl-i386.so.1"
+        ln -sf /opt/${CROSS_ARCH}-linux-musl-native/lib/libc.so "${DESTDIR}/lib/ld-musl-i386.so.1"
     else
-        echo -e "${LIGHT_RED}${ARCH}-linux-musl-native already extracted, skipping...${RESET}"
+        echo -e "${LIGHT_RED}${CROSS_ARCH}-linux-musl-native already extracted, skipping...${RESET}"
     fi
 
-    GCC_SYSROOT="${DESTDIR}/opt/i486-linux-musl-native"
+    GCC_SYSROOT="${DESTDIR}/opt/${CROSS_ARCH}-linux-musl-native"
 
     if $INCLUDE_LUA; then
         echo -e "${GREEN}Installing Lua headers and library...${RESET}"
@@ -8182,7 +8212,7 @@ get_mpg321()
         AR="$AR" \
         CC="$CC_STATIC" \
         RANLIB="$RANLIB" \
-        CPPFLAGS="-nostdinc -I$SYSROOT/usr/include -I$SYSROOT/include -I${PREFIX}/lib/gcc/i486-linux-musl/11.2.1/include" \
+        CPPFLAGS="-nostdinc -I$SYSROOT/usr/include -I$SYSROOT/include -I${PREFIX}/lib/gcc/${CROSS_ARCH}-linux-musl/11.2.1/include" \
         CFLAGS="${CFLAGS_NOPIE} -std=gnu89 -fcommon" \
         LDFLAGS="-static -L$SYSROOT/usr/lib" \
         LIBAO_LIBS="-L$SYSROOT/usr/lib -lao" \
@@ -8567,7 +8597,7 @@ get_tilde()
         AR="${AR}" \
         LD="${LD}" \
         RANLIB="${RANLIB}" \
-        LIBTOOL="${PREFIX}/bin/i486-linux-musl-libtool" \
+        LIBTOOL="${PREFIX}/bin/${CROSS_ARCH}-linux-musl-libtool" \
         CFLAGS="${CFLAGS_COMMON}" \
         CXXFLAGS="${CFLAGS_NOPIE}" \
         LDFLAGS="--sysroot=${SYSROOT} -static -static-libgcc -static-libstdc++ -no-pie -L${SYSROOT}/usr/lib -L${PREFIX}/lib"
@@ -8612,14 +8642,14 @@ get_tn5250()
     INTER_HEADERS="$($CC -print-file-name=include)"
 
     export CC="$CC"
-    export CFLAGS="${CFLAGS_NOPIE} -nostdinc -I${INTER_HEADERS} -I${PREFIX}/${ARCH}-linux-musl/include"
+    export CFLAGS="${CFLAGS_NOPIE} -nostdinc -I${INTER_HEADERS} -I${PREFIX}/${CROSS_ARCH}-linux-musl/include"
     export CPPFLAGS="$CFLAGS"
     export LDFLAGS="-static -static-libgcc -no-pie -Wl,-static -L${PREFIX}/lib -L${SYSROOT}/lib"
 
     # Compile and install
     ./autogen.sh
     ./configure \
-        --host="${ARCH}"-linux-musl \
+        --host="${CROSS_ARCH}"-linux-musl \
         --prefix=/usr \
         --with-ssl="${SYSROOT}" \
         --disable-shared \
@@ -9410,14 +9440,14 @@ trim_fat()
     fi
 
     if $INCLUDE_GCC; then
-        sudo rm -rf "${DESTDIR}/opt/${ARCH}-linux-musl-native/${ARCH}-linux-musl"
-        sudo rm -rf "${DESTDIR}/opt/${ARCH}-linux-musl-native/share"
-        for bin in "${DESTDIR}"/opt/${ARCH}-linux-musl-native/bin/*; do
+        sudo rm -rf "${DESTDIR}/opt/${CROSS_ARCH}-linux-musl-native/${CROSS_ARCH}-linux-musl"
+        sudo rm -rf "${DESTDIR}/opt/${CROSS_ARCH}-linux-musl-native/share"
+        for bin in "${DESTDIR}/opt/${CROSS_ARCH}-linux-musl-native/bin/"*; do
             if [ -f "$bin" ]; then
                 "$STRIP" "$bin" 2>/dev/null || true
             fi
         done
-        for bin in "${DESTDIR}"/opt/${ARCH}-linux-musl-native/libexec/gcc/${ARCH}-linux-musl/11.2.1/*; do
+        for bin in "${DESTDIR}/opt/${CROSS_ARCH}-linux-musl-native/libexec/gcc/${CROSS_ARCH}-linux-musl/11.2.1/"*; do
             if [ -f "$bin" ]; then
                 "$STRIP" "$bin" 2>/dev/null || true
             fi
@@ -11760,8 +11790,8 @@ get_installed_progs_feats()
 
     # SHORKTUI
     if [[ "$ID" == "shork-"*86 ]]; then
-        check_installed_file "GCC ${GCC_VER} + musl" "/opt/i486-linux-musl-native/bin/gcc"
-        check_installed_file "GNU Binutils ${BINUTILS_VER}" "/opt/i486-linux-musl-native/bin/ar"
+        check_installed_file "GCC ${GCC_VER} + musl" "/opt/${CROSS_ARCH}-linux-musl-native/bin/gcc"
+        check_installed_file "GNU Binutils ${BINUTILS_VER}" "/opt/${CROSS_ARCH}-linux-musl-native/bin/ar"
         check_installed_file "x3270 ${C3270_VER}" "/usr/bin/c3270"
         check_installed_file "Cscope ${CSCOPE_VER}" "/usr/bin/cscope"
         check_installed_file "Universal Ctags ${CTAGS_VER}" "/usr/bin/ctags"
@@ -12781,9 +12811,9 @@ if $INCLUDE_VIM; then
 fi
 if $INCLUDE_GCC; then
     get_gcc
-    init_dyn_swap "${DESTDIR}/opt/${ARCH}-linux-musl-native/bin/gcc"
-    init_dyn_swap "${DESTDIR}/opt/${ARCH}-linux-musl-native/bin/g++"
-    init_dyn_swap "${DESTDIR}/opt/${ARCH}-linux-musl-native/bin/gfortran"
+    init_dyn_swap "${DESTDIR}/opt/${CROSS_ARCH}-linux-musl-native/bin/gcc"
+    init_dyn_swap "${DESTDIR}/opt/${CROSS_ARCH}-linux-musl-native/bin/g++"
+    init_dyn_swap "${DESTDIR}/opt/${CROSS_ARCH}-linux-musl-native/bin/gfortran"
 fi
 
 if [ "$BUILD_TYPE" != "micro" ]; then
