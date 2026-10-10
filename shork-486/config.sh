@@ -664,7 +664,7 @@ if [[ ! -n "$CHOICE" ]]; then
 else
     if [ "$CHOICE" == "shork-486" ]; then
         DIST="SHORK 486"
-        if [ "$CHOICE" != "$ID" ]; then
+        if [[ "$ID" != "shork-"*86 ]]; then
             HOSTNAME="$CHOICE"
             set_default_vars
             BUILD_TYPE="default"
@@ -976,7 +976,7 @@ TARGET_ARCH=$(dialog --clear \
     --title "Target Architecture" \
     --cancel-label "Quit" \
     --default-item "$TARGET_ARCH" \
-    --menu "Please select the 486 or 586 architecture revision that best includes your target hardware for optimisation purposes. Otherwise, stick with \"486SX\" for the most universal support. The choice here will decide whether the operating system is called \"SHORK 486\" or \"SHORK 586\"." 14 $WIDTH 5 \
+    --menu "Please select the 486 or 586 architecture revision that best includes your target hardware for optimisation purposes. Otherwise, stick with \"486SX\" for the most universal support. The choice here will decide whether the operating system is called \"SHORK 486\" or \"SHORK 586\"." 15 $WIDTH 5 \
     "486SX"     "Intel 486SX + compatible (supports x87 emulation)" \
     "486DX"     "Intel 486DX/487SX + compatible" \
     "586"       "AMD K5 & Cyrix 5x86 (\"586\" w/o TSC)" \
