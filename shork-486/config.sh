@@ -695,8 +695,8 @@ fi
 
 
 
-if [ "$ID" == "shork-486" ]; then
-    # Get build type (486)
+if [[ "$ID" == "shork-"*86 ]]; then
+    # Get build type (486/586)
     PREV_BUILD_TYPE=$BUILD_TYPE
     BUILD_TYPE=$(dialog --clear \
         --backtitle "SHORK 486 Build Configurator" \
@@ -746,7 +746,7 @@ if [ "$ID" == "shork-486" ]; then
 
 
 
-    # Get target disk size (486)
+    # Get target disk size (486/586)
     CURR_MIN_DISK=0
     if [ "$BUILD_TYPE" == "default" ]; then
         CURR_MIN_DISK=$DEFAULT_MIN_DISK
@@ -859,7 +859,7 @@ if [ "$ID" == "shork-486" ]; then
 
 
 
-    # Get boot partition choice (486 + TARGET_DISK>=20MiB)
+    # Get boot partition choice (486/586 + TARGET_DISK>=20MiB)
     if [ "$TARGET_DISK" -gt 19 ]; then
         DEFAULT_FLAG=""
         if ! $ENABLE_BOOT_PART; then
@@ -885,7 +885,7 @@ if [ "$ID" == "shork-486" ]; then
 
 
 
-    # Get swap partition size (486)
+    # Get swap partition size (486/586)
     while true; do
         TARGET_SWAP_TMP=$(dialog --clear \
             --backtitle "SHORK 486 Build Configurator" \
@@ -1054,9 +1054,9 @@ esac
 
 
 
-# Get keyboard layout choice (486 sans Micro/Mini)
+# Get keyboard layout choice (486/586 sans Micro/Mini)
 if [ "$BUILD_TYPE" != "mini" ] && [ "$BUILD_TYPE" != "micro" ] &&
-   [ "$ID" == "shork-486" ]; then
+   [[ "$ID" == "shork-"*86 ]]; then
     KEYMAP_ITEMS=(
         "qwerty_by"         "Belarusian (QWERTY)"
         "azerty_be"         "Begian (AZERTY)"
@@ -1123,8 +1123,8 @@ fi
 
 
 
-# Get symmetric multiprocessing support choice (486)
-if [ "$ID" == "shork-486" ]; then
+# Get symmetric multiprocessing support choice (486/586)
+if [[ "$ID" == "shork-"*86 ]]; then
     DEFAULT_FLAG=""
     if ! $ENABLE_SMP; then
         DEFAULT_FLAG="--defaultno"
@@ -1148,8 +1148,8 @@ fi
 
 
 
-# Get ethernet networking support choice (486 custom)
-if [ "$ID" == "shork-486" ] && [ "$BUILD_TYPE" == "custom" ]; then
+# Get ethernet networking support choice (486/586 + custom)
+if [[ "$ID" == "shork-"*86 ]] && [ "$BUILD_TYPE" == "custom" ]; then
     DEFAULT_FLAG=""
     if ! $ENABLE_NET_ETH; then
         DEFAULT_FLAG="--defaultno"
@@ -1211,7 +1211,7 @@ if ! $FIX_EXTLINUX; then
 fi
 
 VARIANT="*LINUX"
-if [ "$ID" == "shork-486" ]; then
+if [[ "$ID" == "shork-"*86 ]]; then
     VARIANT="EXTLINUX"
 elif [ "$ID" == "shork-disc" ]; then
     VARIANT="ISOLINUX"
@@ -1247,9 +1247,10 @@ HOSTNAME=$(dialog --clear \
 
 
 
-# Get multi-user support choice (486 sans Micro/Mini) and root password (ENABLE_MULTIUSER_REAL=true)
+# Get multi-user support choice (486/586 sans Micro/Mini) and root password
+# (ENABLE_MULTIUSER_REAL=true)
 if [ "$BUILD_TYPE" != "mini" ] && [ "$BUILD_TYPE" != "micro" ] &&
-   [ "$ID" == "shork-486" ]; then
+   [[ "$ID" == "shork-"*86 ]]; then
     DEFAULT_FLAG="--defaultno"
     if $ENABLE_MULTIUSER_REAL; then
         DEFAULT_FLAG=""
@@ -1350,8 +1351,9 @@ fi
 
 
 
-# Get serial console mode choice (486) and serial console port (ENABLE_SERIAL_CON=true)
-if [ "$ID" == "shork-486" ]; then
+# Get serial console mode choice (486/586) and serial console port
+# (ENABLE_SERIAL_CON=true)
+if [[ "$ID" == "shork-"*86 ]]; then
     DEFAULT_FLAG=""
     if ! $ENABLE_SERIAL_CON; then
         DEFAULT_FLAG="--defaultno"
@@ -1415,7 +1417,7 @@ fi
 
 
 
-# Get bundled software choices (486)
+# Get bundled software choices (486/586)
 BUNDLED_ITEMS=()
 
 if [ "$ENABLE_NET_ETH" == true ]; then
@@ -1603,7 +1605,7 @@ fi
 
 
 
-# Get option choices (486)
+# Get option choices (486/586)
 OPTIONS=$(dialog --clear \
     --backtitle "SHORK 486 Build Configurator" \
     --title "Options" \
