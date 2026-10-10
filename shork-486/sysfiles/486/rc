@@ -21,13 +21,6 @@ PCMCIA_BRIDGES="i82092 i82365 pd6729 tcic"
 
 
 
-# Prints a given line of text centred across the given width
-centre_text()
-{
-    PAD=$((${2} - ${#1}))
-    printf "%*s%s%*s\n" $((PAD - PAD / 2)) '' "$1" $((PAD / 2)) ''
-}
-
 # Provides a systemd-style log message
 log()
 {
@@ -272,8 +265,8 @@ for MFK_FILE in /var/tmp/.dsf_mfk*; do
 done
 
 # Prepare to show the welcome banner
-log "Showing welcome banner"
-sleep 1
+log "Loading welcome banner"
+sleep 0.25
 clear
 
 # Show welcome banner, OS name and author name
@@ -283,22 +276,44 @@ if [ -f /banners/welcome ]; then
     case "$TERM_WIDTH" in ''|*[!0-9]*) TERM_WIDTH=80 ;; esac
 
     BANNER_WIDTH=36
+    BUFFER=""
+    
     TOTAL_PAD=$((TERM_WIDTH - BANNER_WIDTH))
     RIGHT_PAD=$((TOTAL_PAD / 2))
     LEFT_PAD=$((TOTAL_PAD - RIGHT_PAD))
 
-    printf "\x1b[37;44m"
-    printf "%*s\n" "$TERM_WIDTH" ''
+    # Print top border
+    BUFFER="$(printf "%*s\n" "$TERM_WIDTH" '')"
+
     while IFS= read -r line; do
-        printf "%*s%s%*s\n" "$LEFT_PAD" '' "$line" "$RIGHT_PAD" ''
-    done < /banners/welcome
-    printf "%*s\n" "$TERM_WIDTH" ''
+        BUFFER="${BUFFER}$(printf "%*s%s%*s\n" "$LEFT_PAD" '' "$line" "$RIGHT_PAD" '')"
+    done < banners/welcome
+    BUFFER="${BUFFER}$(printf "%*s\n" "$TERM_WIDTH" '')"
 
     if [ "$TERM_WIDTH" -gt 40 ]; then
-        centre_text "@DIST@" "$TERM_WIDTH"
-        centre_text "Kali (links.sharktastica.co.uk)" "$TERM_WIDTH"
-        printf "%*s" "$TERM_WIDTH" ''
+        # Show OS name
+        OS="@DIST@"
+        TOTAL_PAD=$((TERM_WIDTH - ${#OS}))
+        RIGHT_PAD=$((TOTAL_PAD / 2))
+        LEFT_PAD=$((TOTAL_PAD - RIGHT_PAD))
+        BUFFER="${BUFFER}$(printf "%*s%s%*s\n" "$LEFT_PAD" '' "$OS" "$RIGHT_PAD" '')"
+
+        # Show author
+        AUTHOR="Kali (links.sharktastica.co.uk)"
+        TOTAL_PAD=$((TERM_WIDTH - ${#AUTHOR}))
+        RIGHT_PAD=$((TOTAL_PAD / 2))
+        LEFT_PAD=$((TOTAL_PAD - RIGHT_PAD))
+        BUFFER="${BUFFER}$(printf "%*s%s%*s\n" "$LEFT_PAD" '' "$AUTHOR" "$RIGHT_PAD" '')"
+
+        # Print bottom border
+        BUFFER="${BUFFER}$(printf "%*s" "$TERM_WIDTH" '')"
     fi
+
+    # Set terminal to white on blue
+    printf "\x1b[37;44m"
+    # Print buffer
+    printf "%s" "$BUFFER"
+    # Reset colour
     printf "\x1b[0m"
 fi
 
