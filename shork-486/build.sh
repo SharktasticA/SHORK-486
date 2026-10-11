@@ -674,7 +674,7 @@ fi
 # Overrides to ensure the correct estimated RAM requirement is shown in the after-build report
 if [[ "$ID" == "shork-"*86 ]]; then
     if [ "$BUILD_TYPE" = "custom" ]; then
-        echo -e "${GREEN}Noting minimum memory requirements for a SHORK 486 custom build...${RESET}"
+        echo -e "${GREEN}Noting minimum memory requirements for a SHORK 486/586 custom build...${RESET}"
         if [ "$INCLUDE_GCC" = true ]; then
             EST_MIN_RAM="24MiB + 8MiB swap/16MiB + 16MiB swap"
         elif [ "$INCLUDE_GUI" = true ] || [ "$ENABLE_HIGHMEM" = true ] || [ "$ENABLE_SATA" = true ]; then
@@ -685,25 +685,25 @@ if [[ "$ID" == "shork-"*86 ]]; then
             EST_MIN_RAM="12MiB"
         fi
     elif [ "$BUILD_TYPE" = "default" ]; then
-        echo -e "${GREEN}Noting minimum memory requirements for SHORK 486 Default...${RESET}"
+        echo -e "${GREEN}Noting minimum memory requirements for SHORK 486/586 Default...${RESET}"
         EST_MIN_RAM="16MiB"
     elif [ "$BUILD_TYPE" = "max" ]; then
-        echo -e "${GREEN}Noting minimum memory requirements for SHORK 486 Max...${RESET}"
+        echo -e "${GREEN}Noting minimum memory requirements for SHORK 486/586 Max...${RESET}"
         EST_MIN_RAM="32MiB/24MiB + 8MiB swap"
     elif [ "$BUILD_TYPE" = "plus" ]; then
-        echo -e "${GREEN}Noting minimum memory requirements for SHORK 486 Plus...${RESET}"
+        echo -e "${GREEN}Noting minimum memory requirements for SHORK 486/586 Plus...${RESET}"
         EST_MIN_RAM="24MiB + 8MiB swap/16MiB + 16MiB swap"
     elif [ "$BUILD_TYPE" = "writer" ]; then
-        echo -e "${GREEN}Noting minimum memory requirements for SHORK 486 Writer...${RESET}"
+        echo -e "${GREEN}Noting minimum memory requirements for SHORK 486/586 Writer...${RESET}"
         EST_MIN_RAM="24MiB + 8MiB swap/16MiB + 16MiB swap"
     elif [ "$BUILD_TYPE" = "offline" ]; then
-        echo -e "${GREEN}Noting minimum memory requirements for SHORK 486 Offline...${RESET}"
+        echo -e "${GREEN}Noting minimum memory requirements for SHORK 486/586 Offline...${RESET}"
         EST_MIN_RAM="12MiB"
     elif [ "$BUILD_TYPE" = "mini" ]; then
-        echo -e "${GREEN}Noting minimum memory requirements for SHORK 486 Mini...${RESET}"
+        echo -e "${GREEN}Noting minimum memory requirements for SHORK 486/586 Mini...${RESET}"
         EST_MIN_RAM="8MiB"
     elif [ "$BUILD_TYPE" = "micro" ]; then
-        echo -e "${GREEN}Noting minimum memory requirements for SHORK 486 Micro...${RESET}"
+        echo -e "${GREEN}Noting minimum memory requirements for SHORK 486/586 Micro...${RESET}"
         EST_MIN_RAM="8MiB"
     fi
 elif [ "$ID" == "shork-disc" ]; then
@@ -1362,7 +1362,7 @@ install_arch_prerequisites()
         return
     fi
 
-    echo -e "${YELLOW}The following packages may be required for building SHORK 486 and must be installed before proceeding:${RESET}"
+    echo -e "${YELLOW}The following packages may be required for building SHORK 486/586 and must be installed before proceeding:${RESET}"
     echo "${MISSING[*]}"
     echo -e "${YELLOW}You can allow this build script to install them, or quit if you wish to review and install them yourself.${RESET}"
     select CHOICE in "Install" "Quit"; do
@@ -1401,7 +1401,7 @@ install_debian_prerequisites()
         return
     fi
 
-    echo -e "${YELLOW}The following packages may be required for building SHORK 486 and must be installed before proceeding:${RESET}"
+    echo -e "${YELLOW}The following packages may be required for building SHORK 486/586 and must be installed before proceeding:${RESET}"
     echo "${MISSING[*]}"
     echo -e "${YELLOW}You can allow this build script to install them, or quit if you wish to review and install them yourself.${RESET}"
     select CHOICE in "Install" "Quit"; do
@@ -1441,7 +1441,7 @@ install_fedora_prerequisites()
         return
     fi
 
-    echo -e "${YELLOW}The following packages may be required for building SHORK 486 and must be installed before proceeding:${RESET}"
+    echo -e "${YELLOW}The following packages may be required for building SHORK 486/586 and must be installed before proceeding:${RESET}"
     echo "${MISSING[*]}"
     echo -e "${YELLOW}You can allow this build script to install them, or quit if you wish to review and install them yourself.${RESET}"
     select CHOICE in "Install" "Quit"; do
@@ -4534,7 +4534,7 @@ get_busybox()
             disable_bb_feat "CONFIG_XXD"
         fi
     else
-        echo -e "${GREEN}Enabling SHORK 486 Micro BusyBox tweaks...${RESET}"
+        echo -e "${GREEN}Enabling SHORK 486/586 Micro BusyBox tweaks...${RESET}"
         merge_bb_frag "${CONFIGS_DIR}/busybox/busybox.config.micro.frag"
     fi
 
@@ -4848,12 +4848,12 @@ configure_kernel()
             FRAGS+="${CONFIGS_DIR}/linux/linux.config.zswap.frag "
         fi
     else
-        echo -e "${GREEN}Enabling SHORK 486 Micro kernel tweaks...${RESET}"
+        echo -e "${GREEN}Enabling SHORK 486/586 Micro kernel tweaks...${RESET}"
         FRAGS+="${CONFIGS_DIR}/linux/linux.config.micro.frag "
     fi
 
     if $PATCH_TEST; then
-        echo -e "${GREEN}Enabling SHORK 486 kernel patch test...${RESET}"
+        echo -e "${GREEN}Enabling SHORK 486/586 kernel patch test...${RESET}"
         FRAGS+="${CONFIGS_DIR}/linux/linux.config.patchtest.frag "
     fi
 
@@ -9037,7 +9037,7 @@ get_shorkfetch()
         sed -i 's|,gpu,|,|' src/main.c
     fi
 
-    # If not SHORK 486, skip root FS field
+    # If not SHORK 486/586, skip root FS field
     if [[ "$ID" != "shork-"*86 ]]; then
         sed -i 's|,root,|,|' src/main.c
     fi
@@ -10307,7 +10307,7 @@ copy_licences()
     echo -e "$CSV" > "${DESTDIR}/LICENCES/manifest.csv"
 }
 
-# Copies test files and shell scripts for testing certain SHORK 486
+# Copies test files and shell scripts for testing certain SHORK 486/586
 # features and capabilities
 copy_tests()
 {
@@ -10686,7 +10686,7 @@ partition_disk_img()
     ROOT_PART_SIZE=$((ROOT_SIZE / 2048))
 }
 
-# Install EXTLINUX bootloader (SHORK 486)
+# Install EXTLINUX bootloader (SHORK 486/586)
 install_extlinux_bootloader()
 {
     cd "${CURR_DIR}"/build/
@@ -10764,7 +10764,7 @@ install_extlinux_bootloader()
     sudo dd if="$MBR_BIN" of="${CURR_DIR}/images/${ID}.img" bs=440 count=1 conv=notrunc
 }
 
-# Install GRUB bootloader (SHORK 486)
+# Install GRUB bootloader (SHORK 486/586)
 install_grub_bootloader()
 {
     cd "${CURR_DIR}"/build/
@@ -10896,7 +10896,7 @@ install_syslinux_bootloader()
     sudo "$SYSLINUX_BIN" --install "${CURR_DIR}/images/${ID}.img"
 }
 
-# Build a disk image containing our system (SHORK 486)
+# Build a disk image containing our system (SHORK 486/586)
 build_disk_img()
 {
     cd "${CURR_DIR}"/build/
@@ -11102,7 +11102,7 @@ build_disk_img()
     sudo fsck.ext4 -f -p "$root_part"
 }
 
-# Copy after-build report to system (SHORK 486)
+# Copy after-build report to system (SHORK 486/586)
 copy_report()
 {
     cd "${CURR_DIR}"/build/
@@ -11152,7 +11152,7 @@ copy_report()
 }
 
 # Converts the disk image to VMware virtual machine disk format for testing
-# (SHORK 486)
+# (SHORK 486/586)
 convert_disk_img()
 {
     cd "${CURR_DIR}"/images/
