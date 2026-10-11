@@ -12772,7 +12772,7 @@ if $INCLUDE_TCPDUMP; then
         false \
         false \
         "/usr" \
-        "--disable-local-libpcap --with-crypto=$SYSROOT --with-smi=$SYSROOT --without-cap-ng" \
+        "--disable-local-libpcap --with-crypto=$SYSROOT --with-smi --without-cap-ng PCAP_CONFIG=$SYSROOT/usr/bin/pcap-config" \
         "" \
         "" \
         "-ldl -lpthread -latomic"
