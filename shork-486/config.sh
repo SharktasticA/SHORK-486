@@ -603,6 +603,98 @@ set_diskette_vars()
     set_mini_vars
 }
 
+BUNDLED_SOFTWARE=(
+        # Name              Description                                             Responsible var             Needs net   Incl. w/ multiuser
+        "bind9-dnsutils"    "DNS query & update tools (48MiB)"                      "INCLUDE_BIND9_DNSUTILS"    "true"      "always"
+        "c3270"             "3270 terminal emulator (1.8MiB, EXPERIMENTAL)"         "INCLUDE_C3270"             "false"     "always"
+        "chrony"            "*NTP daemon and interface (0.7MiB)"                    "INCLUDE_CHRONY"            "true"      "always"
+        "cscope"            "C/C++ code browser (1MiB)"                             "INCLUDE_CSCOPE"            "false"     "always"
+        "ctags"             "Source code object indexing (1.5MiB)"                  "INCLUDE_CTAGS"             "false"     "always"
+        "ctris"             "*Tetris clone (0.6MiB)"                                "INCLUDE_CTRIS"             "false"     "always"
+        "curl"              "HTTP client & transfer utility (8MiB)"                 "INCLUDE_CURL"              "true"      "always"
+        "dialog"            "*Shell script TUI widgets (0.5MiB)"                    "INCLUDE_DIALOG"            "false"     "always"
+        "dosfstools"        "*FAT12/16/32 filesystem utilities (0.8MiB)"            "INCLUDE_DOSFSTOOLS"        "false"     "always"
+        "dropbear"          "*SCP & SSH client (0.4MiB)"                            "INCLUDE_DROPBEAR"          "true"      "never"
+        "dropbear"          "*SCP & SSH client + SSH daemon (1.1MiB)"               "INCLUDE_DROPBEAR"          "true"      "only"
+        "e2fsprogs"         "*ext2/3/4 filesystem utilities (4MiB)"                 "INCLUDE_E2FSPROGS"         "false"     "always"
+        "file"              "*†File type identification (10MiB)"                    "INCLUDE_FILE"              "false"     "always"
+        "gcc"               "†GCC + binutils + musl (215MiB)"                       "INCLUDE_GCC"               "false"     "always"
+        "git"               "*Source control client (19MiB)"                        "INCLUDE_GIT"               "true"      "always"
+        "gnu-autoconf"      "†configure script generator (2.1MiB)"                  "INCLUDE_AUTOCONF"          "false"     "always"
+        "gnu-automake"      "†Makefile.in generator (1.6MiB)"                       "INCLUDE_AUTOMAKE"          "false"     "always"
+        "gnu-indent"        "C code formatter (0.1MiB)"                             "INCLUDE_INDENT"            "false"     "always"
+        "gnu-libtool"       "Portable shared library build helper (2.4MiB)"         "INCLUDE_LIBTOOL"           "false"     "always"
+        "gnu-m4"            "General-purpose macro processor (0.4MiB)"              "INCLUDE_M4"                "false"     "always"
+        "gnu-make"          "Build automation tool (0.3MiB)"                        "INCLUDE_MAKE"              "false"     "always"
+        "gnu-midnight-cmdr" "†Norton Commander-style file manager (9MiB)"           "INCLUDE_MIDNIGHT_CMDR"     "true"      "always"
+        "gnu-nano"          "*Pico-style text editor (0.8MiB)"                      "INCLUDE_NANO"              "false"     "always"
+        "gnupg"             "OpenPGP-compliant encryption & signing (25MiB)"        "INCLUDE_GNUPG"             "false"     "always"
+        "gpm"               "*Virtual console mouse (0.6MiB)"                       "INCLUDE_GPM"               "false"     "always"
+        "htop"              "*Interactive process viewer (0.6MiB)"                  "INCLUDE_HTOP"              "false"     "always"
+        "joe"               "WordStar & Emacs-blend text editor (1.9MiB)"           "INCLUDE_JOE"               "false"     "always"
+        "jq"                "Command-line JSON processor (0.9MiB)"                  "INCLUDE_JQ"                "false"     "always"
+        "lsb-release-min"   "*LSB/distribution info reporter (0.03MiB)"             "INCLUDE_LSB_RELEASE_MIN"   "false"     "always"
+        "lua"               "*Embedded scripting & extensions language (0.4MiB)"    "INCLUDE_LUA"               "false"     "always"
+        "lynx"              "*Terminal web browser (7.3MiB)"                        "INCLUDE_LYNX"              "true"      "always"
+        "memtester"         "*Userspace memory subsystem fault tester (0.05MiB)"    "INCLUDE_MEMTESTER"         "false"     "always"
+        "mg"                "*Emacs-style text editor (0.3MiB)"                     "INCLUDE_MG"                "false"     "always"
+        "micropython"       "*Python 3.4-syntax intepreter (0.7MiB)"                "INCLUDE_MICROPYTHON"       "false"     "always"
+        "mpg321"            "MP3 player (0.4MiB)"                                   "INCLUDE_MPG321"            "false"     "always"
+        "mt-st"             "*Tape drive tools (0.2MiB)"                            "INCLUDE_MT_ST"             "false"     "always"
+        "nasm"              "Portable x86 assembler & disassembler (2.5MiB)"        "INCLUDE_NASM"              "false"     "always"
+        "nbsdgames"         "†Terminal games pack (8MiB)"                           "INCLUDE_NBSDGAMES"         "false"     "always"
+        "ncdu"              "*Disk usage analyser (0.4MiB)"                         "INCLUDE_NCDU"              "false"     "always"
+        "patchelf"          "*ELF binary patching (0.9MiB)"                         "INCLUDE_PATCHELF"          "false"     "always"
+        "perl"              "†General-purpose scripting language (40.3MiB)"         "INCLUDE_PERL"              "false"     "always"
+        "sc-im"             "*Terminal spreadsheet editor (2.8MiB)"                 "INCLUDE_SC_IM"             "false"     "always"
+        "shorktainment"     "*shorkmatrix, shorkmines, shorksay & sl (0.5MiB)"      "INCLUDE_SHORKTAINMENT"     "false"     "always"
+        "strace"            "*System calls & signals tracer (1.1MiB)"               "INCLUDE_STRACE"            "false"     "always"
+        "tcc"               "*Tiny C Compiler + musl (4MiB)"                        "INCLUDE_TCC"               "false"     "always"
+        "tcpdump"           "Packet analyzer (5MiB)"                                "INCLUDE_TCPDUMP"           "true"      "always"
+        "tilde"             "GUI-like text editor (3.6MiB)"                         "INCLUDE_TILDE"             "false"     "always"
+        "tmux"              "*Terminal multiplexer (1.7MiB)"                        "INCLUDE_TMUX"              "false"     "always"
+        "tn5250"            "TCP/IP 5250 terminal emulator (6.4MiB, EXPERIMENTAL)"  "INCLUDE_TN5250"            "true"      "always"
+        "tnftp"             "*FTP client (0.3MiB)"                                  "INCLUDE_TNFTP"             "true"      "always"
+        "util-linux"        "*cf/f/sfdisk, lscpu, partx & whereis (4.1MiB)"         "INCLUDE_UTIL_LINUX"        "false"     "always"
+        "vim"               "†Vi IMproved text editor (24.2MiB)"                    "INCLUDE_VIM"               "false"     "always"
+)
+
+filter_bundled()
+{  
+    local i
+    BUNDLED_FILTERED=()
+
+    for (( i = 0; i < ${#BUNDLED_SOFTWARE[@]}; i += 5 )); do
+        local NAME="${BUNDLED_SOFTWARE[i]}"
+        local DESC="${BUNDLED_SOFTWARE[i+1]}"
+        local VAR="${BUNDLED_SOFTWARE[i+2]}"
+        local NEEDS_NET="${BUNDLED_SOFTWARE[i+3]}"
+        local INCL_MUSER="${BUNDLED_SOFTWARE[i+4]}"
+        local VAL
+        VAL="$(val "${!VAR:-}")"
+
+        # Exclude NEEDS_NET=true when ENABLE_NET_ETH=false
+        if [ "$ENABLE_NET_ETH" = false ] &&
+            [ "$NEEDS_NET" = "true" ]; then
+            continue
+        fi
+
+        # Exclude INCL_MUSER=never when ENABLE_MULTIUSER_REAL=true
+        if [ "$ENABLE_MULTIUSER_REAL" = true ] &&
+            [ "$INCL_MUSER" = "never" ]; then
+            continue
+        fi
+
+        # Exclude INCL_MUSER=only when ENABLE_MULTIUSER_REAL=false
+        if [ "$ENABLE_MULTIUSER_REAL" = false ] &&
+            [ "$INCL_MUSER" = "only" ]; then
+            continue
+        fi
+
+        BUNDLED_FILTERED+=( "$NAME" "$DESC" "$VAL" )
+    done
+}
+
 
 
 trap 'tput reset; save_env' EXIT
@@ -695,8 +787,8 @@ fi
 
 
 
-if [ "$ID" == "shork-486" ]; then
-    # Get build type (486)
+if [[ "$ID" == "shork-"*86 ]]; then
+    # Get build type (486/586)
     PREV_BUILD_TYPE=$BUILD_TYPE
     BUILD_TYPE=$(dialog --clear \
         --backtitle "SHORK 486 Build Configurator" \
@@ -746,7 +838,7 @@ if [ "$ID" == "shork-486" ]; then
 
 
 
-    # Get target disk size (486)
+    # Get target disk size (486/586)
     CURR_MIN_DISK=0
     if [ "$BUILD_TYPE" == "default" ]; then
         CURR_MIN_DISK=$DEFAULT_MIN_DISK
@@ -859,7 +951,7 @@ if [ "$ID" == "shork-486" ]; then
 
 
 
-    # Get boot partition choice (486 + TARGET_DISK>=20MiB)
+    # Get boot partition choice (486/586 + TARGET_DISK>=20MiB)
     if [ "$TARGET_DISK" -gt 19 ]; then
         DEFAULT_FLAG=""
         if ! $ENABLE_BOOT_PART; then
@@ -885,7 +977,7 @@ if [ "$ID" == "shork-486" ]; then
 
 
 
-    # Get swap partition size (486)
+    # Get swap partition size (486/586)
     while true; do
         TARGET_SWAP_TMP=$(dialog --clear \
             --backtitle "SHORK 486 Build Configurator" \
@@ -1054,9 +1146,9 @@ esac
 
 
 
-# Get keyboard layout choice (486 sans Micro/Mini)
+# Get keyboard layout choice (486/586 sans Micro/Mini)
 if [ "$BUILD_TYPE" != "mini" ] && [ "$BUILD_TYPE" != "micro" ] &&
-   [ "$ID" == "shork-486" ]; then
+   [[ "$ID" == "shork-"*86 ]]; then
     KEYMAP_ITEMS=(
         "qwerty_by"         "Belarusian (QWERTY)"
         "azerty_be"         "Begian (AZERTY)"
@@ -1123,8 +1215,8 @@ fi
 
 
 
-# Get symmetric multiprocessing support choice (486)
-if [ "$ID" == "shork-486" ]; then
+# Get symmetric multiprocessing support choice (486/586)
+if [[ "$ID" == "shork-"*86 ]]; then
     DEFAULT_FLAG=""
     if ! $ENABLE_SMP; then
         DEFAULT_FLAG="--defaultno"
@@ -1148,8 +1240,8 @@ fi
 
 
 
-# Get ethernet networking support choice (486 custom)
-if [ "$ID" == "shork-486" ] && [ "$BUILD_TYPE" == "custom" ]; then
+# Get ethernet networking support choice (486/586 + custom)
+if [[ "$ID" == "shork-"*86 ]] && [ "$BUILD_TYPE" == "custom" ]; then
     DEFAULT_FLAG=""
     if ! $ENABLE_NET_ETH; then
         DEFAULT_FLAG="--defaultno"
@@ -1211,7 +1303,7 @@ if ! $FIX_EXTLINUX; then
 fi
 
 VARIANT="*LINUX"
-if [ "$ID" == "shork-486" ]; then
+if [[ "$ID" == "shork-"*86 ]]; then
     VARIANT="EXTLINUX"
 elif [ "$ID" == "shork-disc" ]; then
     VARIANT="ISOLINUX"
@@ -1247,9 +1339,10 @@ HOSTNAME=$(dialog --clear \
 
 
 
-# Get multi-user support choice (486 sans Micro/Mini) and root password (ENABLE_MULTIUSER_REAL=true)
+# Get multi-user support choice (486/586 sans Micro/Mini) and root password
+# (ENABLE_MULTIUSER_REAL=true)
 if [ "$BUILD_TYPE" != "mini" ] && [ "$BUILD_TYPE" != "micro" ] &&
-   [ "$ID" == "shork-486" ]; then
+   [[ "$ID" == "shork-"*86 ]]; then
     DEFAULT_FLAG="--defaultno"
     if $ENABLE_MULTIUSER_REAL; then
         DEFAULT_FLAG=""
@@ -1350,8 +1443,9 @@ fi
 
 
 
-# Get serial console mode choice (486) and serial console port (ENABLE_SERIAL_CON=true)
-if [ "$ID" == "shork-486" ]; then
+# Get serial console mode choice (486/586) and serial console port
+# (ENABLE_SERIAL_CON=true)
+if [[ "$ID" == "shork-"*86 ]]; then
     DEFAULT_FLAG=""
     if ! $ENABLE_SERIAL_CON; then
         DEFAULT_FLAG="--defaultno"
@@ -1415,123 +1509,16 @@ fi
 
 
 
-# Get bundled software choices (486)
-BUNDLED_ITEMS=()
-
-if [ "$ENABLE_NET_ETH" == true ]; then
-    # sshd is useless without multi-user, so don't advertise it
-    DROPBEAR_DESC="*SCP & SSH client + SSH daemon (1.1MiB)"
-    if ! $ENABLE_MULTIUSER_REAL; then
-        DROPBEAR_DESC="*SCP & SSH client (0.4MiB)"
-    fi
-
-    BUNDLED_ITEMS+=(
-        "bind9-dnsutils"    "DNS query & update tools (48MiB)"                      "$(val "$INCLUDE_BIND9_DNSUTILS")"
-        "c3270"             "3270 terminal emulator (1.8MiB, EXPERIMENTAL)"         "$(val "$INCLUDE_C3270")"
-        "chrony"            "*NTP daemon and interface (0.7MiB)"                    "$(val "$INCLUDE_CHRONY")"
-        "cscope"            "C/C++ code browser (1MiB)"                             "$(val "$INCLUDE_CSCOPE")"
-        "ctags"             "Source code object indexing (1.5MiB)"                  "$(val "$INCLUDE_CTAGS")"
-        "ctris"             "*Tetris clone (0.6MiB)"                                "$(val "$INCLUDE_CTRIS")"
-        "curl"              "HTTP client & transfer utility (8MiB)"                 "$(val "$INCLUDE_CURL")"
-        "dialog"            "*Shell script TUI widgets (0.5MiB)"                    "$(val "$INCLUDE_DIALOG")"
-        "dosfstools"        "*FAT12/16/32 filesystem utilities (0.8MiB)"            "$(val "$INCLUDE_DOSFSTOOLS")"
-        "dropbear"          "$DROPBEAR_DESC"                                        "$(val "$INCLUDE_DROPBEAR")"
-        "e2fsprogs"         "*ext2/3/4 filesystem utilities (4MiB)"                 "$(val "$INCLUDE_E2FSPROGS")"
-        "file"              "*†File type identification (10MiB)"                    "$(val "$INCLUDE_FILE")"
-        "gcc"               "†GCC + binutils + musl (215MiB)"                       "$(val "$INCLUDE_GCC")"
-        "git"               "*Source control client (19MiB)"                        "$(val "$INCLUDE_GIT")"
-        "gnu-autoconf"      "†configure script generator (2.1MiB)"                  "$(val "$INCLUDE_AUTOCONF")"
-        "gnu-automake"      "†Makefile.in generator (1.6MiB)"                       "$(val "$INCLUDE_AUTOMAKE")"
-        "gnu-indent"        "C code formatter (0.1MiB)"                             "$(val "$INCLUDE_INDENT")"
-        "gnu-libtool"       "Portable shared library build helper (2.4MiB)"         "$(val "$INCLUDE_LIBTOOL")"
-        "gnu-m4"            "General-purpose macro processor (0.4MiB)"              "$(val "$INCLUDE_M4")"
-        "gnu-make"          "Build automation tool (0.3MiB)"                        "$(val "$INCLUDE_MAKE")"
-        "gnu-midnight-cmdr" "†Norton Commander-style file manager (9MiB)"           "$(val "$INCLUDE_MIDNIGHT_CMDR")"
-        "gnu-nano"          "*Pico-style text editor (0.8MiB)"                      "$(val "$INCLUDE_NANO")"
-        "gnupg"             "OpenPGP-compliant encryption & signing (25MiB)"        "$(val "$INCLUDE_GNUPG")"
-        "gpm"               "*Virtual console mouse (0.6MiB)"                       "$(val "$INCLUDE_GPM")"
-        "htop"              "*Interactive process viewer (0.6MiB)"                  "$(val "$INCLUDE_HTOP")"
-        "joe"               "WordStar & Emacs-blend text editor (1.9MiB)"           "$(val "$INCLUDE_JOE")"
-        "jq"                "Command-line JSON processor (0.9MiB)"                  "$(val "$INCLUDE_JQ")"
-        "lsb-release-min"   "*LSB/distribution info reporter (0.03MiB)"             "$(val "$INCLUDE_LSB_RELEASE_MIN")"
-        "lua"               "*Embedded scripting & extensions language (0.4MiB)"    "$(val "$INCLUDE_LUA")"
-        "lynx"              "*Terminal web browser (7.3MiB)"                        "$(val "$INCLUDE_LYNX")"
-        "memtester"         "*Userspace memory subsystem fault tester (0.05MiB)"    "$(val "$INCLUDE_MEMTESTER")"
-        "mg"                "*Emacs-style text editor (0.3MiB)"                     "$(val "$INCLUDE_MG")"
-        "micropython"       "*Python 3.4-syntax intepreter (0.7MiB)"                "$(val "$INCLUDE_MICROPYTHON")"
-        "mpg321"            "MP3 player (0.4MiB)"                                   "$(val "$INCLUDE_MPG321")"
-        "mt-st"             "*Tape drive tools (0.2MiB)"                            "$(val "$INCLUDE_MT_ST")"
-        "nasm"              "Portable x86 assembler & disassembler (2.5MiB)"        "$(val "$INCLUDE_NASM")"
-        "nbsdgames"         "†Terminal games pack (8MiB)"                           "$(val "$INCLUDE_NBSDGAMES")"
-        "ncdu"              "*Disk usage analyser (0.4MiB)"                         "$(val "$INCLUDE_NCDU")"
-        "patchelf"          "*ELF binary patching (0.9MiB)"                         "$(val "$INCLUDE_PATCHELF")"
-        "perl"              "†General-purpose scripting language (40.3MiB)"         "$(val "$INCLUDE_PERL")"
-        "sc-im"             "*Terminal spreadsheet editor (2.8MiB)"                 "$(val "$INCLUDE_SC_IM")"
-        "shorktainment"     "*shorkmatrix, shorkmines, shorksay & sl (0.5MiB)"      "$(val "$INCLUDE_SHORKTAINMENT")"
-        "strace"            "*System calls & signals tracer (1.1MiB)"               "$(val "$INCLUDE_STRACE")"
-        "tcc"               "*Tiny C Compiler + musl (4MiB)"                        "$(val "$INCLUDE_TCC")"
-        "tcpdump"           "Packet analyzer (5MiB)"                                "$(val "$INCLUDE_TCPDUMP")"
-        "tilde"             "GUI-like text editor (3.6MiB)"                         "$(val "$INCLUDE_TILDE")"
-        "tmux"              "*Terminal multiplexer (1.7MiB)"                        "$(val "$INCLUDE_TMUX")"
-        "tn5250"            "TCP/IP 5250 terminal emulator (6.4MiB, EXPERIMENTAL)"  "$(val "$INCLUDE_TN5250")"
-        "tnftp"             "*FTP client (0.3MiB)"                                  "$(val "$INCLUDE_TNFTP")"
-        "util-linux"        "*cf/f/sfdisk, lscpu, partx & whereis (4.1MiB)"         "$(val "$INCLUDE_UTIL_LINUX")"
-        "vim"               "†Vi IMproved text editor (24.2MiB)"                    "$(val "$INCLUDE_VIM")"
-    )
-else
-    BUNDLED_ITEMS+=(
-        "c3270"             "3270 terminal emulator (1.8MiB, EXPERIMENTAL)"         "$(val "$INCLUDE_C3270")"
-        "cscope"            "C/C++ code browser (1MiB)"                             "$(val "$INCLUDE_CSCOPE")"
-        "ctags"             "Source code object indexing (1.5MiB)"                  "$(val "$INCLUDE_CTAGS")"
-        "ctris"             "*Tetris clone (0.6MiB)"                                "$(val "$INCLUDE_CTRIS")"
-        "dialog"            "*Shell script TUI widgets (0.5MiB)"                    "$(val "$INCLUDE_DIALOG")"
-        "dosfstools"        "*FAT12/16/32 filesystem utilities (0.8MiB)"            "$(val "$INCLUDE_DOSFSTOOLS")"
-        "e2fsprogs"         "*ext2/3/4 file system utilities (4MiB)"                "$(val "$INCLUDE_E2FSPROGS")"
-        "file"              "*†File type identification (10MiB)"                    "$(val "$INCLUDE_FILE")"
-        "gcc"               "†GCC + binutils + musl (215MiB)"                       "$(val "$INCLUDE_GCC")"
-        "gnu-autoconf"      "†configure script generator (2.1MiB)"                  "$(val "$INCLUDE_AUTOCONF")"
-        "gnu-automake"      "†Makefile.in generator (1.6MiB)"                       "$(val "$INCLUDE_AUTOMAKE")"
-        "gnu-indent"        "C code formatter (0.1MiB)"                             "$(val "$INCLUDE_INDENT")"
-        "gnu-libtool"       "Portable shared library build helper (2.4MiB)"         "$(val "$INCLUDE_LIBTOOL")"
-        "gnu-m4"            "General-purpose macro processor (0.4MiB)"              "$(val "$INCLUDE_M4")"
-        "gnu-make"          "Build automation tool (0.3MiB)"                        "$(val "$INCLUDE_MAKE")"
-        "gnu-nano"          "*Pico-style text editor (0.8MiB)"                      "$(val "$INCLUDE_NANO")"
-        "gnupg"             "OpenPGP-compliant encryption & signing (25MiB)"        "$(val "$INCLUDE_GNUPG")"
-        "gpm"               "*Virtual console mouse (0.6MiB)"                       "$(val "$INCLUDE_GPM")"
-        "htop"              "*Interactive process viewer (0.6MiB)"                  "$(val "$INCLUDE_HTOP")"
-        "joe"               "WordStar & Emacs-blend text editor (1.9MiB)"           "$(val "$INCLUDE_JOE")"
-        "jq"                "Command-line JSON processor (0.9MiB)"                  "$(val "$INCLUDE_JQ")"
-        "lsb-release-min"   "*LSB/distribution info reporter (0.03MiB)"             "$(val "$INCLUDE_LSB_RELEASE_MIN")"
-        "lua"               "*Embedded scripting & extensions language (0.4MiB)"    "$(val "$INCLUDE_LUA")"
-        "memtester"         "*Userspace memory subsystem fault tester (0.05MiB)"    "$(val "$INCLUDE_MEMTESTER")"
-        "mg"                "*Emacs-style text editor (0.3MiB)"                     "$(val "$INCLUDE_MG")"
-        "micropython"       "*Python 3.4-syntax intepreter (0.7MiB)"                "$(val "$INCLUDE_MICROPYTHON")"
-        "mpg321"            "MP3 player (0.4MiB)"                                   "$(val "$INCLUDE_MPG321")"
-        "mt-st"             "*Tape drive tools (0.2MiB)"                            "$(val "$INCLUDE_MT_ST")"
-        "nasm"              "Portable x86 assembler & disassembler (2.5MiB)"        "$(val "$INCLUDE_NASM")"
-        "nbsdgames"         "†Terminal games pack (8MiB)"                           "$(val "$INCLUDE_NBSDGAMES")"
-        "ncdu"              "*Disk usage analyser (0.4MiB)"                         "$(val "$INCLUDE_NCDU")"
-        "patchelf"          "*ELF binary patching (0.9MiB)"                         "$(val "$INCLUDE_PATCHELF")"
-        "perl"              "General-purpose scripting language (40.3MiB)"          "$(val "$INCLUDE_PERL")"
-        "sc-im"             "*Terminal spreadsheet editor (2.8MiB)"                 "$(val "$INCLUDE_SC_IM")"
-        "shorktainment"     "*shorkmatrix, shorkmines, shorksay & sl (0.5MiB)"      "$(val "$INCLUDE_SHORKTAINMENT")"
-        "strace"            "*System calls & signals tracer (1.1MiB)"               "$(val "$INCLUDE_STRACE")"
-        "tcc"               "*Tiny C Compiler + musl (4MiB)"                        "$(val "$INCLUDE_TCC")"
-        "tilde"             "GUI-like text editor (3.6MiB)"                         "$(val "$INCLUDE_TILDE")"
-        "tmux"              "*Terminal multiplexer (1.7MiB)"                        "$(val "$INCLUDE_TMUX")"
-        "util-linux"        "*cf/f/sfdisk, lscpu, partx & whereis (4.1MiB)"         "$(val "$INCLUDE_UTIL_LINUX")"
-        "vim"               "†Vi IMproved text editor (24.2MiB)"                    "$(val "$INCLUDE_VIM")"
-    )
-fi
-
-
+# Get bundled software choices (486/586)
+BUNDLED_FILTERED=()
+filter_bundled
 
 BUNDLED=$(dialog --clear \
     --backtitle "SHORK 486 Build Configurator" \
     --title "Bundled Software" \
     --cancel-label "Skip" \
     --checklist "Select what software to bundle with SHORK.\n* This option would be included in a \"default\" build\n† This option has specific memory requirements (check GitHub repository's README)" $HEIGHT $WIDTH 8 \
-    "${BUNDLED_ITEMS[@]}" \
+    "${BUNDLED_FILTERED[@]}" \
     2>&1 >/dev/tty)
 
 SKIPPED=$?
@@ -1603,7 +1590,7 @@ fi
 
 
 
-# Get option choices (486)
+# Get option choices (486/586)
 OPTIONS=$(dialog --clear \
     --backtitle "SHORK 486 Build Configurator" \
     --title "Options" \

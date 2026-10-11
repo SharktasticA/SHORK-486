@@ -1,5 +1,7 @@
 # Processes
 
+Work in progress!
+
 ## Adding new bundled software
 
 ### `build.sh`
@@ -23,5 +25,5 @@
 * Add an entry to `save_env()` so that the variable can be saved into the result `.env` file.
 * Add an entry to `set_mini_vars()` that sets `INCLUDE_PROG` to `false`.
 * Add an entry to any other relevant `set_*_vars()` functions you wish to create build type defaults for. Otherwise, it will become a custom-only option.
-* Add an entry to the `BUNDLED_ITEMS` list so that the program will appear as an option when configuring a custom build. If the program is to be included in a default build, please indicate this via adding a `*` (asterisk) in front of the program description. If the program tangibly increases system memory usage compared to a default build (16MiB RAM + 8MiB swap), also indicate this with adding a leading `†` (dagger) too.
+* Add an entry to the `BUNDLED_SOFTWARE` list so that the program will appear as an option when configuring a custom build. If the program is to be included in a default build, please indicate this via adding a `*` (asterisk) in front of the program description. If the program tangibly increases system memory usage compared to a default build (16MiB RAM + 8MiB swap), also indicate this with adding a leading `†` (dagger) too.
 * Add an entry to the series of if statements that handle `BUNDLED`'s result so that the user's choice will be saved in `.env`.
