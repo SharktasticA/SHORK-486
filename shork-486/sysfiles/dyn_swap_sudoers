@@ -16,5 +16,11 @@ Cmnd_Alias DYNSWAP = /bin/busybox mkdir -p /var/tmp, \
                       /bin/busybox mkswap /var/tmp/.*_dsf.*, \
                       /bin/busybox swapon /var/tmp/.*_dsf.*, \
                       /bin/busybox swapoff /var/tmp/.*_dsf.*, \
-                      /bin/busybox rm -f /var/tmp/.*_dsf.*
+                      /bin/busybox rm -f /var/tmp/.*_dsf.*, \
+                      /bin/busybox touch /var/tmp/.dsf_mfk.*, \
+                      /bin/busybox rm -f /var/tmp/.dsf_mfk.*, \
+                      /bin/busybox rm -f /var/tmp/.dsf_mfk_orig, \
+                      /bin/busybox tee /var/tmp/.dsf_mfk_orig, \
+                      /bin/busybox tee /proc/sys/vm/min_free_kbytes, \
+                      /bin/busybox tee /proc/sys/vm/swappiness
 ALL ALL=(root) NOPASSWD: DYNSWAP

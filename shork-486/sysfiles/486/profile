@@ -39,12 +39,12 @@ _mfk_set()
     local CURR
     read CURR < /proc/sys/vm/min_free_kbytes
     if ! ls /var/tmp/.dsf_mfk.* >/dev/null 2>&1; then
-        $SUDO_BIN sh -c "echo $CURR > /var/tmp/.dsf_mfk_orig"
+        echo "$CURR" | $SUDO_BIN tee /var/tmp/.dsf_mfk_orig >/dev/null
     fi
     $SUDO_BIN touch "/var/tmp/.dsf_mfk.$$"
     if [ "$CURR" -lt 1024 ]; then
-        $SUDO_BIN sh -c "echo 1024 > /proc/sys/vm/min_free_kbytes"
-        $SUDO_BIN sh -c "echo 100 > /proc/sys/vm/swappiness"
+        echo 1024 | $SUDO_BIN tee /proc/sys/vm/min_free_kbytes >/dev/null
+        echo 100 | $SUDO_BIN tee /proc/sys/vm/swappiness >/dev/null
     fi
 }
 
@@ -57,8 +57,8 @@ _mfk_unset()
     $SUDO_BIN rm -f "/var/tmp/.dsf_mfk.$$"
     if ! ls /var/tmp/.dsf_mfk.* >/dev/null 2>&1; then
         if [ -r /var/tmp/.dsf_mfk_orig ] && read ORIG < /var/tmp/.dsf_mfk_orig; then
-            $SUDO_BIN sh -c "echo $ORIG > /proc/sys/vm/min_free_kbytes"
-            $SUDO_BIN sh -c "echo 60 > /proc/sys/vm/swappiness"
+            echo "$ORIG" | $SUDO_BIN tee /proc/sys/vm/min_free_kbytes >/dev/null
+            echo 60 | $SUDO_BIN tee /proc/sys/vm/swappiness >/dev/null
         fi
         $SUDO_BIN rm -f /var/tmp/.dsf_mfk_orig
     fi
