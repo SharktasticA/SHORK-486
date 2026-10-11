@@ -749,6 +749,7 @@ else
     INCLUDE_GIT=false
     INCLUDE_MIDNIGHT_CMDR=false
     INCLUDE_LYNX=false
+    INCLUDE_TCPDUMP=false
     INCLUDE_TN5250=false
     INCLUDE_TNFTP=false
 fi
