@@ -120,7 +120,7 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 
 #### Base
 
-<p><code>ar, arch, ascii, ash, awk, base32, base64, basename, bc, beep, blkid, bunzip2, bzcat, bzip2, cal, cat, cksum, chmod, chvt, clear, comm, cp, cpio, crc32, crontab, cut, date, dc, dd, df, diff, dirname, dmesg, dos2unix, du, echo, ed, egrep, eject, env, expand, expr, factor, fallocate, false, fdflush, fdformat, fdisk, fgrep, find, fold, free, fuser, getfattr, getopt, grep, gunzip, gzip, halt, head, hexdump, hexedit, hostid, hostname, hwclock, init, install, iostat, kill, killall, less, link, ln, loadkmap, ls, lsblk, lscpu, lsof, lspci, lsscsi, lzcat, lzma, lzop, lzopcat, man, mdev, md5sum, mkdir, mkdosfs/mkfs.vfat, mke2fs/mkfs.ext2, mkfifo, mknod, mktemp, mkswap, more, mount, mountpoint, mv, nice, nl, nohup, nproc, od, partprobe, paste, patch, pgrep, pidof, pkill, pmap, poweroff printenv, printf, ps, pstree, pwd, pwdx, readlink, realpath, reboot, rev, rm, rmdir, sed, seq, setfattr, setfont, sha1sum, sha256sum, sha384sum, sha3sum, sha512sum, shred, showkey, shuf, sleep, sort, split, stat, strings, stty, sum, swapoff, swapon, sync, tac, tail, tar, taskset, tee, test, time, timeout, top, touch, tr, tree, true, truncate, tsort, tty, umount, uname, uncompress, unexpand, uniq, unix2dos, unlink, unlzma, unlzop, unxz, unzip, uptime, usleep, uudecode, uuencode, uuidgen, vi, vmstat, volname, watch, wc, which, whoami, xargs, xxd, xz, xzcat, yes, zcat</code></p>
+<p><code>ar, arch, ascii, ash, awk, base32, base64, basename, bc, beep, blkid, bunzip2, bzcat, bzip2, cal, cat, cksum, chmod, chvt, clear, comm, cp, cpio, crc32, crontab, cut, date, dc, dd, df, diff, dirname, dmesg, dos2unix, du, echo, ed, egrep, eject, env, expand, expr, factor, fallocate, false, fdflush, fdformat, fdisk, fgrep, find, fold, free, fuser, getfattr, getopt, grep, gunzip, gzip, halt, head, hexdump, hexedit, hostid, hostname, hwclock, init, install, iostat, kill, killall, less, link, ln, loadkmap, ls, lsblk, lsof, lspci, lsscsi, lzcat, lzma, lzop, lzopcat, man, mdev, md5sum, mkdir, mkdosfs/mkfs.vfat, mke2fs/mkfs.ext2, mkfifo, mknod, mktemp, mkswap, more, mount, mountpoint, mv, nice, nl, nohup, nproc, od, partprobe, paste, patch, pgrep, pidof, pkill, pmap, poweroff printenv, printf, ps, pstree, pwd, pwdx, readlink, realpath, reboot, rev, rm, rmdir, sed, seq, setfattr, setfont, sha1sum, sha256sum, sha384sum, sha3sum, sha512sum, shred, showkey, shuf, sleep, sort, split, stat, strings, stty, sum, swapoff, swapon, sync, tac, tail, tar, taskset, tee, test, time, timeout, top, touch, tr, tree, true, truncate, tsort, tty, umount, uname, uncompress, unexpand, uniq, unix2dos, unlink, unlzma, unlzop, unxz, unzip, uptime, usleep, uudecode, uuencode, uuidgen, vi, vmstat, volname, watch, wc, which, whoami, xargs, xxd, xz, xzcat, yes, zcat</code></p>
 
 #### Multi-user support enabled
 
@@ -298,7 +298,7 @@ SHORK DISC is a specialised version of the SHORK 486 Operating System that can b
 
 ### BusyBox
 
-<p><code>ar, ash, awk, basename, bunzip2, bzcat, bzip2, cat, clear, cp, cpio, date, dd, df, diff, dirname, dmesg, echo, ed, eject, expr, fdformat, fdisk, free, grep, gunzip, gzip, hexdump, hostname, init, less, ln, ls, lsblk, lscpu, lzcat, lzma, lzop, lzopcat, mdev, mkdir, mount, mv, patch, printenv, printf, pwd, rev, rm, sed, sync, tar, tee, test, touch, true, umount, uname, uncompress, unlzma, unlzop, unxz, unzip, vi, which, xxd, xz, xzcat, zcat</code></p>
+<p><code>ar, ash, awk, basename, blkid, bunzip2, bzcat, bzip2, cat, clear, cp, cpio, date, dd, df, diff, dirname, dmesg, echo, ed, eject, expr, fdformat, free, grep, gunzip, gzip, hexdump, hostname, init, less, ln, ls, lsblk, lspci, lsscsi, lzcat, lzma, lzop, lzopcat, mdev, mkdir, mount, mv, patch, printenv, printf, pwd, rev, rm, sed, sync, tar, tee, test, touch, true, umount, uname, uncompress, unlzma, unlzop, unxz, unzip, vi, volname, which, xxd, xz, xzcat, zcat</code></p>
 
 ### Bundled software
 
@@ -308,7 +308,7 @@ SHORK DISC is a specialised version of the SHORK 486 Operating System that can b
 | [e2fsprogs](https://e2fsprogs.sourceforge.net/)| e.g. `blkid`, `fsck`, `mke2fs`, `resize2fs`, `tune2fs`, `uuidgen` | 1.47.4 | ext2/3/4 filesystem utilities | GNU GPLv2 + LGPLv2 |
 | [file](https://github.com/file/file) | `file` | 5_48 | File identification | BSD 2-Clause |
 | [strace](https://github.com/strace/strace) | `strace` | 7.2 | System calls & signals tracer | LGPLv2.1 |
-| [util-linux](https://github.com/util-linux/util-linux) | `cfdisk`, `fdisk`, `lscpu`, `partx`, `sfdisk`, `whereis` | 2.42.2 | Extra Linux utilities | GNU GPLv2 |
+| [util-linux](https://github.com/util-linux/util-linux) | `cfdisk`, `fdisk`, `lscpu`, `partx`, `sfdisk`, `whereis` | 2.42.4 | Extra Linux utilities | GNU GPLv2 |
 
 #### Libraries & prerequisites
 
