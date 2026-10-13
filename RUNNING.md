@@ -1,4 +1,4 @@
-# Running SHORK 486
+# Running SHORK 486 & 586
 
 ## Real hardware
 
@@ -6,7 +6,7 @@
 
 ## 86Box
 
-86Box aims to provide accurate emulation and a good selection of old x86 hardware, which may be useful for validating SHORK 486 on certain hardware before you run it on the real versions. However, networking on a Linux host doesn't work yet. Below is a suggested configuration to try with 86Box VM Manager to get started, though I recommend having some fun experimenting with other options as well.
+86Box aims to provide accurate emulation and a good selection of old x86 hardware, which may be useful for validating SHORK 486/586 on certain hardware before you run it on the real versions. However, networking on a Linux host doesn't work yet. Below is a suggested configuration to try with 86Box VM Manager to get started, though I recommend having some fun experimenting with other options as well.
 
 * Machine
     * **Machine type:** [1994] i486 (Socket 3 PCI)
@@ -37,9 +37,13 @@
         * #1
             * **Type:** 3.5" 2.88M
 
+### Notes
+
+* If you are testing SHORK 486 on an Intel RapidCAD (486DX for 386 sockets), you may need to check the "Dynamic Recompiler" option. For real hardware, SHORK 486 should have no problem running on RapidCAD.
+
 ## VirtualBox
 
-VirtualBox will run SHORK 486 far faster than period-correct hardware, giving a false impression of its real performance. However, networking works fine. Below is a suggested configuration for creating a virtual machine.
+VirtualBox will run SHORK 486/586 far faster than period-correct hardware, giving a false impression of its real performance. However, networking works fine. Below is a suggested configuration for creating a virtual machine.
 
 * **OS:** Linux
 * **OS Distribution:** Other Linux
@@ -64,12 +68,12 @@ VirtualBox will run SHORK 486 far faster than period-correct hardware, giving a 
 
 ### Notes
 
-* If during the "New Virtual Machine" process you selected "Use an Existing Virtual Hard Disk File", VirtualBox will create the virtual machine with a SATA controller for the disk. This is only supported by SHORK 486 Max or a custom build with SATA support enabled.
+* If during the "New Virtual Machine" process you selected "Use an Existing Virtual Hard Disk File", VirtualBox will create the virtual machine with a SATA controller for the disk. This is only supported by SHORK 486/586 Max or a custom build with SATA support enabled.
 * For networking, load the "AMD PCnet32/PCnet-FAST III (PCI)" network interface driver.
 
 ## VMware Workstation
 
-VMware Workstation will run SHORK 486 far faster than period-correct hardware, giving a false impression of its real performance. However, networking works fine. Below is a suggested configuration for creating a virtual machine.
+VMware Workstation will run SHORK 486/586 far faster than period-correct hardware, giving a false impression of its real performance. However, networking works fine. Below is a suggested configuration for creating a virtual machine.
 
 * **Hardware compatibility:** any option
 * **Install operating system from:** later
