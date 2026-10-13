@@ -10833,7 +10833,7 @@ install_isolinux_bootloader()
     # Copy main bootloader binary
     if $FIX_EXTLINUX; then
         BOOTLDR_USED="patched ISOLINUX"
-        cp "${CURR_DIR}/build/syslinux/bios/core/isolinux.bin" "${DESTDIR}/boot/isolinux"
+        sudo cp "${CURR_DIR}/build/syslinux/bios/core/isolinux.bin" "${DESTDIR}/boot/isolinux"
     else
         ISOLINUX_BIN_CANS="
         /usr/lib/ISOLINUX/isolinux.bin
@@ -10844,7 +10844,7 @@ install_isolinux_bootloader()
         ISOLINUX_BIN_FOUND=false
         for c in $ISOLINUX_BIN_CANS; do
             if [ -f "$c" ]; then
-                cp "$c" "${DESTDIR}/boot/isolinux"
+                sudo cp "$c" "${DESTDIR}/boot/isolinux"
                 ISOLINUX_BIN_FOUND=true
                 break
             fi
@@ -10868,7 +10868,7 @@ install_isolinux_bootloader()
     {
         for d in $SYSLINUX_DIRS; do
             if [ -f "$d/$1" ]; then
-                cp "$d/$1" "${DESTDIR}/boot/isolinux"
+                sudo cp "$d/$1" "${DESTDIR}/boot/isolinux"
                 return 0
             fi
         done
@@ -11166,30 +11166,30 @@ build_disc_img()
 {
     cd "${CURR_DIR}"/build/
 
-    mkdir -p "${DESTDIR}/boot/isolinux"
+    sudo mkdir -p "${DESTDIR}/boot/isolinux"
 
     # Install bootloader
     install_isolinux_bootloader
 
     # Copy ISOLINUX configuration
     echo -e "${GREEN}Copying ISOLINUX configuration...${RESET}"
-    copy_sysfile "${CURR_DIR}"/sysfiles/disc/isolinux.cfg  "${DESTDIR}/boot/isolinux/isolinux.cfg"
+    copy_sysfile "${CURR_DIR}"/sysfiles/disc/isolinux.cfg "${DESTDIR}/boot/isolinux/isolinux.cfg" true
 
     # If required, specify the target scancode set
     if [[ $SCANCODE_SET != -1 ]]; then
-        sed -i "s/atkbd.extra=1/atkbd.set=${SCANCODE_SET} atkbd.extra=1/" "${DESTDIR}/boot/isolinux/isolinux.cfg"
+        sudo sed -i "s/atkbd.extra=1/atkbd.set=${SCANCODE_SET} atkbd.extra=1/" "${DESTDIR}/boot/isolinux/isolinux.cfg"
     fi
 
     # Disable vdso32 if ENABLE_NO_VDS032
     if [ "$ENABLE_NO_VDS032" = true ]; then
-        sed -i "s/vdso32=1/vdso32=0/" "${DESTDIR}/boot/isolinux/isolinux.cfg"
+        sudo sed -i "s/vdso32=1/vdso32=0/" "${DESTDIR}/boot/isolinux/isolinux.cfg"
     fi
 
     # Install the kernel
     echo -e "${GREEN}Copying kernel image...${RESET}"
-    cp bzImage "${DESTDIR}/boot/bzImage"
+    sudo cp bzImage "${DESTDIR}/boot/bzImage"
 
-    genisoimage \
+    sudo genisoimage \
         -o "${CURR_DIR}/images/${ID}.iso" \
         -b boot/isolinux/isolinux.bin \
         -c boot/isolinux/boot.cat \
