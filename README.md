@@ -298,7 +298,7 @@ SHORK DISC is a specialised version of the SHORK 486 Operating System that can b
 
 ### BusyBox
 
-<p><code>ar, ash, awk, basename, blkid, bunzip2, bzcat, bzip2, cat, clear, cp, cpio, date, dd, df, diff, dirname, dmesg, echo, ed, eject, expr, fdformat, free, grep, gunzip, gzip, hexdump, hostname, init, less, ln, ls, lsblk, lspci, lsscsi, lzcat, lzma, lzop, lzopcat, mdev, mkdir, mount, mv, patch, printenv, printf, pwd, rev, rm, sed, sync, tar, tee, test, touch, true, umount, uname, uncompress, unlzma, unlzop, unxz, unzip, vi, volname, which, xxd, xz, xzcat, zcat</code></p>
+<p><code>ar, ash, awk, basename, bunzip2, bzcat, bzip2, cat, clear, cp, cpio, date, dd, df, diff, dirname, dmesg, echo, ed, eject, expr, fdformat, free, grep, gunzip, gzip, hexdump, hostname, init, less, ln, ls, lsblk, lspci, lsscsi, lzcat, lzma, lzop, lzopcat, mdev, mkdir, mount, mv, patch, printenv, printf, pwd, rev, rm, sed, sync, tar, tee, test, touch, true, umount, uname, uncompress, unlzma, unlzop, unxz, unzip, vi, volname, which, xxd, xz, xzcat, zcat</code></p>
 
 ### Bundled software
 
