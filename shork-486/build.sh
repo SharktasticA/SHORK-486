@@ -426,6 +426,9 @@ NCDU_VER="1.22"
 NCURSES_SRC="https://ftp.gnu.org/gnu/ncurses"
 NCURSES_VER="6.6"
 
+NETHACK_SRC="https://github.com/NetHack/NetHack.git"
+NETHACK_VER="5.0.0"
+
 NETTLE_SRC="https://ftp.gnu.org/gnu/nettle"
 NETTLE_VER="4.0"
 
@@ -468,6 +471,10 @@ TN5250_SRC="https://github.com/tn5250/tn5250.git"
 TN5250_VER="0.18.0"
 TNFTP_SRC="https://ftp.netbsd.org/pub/NetBSD/misc/tnftp"
 TNFTP_VER="20260211"
+
+TREX_SRC="https://github.com/jserv/trex.git"
+TREX_VER="447710c"
+
 TWM_SRC="https://gitlab.freedesktop.org/xorg/app/twm.git"
 TWM_VER="1.0.13.1"
 UTIL_LINUX_SRC="https://github.com/util-linux/util-linux.git"
@@ -587,6 +594,7 @@ INCLUDE_NANO=false
 INCLUDE_NASM=false
 INCLUDE_NBSDGAMES=false
 INCLUDE_NCDU=false
+INCLUDE_NETHACK=false
 INCLUDE_PATCHELF=false
 INCLUDE_PERL=false
 INCLUDE_PCI_IDS=false
@@ -8367,6 +8375,77 @@ get_nbsdgames()
         -C src
 }
 
+# Download and compile NetHack
+get_nethack()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ -f "${DESTDIR}/usr/bin/nethack" ]; then
+        echo -e "${LIGHT_RED}NetHack already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d "NetHack" ]; then
+        echo -e "${YELLOW}NetHack source already present, resetting & cleaning...${RESET}"
+        cd "NetHack"
+        git config --global --add safe.directory "${CURR_DIR}/build/NetHack"
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading NetHack...${RESET}"
+        git clone --branch "NetHack-${NETHACK_VER}_Released" $NETHACK_SRC
+        cd "NetHack"
+    fi
+
+    # Add i486 cross-compile recipe
+    patch -p1 < "${PATCHES_DIR}/nethack/5.0.0_i486_cc_recipe.patch"
+
+    # Generate top-level Makefiles and Unix hints file
+    (cd sys/unix && sh setup.sh hints/linux.500)
+
+    # Get Lua for NetHack
+    make fetch-lua
+
+    # Compile
+    echo -e "${GREEN}Compiling NetHack...${RESET}"
+    make CROSS_TO_I486=1 WANT_WIN_TTY=1 -j"$JOBS" all \
+        I486_CC="${CC_STATIC}" \
+        I486_CXX="${CXX_STATIC}" \
+        I486_AR="${AR}" \
+        I486_CFLAGS="${CFLAGS_NOPIE} -ffunction-sections -fdata-sections" \
+        I486_NCURSES_INC="-I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
+        I486_NCURSES_LIB="${PREFIX}/lib/libncursesw.a" \
+        I486_HACKDIR=/usr/games/nethackdir
+
+    echo -e "${GREEN}Assembling NetHack package..${RESET}"
+    make CROSS_TO_I486=1 WANT_WIN_TTY=1 -j"$JOBS" package \
+        I486_CC="${CC_STATIC}" \
+        I486_CXX="${CXX_STATIC}" \
+        I486_AR="${AR}" \
+        I486_CFLAGS="${CFLAGS_NOPIE} -ffunction-sections -fdata-sections" \
+        I486_NCURSES_INC="-I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
+        I486_NCURSES_LIB="${PREFIX}/lib/libncursesw.a" \
+        I486_HACKDIR=/usr/games/nethackdir
+
+    # Install
+    echo -e "${GREEN}Installing NetHack...${RESET}"
+    HACKDIR_DEST="${DESTDIR}/usr/games/lib/nethackdir"
+    install -D -m 755 "targets/i486/pkg/nethack" "${DESTDIR}/usr/bin/nethack"
+    install -D -m 644 "targets/i486/pkg/.nethackrc" "${DESTDIR}/root/.nethackrc"
+    install -D -m 666 "targets/i486/pkg/record" "${HACKDIR_DEST}/record"
+    install -D -m 755 "targets/i486/pkg/recover" "${HACKDIR_DEST}/recover"
+    for f in nhdat symbols sysconf; do
+        install -D -m 644 "targets/i486/pkg/${f}" "${HACKDIR_DEST}/${f}"
+    done
+    mkdir -p "${HACKDIR_DEST}/save"
+    chmod 777 "${HACKDIR_DEST}" "${HACKDIR_DEST}/save"
+    : > "${HACKDIR_DEST}/perm"; chmod 666 "${HACKDIR_DEST}/perm"
+    : > "${HACKDIR_DEST}/logfile"; chmod 666 "${HACKDIR_DEST}/logfile"
+    : > "${HACKDIR_DEST}/xlogfile"; chmod 666 "${HACKDIR_DEST}/xlogfile"
+}
+
 # Download and compile Perl
 get_perl()
 {
@@ -8708,6 +8787,43 @@ get_tnftp()
     make -j"$JOBS"
     make DESTDIR="$DESTDIR" install
     ln -sf tnftp "${DESTDIR}/usr/bin/ftp"
+}
+
+# Download and compile trex
+get_trex()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ -f "${DESTDIR}/usr/bin/trex" ]; then
+        echo -e "${LIGHT_RED}trex already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d trex ]; then
+        echo -e "${YELLOW}trex source already present, resetting & cleaning...${RESET}"
+        cd trex
+        git config --global --add safe.directory "${CURR_DIR}/build/trex"
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading trex...${RESET}"
+        git clone $TREX_SRC
+        cd trex
+        git checkout $TREX_VER
+    fi
+
+    # Change colour palette to a SHORK-friendly one & modify Makefile to
+    # accept our CFLAGS & 
+    patch -p1 < "${PATCHES_DIR}/trex/shork-friendly-cols.patch"
+
+    # Compile and install
+    echo -e "${GREEN}Compiling trex...${RESET}"
+    make -j"$(nproc)" \
+        CC="${CC_STATIC}" \
+        CFLAGS="${CFLAGS_NOPIE}"
+    install -D -m 755 trex "${DESTDIR}/usr/bin/trex"
 }
 
 # Download and compile tshark
@@ -10106,6 +10222,12 @@ copy_licences()
         [ -f "${CURR_DIR}/build/ncdu-$NCDU_VER/COPYING" ]; then
         cp "${CURR_DIR}/build/ncdu-$NCDU_VER/COPYING" "${DESTDIR}/LICENCES/ncdu.txt" || true
         CSV+="\nNcdu,MIT,ncdu.txt"
+    fi
+
+    if $INCLUDE_NETHACK && 
+        [ -f "${CURR_DIR}/build/NetHack/dat/license" ]; then
+        cp "${CURR_DIR}/build/NetHack/dat/license" "${DESTDIR}/LICENCES/nethack.txt" || true
+        CSV+="\nNetHack,NetHack GPL,nethack.txt"
     fi
 
     if $INCLUDE_NBSDGAMES && 
@@ -11836,6 +11958,7 @@ get_installed_progs_feats()
         check_installed_file "CTris" "/usr/bin/ctris"
         check_installed_file "chrony ${CHRONY_VER}" "/usr/bin/chronyc"
         check_installed_file "tcpdump ${TCPDUMP_VER}" "/usr/bin/tcpdump"
+        check_installed_file "NetHack ${NETHACK_VER}" "/usr/bin/nethack"
     fi
     if [[ "$ID" == "shork-"*86 ]] || [ "$ID" == "shork-disc" ]; then
         check_installed_file "util-linux ${UTIL_LINUX_VER}" "/usr/bin/whereis"
@@ -12686,6 +12809,9 @@ if $INCLUDE_NASM; then
 fi
 if $INCLUDE_NBSDGAMES; then
     get_nbsdgames
+fi
+if $INCLUDE_NETHACK; then
+    get_nethack
 fi
 if $INCLUDE_NCDU; then
     get_prog_tar \

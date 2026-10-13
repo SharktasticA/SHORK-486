@@ -103,6 +103,7 @@ INCLUDE_NANO=false
 INCLUDE_NASM=false
 INCLUDE_NBSDGAMES=false
 INCLUDE_NCDU=false
+INCLUDE_NETHACK=false
 INCLUDE_PATCHELF=false
 INCLUDE_PERL=false
 INCLUDE_SC_IM=false
@@ -267,6 +268,7 @@ save_env()
         echo "INCLUDE_NASM=$INCLUDE_NASM"
         echo "INCLUDE_NBSDGAMES=$INCLUDE_NBSDGAMES"
         echo "INCLUDE_NCDU=$INCLUDE_NCDU"
+        echo "INCLUDE_NETHACK=$INCLUDE_NETHACK"
         echo "INCLUDE_PATCHELF=$INCLUDE_PATCHELF"
         echo "INCLUDE_PERL=$INCLUDE_PERL"
         echo "INCLUDE_SC_IM=$INCLUDE_SC_IM"
@@ -379,6 +381,7 @@ set_mini_vars()
     INCLUDE_NASM=false
     INCLUDE_NBSDGAMES=false
     INCLUDE_NCDU=false
+    INCLUDE_NETHACK=false
     INCLUDE_PATCHELF=false
     INCLUDE_PERL=false
     INCLUDE_SC_IM=false
@@ -558,6 +561,7 @@ set_plus_vars()
     INCLUDE_MPG321=true
     INCLUDE_NASM=true
     INCLUDE_NBSDGAMES=true
+    INCLUDE_NETHACK=true
     INCLUDE_PATCHELF=true
     INCLUDE_PERL=true
     INCLUDE_TCPDUMP=true
@@ -644,6 +648,7 @@ BUNDLED_SOFTWARE=(
         "nasm"              "Portable x86 assembler & disassembler (2.5MiB)"        "INCLUDE_NASM"              "false"     "always"
         "nbsdgames"         "†Terminal games pack (8MiB)"                           "INCLUDE_NBSDGAMES"         "false"     "always"
         "ncdu"              "*Disk usage analyser (0.4MiB)"                         "INCLUDE_NCDU"              "false"     "always"
+        "nethack"           "Dungeon exploration game (4MiB)"                       "INCLUDE_NETHACK"           "false"     "always"
         "patchelf"          "*ELF binary patching (0.9MiB)"                         "INCLUDE_PATCHELF"          "false"     "always"
         "perl"              "†General-purpose scripting language (40.3MiB)"         "INCLUDE_PERL"              "false"     "always"
         "sc-im"             "*Terminal spreadsheet editor (2.8MiB)"                 "INCLUDE_SC_IM"             "false"     "always"
@@ -1564,6 +1569,7 @@ else
     if [[ $BUNDLED =~ "nasm" ]];                then INCLUDE_NASM=true;             else INCLUDE_NASM=false;            fi
     if [[ $BUNDLED =~ "nbsdgames" ]];           then INCLUDE_NBSDGAMES=true;        else INCLUDE_NBSDGAMES=false;       fi
     if [[ $BUNDLED =~ "ncdu" ]];                then INCLUDE_NCDU=true;             else INCLUDE_NCDU=false;            fi
+    if [[ $BUNDLED =~ "nethack" ]];             then INCLUDE_NETHACK=true;          else INCLUDE_NETHACK=false;         fi
     if [[ $BUNDLED =~ "patchelf" ]];            then INCLUDE_PATCHELF=true;         else INCLUDE_PATCHELF=false;        fi
     if [[ $BUNDLED =~ "perl" ]];                then INCLUDE_PERL=true;             else INCLUDE_PERL=false;            fi
     if [[ $BUNDLED =~ "sc-im" ]];               then INCLUDE_SC_IM=true;            else INCLUDE_SC_IM=false;           fi

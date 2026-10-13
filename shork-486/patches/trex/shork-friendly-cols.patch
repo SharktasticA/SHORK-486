@@ -1,0 +1,74 @@
+############################################################################
+## shork-friendly-cols.patch                                              ##
+############################################################################
+## This patch is a derivative work of trex. It is licensed separately     ##
+## under the terms of the MIT licence, and is distributed as part         ##
+## of the SHORK project. See the accompanying LICENSE file in this        ##
+## directory for details.                                                 ##
+############################################################################
+## Kali (links.sharktastica.co.uk)                                        ##
+############################################################################
+
+diff --git a/Makefile b/Makefile
+index 357938d..fb64a27 100644
+--- a/Makefile
++++ b/Makefile
+@@ -1,5 +1,5 @@
+ CC ?= gcc
+-CFLAGS = -Wall -Wextra -O2 -std=gnu99
++CFLAGS ?= -Wall -Wextra -O2 -std=gnu99
+ LDFLAGS = -lm
+ 
+ # Source files
+diff --git a/config.c b/config.c
+index c8aa191..f4df6da 100644
+--- a/config.c
++++ b/config.c
+@@ -32,30 +32,30 @@ static const game_config_t game_config = {
+     .colors =
+         {
+             /* T-Rex colors */
+-            .trex_normal = {34, 177, 76},
+-            .trex_dead = {163, 163, 163},
+-            .trex_invincible = {30, 240, 180},
+-            .trex_fire = {240, 120, 30},
++            .trex_normal = {85, 255, 85},
++            .trex_dead = {170, 170, 170},
++            .trex_invincible = {85, 255, 255},
++            .trex_fire = {255, 85, 85},
+ 
+             /* Object colors */
+-            .cactus = {18, 117, 48},
+-            .rock = {110, 110, 110},
+-            .egg_base = {151, 178, 159},
+-            .pterodactyl = {50, 80, 50},
+-            .fireball = {255, 100, 0},
++            .cactus = {0, 170, 0},
++            .rock = {170, 170, 170},
++            .egg_base = {0, 170, 170},
++            .pterodactyl = {170, 0, 170},
++            .fireball = {255, 255, 85},
+ 
+             /* Ground colors */
+-            .ground_normal_primary = {111, 74, 53},
+-            .ground_normal_secondary = {48, 99, 48},
+-            .ground_dead_primary = {178, 178, 178},
+-            .ground_dead_secondary = {100, 100, 100},
+-            .ground_speck = {255, 224, 51},
++            .ground_normal_primary = {170, 170, 0},
++            .ground_normal_secondary = {0, 170, 0},
++            .ground_dead_primary = {170, 170, 170},
++            .ground_dead_secondary = {85, 85, 85},
++            .ground_speck = {255, 255, 85},
+ 
+             /* UI colors */
+-            .menu_title = {100, 255, 150},
++            .menu_title = {85, 255, 85},
+             .menu_selected = {255, 255, 255},
+-            .menu_unselected = {140, 140, 140},
+-            .menu_help = {200, 200, 200},
++            .menu_unselected = {170, 170, 170},
++            .menu_help = {170, 170, 170},
+             .score_text = {255, 255, 255},
+         },
+ 

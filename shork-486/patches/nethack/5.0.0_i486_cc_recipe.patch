@@ -1,0 +1,122 @@
+############################################################################
+## 5.0.0_i486_cc_recipe.patch                                             ##
+############################################################################
+## This patch is a derivative work of NetHack. It is licensed separately  ##
+## under the terms of the NetHack GPL licence, and is distributed as part ##
+## of the SHORK project. See the accompanying license file in this        ##
+## directory for details.                                                 ##
+############################################################################
+## Kali (links.sharktastica.co.uk)                                        ##
+############################################################################
+
+diff --git a/sys/unix/hints/include/cross-post.500 b/sys/unix/hints/include/cross-post.500
+index 28b73c8be..bda8ace38 100644
+--- a/sys/unix/hints/include/cross-post.500
++++ b/sys/unix/hints/include/cross-post.500
+@@ -229,6 +229,39 @@ mipspkg: dodata $(GAMEBIN) $(TARGETPFX)recover
+ 	@echo MIPS package zip file $(TARGETPFX)nh370mips.zip
+ endif  # CROSS_TO_MIPS
+ 
++ifdef CROSS_TO_I486
++$(I486_TARGET): pregame $(TARGETPFX)date.o $(HOSTOBJ) $(HOBJ) $(LUACROSSLIB)
++	-rm $@
++	$(TARGET_LINK) $(TARGET_LFLAGS) -o $@ \
++		$(HOBJ) $(TARGETPFX)date.o $(TARGETPFX)$(HACKLIB) \
++		$(I486_NCURSES_LIB) $(TARGET_LIBS)
++
++$(TARGETPFX)unixmain.o : ../sys/unix/unixmain.c $(HACK_H)
++$(TARGETPFX)unixres.o : ../sys/unix/unixres.c $(HACK_H)
++$(TARGETPFX)unixunix.o : ../sys/unix/unixunix.c $(HACK_H)
++$(TARGETPFX)ioctl.o : ../sys/share/ioctl.c $(HACK_H)
++$(TARGETPFX)unixtty.o : ../sys/share/unixtty.c $(HACK_H)
++
++$(LUABIN):
++	( cd .. && make luabin && cd src)
++dodata:
++	( cd .. && make dlb && cd src)
++
++i486recover: $(TARGETPFX)recover
++.PHONY: i486pkg
++i486pkg: dodata $(GAMEBIN) $(TARGETPFX)recover
++	mkdir -p $(TARGETPFX)pkg
++	cp $(GAMEBIN) $(TARGETPFX)pkg/nethack
++	cp $(TARGETPFX)recover $(TARGETPFX)pkg/recover
++	cp ../dat/nhdat $(TARGETPFX)pkg/nhdat
++	cp ../dat/license $(TARGETPFX)pkg/license
++	cp ../dat/symbols $(TARGETPFX)pkg/symbols
++	cp ../sys/share/NetHack.cnf $(TARGETPFX)pkg/.nethackrc
++	cp ../sys/unix/sysconf $(TARGETPFX)pkg/sysconf
++	cp ../doc/nethack.txt $(TARGETPFX)pkg/nethack.txt
++	-touch $(TARGETPFX)pkg/record
++	@echo i486 package directory: $(TARGETPFX)pkg
++endif  # CROSS_TO_I486
+ 
+ ifdef CROSS_TO_AMIGA
+ $(TARGETPFX)amidos.o : ../sys/amiga/amidos.c $(HACK_H)
+diff --git a/sys/unix/hints/include/cross-pre1.500 b/sys/unix/hints/include/cross-pre1.500
+index b252f0843..164a8167a 100644
+--- a/sys/unix/hints/include/cross-pre1.500
++++ b/sys/unix/hints/include/cross-pre1.500
+@@ -38,6 +38,17 @@ override TARGETPFX = $(TARGETDIR)/
+ override TARGET_LIBS=
+ endif
+ 
++ifdef CROSS_TO_I486
++CROSS=1
++BUILD_TARGET_LUA=1
++HACKDIR=$(I486_HACKDIR)
++PREFIX=
++override TARGET = i486
++override TARGETDIR=../targets/$(TARGET)
++override TARGETPFX = $(TARGETDIR)/
++override TARGET_LIBS=
++endif
++
+ ifdef CROSS_TO_AMIGA
+ CROSS=1
+ BUILD_TARGET_LUA=1
+diff --git a/sys/unix/hints/include/cross-pre2.500 b/sys/unix/hints/include/cross-pre2.500
+index ddc3ba765..b32c59613 100644
+--- a/sys/unix/hints/include/cross-pre2.500
++++ b/sys/unix/hints/include/cross-pre2.500
+@@ -460,6 +460,40 @@ NCURSES_PLATFORM=MIPS
+ endif  # CROSS_TO_MIPS
+ #=================================================================
+ 
++ifdef CROSS_TO_I486
++#================================================================
++# i486 cross-compile recipe
++#================================================================
++
++CFLAGS += -DCROSSCOMPILE
++
++override TARGET_CC = $(I486_CC)
++override TARGET_CXX = $(I486_CXX)
++override TARGET_AR = $(I486_AR)
++I486_TARGET = $(TARGETPFX)nethack
++I486_TARGET_CFLAGS = -c -O2 $(I486_CFLAGS) \
++	-I../include -I../sys/unix -I../win/share \
++	$(LUAINCL) $(I486_NCURSES_INC) -DDLB \
++	-DCROSSCOMPILE -DCROSSCOMPILE_TARGET -DCROSS_TO_I486 \
++	-DCURSES_GENL_PUTMIXED -DCURSES_GENL_PUTMIXED -DNOCRASHREPORT \
++	-Wall -Wno-missing-field-initializers -Wno-unused-result
++override TARGET_CFLAGS = $(I486_TARGET_CFLAGS)
++override TARGET_CXXFLAGS = $(I486_TARGET_CFLAGS)
++override TARGET_LINK = $(I486_CXX)
++override WINLIB = $(I486_NCURSES_LIB)
++override TARGET_LFLAGS = -static -s -Wl,--gc-sections
++override SYSOBJ = $(TARGETPFX)ioctl.o $(TARGETPFX)unixmain.o $(TARGETPFX)unixtty.o \
++	$(TARGETPFX)unixunix.o $(TARGETPFX)unixres.o
++override LUALIB=
++override LUALIBS=
++override TOPLUALIB=
++override GAMEBIN=$(I486_TARGET)
++override RECOVERBIN = $(TARGETPFX)recover
++override PACKAGE = i486pkg
++override PREGAME += mkdir -p $(TARGETDIR) ;
++override CLEANMORE += rm -f -r $(TARGETDIR) ;
++endif  # CROSS_TO_I486
++
+ #=================================================================
+ 
+ ifdef CROSS_TO_AMIGA
