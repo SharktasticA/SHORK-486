@@ -5001,6 +5001,9 @@ compile_kernel()
     echo -e "${GREEN}Applying 7.0.x_387-fpu-clone-sigfpe patch...${RESET}"
     patch -p1 < "${PATCHES_DIR}/linux/7.0.x/7.0.x_fix-387-fpu-clone-sigfpe.patch"
 
+    echo -e "${GREEN}Applying 7.0.x_force-486-fpu-check patch...${RESET}"
+    patch -p1 < "${PATCHES_DIR}/linux/7.0.x/7.0.x_force-486-fpu-check.patch"
+
     echo -e "${GREEN}Applying 7.0.x_unsupported-486-586-msgs patch...${RESET}"
     patch -p1 < "${PATCHES_DIR}/linux/7.0.x/7.0.x_unsupported-486-586-msgs.patch"
 
