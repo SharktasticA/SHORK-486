@@ -2,24 +2,6 @@
 
 Lists of Linux module names that provide drivers and as displayed in SHORKSET's "Drivers" menu. The names are derived from the Linux kernel's driver names, usually after the intended primary branded device. Some may also support clone/compatible devices, and such known devices will be added as sublists.
 
-## Host bridge
-
-### PCMCIA (16-bit)
-
-_Provided with SHORK 486/586 Terminal, Default, Plus or Max, or custom build with "kernel-level PCMCIA support"_
-
-* Cirrus Logic CL-PD6729 PCI-PCMCIA bridge
-* Databook TCIC-2 ISA-PCMCIA bridge
-* Intel 82092-compatible PCI-PCMCIA bridge
-* Intel 82365-compatible ISA-PCMCIA bridge
-    * Ricoh RF5Cxx6
-
-### PCMCIA (32-bit)
-
-_Provided with SHORK 486/586 Terminal, Default, Plus or Max, or custom build with "kernel-level PCMCIA support"_
-
-* Yenta-compatible PCI-PCMCIA bridge
-
 ## Networking
 
 ### ISA
@@ -143,6 +125,22 @@ _Provided with SHORK 486/586 Terminal, Default, Plus or Max, or custom build wit
 _Provided with SHORK 486/586 Terminal, Default, Plus or Max, or custom build with "Ethernet Networking Support" and "kernel-level PCMCIA support"_
 
 * Xircom Tulip
+
+## PCMCIA bridge
+
+_Provided with SHORK 486/586 Terminal, Default, Plus or Max, or custom build with "kernel-level PCMCIA support"_
+
+### 16-bit
+
+* Cirrus Logic CL-PD6729 PCI-PCMCIA bridge
+* Databook TCIC-2 ISA-PCMCIA bridge
+* Intel 82092-compatible PCI-PCMCIA bridge
+* Intel 82365-compatible ISA-PCMCIA bridge
+    * Ricoh RF5Cxx6
+
+### 32-bit
+
+* Yenta-compatible PCI-PCMCIA bridge
 
 ## Sound
 

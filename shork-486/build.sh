@@ -762,6 +762,12 @@ else
     INCLUDE_TNFTP=false
 fi
 
+# Ensure M4 and PERL are included with AUTOCONF
+if [ "$INCLUDE_AUTOCONF" = true ]; then
+    INCLUDE_M4=true
+    INCLUDE_PERL=true
+fi
+
 # Ensure EPOLL is enabled with BIND9_DNSUTILS and MICRO
 if [ "$INCLUDE_BIND9_DNSUTILS" = true ] || [ "$INCLUDE_MICRO" = true ]; then
     ENABLE_EPOLL=true
@@ -778,14 +784,8 @@ if [ "$INCLUDE_DOSEMU2" = false ] && [ "$INCLUDE_FREEDOS" = true ]; then
     INCLUDE_FREEDOS=false
 fi
 
-# Ensure M4 and PERL is included with AUTOCONF
-if [ "$INCLUDE_AUTOCONF" = true ]; then
-    INCLUDE_M4=true
-    INCLUDE_PERL=true
-fi
-
-# Ensure MODULES is enabled with SOUND
-if [ "$ENABLE_SOUND" = true ]; then
+# Ensure MODULES is enabled with PCMCIA or SOUND
+if [ "$ENABLE_PCMCIA" = true ] || [ "$ENABLE_SOUND" = true ]; then
     ENABLE_MODULES=true
 fi
 
