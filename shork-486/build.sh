@@ -10463,12 +10463,16 @@ build_filesystem()
     chmod +x "${CURR_DIR}"/sysfiles/*/rc
     chmod +x "${CURR_DIR}"/sysfiles/*/rc.micro
     chmod +x "${CURR_DIR}"/sysfiles/default.script
+    chmod +x "${CURR_DIR}"/sysfiles/dir
     chmod +x "${CURR_DIR}"/shorkutils/shorkgui
+    chmod +x "${CURR_DIR}"/sysfiles/vdir
 
     echo -e "${GREEN}Copying system files...${RESET}"
+    copy_sysfile "${CURR_DIR}"/sysfiles/dir "${DESTDIR}"/bin/dir
     copy_sysfile "${CURR_DIR}"/sysfiles/hostname "${DESTDIR}"/etc/hostname
     copy_sysfile "${CURR_DIR}"/sysfiles/issue "${DESTDIR}"/etc/issue
     copy_sysfile "${CURR_DIR}"/sysfiles/os-release "${DESTDIR}"/etc/os-release
+    copy_sysfile "${CURR_DIR}"/sysfiles/vdir "${DESTDIR}"/bin/vdir
 
     if [[ "$ID" == "shork-"*86 ]]; then
         if [ "$BUILD_TYPE" != "micro" ]; then
