@@ -9220,7 +9220,7 @@ get_shorkhelp()
     if [[ "$ID" == "shork-"*86 ]] || [ "$ID" == "shork-disc" ]; then
         make -j"$JOBS" CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
     elif [ "$ID" == "shork-diskette" ]; then
-        make EMBEDDED=1 -j"$JOBS" CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+        make SHORK_DISKETTE=1 -j"$JOBS" CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
     fi
     make DESTDIR="$DESTDIR" install
 }
@@ -12952,8 +12952,8 @@ fi
 
 if [ "$BUILD_TYPE" != "micro" ]; then
     get_shorkfetch
+    get_shorkhelp
     if [[ "$ID" == "shork-"*86 ]]; then
-        get_shorkhelp
         get_shorkcommon_sh
         get_shorkbin
         get_shorkdir
@@ -12961,7 +12961,6 @@ if [ "$BUILD_TYPE" != "micro" ]; then
         get_shorkset
     fi
     if [ "$ID" == "shork-disc" ]; then
-        get_shorkhelp
         if $INCLUDE_SHORKSTALL; then
             get_shorkstall
         fi
