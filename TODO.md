@@ -1,4 +1,4 @@
-# TODO, planned & under consideration
+# Planned & under consideration
 
 ## New SHORKUTILS & SHORKTAINMENT
 
