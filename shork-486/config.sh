@@ -763,10 +763,10 @@ else
         DIST="SHORK 486"
         if [[ "$ID" != "shork-"*86 ]]; then
             HOSTNAME="$CHOICE"
-            set_default_vars
-            BUILD_TYPE="default"
-            TARGET_DISK=$DEFAULT_MIN_DISK
-            TARGET_SWAP=$DEFAULT_DEF_SWAP
+            set_mini_vars
+            BUILD_TYPE=""
+            TARGET_DISK=$MINI_MIN_DISK
+            TARGET_SWAP=$MINI_DEF_SWAP
         fi
     elif [ "$CHOICE" == "shork-disc" ]; then
         DIST="SHORK DISC"
