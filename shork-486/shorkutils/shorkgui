@@ -38,6 +38,7 @@ done
 export DISPLAY=:0
 export FONTCONFIG_PATH=/etc/fonts
 export FONTCONFIG_FILE=/etc/fonts/fonts.conf
+export XLOCALEDIR=/usr/share/X11/locale
 
 Xfbdev :0 vt1 -extension XFree86-Bigfont -mouse /dev/input/mice -mouse /dev/ttyS0 -fp $FONT_DIR 2>/dev/null &
 X_PID=$!

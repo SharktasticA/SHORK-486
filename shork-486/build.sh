@@ -5394,7 +5394,24 @@ get_libx11()
 
     # Compile and install
     echo -e "${GREEN}Compiling libX11...${RESET}"
-    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static --with-sysroot="$SYSROOT" CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    ./configure \
+        --host="$HOST" \
+        --prefix="${SYSROOT}/usr" \
+        --disable-shared \
+        --enable-static \
+        --disable-loadable-i18n \
+        --with-sysroot="$SYSROOT" \
+        CC="$CC_STATIC" \
+        AR="$AR" \
+        RANLIB="$RANLIB" \
+        STRIP="$STRIP"
+
+    # Replace host sysroot paths with runtime paths
+    sed -i \
+        -e "s|${SYSROOT}/usr/share/X11|/usr/share/X11|g" \
+        -e "s|${SYSROOT}/usr/lib/X11|/usr/lib/X11|g" \
+        src/config.h src/xlibi18n/Makefile
+
     make -j"$JOBS"
     make install
 }
@@ -5653,7 +5670,17 @@ get_libxt()
 
     # Compile and install
     echo -e "${GREEN}Compiling libXt...${RESET}"
-    ./configure --host="$HOST" --prefix="${SYSROOT}/usr" --disable-shared --enable-static CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    ./configure \
+        --host="$HOST" \
+        --prefix="${SYSROOT}/usr" \
+        --with-appdefaultdir=/usr/share/X11/app-defaults \
+        --with-xfile-search-path="/usr/share/X11/%L/%T/%N%C%S:/usr/share/X11/%l/%T/%N%C%S:/usr/share/X11/%T/%N%C%S:/usr/share/X11/%L/%T/%N%S:/usr/share/X11/%l/%T/%N%S:/usr/share/X11/%T/%N%S" \
+        --disable-shared \
+        --enable-static \
+        CC="$CC_STATIC" \
+        AR="$AR" \
+        RANLIB="$RANLIB" \
+        STRIP="$STRIP"
     make -j"$JOBS"
     make install
 }
@@ -6166,11 +6193,13 @@ get_fonts()
 
     echo -e "${GREEN}Installing bitmap fonts...${RESET}"
     mkdir -p "$BIT_FONT_DIR"
-    for f in 6x13.pcf.gz 7x14.pcf.gz 8x13.pcf.gz 9x15.pcf.gz cursor.pcf.gz; do
-        if [ -f "$SYSROOT/usr/lib/X11/fonts/misc/$f" ]; then
-            cp "$SYSROOT"/usr/lib/X11/fonts/misc/$f "$BIT_FONT_DIR"
-        fi
+    for f in 6x13 7x14 8x13 9x15; do
+        for suffix in "" "-ISO8859-1"; do
+            src="$SYSROOT/usr/lib/X11/fonts/misc/${f}${suffix}.pcf.gz"
+            [ -f "$src" ] && cp "$src" "$BIT_FONT_DIR"
+        done
     done
+    cp "$SYSROOT/usr/lib/X11/fonts/misc/cursor.pcf.gz" "$BIT_FONT_DIR"
     echo "fixed -misc-fixed-medium-r-normal--14-130-75-75-c-70-iso10646-1" | tee "$BIT_FONT_DIR/fonts.alias" > /dev/null
     cd "${DESTDIR}"/usr/lib/X11/fonts/misc
     sudo rm -f fonts.dir fonts.scale
@@ -6694,7 +6723,13 @@ get_xcalc()
 
     # Compile and install
     echo -e "${GREEN}Compiling xcalc...${RESET}"
-    ./configure --host="$HOST" --prefix=/usr --x-includes="$SYSROOT/usr/include" --x-libraries="$SYSROOT/usr/lib" CC="$CC_STATIC" LIBS="-lXaw7 -lXmu -lXt -lXpm -lXft -lfontconfig -lfreetype -lpng -lexpat -lXrender -lXext -lxcb -lXau -lXdmcp -lSM -lICE -lX11 -lz"
+    ./configure \
+        --host="$HOST" \
+        --prefix=/usr \
+        --x-includes="$SYSROOT/usr/include" \
+        --x-libraries="$SYSROOT/usr/lib" \
+        CC="$CC_STATIC" \
+        LIBS="-lXaw7 -lXmu -lXt -lXpm -lXft -lfontconfig -lfreetype -lpng -lexpat -lXrender -lXext -lxcb -lXau -lXdmcp -lSM -lICE -lX11 -lz"
     make -j"$JOBS"
     make DESTDIR="$DESTDIR" install
 }
