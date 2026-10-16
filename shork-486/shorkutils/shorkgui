@@ -14,10 +14,17 @@ if [ ! -e /dev/fb0 ]; then
     exit 1
 fi
 
+ORIG_VT=$(tty 2>/dev/null | sed -n 's|^/dev/tty\([0-9][0-9]*\)$|\1|p')
+[ -z "$ORIG_VT" ] && ORIG_VT=1
+
 cleanup()
 {
-    [ -n "$X_PID" ] && kill "$X_PID" 2>/dev/null
+    if [ -n "$X_PID" ]; then
+        kill "$X_PID" 2>/dev/null
+        wait "$X_PID" 2>/dev/null
+    fi
     rm -f /tmp/shorkgui.twmrc 2>/dev/null
+    chvt "$ORIG_VT" 2>/dev/null
 }
 trap cleanup EXIT INT TERM
 
