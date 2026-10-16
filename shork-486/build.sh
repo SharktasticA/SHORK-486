@@ -4462,6 +4462,11 @@ get_busybox()
     patch -p1 < "${PATCHES_DIR}/busybox/1.38.0_lsblk_swap.patch"
 
     if [ "$BUILD_TYPE" != "micro" ]; then
+        if $ENABLE_FB_VBE; then
+            echo -e "${GREEN}Enabling BusyBox's fbset and fbsplash utilities...${RESET}"
+            merge_bb_frag "${CONFIGS_DIR}/busybox/busybox.config.fb.frag"
+        fi
+
         if $ENABLE_HELP_VERBOSE; then
             echo -e "${GREEN}Enabling BusyBox's verbose --help...${RESET}"
             merge_bb_frag "${CONFIGS_DIR}/busybox/busybox.config.help.frag"
@@ -11747,6 +11752,10 @@ get_included_busybox_commands()
     check_bb_config "CONFIG_TELNETD" ""
     check_bb_config "CONFIG_TFTPD" ""
     check_bb_config "CONFIG_TFTP" ""
+
+    # Added 2026-10-16
+    check_bb_config "CONFIG_FBSET" ""
+    check_bb_config "CONFIG_FBSPLASH" ""
 
     readarray -t INCLUDED_BB_CMDS < <(printf '%s\n' "${INCLUDED_BB_CMDS[@]}" | sort)
     readarray -t EXCLUDED_BB_CMDS < <(printf '%s\n' "${EXCLUDED_BB_CMDS[@]}" | sort)

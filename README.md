@@ -127,6 +127,10 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 
 <p><code>ar, arch, ascii, ash, awk, base32, base64, basename, bc, beep, blkid, bunzip2, bzcat, bzip2, cal, cat, cksum, chmod, chvt, clear, comm, cp, cpio, crc32, crontab, cut, date, dc, dd, df, diff, dirname, dmesg, dos2unix, du, echo, ed, egrep, eject, env, expand, expr, factor, fallocate, false, fdflush, fdformat, fdisk, fgrep, find, fold, free, fuser, getfattr, getopt, grep, gunzip, gzip, halt, head, hexdump, hexedit, hostid, hostname, hwclock, init, install, iostat, kill, killall, less, link, ln, loadkmap, ls, lsblk, lsof, lspci, lsscsi, lzcat, lzma, lzop, lzopcat, man, mdev, md5sum, mkdir, mkdosfs/mkfs.vfat, mke2fs/mkfs.ext2, mkfifo, mknod, mktemp, mkswap, more, mount, mountpoint, mv, nice, nl, nohup, nproc, od, partprobe, paste, patch, pgrep, pidof, pkill, pmap, poweroff printenv, printf, ps, pstree, pwd, pwdx, readlink, realpath, reboot, rev, rm, rmdir, sed, seq, setfattr, setfont, sha1sum, sha256sum, sha384sum, sha3sum, sha512sum, shred, showkey, shuf, sleep, sort, split, stat, strings, stty, sum, swapoff, swapon, sync, tac, tail, tar, taskset, tee, test, time, timeout, top, touch, tr, tree, true, truncate, tsort, tty, umount, uname, uncompress, unexpand, uniq, unix2dos, unlink, unlzma, unlzop, unxz, unzip, uptime, usleep, uudecode, uuencode, uuidgen, vi, vmstat, volname, watch, wc, which, whoami, xargs, xxd, xz, xzcat, yes, zcat</code></p>
 
+#### Framebuffer support enabled
+
+<p><code>fbset, fbsplash</code></p>
+
 #### Multi-user support enabled
 
 <p><code>addgroup, adduser, chgrp, chown, chpasswd, chroot, cryptpw, delgroup, deluser, getty, id, login, logname, mkpasswd, passwd, su, sulogin, users, w and who</code></p>
@@ -574,7 +578,7 @@ EXTLINUX (SHORK 486/586), ISOLINUX (SHORK DISC) and SYSLINUX (SHORK DISKETTE) ar
 
 #### Options
 
-* **fb-vbe**: Adds kernel-level framebuffer and VESA BIOS Extensions (VBE) support. This allows `shorkhelp` to list and select VBE-style resolutions, which when used also creates a framebuffer device an X server can use.
+* **fb-vbe**: Adds kernel-level framebuffer and VESA BIOS Extensions (VBE) support and enables BusyBox's `fbset` and `fbsplash` implementations. This allows `shorkhelp` to list and select VBE-style resolutions, which when used also creates a framebuffer device an X server can use.
 
 * **grub**: Uses a GRUB 2.x bootloader instead of EXTLINUX. GRUB may be more familiar to modern Linux users, but it requires approximately 12MiB more space than EXTLINUX. The build script overrides this option if you said "Yes" to using SHORK's patched fork of EXTLINUX.
 
