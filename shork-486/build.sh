@@ -10565,13 +10565,11 @@ build_filesystem()
 
     if $INCLUDE_GUI; then
         echo -e "${GREEN}Installing files needed for SHORKGUI...${RESET}"
-        mkdir -p {usr/share/backgrounds,usr/share/X11/app-defaults}
+        mkdir -p "usr/share/X11/app-defaults"
         copy_sysfile "${CURR_DIR}"/shorkutils/shorkgui "${DESTDIR}"/usr/bin/shorkgui
-        copy_sysfile "${CURR_DIR}"/sysfiles/shork-486-dark.png "${DESTDIR}"/usr/share/backgrounds/shork-486-dark.png
-        copy_sysfile "${CURR_DIR}"/sysfiles/shork-486-light.png "${DESTDIR}"/usr/share/backgrounds/shork-486-light.png
         copy_sysfile "${CURR_DIR}"/sysfiles/XCalc "${DESTDIR}"/usr/share/X11/app-defaults/XCalc
         if [[ $USED_WM == "TWM" ]]; then 
-            echo -e "${GREEN}Installing SHORKGUI-specific configuration...${RESET}"
+            echo -e "${GREEN}Installing SHORKGUI-specific TWM configuration...${RESET}"
             copy_sysfile "${CURR_DIR}"/sysfiles/dark.twmrc "${DESTDIR}"/usr/share/X11/twm/dark.twmrc
             copy_sysfile "${CURR_DIR}"/sysfiles/light.twmrc "${DESTDIR}"/usr/share/X11/twm/light.twmrc
         fi
@@ -10601,6 +10599,19 @@ build_filesystem()
     if $INCLUDE_MG; then
         echo -e "${GREEN}Copying pre-defined Mg settings...${RESET}"
         copy_sysfile "${CURR_DIR}"/sysfiles/mg "${DESTDIR}"/etc/mg
+    fi
+
+    if $ENABLE_FB_VBE; then
+        mkdir -p "usr/share/backgrounds"
+        if [ "$ID" == "shork-486" ]; then
+            copy_sysfile "${CURR_DIR}"/branding/shork-486_640x480.ppm "${DESTDIR}"/usr/share/backgrounds/shork_640x480.ppm
+            copy_sysfile "${CURR_DIR}"/branding/shork-486_1024x768.png "${DESTDIR}"/usr/share/backgrounds/shork_1024x768.png
+            copy_sysfile "${CURR_DIR}"/branding/shork-486_1024x768_invert.png "${DESTDIR}"/usr/share/backgrounds/shork_1024x768_invert.png
+        elif [ "$ID" == "shork-586" ]; then
+            copy_sysfile "${CURR_DIR}"/branding/shork-586_640x480.ppm "${DESTDIR}"/usr/share/backgrounds/shork_640x480.ppm
+            copy_sysfile "${CURR_DIR}"/branding/shork-586_1024x768.png "${DESTDIR}"/usr/share/backgrounds/shork_1024x768.png
+            copy_sysfile "${CURR_DIR}"/branding/shork-586_1024x768_invert.png "${DESTDIR}"/usr/share/backgrounds/shork_1024x768_invert.png
+        fi
     fi
 
     if $ENABLE_MULTIUSER_REAL; then
