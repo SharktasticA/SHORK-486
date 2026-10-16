@@ -231,7 +231,7 @@ CTAGS_VER="6.2.1"
 CTRIS_SRC="https://github.com/MitchelPaulin/CTris.git"
 
 CURL_SRC="https://curl.se/download"
-CURL_VER="8.22.0"
+CURL_VER="8.23.0"
 
 DIALOG_SRC="https://invisible-mirror.net/archives/dialog"
 DIALOG_VER="1.3-20260721"
@@ -254,12 +254,12 @@ GCCGO_VER="16.2.0"
 
 GIT_LICENCE="GNU GPLv2"
 GIT_SRC="https://github.com/git/git.git"
-GIT_VER="2.55.0"
+GIT_VER="2.56.0"
 GIT_VER_DATE="2026-06-29"
 
 GLIB_SRC="https://download.gnome.org/sources/glib"
 GLIB_DIST="2.90"
-GLIB_VER="2.90.0"
+GLIB_VER="2.90.1"
 
 GLIBC_SRC="https://ftp.gnu.org/gnu/glibc"
 GLIBC_VER="2.44"
@@ -482,7 +482,7 @@ UTIL_LINUX_VER="2.42.4"
 VIM_SRC="https://github.com/vim/vim.git"
 VIM_VER="9.2.1164"
 WIRESHARK_SRC="https://www.wireshark.org/download/src"
-WIRESHARK_VER="4.7.3"
+WIRESHARK_VER="4.7.4"
 X86EMU_SRC="https://github.com/wfeldt/libx86emu.git"
 X86EMU_VER="3.7"
 

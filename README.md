@@ -146,13 +146,13 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 | [chrony](https://chrony-project.org/) | `chronyc`, `chronyd` | 4.9 | NTP daemon & interface | GNU GPLv2 |✓|**✓**||✓||
 | [Cscope](https://cscope.sourceforge.net/) | `cscope` | 15.9 | C/C++ code browser | BSD 3-Clause |✓|||||
 | [CTris](https://github.com/MitchelPaulin/CTris) | `ctris` | | Tetris clone | MIT |✓|**✓**|||✓|
-| [cURL](https://curl.se/) | `curl` | 8.22.0 | HTTP client & transfer utility | MIT |✓|**✓**||✓||
+| [cURL](https://curl.se/) | `curl` | 8.23.0 | HTTP client & transfer utility | MIT |✓|**✓**||✓||
 | [dialog](https://invisible-mirror.net/dialog/dialog.html) | `dialog` | 1.3-20260721 | Shell script TUI widgets | LGPLv2.1 |✓|**✓**|||✓|
 | [dosfstools](https://github.com/dosfstools/dosfstools/) | e.g. `dosfsck`, `mkdosfs`\* | 4.2 | FAT family filesystem utilities | GNU GPLv3 |✓|**✓**|||✓|
 | [Dropbear](https://github.com/mkj/dropbear) | `scp`, `ssh` | 2026.94 | SCP and SSH clients | MIT + BSD 2-Clause |✓|**✓**||✓||
 | [e2fsprogs](https://e2fsprogs.sourceforge.net/)| e.g. `blkid`\*, `fsck`, `mke2fs`\*, `resize2fs`, `tune2fs`, `uuidgen`\* | 1.47.4 | ext2/3/4 filesystem utilities | GNU GPLv2 + LGPLv2 |✓|**✓**|||✓|
 | [file](https://github.com/file/file)| `file` | 5_48 | File identification | BSD 2-Clause |✓|**✓**|||✓|
-| [Git](https://github.com/git/git) | `git` | 2.55.0 | Source control client | GNU GPLv2 |✓|**✓**|||||
+| [Git](https://github.com/git/git) | `git` | 2.56.0 | Source control client | GNU GPLv2 |✓|**✓**|||||
 | [GNU Autoconf](https://www.gnu.org/software/autoconf/) | `autoconf`, `autoreconf` | 2.73 | configure script generator | GNU GPLv2 |✓|||||
 | [GNU Automake](https://www.gnu.org/software/automake/) | `aclocal`, `automake` | 1.19 | Makefile.in generator | GNU GPLv2 |✓|||||
 | [GNU Binutils](https://musl.cc/)‡ | e.g. `ar`\*, `as`, `gprof`, `ld`, `nm`, `objdump`, `ranlib`,`readelf`, `strings`\*, `strip` | 2.37 | Binary tools to compliment GCC | GNU GPLv3 |✓|||||
@@ -210,7 +210,7 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 | [Brotli](https://github.com/google/brotli) | 1.2.0 | GnuTLS | MIT |
 | [console-data](https://packages.debian.org/trixie/console-data) & [KBD](https://git.kernel.org/pub/scm/linux/kernel/git/legion/kbd.git) | 1.12-9 & 2.10.0  | Keymaps pack | GNU GPLv2 |
 | [console-setup](https://packages.debian.org/trixie/console-setup) | 1.249 | Console fonts pack | Public domain (most), SIL OFL 1.1 (Terminus) |
-| [GLib](https://download.gnome.org/sources/glib/) | 2.90.0 | Midnight Commander | LGPLv2.1 |
+| [GLib](https://download.gnome.org/sources/glib/) | 2.90.1 | Midnight Commander | LGPLv2.1 |
 | [GNU Libidn2](https://ftp.gnu.org/gnu/libidn) | 2.3.8 | BIND 9, GnuTLS | GNU GPLv3 |
 | [GNU Libtasn1](https://www.gnu.org/software/libtasn1/) | 4.21.0 | GnuTLS | GNU GPLv3 |
 | [GNU libunistring](https://www.gnu.org/software/libunistring/) | 1.4.2 | GnuTLS, Tilde | GNU GPLv3 |
