@@ -172,7 +172,7 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 | [Lua](https://www.lua.org/) | `lua` | 5.5.1 | Embedded scripting & extensions language | MIT |✓|**✓**|||✓|
 | [Lynx](https://github.com/ThomasDickey/lynx-snapshots)¶ | `lynx` | 2-9-3a | Terminal web browser | GNU GPLv2 |✓|**✓**|||||
 | [memtester](https://pyropus.ca./software/memtester/) | `memtester` | 4.7.1 | Userspace memory subsystem fault tester | GNU GPLv2 |✓|**✓**|✓|✓|✓|
-| [Mg](https://github.com/troglobit/mg) | `mg` | 4.3 | Emacs-style text editor | Unlicense |✓|**✓**|✓||✓|
+| [Mg](https://github.com/troglobit/mg) | `mg` | 4.4 | Emacs-style text editor | Unlicense |✓|**✓**|✓||✓|
 | [MicroPython](https://github.com/micropython/micropython) | `micropython` | 1.29.0 | Python 3.4-syntax intepreter | MIT |✓|**✓**|||✓|
 | [mpg321](https://mpg321.sourceforge.net/)† | `mpg321` | 0.3.2-1 | MP3 player | GNU GPLv2 |✓|||||
 | [mt-st](https://github.com/iustin/mt-st) | `mt`, `stinit` | 1.8 | Tape drive tools | GNU GPLv2 |✓|**✓**|||✓|
