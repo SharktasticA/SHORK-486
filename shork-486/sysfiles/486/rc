@@ -16,18 +16,95 @@
 
 
 
+# Current logging progress (0-10)
+CURR_PROG=0
+# DateTime when rc started
+DATETIME=""
+# Line to place log messages or progress bar on splash
+LOG_LINE=0
 # 16-bit PCMCIA bridges that may need seeding
 PCMCIA_BRIDGES="i82092 i82365 pd6729 tcic"
+# Flags if shorkset.conf has been loaded
+SHORKSET_LOADED=0
+# Row count
+TERM_HEIGHT=25
+# Column count
+TERM_WIDTH=80
 
 
 
-# Provides a systemd-style log message
+# Prints a systemd-style log message or progress bar
+# $1 - Message to print
+# $2 - Progress (0-10); empty to not update
 log()
 {
     MSG="$1"
-    UP=0
-    [ -r /proc/uptime ] && IFS=' ' read UP _ < /proc/uptime
-    printf "[%10s] %s\n" "$UP" "$MSG"
+    UP=$(/sbin/shorkut) && UP=${UP%% *}
+
+    # Splash screen route
+    if [ "$SHORKSET_LOADED" -eq 1 ] && [ "$SPLASH_TYPE" -gt 0 ] &&
+        [ "$LOG_LINE" -gt 0 ]; then
+        LOG_TEXT=""
+        DRAW=1
+        if [ "$SPLASH_TYPE" -eq 1 ]; then
+            DRAW=0
+        elif [ "$SPLASH_TYPE" -eq 2 ]; then
+            LOG_TEXT="$(printf "[%s] %s" "$UP" "$MSG")"
+            LOG_TEXT="$(printf "%.*s" "$TERM_WIDTH" "$LOG_TEXT")"
+        elif [ "$SPLASH_TYPE" -eq 3 ]; then
+            if [ -n "$2" ]; then
+                PROG="$2"
+                if [ "$PROG" -lt 0 ]; then
+                    PROG=0
+                elif [ "$PROG" -gt 10 ]; then
+                    PROG=10
+                fi
+
+                # Ensure given PROG is not larger than saved CURR_PROG
+                if [ "$PROG" -lt "${CURR_PROG:-0}" ]; then
+                    PROG="${CURR_PROG:-0}"
+                fi
+                CURR_PROG="$PROG"
+
+                BAR_WIDTH=29
+                FILLED=""
+                EMPTY=""
+                FILL_CELLS=$((PROG * BAR_WIDTH / 10))
+                i=0
+                while [ "$i" -lt "$BAR_WIDTH" ]; do
+                    if [ "$i" -lt "$FILL_CELLS" ]; then
+                        FILLED="${FILLED}#"
+                    else
+                        EMPTY="${EMPTY} "
+                    fi
+                    i=$((i + 1))
+                done
+                LOG_TEXT="[${FILLED}${EMPTY}]"
+            else
+                DRAW=0
+            fi
+        fi
+
+        if [ "$DRAW" -eq 1 ]; then
+            TOTAL_HPAD=$((TERM_WIDTH - ${#LOG_TEXT}))
+            RIGHT_HPAD=$((TOTAL_HPAD / 2))
+            LEFT_HPAD=$((TOTAL_HPAD - RIGHT_HPAD))
+
+            printf "\x1b[%d;1H" "$LOG_LINE"
+            printf "%*s%s%*s" "$LEFT_HPAD" '' "$LOG_TEXT" "$RIGHT_HPAD" ''
+        fi
+    # Log screen route
+    else
+        printf "[%10s] %s\n" "$UP" "$MSG"
+    fi
+
+    # Write to file
+    if [ -n "$DATETIME" ]; then
+        printf "[%10s] %s\n" "$UP" "$MSG" >> \
+            "/var/log/shork/boot.log.$DATETIME" 2>/dev/null
+    fi
+
+    sleep 0.05
 }
 
 # Assigns I/O port and physical memory ranges to a 16-bit PCMCIA socket so
@@ -49,7 +126,7 @@ pcmcia_sock_seed()
         # 32-bit PCMCIA probably don't expose the following nor need seeding
         [ -f "$SOCK/available_resources_io" ] || continue
 
-        log "Seeding PCMCIA socket: $SOCK"
+        log "Seeding PCMCIA socket: $SOCK" 6
 
         # Host I/O port range this socket can hand out
         echo "0x0100 - 0x04ff" > \
@@ -62,47 +139,173 @@ pcmcia_sock_seed()
     done
 }
 
+# Draws SHORK ASCII art, OS name and author
+# $1 - 0 if splash screen; 1 if welcome banner
+show_shork()
+{
+    if [ ! -f /banners/welcome ]; then
+        return
+    fi
 
+    # Exit if showing for splash screen but SPLASH_TYPE=0
+    if [ "$1" -eq 0 ] && [ "$SPLASH_TYPE" -eq 0 ]; then
+        return
+    fi
+
+    sleep 0.25
+    clear
+
+    # Set terminal to white on blue (welcome only)
+    if [ "$1" -eq 1 ]; then
+        printf "\x1b[37;44m"
+    fi
+
+    BANNER_WIDTH=36
+    BANNER_HEIGHT=9
+    BLANK_LINE="$(printf "%*s" "$TERM_WIDTH" '')"
+    BUFFER=""
+
+    # Lines useds
+    CONTENT_LINES=$((BANNER_HEIGHT + 2))
+    if [ "$TERM_WIDTH" -gt 40 ]; then
+        CONTENT_LINES=$((CONTENT_LINES + 3))
+    fi
+
+    TOP_VPAD=0
+    BOTTOM_VPAD=0
+    if [ "$1" -eq 0 ]; then
+        TOTAL_VPAD=$((TERM_HEIGHT - CONTENT_LINES))
+        if [ "$TOTAL_VPAD" -lt 0 ]; then
+            TOTAL_VPAD=0
+        fi
+        TOP_VPAD=$((TOTAL_VPAD / 2))
+        BOTTOM_VPAD=$((TOTAL_VPAD - TOP_VPAD + 1))
+
+        # Top vertical padding (splash only)
+        i=0
+        while [ "$i" -lt "$TOP_VPAD" ]; do
+            BUFFER="${BUFFER}${BLANK_LINE}"
+            i=$((i + 1))
+        done
+    fi
+
+    # Print top border
+    BUFFER="${BUFFER}${BLANK_LINE}"
+
+    TOTAL_HPAD=$((TERM_WIDTH - BANNER_WIDTH))
+    RIGHT_HPAD=$((TOTAL_HPAD / 2))
+    LEFT_HPAD=$((TOTAL_HPAD - RIGHT_HPAD))
+
+    while IFS= read -r LINE; do
+        BUFFER="${BUFFER}$(printf "%*s%s%*s\n" "$LEFT_HPAD" '' "$LINE" "$RIGHT_HPAD" '')"
+    done < /banners/welcome
+
+    # Gap below banner
+    BUFFER="${BUFFER}${BLANK_LINE}"
+
+    if [ "$TERM_WIDTH" -gt 40 ]; then
+        # Show OS name
+        OS="@DIST@"
+        TOTAL_HPAD=$((TERM_WIDTH - ${#OS}))
+        RIGHT_HPAD=$((TOTAL_HPAD / 2))
+        LEFT_HPAD=$((TOTAL_HPAD - RIGHT_HPAD))
+        BUFFER="${BUFFER}$(printf "%*s%s%*s\n" "$LEFT_HPAD" '' "$OS" "$RIGHT_HPAD" '')"
+
+        # Show author
+        AUTHOR="Kali (links.sharktastica.co.uk)"
+        TOTAL_HPAD=$((TERM_WIDTH - ${#AUTHOR}))
+        RIGHT_HPAD=$((TOTAL_HPAD / 2))
+        LEFT_HPAD=$((TOTAL_HPAD - RIGHT_HPAD))
+        BUFFER="${BUFFER}$(printf "%*s%s%*s\n" "$LEFT_HPAD" '' "$AUTHOR" "$RIGHT_HPAD" '')"
+
+        # Indicate what line to print log messages too
+        if [ "$1" -eq 0 ]; then
+            LOG_LINE=$((TOP_VPAD + BANNER_HEIGHT + 4))
+        fi
+
+        # Print bottom border
+        BUFFER="${BUFFER}$(printf "%*s" "$TERM_WIDTH" '')"
+    fi
+
+    # Bottom vertical padding (splash only)
+    i=0
+    while [ "$i" -lt "$BOTTOM_VPAD" ]; do
+        BUFFER="${BUFFER}${BLANK_LINE}"
+        i=$((i + 1))
+    done
+
+    # Print buffer
+    printf "%s" "$BUFFER"
+
+    # Reset colour (welcome only)
+    if [ "$1" -eq 1 ]; then
+        printf "\x1b[0m"
+    fi
+}
+
+
+
+# Hide text cursor
+printf '\033[?25l'
+
+# Entry datetime
+DATETIME="$(date +%Y%m%d%H%M%S)"
+
+# Get terminal size
+SIZE="$(stty size 2>/dev/null)"
+TERM_HEIGHT="${SIZE%% *}"
+TERM_WIDTH="${SIZE#* }"
+case "$TERM_HEIGHT" in ''|*[!0-9]*) TERM_HEIGHT=25 ;; esac
+case "$TERM_WIDTH"  in ''|*[!0-9]*) TERM_WIDTH=80  ;; esac
+
+# Load SHORKSET settings
+if [ -f /etc/shorkset.conf ]; then
+    . /etc/shorkset.conf
+    SHORKSET_LOADED=1
+    show_shork 0
+    log "Loaded SHORKSET configuration" 0
+fi
 
 # Mount core file systems
-log "Mounting /proc"
+log "Mounting /proc" 1
 mount -t proc  proc  /proc
-log "Mounting /sys"
+log "Mounting /sys" 1
 mount -t sysfs sysfs /sys
 
+
 # Disable watermark boosting to help avoid OOM killer
-log "Disabling watermark boosting"
+log "Disabling watermark boosting" 2
 echo 0 > /proc/sys/vm/watermark_boost_factor
 
 # Lower # of RAM the kernel tries to keep free avoid OOM killer
 read MFK_DEFAULT < /proc/sys/vm/min_free_kbytes
 if [ "$MFK_DEFAULT" -gt 1024 ] 2>/dev/null; then
-    log "Lowering min_free_kbytes: $MFK_DEFAULT to 1024"
+    log "Lowering min_free_kbytes: $MFK_DEFAULT to 1024" 2
     echo 1024 > /proc/sys/vm/min_free_kbytes
 fi
 
 if [ -f /etc/fstab ]; then
     # Activate swap if present
     if grep -q swap /etc/fstab; then
-        log "Activating swap memory"
+        log "Activating swap memory" 3
         swapon -a 2>/dev/null || true
     fi
 
     # Mount /boot if configured
     if grep -q '/boot' /etc/fstab; then
-        log "Mounting boot partition"
+        log "Mounting boot partition" 3
         mount /boot 2>/dev/null || true
     fi
 fi
 
 # Mount devpts for pseudo-terminals
-log "Mounting /dev/pts"
+log "Mounting /dev/pts" 3
 mkdir -p /dev/pts
 mount -t devpts -o gid=5,mode=620,ptmxmode=666 devpts /dev/pts
 
 # Create /var/run for utmp when multi-user
 if [ -d /home ]; then
-    log "Creating /var/run for utmp"
+    log "Creating /var/run for utmp" 3
     mkdir -p /var/run /var/lock
     mount -t tmpfs tmpfs /var/run
     touch /var/run/utmp /var/run/wtmp
@@ -111,7 +314,7 @@ if [ -d /home ]; then
 fi
 
 # Required device nodes
-log "Creating required device nodes"
+log "Creating required device nodes" 3
 [ -c /dev/ptmx ] || mknod -m 666 /dev/ptmx c 5 2
 [ -c /dev/tty ]  || mknod -m 666 /dev/tty  c 5 0
 [ -c /dev/tty0 ] || mknod -m 620 /dev/tty0 c 4 0
@@ -121,138 +324,132 @@ log "Creating required device nodes"
 read KRN_VER < /proc/sys/kernel/osrelease
 if [ -f "/lib/modules/$KRN_VER/modules.dep" ] &&
     [ ! -s "/lib/modules/$KRN_VER/modules.dep" ]; then
-    log "Generating modules.dep"
+    log "Generating modules.dep" 4
     depmod -b / "$KRN_VER" 2>/dev/null
 fi
 
 # Set hostname
 if [ -r /etc/hostname ]; then
     read HOSTNAME < /etc/hostname
-    log "Setting hostname: $HOSTNAME"
+    log "Setting hostname: $HOSTNAME" 4
     echo "$HOSTNAME" > /proc/sys/kernel/hostname
 fi
 
 export ENV=/etc/profile
 
-if [ -x "/usr/libexec/shorkset" ]; then
+if [ "$SHORKSET_LOADED" -eq 1 ]; then
     # Remount /dev to allow exec (needed for SHORKSET VM86 features)
-    log "Remounting /dev to allow exec"
+    log "Remounting /dev to allow exec" 5
     mount -o remount,exec,dev /dev
 
-    # Load SHORKSET settings
-    if [ -f /etc/shorkset.conf ]; then
-        log "Loading SHORKSET configuration"
-        . /etc/shorkset.conf
+    # Load custom console font
+    if [ "$FONT_PSF" != "default" ] && [ -c /dev/tty1 ]; then
+        log "Loading console font: $FONT_PSF" 5
+        setfont -C /dev/tty1 $FONT_PSF
+    fi
 
-        # Load custom console font
-        if [ "$FONT_PSF" != "default" ] && [ -c /dev/tty1 ]; then
-            log "Loading console font: $FONT_PSF"
-            setfont -C /dev/tty1 $FONT_PSF
-        fi
+    # Start gpm daemon
+    if [ "$GPM_ENABLED" -eq 1 ]; then
+        log "Starting gpm: -r $GPM_RESP -m $GPM_DEV -t $GPM_TYPE" 5
+        gpm -r "$GPM_RESP" -m "$GPM_DEV" -t "$GPM_TYPE"
+    fi
 
-        # Start gpm daemon
-        if [ "$GPM_ENABLED" -eq 1 ]; then
-            log "Starting gpm: -r $GPM_RESP -m $GPM_DEV -t $GPM_TYPE"
-            gpm -r "$GPM_RESP" -m "$GPM_DEV" -t "$GPM_TYPE"
-        fi
+    # Load persistent keymap
+    if [ "$KEYMAP" != "us" ] &&
+        [ -f "/usr/share/keymaps/$KEYMAP.kmap.bin" ]; then
+        log "Loading keymap: $KEYMAP" 5
+        loadkmap < "/usr/share/keymaps/$KEYMAP.kmap.bin"
+    fi
 
-        # Load persistent keymap
-        if [ "$KEYMAP" != "us" ] &&
-            [ -f "/usr/share/keymaps/$KEYMAP.kmap.bin" ]; then
-            log "Loading keymap: $KEYMAP"
-            loadkmap < "/usr/share/keymaps/$KEYMAP.kmap.bin"
-        fi
+    # Load desired modules
+    if [ -n "$MODULES" ]; then
+        OLD_IFS="$IFS"
+        IFS=","
+        for MOD in $MODULES; do
+            log "Loading module: $MOD" 6
+            if modprobe "$MOD" 2>/dev/null; then
+                case " $PCMCIA_BRIDGES " in
+                    *" $MOD "*) pcmcia_sock_seed ;;
+                esac
+            else
+                log "WARNING: failed to load module: $MOD" 6
+            fi
+        done
+        IFS="$OLD_IFS"
+    fi
 
-        # Load desired modules
-        if [ -n "$MODULES" ]; then
+    # Set up networking
+    if [ "$NET_ENABLED" -eq 1 ]; then
+        log "Networking enabled" 7
+
+        # Check there are any network interfaces present
+        IFS_FOUND=0
+        i=0
+        while [ "$i" -lt 3 ]; do
+            for N in /sys/class/net/*; do
+                if [ -e "$N/device" ]; then
+                    IFS_FOUND=1
+                    break 2
+                fi
+            done
+            i=$((i + 1))
+            log "Waiting for network interfaces: attempt $i" 7
+            sleep 1
+        done
+
+        # Activate desired interfaces
+        if [ "$IFS_FOUND" -eq 1 ] && [ -n "$NET_IFS" ]; then
             OLD_IFS="$IFS"
             IFS=","
-            for MOD in $MODULES; do
-                log "Loading module: $MOD"
-                if modprobe "$MOD" 2>/dev/null; then
-                    case " $PCMCIA_BRIDGES " in
-                        *" $MOD "*) pcmcia_sock_seed ;;
-                    esac
-                else
-                    log "WARNING: failed to load module: $MOD"
+            IF_FOUND=0
+            for IF in $NET_IFS; do
+                if [ -d "/sys/class/net/$IF" ] &&
+                    [ -e "/sys/class/net/$IF/device" ]; then
+                    IF_FOUND=1
+                    log "Bringing up interface: $IF" 8
+                    ifconfig "$IF" up
+                    if ifconfig "$IF" 2>/dev/null | grep -q "UP"; then
+                        log "Starting DHCP on $IF" 8
+                        udhcpc -i "$IF" -n -t 3 -T 2 -s /usr/share/udhcpc/default.script > /dev/null 2>&1 &
+                    else
+                        log "WARNING: failed to bring up $IF" 8
+                    fi
                 fi
             done
             IFS="$OLD_IFS"
-        fi
-
-        # Set up networking
-        if [ "$NET_ENABLED" -eq 1 ]; then
-            log "Networking enabled"
-
-            # Check there are any network interfaces present
-            IFS_FOUND=0
-            i=0
-            while [ "$i" -lt 3 ]; do
-                for N in /sys/class/net/*; do
-                    if [ -e "$N/device" ]; then
-                        IFS_FOUND=1
-                        break 2
-                    fi
-                done
-                i=$((i + 1))
-                log "Waiting for network interfaces: attempt $i"
-                sleep 1
-            done
-
-            # Activate desired interfaces
-            if [ "$IFS_FOUND" -eq 1 ] && [ -n "$NET_IFS" ]; then
-                OLD_IFS="$IFS"
-                IFS=","
-                IF_FOUND=0
-                for IF in $NET_IFS; do
-                    if [ -d "/sys/class/net/$IF" ] &&
-                        [ -e "/sys/class/net/$IF/device" ]; then
-                        IF_FOUND=1
-                        log "Bringing up interface: $IF"
-                        ifconfig "$IF" up
-                        if ifconfig "$IF" 2>/dev/null | grep -q "UP"; then
-                            log "Starting DHCP on $IF"
-                            udhcpc -i "$IF" -n -t 3 -T 2 -s /usr/share/udhcpc/default.script > /dev/null 2>&1 &
-                        else
-                            log "WARNING: failed to bring up $IF"
-                        fi
-                    fi
-                done
-                IFS="$OLD_IFS"
-                if [ "$IF_FOUND" -eq 0 ]; then
-                    log "WARNING: no selected network interfaces found"
-                fi
-            elif [ "$IFS_FOUND" -eq 0 ]; then
-                log "WARNING: no network interfaces found"
+            if [ "$IF_FOUND" -eq 0 ]; then
+                log "WARNING: no selected network interfaces found" 8
             fi
+        elif [ "$IFS_FOUND" -eq 0 ]; then
+            log "WARNING: no network interfaces found" 7
         fi
+    fi
 
-        # Load system volume
-        if [ -c /dev/dsp ] && [ "$VOLUME" -ge 0 ] 2>/dev/null &&
-            [ "$VOLUME" -le 100 ] 2>/dev/null; then
-            log "Setting system volume: $VOLUME"
-            /usr/libexec/shorkset -vl=$VOLUME
-        fi
+    # Load system volume
+    if [ -c /dev/dsp ] && [ "$VOLUME" -ge 0 ] 2>/dev/null &&
+        [ "$VOLUME" -le 100 ] 2>/dev/null; then
+        log "Setting system volume: $VOLUME" 9
+        /usr/libexec/shorkset -vl=$VOLUME
     fi
 fi
 
 # Flush any ttyX_seen flags
 for FLAG in /tmp/.tty*_seen; do
     [ -e "$FLAG" ] || continue
-    log "Flushing ttyX_seen flag: $FLAG"
+    log "Flushing ttyX_seen flag: $FLAG" 9
     rm -f "$FLAG"
 done
 
 # Flush gpm.pid
 if [ -f /var/run/gpm.pid ]; then
-    log "Flushing /var/run/gpm.pid"
+    log "Flushing /var/run/gpm.pid" 9
     rm -f /var/run/gpm.pid
 fi
 
 # Flush any orphaned dynamic swap files
 for SWAP_FILE in /var/tmp/.*_dsf.*; do
     [ -e "$SWAP_FILE" ] || continue
-    log "Flushing orphaned dynamic swap file: $SWAP_FILE"
+    log "Flushing orphaned dynamic swap file: $SWAP_FILE" 9
     swapoff "$SWAP_FILE" 2>/dev/null
     rm -f "$SWAP_FILE"
 done
@@ -260,62 +457,13 @@ done
 # Flush any orphaned dynamic swap MFK files
 for MFK_FILE in /var/tmp/.dsf_mfk*; do
     [ -e "$MFK_FILE" ] || continue
-    log "Flushing orphaned dynamic swap MFK file: $MFK_FILE"
+    log "Flushing orphaned dynamic swap MFK file: $MFK_FILE" 9
     rm -f "$MFK_FILE"
 done
 
-# Prepare to show the welcome banner
-log "Loading welcome banner"
-sleep 0.25
-clear
-
 # Show welcome banner, OS name and author name
-if [ -f /banners/welcome ]; then
-    SIZE="$(stty size 2>/dev/null)"
-    TERM_WIDTH="${SIZE#* }"
-    case "$TERM_WIDTH" in ''|*[!0-9]*) TERM_WIDTH=80 ;; esac
-
-    BANNER_WIDTH=36
-    BUFFER=""
-    
-    TOTAL_PAD=$((TERM_WIDTH - BANNER_WIDTH))
-    RIGHT_PAD=$((TOTAL_PAD / 2))
-    LEFT_PAD=$((TOTAL_PAD - RIGHT_PAD))
-
-    # Print top border
-    BUFFER="$(printf "%*s\n" "$TERM_WIDTH" '')"
-
-    while IFS= read -r line; do
-        BUFFER="${BUFFER}$(printf "%*s%s%*s\n" "$LEFT_PAD" '' "$line" "$RIGHT_PAD" '')"
-    done < banners/welcome
-    BUFFER="${BUFFER}$(printf "%*s\n" "$TERM_WIDTH" '')"
-
-    if [ "$TERM_WIDTH" -gt 40 ]; then
-        # Show OS name
-        OS="@DIST@"
-        TOTAL_PAD=$((TERM_WIDTH - ${#OS}))
-        RIGHT_PAD=$((TOTAL_PAD / 2))
-        LEFT_PAD=$((TOTAL_PAD - RIGHT_PAD))
-        BUFFER="${BUFFER}$(printf "%*s%s%*s\n" "$LEFT_PAD" '' "$OS" "$RIGHT_PAD" '')"
-
-        # Show author
-        AUTHOR="Kali (links.sharktastica.co.uk)"
-        TOTAL_PAD=$((TERM_WIDTH - ${#AUTHOR}))
-        RIGHT_PAD=$((TOTAL_PAD / 2))
-        LEFT_PAD=$((TOTAL_PAD - RIGHT_PAD))
-        BUFFER="${BUFFER}$(printf "%*s%s%*s\n" "$LEFT_PAD" '' "$AUTHOR" "$RIGHT_PAD" '')"
-
-        # Print bottom border
-        BUFFER="${BUFFER}$(printf "%*s" "$TERM_WIDTH" '')"
-    fi
-
-    # Set terminal to white on blue
-    printf "\x1b[37;44m"
-    # Print buffer
-    printf "%s" "$BUFFER"
-    # Reset colour
-    printf "\x1b[0m"
-fi
+log "Showing welcome banner" 10
+show_shork 1
 
 printf "\n"
 # Padding specific for single-user use
@@ -325,3 +473,6 @@ fi
 
 echo "$MFK_DEFAULT" > /proc/sys/vm/min_free_kbytes
 sleep 0.125
+
+# Show text cursor
+printf '\033[?25h'
