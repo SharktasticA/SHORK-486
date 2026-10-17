@@ -3,7 +3,7 @@ FROM debian:trixie-slim
 RUN dpkg --add-architecture i386 \
     && apt-get update \
     && apt-get install -y autoconf autopoint bc bison bzip2 cmake cpio \
-    dosfstools e2fsprogs extlinux fdisk flex fontconfig genisoimage \
+    curl dosfstools e2fsprogs extlinux fdisk flex fontconfig genisoimage \
     gettext gettext-base git gperf grub-common grub-pc kpartx isolinux \
     libffi-dev libncurses-dev libtool libtool-bin make meson nasm \
     ninja-build pciutils pkg-config python3 python-is-python3 qemu-utils \
