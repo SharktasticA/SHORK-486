@@ -10565,7 +10565,7 @@ build_filesystem()
 
     if $INCLUDE_GUI; then
         echo -e "${GREEN}Installing files needed for SHORKGUI...${RESET}"
-        mkdir -p "usr/share/X11/app-defaults"
+        mkdir -p "${DESTDIR}/usr/share/X11/app-defaults"
         copy_sysfile "${CURR_DIR}"/shorkutils/shorkgui "${DESTDIR}"/usr/bin/shorkgui
         copy_sysfile "${CURR_DIR}"/sysfiles/XCalc "${DESTDIR}"/usr/share/X11/app-defaults/XCalc
         if [[ $USED_WM == "TWM" ]]; then 
@@ -10602,7 +10602,7 @@ build_filesystem()
     fi
 
     if $ENABLE_FB_VBE; then
-        mkdir -p "usr/share/backgrounds"
+        mkdir -p "${DESTDIR}/usr/share/backgrounds"
         if [ "$ID" == "shork-486" ]; then
             copy_sysfile "${CURR_DIR}"/branding/shork-486_640x480.ppm "${DESTDIR}"/usr/share/backgrounds/shork_640x480.ppm
             copy_sysfile "${CURR_DIR}"/branding/shork-486_1024x768.png "${DESTDIR}"/usr/share/backgrounds/shork_1024x768.png
