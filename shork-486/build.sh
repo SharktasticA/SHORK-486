@@ -191,6 +191,7 @@ SHORKBIN_SRC="https://github.com/SharktasticA/shorkbin.git"
 SHORKFETCH_SRC="https://github.com/SharktasticA/shorkfetch.git"
 SHORKFETCH_VER="0.6.4"
 SHORKMINES_SRC="https://github.com/SharktasticA/shorkmines.git"
+SHORKUT_SRC="https://github.com/SharktasticA/shorkut.git"
 
 AUTOCONF_SRC="https://ftp.gnu.org/gnu/autoconf"
 AUTOCONF_VER="2.73"
@@ -9355,6 +9356,40 @@ get_shorkstall()
     make DESTDIR="$DESTDIR" install
 }
 
+# Download and compile shorkut
+get_shorkut()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ "$SHORKUTILS_RECLONE" != "true" ] &&
+        [ -f "${DESTDIR}/sbin/shorkut" ]; then
+        echo -e "${LIGHT_RED}shorkut already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Delete if present
+    if [ -d shorkut ]; then
+        echo -e "${YELLOW}shorkut source already present, recloning...${RESET}"
+        sudo rm -r shorkut
+    fi
+
+    # Download source
+    echo -e "${GREEN}Downloading shorkut...${RESET}"
+    git clone "${SHORKUT_SRC}"
+    cd shorkut
+
+    # Compile and install
+    make clean
+    echo -e "${GREEN}Compiling shorkut...${RESET}"
+    make -j"$JOBS" \
+        CC="${CC_STATIC}" \
+        AR="${AR}" \
+        RANLIB="${RANLIB}" \
+        STRIP="${STRIP}"
+    make DESTDIR="$DESTDIR" install
+}
+
 
 
 ######################################################
@@ -11938,17 +11973,20 @@ get_installed_progs_feats()
     fi
 
     # SHORKUTILS
-    check_installed_file "SHORKFETCH ${SHORKFETCH_VER}" "/usr/bin/shorkfetch"
-    check_installed_file "SHORKHELP" "/usr/bin/shorkhelp"
-    if [[ "$ID" == "shork-"*86 ]]; then
-        check_installed_file "SHORKBIN" "/usr/bin/shorkbin"
-        check_installed_file "SHORKDIR" "/usr/bin/shorkdir"
-        check_installed_file "SHORKGUI" "/usr/bin/shorkgui"
-        check_installed_file "SHORKOFF" "/sbin/shorkoff"
-        check_installed_file "SHORKSET" "/usr/libexec/shorkset"
-    fi
-    if [ "$ID" == "shork-disc" ]; then
-        check_installed_file "SHORKSTALL" "/usr/bin/shorkstall"
+    if [ "$BUILD_TYPE" != "micro" ]; then
+        check_installed_file "SHORKFETCH ${SHORKFETCH_VER}" "/usr/bin/shorkfetch"
+        check_installed_file "SHORKHELP" "/usr/bin/shorkhelp"
+        check_installed_file "SHORKUT" "/sbin/shorkut"
+        if [[ "$ID" == "shork-"*86 ]]; then
+            check_installed_file "SHORKBIN" "/usr/bin/shorkbin"
+            check_installed_file "SHORKDIR" "/usr/bin/shorkdir"
+            check_installed_file "SHORKGUI" "/usr/bin/shorkgui"
+            check_installed_file "SHORKOFF" "/sbin/shorkoff"
+            check_installed_file "SHORKSET" "/usr/libexec/shorkset"
+        fi
+        if [ "$ID" == "shork-disc" ]; then
+            check_installed_file "SHORKSTALL" "/usr/bin/shorkstall"
+        fi
     fi
 
     # SHORKTAINMENT
@@ -13008,6 +13046,7 @@ fi
 if [ "$BUILD_TYPE" != "micro" ]; then
     get_shorkfetch
     get_shorkhelp
+    get_shorkut
     if [[ "$ID" == "shork-"*86 ]]; then
         get_shorkcommon_sh
         get_shorkbin

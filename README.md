@@ -266,6 +266,7 @@ _Only partially included with SHORK 486/586 Mini, SHORK DISC and SHORK DISKETTE;
 * **[shorkhelp](https://github.com/SharktasticA/shorkhelp)** - Informs of SHORK's capabilities and provides guidance.
 * **[shorkoff](https://github.com/SharktasticA/shorkoff)** - A shutdown helper that safely brings the system to a controlled halt before a manual power off.
 * **[shorkset](https://github.com/SharktasticA/shorkset)** - A settings program for changing display resolution, drivers (Linux modules), keyboard layout (keymap), font colour and style, mouse (gpm), network, and volume.
+* **[shorkut](https://github.com/SharktasticA/shorkut)** - A system uptime source for when /proc/uptime isn't available.
 
 ### SHORK Entertainment (SHORKTAINMENT)
 
