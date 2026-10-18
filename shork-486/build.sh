@@ -110,6 +110,7 @@ VERSION_CODENAME="$(cat "${CURR_DIR}"/branding/VERSION_CODENAME | tr -d '\n')"
 VERSION_ID="$(cat "${CURR_DIR}"/branding/VERSION_ID | tr -d '\n')"
 
 # Common compiler/compiler-related locations
+CARGO_HOME="${CURR_DIR}/build/cargo"
 CROSS_ARCH="i486"
 CROSS="${CROSS_ARCH}-linux-musl-cross"
 PREFIX="${CURR_DIR}/build/${CROSS}"
@@ -123,6 +124,7 @@ DESTDIR="${CURR_DIR}/build/root"
 HOST="${CROSS_ARCH}-linux-musl"
 LD="${PREFIX}/bin/${CROSS_ARCH}-linux-musl-ld"
 RANLIB="${PREFIX}/bin/${CROSS_ARCH}-linux-musl-ranlib"
+RUSTUP_HOME="${CURR_DIR}/build/rustup"
 STAGE_DIR="${CURR_DIR}/build/stage"
 STRIP="${PREFIX}/bin/${CROSS_ARCH}-linux-musl-strip"
 SYSROOT="${PREFIX}/${CROSS_ARCH}-linux-musl"
@@ -449,6 +451,10 @@ PERL_VER="5.44.0"
 
 PINENTRY_SRC="https://www.gnupg.org/ftp/gcrypt/pinentry"
 PINENTRY_VER="1.3.3"
+
+RUSTID_SRC="https://github.com/timw4mail/rustid.git"
+RUSTID_VER="2.3.0"
+
 SC_IM_SRC="https://github.com/andmarti1424/sc-im.git"
 SC_IM_VER="0.8.5"
 
@@ -599,6 +605,7 @@ INCLUDE_NETHACK=false
 INCLUDE_PATCHELF=false
 INCLUDE_PERL=false
 INCLUDE_PCI_IDS=false
+INCLUDE_RUSTID=false
 INCLUDE_SC_IM=false
 INCLUDE_SUDO=false
 INCLUDE_SHORKSTALL=false
@@ -966,8 +973,9 @@ NEED_LOADKEYS=false
 NEED_LZ4=false
 NEED_NETTLE=false
 NEED_NPTH=false
-NEED_PCRE2=false
 NEED_OPENSSL=false
+NEED_PCRE2=false
+NEED_RUST=false
 NEED_SNAPPY=false
 NEED_X86EMU=false
 NEED_XXHASH=false
@@ -1044,6 +1052,10 @@ if $INCLUDE_MPG321; then
     NEED_LIBID3TAG=true
     NEED_LIBMAD=true
     NEED_LIBAO=true
+fi
+
+if $INCLUDE_RUSTID; then
+    NEED_RUST=true
 fi
 
 if $INCLUDE_SC_IM; then
@@ -1574,6 +1586,9 @@ get_musl_cross()
     # We don't need a shared libatomic
     rm -f "${SYSROOT}/lib/libatomic.so"
     ln -sf libatomic.a "${SYSROOT}/lib/libatomic.so"
+
+    # Needed for Rust build-std
+    cp -f "${CURR_DIR}/compilation/libunwind.a" "${SYSROOT}/lib/libunwind.a"
 }
 
 # Download and compile gpm for ncurses mouse support
@@ -4111,6 +4126,34 @@ get_pcre2()
         LDFLAGS="-static -static-libgcc -no-pie -Wl,-static -L${PREFIX}/lib -L${SYSROOT}/lib"
     make -j"$JOBS"
     make install
+}
+
+# Download and compile a Rust nightly toolchain
+get_rust()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ -x "${CARGO_HOME}/bin/rustup" ]; then
+        echo -e "${LIGHT_RED}Rust toolchain already installed, skipping...${RESET}"
+        return
+    fi
+
+    # Download
+    echo -e "${GREEN}Downloading rustup...${RESET}"
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+        | RUSTUP_HOME="${RUSTUP_HOME}" CARGO_HOME="${CARGO_HOME}" \
+        sh -s -- -y --no-modify-path --profile minimal --default-toolchain \
+        none
+
+    # Compile and install
+    echo -e "${GREEN}Installing Rust nightly...${RESET}"
+    RUSTUP_HOME="${RUSTUP_HOME}" CARGO_HOME="${CARGO_HOME}" \
+        "${CARGO_HOME}/bin/rustup" toolchain install nightly \
+        --profile minimal
+    RUSTUP_HOME="${RUSTUP_HOME}" CARGO_HOME="${CARGO_HOME}" \
+        "${CARGO_HOME}/bin/rustup" component add rust-src \
+        --toolchain nightly
 }
 
 # Download and compile Snappy
@@ -8574,6 +8617,42 @@ get_perl()
     done
 }
 
+# Download and compile rustid
+get_rustid()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ -f "${DESTDIR}/usr/bin/rustid" ]; then
+        echo -e "${LIGHT_RED}rustid already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d rustid ]; then
+        echo -e "${YELLOW}rustid source already present, resetting...${RESET}"
+        cd rustid
+        git config --global --add safe.directory "${CURR_DIR}/build/rustid"
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading rustid...${RESET}"
+        git clone --branch "v${RUSTID_VER}" $RUSTID_SRC
+        cd rustid
+    fi
+
+    export CROSS_COMPILER_DIR="${CURR_DIR}/build"
+
+    # Compile and install
+    echo -e "${GREEN}Compiling rustid...${RESET}"
+    chmod +x build-config/build-486-musl.sh
+    RUSTUP_HOME="${RUSTUP_HOME}" \
+        CARGO_HOME="${CARGO_HOME}" \
+        PATH="${CARGO_HOME}/bin:${PATH}" \
+        ./build-config/build-486-musl.sh
+    install -Dm755 target/dist/rustid_486 "${DESTDIR}/usr/bin/rustid"
+}
+
 # Download and compile sc-im
 get_sc_im()
 {
@@ -12316,6 +12395,9 @@ if [[ "$ID" == "shork-"*86 ]]; then
 fi
 
 # Compile prerequisites
+if $NEED_RUST; then
+    get_rust
+fi
 if $NEED_ZLIB; then
     get_zlib
 fi
@@ -12937,6 +13019,9 @@ fi
 if $INCLUDE_PERL; then
     get_perl
     init_dyn_swap "${DESTDIR}/usr/bin/perl"
+fi
+if $INCLUDE_RUSTID; then
+    get_rustid
 fi
 if $INCLUDE_SC_IM; then
     get_sc_im
