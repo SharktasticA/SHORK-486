@@ -1,0 +1,14 @@
+FROM fedora:44
+
+RUN dnf -y --setopt=install_weak_deps=False install \
+    autoconf automake bc bdftopcf bison byacc cmake dialog \
+    docbook-utils-pdf docbook2X dosfstools e2fsprogs flex fontconfig gcc \
+    genisoimage gettext git gperf grub2-common grub2-pc kpartx \
+    libffi-devel libtool libuuid-devel make meson mkfontscale nasm \
+    ncurses-devel ninja-build patch perl pciutils python3 qemu-img sudo \
+    syslinux-extlinux syslinux-nonlinux texinfo util-linux \
+    xorg-x11-font-utils
+
+WORKDIR /var/shork-486
+
+ENTRYPOINT ["/bin/bash", "/var/shork-486/build.sh"]

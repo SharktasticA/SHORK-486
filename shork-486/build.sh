@@ -910,11 +910,12 @@ PKGS_DEB="autoconf autopoint bc bison bzip2 cmake e2fsprogs extlinux fdisk \
     libxcb1-dev make meson nasm ninja-build pciutils pkg-config \
     python-is-python3 python3 qemu-utils syslinux texinfo unzip uuid-dev \
     wget xfonts-utils xz-utils"
-PKGS_RPM="autoconf automake bdftopcf bison byacc cmake dialog \
-    docbook-utils-pdf docbook2X flex fontconfig gcc genisoimage gettext \
-    git gperf grub2-common grub2-pc libffi-devel libtool libuuid-devel \
-    make meson mkfontscale nasm ncurses-devel ninja-build patch perl \
-    pciutils python3 qemu-img syslinux-extlinux syslinux-nonlinux texinfo \
+PKGS_RPM="autoconf automake bc bdftopcf bison byacc cmake dialog \
+    docbook-utils-pdf docbook2X dosfstools e2fsprogs flex fontconfig gcc \
+    genisoimage gettext git gperf grub2-common grub2-pc kpartx \
+    libffi-devel libtool libuuid-devel make meson mkfontscale nasm \
+    ncurses-devel ninja-build patch perl pciutils python3 qemu-img sudo \
+    syslinux-extlinux syslinux-nonlinux texinfo util-linux \
     xorg-x11-font-utils"
 
 
@@ -1464,7 +1465,7 @@ install_fedora_prerequisites()
         esac
     done
 
-    sudo dnf install -y $PACKAGES || true
+    sudo dnf -y --setopt=install_weak_deps=False install $PACKAGES || true
 }
 
 # Installs needed packages to host computer

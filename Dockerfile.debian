@@ -1,7 +1,6 @@
 FROM debian:trixie-slim
 
-RUN dpkg --add-architecture i386 \
-    && apt-get update \
+RUN apt-get update \
     && apt-get install -y autoconf autopoint bc bison bzip2 cmake cpio \
     curl dosfstools e2fsprogs extlinux fdisk flex fontconfig genisoimage \
     gettext gettext-base git gperf grub-common grub-pc kpartx isolinux \

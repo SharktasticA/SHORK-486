@@ -1,0 +1,9 @@
+FROM archlinux:base
+
+RUN pacman -Syu --noconfirm --needed \
+    autoconf base-devel bc bison bzip2 ca-certificates cdrtools cmake cpio dosfstools e2fsprogs flex fontconfig gettext git gperf grub libffi libtool make meson multipath-tools nasm ncurses ninja pciutils pkgconf python qemu-img sudo syslinux systemd texinfo unzip util-linux wget xorg-bdftopcf xorg-font-util xorg-mkfontscale xz \
+    && rm -rf /var/cache/pacman/pkg/*
+
+WORKDIR /var/shork-486
+
+ENTRYPOINT ["/bin/bash", "/var/shork-486/build.sh"]

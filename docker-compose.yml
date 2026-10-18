@@ -1,6 +1,8 @@
 services:
   shork-486-build:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.debian
     command:
       - --always-build
       - --is-debian
