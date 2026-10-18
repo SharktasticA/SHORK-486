@@ -11147,11 +11147,20 @@ build_disk_img()
     FILES_BYTES=$((KERNEL_BYTES + ROOT_BYTES))
     FILES_MIB=$(((FILES_BYTES + 1048575) / 1048576))
 
-    # For a mini/micro build, the process is simpler since we have a pretty
-    # good idea of the smallest acceptable disk size and have no need to
-    # factor in some overhead
+    # Extra partitions that must fit inside the total disk size
+    EXTRA_PART_MIB=0
+    if [ -n "$TARGET_SWAP" ] && [ "$TARGET_SWAP" -gt 0 ]; then
+        EXTRA_PART_MIB=$((EXTRA_PART_MIB + TARGET_SWAP))
+    fi
+    if $ENABLE_BOOT_PART; then
+        EXTRA_PART_MIB=$((EXTRA_PART_MIB + BOOT_PART_SIZE))
+    fi
+
+    # For a plain mini/micro build, the process is simpler since we have a
+    # pretty good idea of the smallest acceptable disk size and have no 
+    # need to factor in some overhead
     if [[ "$BUILD_TYPE" =~ ^(mini|micro)$ ]] &&
-       [ "$TARGET_DISK" -ge "$FILES_MIB" ]; then
+       [ "$TARGET_DISK" -ge $((FILES_MIB + EXTRA_PART_MIB)) ]; then
         if [ "$BUILD_TYPE" == "micro" ] &&
             [ "$TARGET_DISK" -le "$MICRO_TARGET_DISK" ]; then
             TOTAL_DISK_SIZE=$MICRO_TARGET_DISK
@@ -11161,44 +11170,23 @@ build_disk_img()
         else
             TOTAL_DISK_SIZE=$TARGET_DISK
         fi
-
-        # Factor in target swap if provided
-        if [ "$TARGET_SWAP" -ne 0 ]; then
-            TOTAL_DISK_SIZE=$((TOTAL_DISK_SIZE + TARGET_SWAP))
-        fi
-
-        # Factor in boot partition size if enabled
-        if $ENABLE_BOOT_PART; then
-            TOTAL_DISK_SIZE=$((TOTAL_DISK_SIZE + BOOT_PART_SIZE))
-        fi
     # Everything else...
     else
+        OVERHEAD_MIB=4
         # Calculate some overhead to take into account metadata, partition
         # alignment, bootloader structures, etc.
-        OVERHEAD_BYTES=$((16 * 1024 * 1024))
         # We can assume these features demand more
-        if [ "$INCLUDE_GCC" = true ] || [ "$INCLUDE_GUI" = true ] ||
-            [ "$INCLUDE_TSHARK" = true ]; then
-            if [ "$INCLUDE_TSHARK" = true ]; then
-                OVERHEAD_BYTES=$((48 * 1024 * 1024))
-            else
-                OVERHEAD_BYTES=$((48 * 1024 * 1024))
+        if [[ ! "$BUILD_TYPE" =~ ^(mini|micro)$ ]]; then
+            OVERHEAD_MIB=16
+            if [ "$INCLUDE_GCC" = true ] || [ "$INCLUDE_GUI" = true ] ||
+                [ "$INCLUDE_TSHARK" = true ]; then
+                OVERHEAD_MIB=48
             fi
         fi
-        OVERHEAD_MIB=$(((OVERHEAD_BYTES + 1048575) / 1048576))
 
-        # Estimate how big of a disk we need to contain the three things above
-        TOTAL_MIB=$((FILES_MIB + OVERHEAD_MIB))
-
-        # Factor in target swap if provided
-        if [ "$TARGET_SWAP" -ne 0 ]; then
-            TOTAL_MIB=$((TOTAL_MIB + TARGET_SWAP))
-        fi
-
-        # Factor in boot partition size if enabled
-        if $ENABLE_BOOT_PART; then
-            TOTAL_MIB=$((TOTAL_MIB + BOOT_PART_SIZE))
-        fi
+        # Estimate how big of a disk we need to contain the three things
+        # above
+        TOTAL_MIB=$((FILES_MIB + OVERHEAD_MIB + EXTRA_PART_MIB))
 
         # Use target disk value if provided and large enough
         if [ -n "$TARGET_DISK" ]; then
