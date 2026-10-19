@@ -184,7 +184,7 @@ NEEDED_MESON="1.4.0"
 # Target software/feature versions
 LINUX_STABLE_SRC="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git"
 LINUX_TORVALDS_SRC="https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
-LINUX_VER="7.2.11"
+LINUX_VER="7.3"
 
 BUSYBOX_SRC="https://busybox.net/downloads"
 BUSYBOX_VER="1.38.0"
@@ -4754,7 +4754,8 @@ download_kernel()
     echo -e "${GREEN}Downloading the Linux kernel...${RESET}"
 
     local LINUX_SRC="$LINUX_STABLE_SRC"
-    if [[ "$USE_TORVALDS" = true || "$LINUX_VER" == *-rc* ]]; then
+    if [[ "$USE_TORVALDS" = true || "$LINUX_VER" == *-rc* ||
+        "$LINUX_VER" =~ ^[0-9]+\.[0-9]+(\.0)?$ ]]; then
         LINUX_SRC="$LINUX_TORVALDS_SRC"
     fi
 

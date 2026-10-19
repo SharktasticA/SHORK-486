@@ -54,7 +54,7 @@ TARGET_SWAP=0
 ENABLE_DYN_SWAP=false
 SETUP_DYN_SWAP=false
 TARGET_ARCH="486SX"
-LINUX_VER="7.2.11"
+LINUX_VER="7.3"
 SCANCODE_SET=-1
 SET_KEYMAP="qwerty_en_us"
 ENABLE_SMP=false
@@ -1111,15 +1111,15 @@ LINUX_VER=$(dialog --clear \
     --title "Linux Kernel Version" \
     --cancel-label "Quit" \
     --default-item "$LINUX_VER" \
-    --menu "Please select which Linux kernel version you wish to use. It is generally safe to use the newest major version that isn't \"-rc\", but if you experience hardware compatibility issues, try building with an older kernel to see if that resolves them. If so, please report it as an issue on the SHORK 486 GitHub repository. Only select a \"-rc\" kernel if you know what you're doing." 15 $WIDTH 5 \
-    "7.3-rc7"   "7.3-rc7 (2026-10-12, testing)" \
+    --menu "Please select which Linux kernel version you wish to use. It's recommended to use the latest version without \"-rc\". If you experience hardware compatibility issues, try building with an older kernel to see if that resolves them (if so, please report this as an issue on the SHORK 486 GitHub repository). Only select a \"-rc\" kernel if you know what you're doing." 15 $WIDTH 5 \
+    "7.3"       "7.3    (2026-10-18, mainline)" \
     "7.2.11"    "7.2.11 (2026-10-15, stable)" \
     "7.1.13"    "7.1.13 (2026-09-02, EOL)" \
     "7.0.14"    "7.0.14 (2026-06-27, EOL)" \
     3>&1 1>&2 2>&3)
 
 if [[ ! -n "$LINUX_VER" ]]; then
-    LINUX_VER="7.2.11"
+    LINUX_VER="7.3"
     exit 0
 fi
 

@@ -37,20 +37,20 @@ Whilst the SHORK 486 repository is largely licensed under GPL 3.0 terms, these p
 
 ### [7.3.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.patch](shork-486/patches/linux/7.3.x/7.3.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.patch)
 
-* Original kernel: 7.3-rc1
+* Original kernel: 7.3
 * Context: https://www.phoronix.com/news/AMD-K5-CPUs, https://www.phoronix.com/news/AMD-Elan-Linux-Driver-Removal
 
 This is a modification of `7.2.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.patch` that allows it to be cleanly applied to 7.3.x. This patch reverts the removal of various TSC-less and CX8-less CPU build targets, 486-related plumming, AMD Élan support, and 387 maths emulation support from [this patch series](https://lore.kernel.org/all/20250425084216.3913608-1-mingo@kernel.org/). It includes build targets for "586" (AMD K5, Cyrix 5x86, etc.), AMD Élan, IDT Winchip, RDC R-321x and UMC U5x, x87 math emulation support, and Geode GX1 support.
 
 ### [7.3.x_restore-doubletalk-pc.patch](shork-486/patches/linux/7.3.x/7.3.x_restore-doubletalk-pc.patch)
 
-* Original kernel: 7.3-rc1
+* Original kernel: 7.3
 
 This is a modification of `7.2.x_restore-doubletalk-pc.patch` that allows it to be cleanly applied to 7.3.x. This patch reverts the removal of the RC Systems DoubleTalk PC ISA card driver by [this patch](https://lore.kernel.org/all/20260502043341.34324-1-enelsonmoore@gmail.com/).
 
 ### [7.3.x_restore-xircom-cardbus.patch](shork-486/patches/linux/7.3.x/7.3.x_restore-xircom-cardbus.patch)
 
-* Original kernel: 7.3-rc1
+* Original kernel: 7.3
 
 This patch reverts the removal of the Xircom Tulip CardBus driver (`xircom_cb`) by [this patch](https://lore.kernel.org/all/am48DR5FC-xTY3-D@ThinkPad-P15/). In addition, a [previously proposed patch](https://lore.kernel.org/all/amzqfjeo0Yo1p0Rd@ThinkPad-P15/) to fix an underflow issue before the driver was dropped has also been applied.
 
