@@ -826,12 +826,12 @@ if [ "$INCLUDE_DOSEMU2" = true ]; then
     ENABLE_VM86=true
 fi
 
-# Ensure NET_BASE is enabled with DOSEMU2, GNUPG, GPM, HTOP, NET_ETH, SUDO
-# or TMUX
+# Ensure NET_BASE is enabled with DOSEMU2, GNUPG, GPM, GUI, HTOP, NET_ETH,
+# SUDO or TMUX
 if [ "$INCLUDE_DOSEMU2" = true ] || [ "$INCLUDE_GNUPG" = true ] || 
-    [ "$INCLUDE_GPM" = true ] || [ "$INCLUDE_HTOP" = true ] ||
-    [ "$INCLUDE_SUDO" = true ] ||  [ "$INCLUDE_TMUX" = true ] ||
-    [ "$ENABLE_NET_ETH" = true ]; then
+    [ "$INCLUDE_GPM" = true ] || [ "$INCLUDE_GUI" = true ] ||
+    [ "$INCLUDE_HTOP" = true ] || [ "$INCLUDE_SUDO" = true ] ||
+    [ "$INCLUDE_TMUX" = true ] || [ "$ENABLE_NET_ETH" = true ]; then
     ENABLE_NET_BASE=true
 fi
 
