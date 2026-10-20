@@ -152,7 +152,6 @@ show_shork()
         return
     fi
 
-    sleep 0.25
     clear
 
     # Set terminal to white on blue (welcome only)
@@ -243,6 +242,16 @@ show_shork()
     fi
 }
 
+# Sets TERM_HEIGHT and TERM_WIDTH with stty size's output
+term_size()
+{
+    SIZE="$(stty size 2>/dev/null)"
+    TERM_HEIGHT="${SIZE%% *}"
+    TERM_WIDTH="${SIZE#* }"
+    case "$TERM_HEIGHT" in ''|*[!0-9]*) TERM_HEIGHT=25 ;; esac
+    case "$TERM_WIDTH"  in ''|*[!0-9]*) TERM_WIDTH=80  ;; esac
+}
+
 
 
 # Hide text cursor
@@ -252,16 +261,13 @@ printf '\033[?25l'
 DATETIME="$(date +%Y%m%d%H%M%S)"
 
 # Get terminal size
-SIZE="$(stty size 2>/dev/null)"
-TERM_HEIGHT="${SIZE%% *}"
-TERM_WIDTH="${SIZE#* }"
-case "$TERM_HEIGHT" in ''|*[!0-9]*) TERM_HEIGHT=25 ;; esac
-case "$TERM_WIDTH"  in ''|*[!0-9]*) TERM_WIDTH=80  ;; esac
+term_size
 
 # Load SHORKSET settings
 if [ -f /etc/shorkset.conf ]; then
     . /etc/shorkset.conf
     SHORKSET_LOADED=1
+    sleep 0.1
     show_shork 0
     log "Loaded SHORKSET configuration" 0
 fi
@@ -346,6 +352,8 @@ if [ "$SHORKSET_LOADED" -eq 1 ]; then
     if [ "$FONT_PSF" != "default" ] && [ -c /dev/tty1 ]; then
         log "Loading console font: $FONT_PSF" 5
         setfont -C /dev/tty1 $FONT_PSF
+        term_size
+        show_shork 0
     fi
 
     # Start gpm daemon
