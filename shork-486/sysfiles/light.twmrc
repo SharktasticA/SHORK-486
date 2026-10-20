@@ -3,7 +3,6 @@ RestartPreviousState
 DecorateTransients
 IconifyByUnmapping
 RandomPlacement
-OpaqueMove
 NoMenuShadows
 
 
@@ -18,21 +17,21 @@ IconManagerFont "fixed"
 
 Color
 {
-    BorderColor           "gray30"
-    DefaultBackground     "white"
-    DefaultForeground     "black"
-    TitleBackground       "cyan"
-    TitleForeground       "black"
-    MenuBackground        "white"
-    MenuForeground        "black"
-    MenuBorderColor       "gray50"
-    MenuTitleBackground   "cyan"
-    MenuTitleForeground   "black"
-    IconBackground        "cyan"
-    IconForeground        "white"
-    IconBorderColor       "gray90"
-    IconManagerBackground "cyan"
-    IconManagerForeground "black"
+    BorderColor           "#555555"
+    DefaultBackground     "#ffffff"
+    DefaultForeground     "#000000"
+    TitleBackground       "#00aaaa"
+    TitleForeground       "#000000"
+    MenuBackground        "#ffffff"
+    MenuForeground        "#000000"
+    MenuBorderColor       "#555555"
+    MenuTitleBackground   "#00aaaa"
+    MenuTitleForeground   "#000000"
+    IconBackground        "#00aaaa"
+    IconForeground        "#ffffff"
+    IconBorderColor       "#aaaaaa"
+    IconManagerBackground "#00aaaa"
+    IconManagerForeground "#000000"
 }
 
 

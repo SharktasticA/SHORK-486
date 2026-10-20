@@ -1,0 +1,162 @@
+############################################################################
+## customisations.patch                                                   ##
+############################################################################
+## This patch is a derivative work of st. It is licensed separately       ##
+## under the terms of the MIT licence, and is distributed as part         ##
+## of the SHORK project. See the accompanying LICENSE file in this        ##
+## directory for details.                                                 ##
+############################################################################
+## Kali (links.sharktastica.co.uk)                                        ##
+############################################################################
+
+diff --git a/config.def.h b/config.def.h
+index fd2bd87..152fd18 100644
+--- a/config.def.h
++++ b/config.def.h
+@@ -5,7 +5,7 @@
+  *
+  * font: see http://freedesktop.org/software/fontconfig/fontconfig-user.html
+  */
+-static char *font = "Liberation Mono:pixelsize=12:antialias=true:autohint=true";
++static char *font = "fixed:pixelsize=14";
+ static int borderpx = 2;
+ 
+ /*
+@@ -60,7 +60,7 @@ static double maxlatency = 33;
+  * blinking timeout (set to 0 to disable blinking) for the terminal blinking
+  * attribute.
+  */
+-static unsigned int blinktimeout = 800;
++static unsigned int blinktimeout = 0;
+ 
+ /*
+  * thickness of underline and bar cursors
+@@ -74,7 +74,7 @@ static unsigned int cursorthickness = 2;
+ static int bellvolume = 0;
+ 
+ /* default TERM value */
+-char *termname = "st-256color";
++char *termname = "linux";
+ 
+ /*
+  * spaces per tab
+@@ -95,33 +95,18 @@ unsigned int tabspaces = 8; /* must be > 0 */
+ 
+ /* Terminal colors (16 first used in escape sequence) */
+ static const char *colorname[] = {
+-	/* 8 normal colors */
+-	"black",
+-	"red3",
+-	"green3",
+-	"yellow3",
+-	"blue2",
+-	"magenta3",
+-	"cyan3",
+-	"gray90",
+-
+-	/* 8 bright colors */
+-	"gray50",
+-	"red",
+-	"green",
+-	"yellow",
+-	"#5c5cff",
+-	"magenta",
+-	"cyan",
+-	"white",
++	"#000000", "#aa0000", "#00aa00", "#aa5500",
++	"#0000aa", "#aa00aa", "#00aaaa", "#aaaaaa",
++
++	"#555555", "#ff5555", "#55ff55", "#ffff55",
++	"#5555ff", "#ff55ff", "#55ffff", "#ffffff",
+ 
+ 	[255] = 0,
+ 
+-	/* more colors can be added after 255 to use with DefaultXX */
+-	"#cccccc",
++	"#ffffff",
+ 	"#555555",
+-	"gray90", /* default foreground colour */
+-	"black", /* default background colour */
++	"#aaaaaa",
++	"#000000",
+ };
+ 
+ 
+diff --git a/st.c b/st.c
+index c289072..9d9d7b6 100644
+--- a/st.c
++++ b/st.c
+@@ -893,7 +893,11 @@ ttywriteraw(const char *s, size_t n)
+ 		FD_SET(cmdfd, &rfd);
+ 
+ 		/* Check if we can write. */
+-		if (pselect(cmdfd+1, &rfd, &wfd, NULL, NULL, NULL) < 0) {
++		/*
++		 * Patch for SHORK 486:
++		 * pselect -> select to fix "select: function not implemented" error
++		 */
++		if (select(cmdfd+1, &rfd, &wfd, NULL, NULL) < 0) {
+ 			if (errno == EINTR)
+ 				continue;
+ 			die("select failed: %s\n", strerror(errno));
+diff --git a/x.c b/x.c
+index 76f572d..f3559d3 100644
+--- a/x.c
++++ b/x.c
+@@ -805,13 +805,19 @@ xloadcols(void)
+ 		dc.col = xmalloc(dc.collen * sizeof(Color));
+ 	}
+ 
+-	for (i = 0; i < dc.collen; i++)
+-		if (!xloadcolor(i, NULL, &dc.col[i])) {
+-			if (colorname[i])
+-				die("could not allocate color '%s'\n", colorname[i]);
+-			else
+-				die("could not allocate color %d\n", i);
++	/*
++	 * Patch for SHORK 486:
++	 * Reuse the base 16 VGA colours instead of the 256 cube
++	 */
++	static const int fallback[4] = { 7, 0, 7, 0 };
++	for (i = 0; i < dc.collen; i++) {
++		int j = BETWEEN(i, 16, 255) ? (i & 15) : i;
++		if (!xloadcolor(j, NULL, &dc.col[i])) {
++			int k = j < 8 ? -1 : j < 16 ? j - 8 : fallback[j - 256];
++			if (k < 0 || !xloadcolor(k, NULL, &dc.col[i]))
++				die("could not allocate color '%s'\n", colorname[j]);
+ 		}
++	}
+ 	loaded = 1;
+ }
+ 
+@@ -1175,6 +1181,17 @@ xinit(int cols, int rows)
+ 			win.w, win.h, 0, XDefaultDepth(xw.dpy, xw.scr), InputOutput,
+ 			xw.vis, CWBackPixel | CWBorderPixel | CWBitGravity
+ 			| CWEventMask | CWColormap, &xw.attrs);
++
++	/*
++	 * Patch for SHORK 486:
++	 * Fixes st launching as "Untitled" in TWM
++	 */
++	XTextProperty prop;
++	char *name = "Terminal";
++	XStringListToTextProperty(&name, 1, &prop);
++	XSetWMName(xw.dpy, xw.win, &prop);
++	XSetWMIconName(xw.dpy, xw.win, &prop);
++
+ 	if (parent != root)
+ 		XReparentWindow(xw.dpy, xw.win, parent, xw.l, xw.t);
+ 
+@@ -1964,7 +1981,11 @@ run(void)
+ 		seltv.tv_nsec = 1E6 * (timeout - 1E3 * seltv.tv_sec);
+ 		tv = timeout >= 0 ? &seltv : NULL;
+ 
+-		if (pselect(MAX(xfd, ttyfd)+1, &rfd, NULL, NULL, tv, NULL) < 0) {
++		/*
++		 * Patch for SHORK 486:
++		 * pselect -> select to fix "select: function not implemented" error
++		 */
++		if (select(MAX(xfd, ttyfd)+1, &rfd, NULL, NULL, tv) < 0) {
+ 			if (errno == EINTR)
+ 				continue;
+ 			die("select failed: %s\n", strerror(errno));

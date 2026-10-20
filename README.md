@@ -118,8 +118,8 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
     * Offline: 70MiB
     * Mini: 8MiB
     * Micro: 4MiB
-* Graphics: IBM VGA or compatible (for most programs); VBE 2.0-compatible (for `shorkgui` and VBE resolutions in `shorkset`)
-* Monitor: VGA (640x480) or higher
+* Graphics: IBM EGA, VGA or compatible
+* Monitor: 640x350 (EGA), 640x480 (VGA) or higher
 
 ### BusyBox
 
@@ -303,8 +303,8 @@ SHORK DISC is a specialised version of the SHORK 486 Operating System that can b
     * Can also select 486SX, 486DX, 586, 586 TSC or 586 MMX for optimisation
 * Memory: 8MiB RAM
 * Disc: any CD+/-R/RW
-* Graphics: IBM VGA or compatible
-* Monitor: VGA (640x480) or higher
+* Graphics: IBM EGA, VGA or compatible
+* Monitor: 640x350 (EGA), 640x480 (VGA) or higher
 
 ### BusyBox
 
@@ -353,8 +353,8 @@ SHORK DISKETTE is a specialised version of the SHORK 486 Operating System that i
     * Can also select 486SX, 486DX, 586, 586 TSC or 586 MMX for optimisation
 * Memory: 16MiB RAM
 * Diskette: 1.44 or 2.88MB
-* Graphics: IBM VGA or compatible
-* Monitor: VGA (640x480) or higher
+* Graphics: IBM EGA, VGA or compatible
+* Monitor: 640x350 (EGA), 640x480 (VGA) or higher
 
 ### BusyBox
 
@@ -584,12 +584,12 @@ EXTLINUX (SHORK 486/586), ISOLINUX (SHORK DISC) and SYSLINUX (SHORK DISKETTE) ar
 
 * **grub**: Uses a GRUB 2.x bootloader instead of EXTLINUX. GRUB may be more familiar to modern Linux users, but it requires approximately 12MiB more space than EXTLINUX. The build script overrides this option if you said "Yes" to using SHORK's patched fork of EXTLINUX.
 
-* **gui**: Includes SHORK 486/586's graphical environment ("SHORKGUI"). This includes the TinyX display server, TWM window manager, various supporting X11 utilities, st terminal emulator, and the `shorkgui` utility.
+* **gui**: Includes SHORK 486/586's graphical environment ("SHORKGUI"). It's comprised of the TinyX display server, TWM window manager, various supporting X11 utilities, st terminal emulator, and the `shorkgui` utility.
     * **SHORKGUI is an experimental feature - expect quirks and incompleteness!**
     * As it is subject to big changes, the system requirements are not set in stone. But the following should provide a usable experience for now:
         * IntelDX4 (ideally; 486SX, 486DX, etc. work but are very slow)
-        * 24MiB system memory with no swap partition, or 16MiB with 8MiB swap
-        * A PCI graphics card supported by `vesafb`
+        * 24MiB physical memory
+        * A display card supported by either `vga16fb` or `vesafb` framebuffer drivers
 
 * **highmem**: Adds kernel-level high memory support and declares that non-reserved physical memory starts at 16MiB instead of 1MiB. In general, this is provided in case someone wanted to try SHORK 486/586 on a more modern system with more than 875MiB RAM. **It is not needed for most '90s hardware**. Its RAM requirements are 24MiB with no swap partition or 16MiB with 8MiB swap.
 

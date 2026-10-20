@@ -6556,8 +6556,9 @@ get_tinyx()
         cd tinyx
     fi
 
-    export ACLOCAL_PATH="$SYSROOT/usr/share/aclocal"
+    patch -p1 < "${PATCHES_DIR}/tinyx/vga16fb_support.patch"
 
+    export ACLOCAL_PATH="$SYSROOT/usr/share/aclocal"
     LINK_LIBS="-lXtst -lXi -lXext -lXfixes -lXfont -lfontenc -lX11 -lxcb -lXau -lXdmcp -lfreetype -lpng -lz -lm"
 
     # Compile and install
@@ -6721,21 +6722,7 @@ get_st()
         cd st
     fi
 
-    # Patch to fix "select: function not implemented" error
-    sed -i 's/pselect(\(.*\), NULL)/select(\1)/' st.c
-    sed -i 's/pselect(\(.*\), NULL)/select(\1)/' x.c
-    
-    # Patch to fix st launching as "Untitled" in TWM
-    sed -i '/CWColormap, &xw\.attrs);/a XTextProperty prop; char *name = "Terminal"; XStringListToTextProperty(&name, 1, &prop); XSetWMName(xw.dpy, xw.win, &prop); XSetWMIconName(xw.dpy, xw.win, &prop);' x.c
-
-    # Patch to make sure st uses our fixed font
-    sed -i 's/^static char \*font.*/static char *font = "fixed:pixelsize=14";/' config.def.h
-
-    # Patch to change default TERM value
-    sed -i 's|st-256color|linux|g' config.def.h
-
-    # Patch to disable cursor blinking
-    sed -i 's/^static unsigned int blinktimeout = .*/static unsigned int blinktimeout = 0;/' config.def.h
+    patch -p1 < "${PATCHES_DIR}/st/customisations.patch"
 
     # Compile and install
     echo -e "${GREEN}Compiling st...${RESET}"
@@ -6745,7 +6732,11 @@ get_st()
         CPPFLAGS="-I$SYSROOT/usr/include -I$SYSROOT/usr/include/freetype2" \
         LDFLAGS="-static -L$SYSROOT/usr/lib --sysroot=$SYSROOT" \
         LIBS="-lXft -lfontconfig -lfreetype -lXrender -lX11 -lxcb -lXau -lXdmcp -lexpat -lpng -lz -lm"
-    make DESTDIR="${DESTDIR}" PREFIX=/usr install CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP"
+    make DESTDIR="${DESTDIR}" PREFIX=/usr install \
+        CC="$CC_STATIC" \
+        AR="$AR" \
+        RANLIB="$RANLIB" \
+        STRIP="$STRIP"
 }
 
 get_xcalc()
@@ -7039,7 +7030,7 @@ get_console_fonts()
     [ -d $DIR ] || tar xf $ARC
     cd $DIR
 
-    cp "${CURR_DIR}/configs/console-setup.Makefile" Makefile
+    cp "${CONFIGS_DIR}/console-setup.Makefile" Makefile
 
     echo -e "${GREEN}Compiling console-setup fonts...${RESET}"
     make

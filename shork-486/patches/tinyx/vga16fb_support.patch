@@ -1,0 +1,209 @@
+############################################################################
+## vga16fb_support.patch                                                  ##
+############################################################################
+## This patch is a derivative work of TinyX. It is licensed separately    ##
+## under the terms of the GNU GPLv3 licence, and is distributed as part   ##
+## of the SHORK project. See the accompanying COPYING file in this        ##
+## directory for details.                                                 ##
+############################################################################
+## Kali (links.sharktastica.co.uk)                                        ##
+############################################################################
+
+diff --git a/kdrive/fbdev/fbdev.c b/kdrive/fbdev/fbdev.c
+index ae89381..38e0c23 100644
+--- a/kdrive/fbdev/fbdev.c
++++ b/kdrive/fbdev/fbdev.c
+@@ -28,6 +28,7 @@
+ #include <sys/ioctl.h>
+ 
+ #include <errno.h>
++#include <sys/io.h>
+ 
+ extern int KdTsPhyScreen;
+ 
+@@ -277,6 +278,10 @@ static Bool fbdevScreenInitialize(KdScreenInfo * screen, FbdevScrPriv * scrpriv)
+ 	screen->fb.depth = depth;
+ 	screen->fb.bitsPerPixel = priv->var.bits_per_pixel;
+ 
++	/* planar: 8bpp shadow at depth 4 */
++	if (priv->fix.type == FB_TYPE_VGA_PLANES)
++		screen->fb.bitsPerPixel = 8;
++
+ 	scrpriv->randr = screen->randr;
+ 
+ 	return fbdevMapFramebuffer(screen);
+@@ -311,6 +316,64 @@ static void *fbdevWindowLinear(ScreenPtr pScreen,
+ 	return (CARD8 *) priv->fb + row * priv->fix.line_length + offset;
+ }
+ 
++/*
++ * Patch for SHORK 486:
++ * Added VGA planar support for vga16fb
++ */
++static Bool fbdevPlanarPorts;
++static Bool fbdevPlanarReady;
++
++static void fbdevVgaPlaneMask(int mask)
++{
++	outb(0x02, 0x3c4);
++	outb(mask, 0x3c5);
++}
++
++static void fbdevVgaPlanarSetup(void)
++{
++	/* Enable Set/Reset: off */
++	outb(0x01, 0x3ce);
++	outb(0x00, 0x3cf);
++	/* Data Rotate: none, replace */
++	outb(0x03, 0x3ce);
++	outb(0x00, 0x3cf);
++	/* Mode: write mode 0 */
++	outb(0x05, 0x3ce);
++	outb(0x00, 0x3cf);
++	/* Bit Mask: all bits */
++	outb(0x08, 0x3ce);
++	outb(0xff, 0x3cf);
++
++	fbdevPlanarReady = TRUE;
++}
++
++static void *fbdevWindowPlanar(ScreenPtr pScreen, CARD32 row, CARD32 offset,
++			int mode, CARD32 * size, void *closure)
++{
++	KdScreenPriv(pScreen);
++	FbdevPriv *priv = pScreenPriv->card->driver;
++
++	if (!pScreenPriv->enabled)
++		return 0;
++	if (!fbdevPlanarReady)
++		fbdevVgaPlanarSetup();
++
++	fbdevVgaPlaneMask(1 << (offset & 3));
++	offset >>= 2;
++
++	*size = priv->fix.line_length - offset;
++	return (CARD8 *) priv->fb + row * priv->fix.line_length + offset;
++}
++
++/* Give the console its planes back */
++static void fbdevPlanarRelease(FbdevPriv *priv)
++{
++	fbdevPlanarReady = FALSE;
++	if (fbdevPlanarPorts && priv->fix.type == FB_TYPE_VGA_PLANES)
++		/* vga16fb assumes Map Mask is 0x0f */
++		fbdevVgaPlaneMask(0x0f);
++}
++
+ static Bool fbdevMapFramebuffer(KdScreenInfo * screen)
+ {
+ 	FbdevScrPriv *scrpriv = screen->driver;
+@@ -396,35 +459,57 @@ static Bool fbdevSetShadow(ScreenPtr pScreen)
+ 	window = fbdevWindowLinear;
+ 	update = 0;
+ 
+-	if (priv->fix.type != FB_TYPE_PACKED_PIXELS)
+-		FatalError("Unsupported frame buffer type %u\n", priv->fix.type);
+-
+-	if (scrpriv->randr)
+-		if (priv->var.bits_per_pixel == 16) {
+-			switch (scrpriv->randr) {
+-			case RR_Rotate_90:
+-				if (useYX)
+-					update = shadowUpdateRotate16_90YX;
+-				else
+-					update = shadowUpdateRotate16_90;
+-				break;
+-			case RR_Rotate_180:
+-				update = shadowUpdateRotate16_180;
+-				break;
+-			case RR_Rotate_270:
+-				if (useYX)
+-					update = shadowUpdateRotate16_270YX;
+-				else
+-					update = shadowUpdateRotate16_270;
+-				break;
+-			default:
+-				update = shadowUpdateRotate16;
+-				break;
+-			}
+-		} else
+-			update = shadowUpdateRotatePacked;
+-	else
+-		update = shadowUpdatePacked;
++	if (priv->fix.type == FB_TYPE_VGA_PLANES) {
++		/*
++		 * Patch for SHORK 486:
++		 * VGA planar (vga16fb)
++		 */
++		if (ioperm(0x3c0, 0x20, 1) < 0)
++			FatalError("Planar framebuffer needs VGA port access: %s\n",
++				strerror(errno));
++
++		fbdevPlanarPorts = TRUE;
++
++		if (scrpriv->randr != RR_Rotate_0)
++			FatalError("Rotation is not supported with a planar "
++				"framebuffer\n");
++
++		window = fbdevWindowPlanar;
++		update = (screen->fb.bitsPerPixel == 8) ? shadowUpdatePlanar4x8 :
++			shadowUpdatePlanar4;
++	}
++	else {
++		if (priv->fix.type != FB_TYPE_PACKED_PIXELS)
++			FatalError("Unsupported frame buffer type %u\n", priv->fix.type);
++
++		if (scrpriv->randr)
++			if (priv->var.bits_per_pixel == 16) {
++				switch (scrpriv->randr) {
++				case RR_Rotate_90:
++					if (useYX)
++						update = shadowUpdateRotate16_90YX;
++					else
++						update = shadowUpdateRotate16_90;
++					break;
++				case RR_Rotate_180:
++					update = shadowUpdateRotate16_180;
++					break;
++				case RR_Rotate_270:
++					if (useYX)
++						update = shadowUpdateRotate16_270YX;
++					else
++						update = shadowUpdateRotate16_270;
++					break;
++				default:
++					update = shadowUpdateRotate16;
++					break;
++				}
++			} else
++				update = shadowUpdateRotatePacked;
++		else
++			update = shadowUpdatePacked;
++	}
++
+ 	return KdShadowSet(pScreen, scrpriv->randr, update, window);
+ }
+ 
+@@ -642,6 +727,8 @@ Bool fbdevEnable(ScreenPtr pScreen)
+ 	FbdevPriv *priv = pScreenPriv->card->driver;
+ 	int k;
+ 
++	fbdevPlanarReady = FALSE;
++
+ 	priv->var.activate = FB_ACTIVATE_NOW | FB_CHANGE_CMAP_VBL;
+ 
+ 	/* display it on the LCD */
+@@ -696,10 +783,13 @@ Bool fbdevDPMS(ScreenPtr pScreen, int mode)
+ 
+ void fbdevDisable(ScreenPtr pScreen)
+ {
++	KdScreenPriv(pScreen);
++	fbdevPlanarRelease(pScreenPriv->card->driver);
+ }
+ 
+ void fbdevRestore(KdCardInfo * card)
+ {
++	fbdevPlanarRelease(card->driver);
+ }
+ 
+ void fbdevScreenFini(KdScreenInfo * screen)
