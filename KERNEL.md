@@ -34,6 +34,7 @@ Whilst the SHORK 486 repository is largely licensed under GPL 3.0 terms, these p
 12. 7.3.x_restore-xircom-cardbus.patch
 13. 7.0.x_fix-387-fpu-clone-sigfpe.patch
 14. 7.0.x_force-486-fpu-check.patch
+15. 7.0.x_vga16fb-force-ega-fix.patch
 
 ### [7.3.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.patch](shork-486/patches/linux/7.3.x/7.3.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.patch)
 
@@ -73,6 +74,7 @@ This patch reverts the removal of the Xircom Tulip CardBus driver (`xircom_cb`) 
 11. 7.2.x_restore-mdacon.patch
 12. 7.2.x_restore-hgafb.patch
 13. 7.0.x_force-486-fpu-check.patch
+14. 7.0.x_vga16fb-force-ega-fix.patch
 
 ### [7.2.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.patch](shork-486/patches/linux/7.2.x/7.2.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.patch)
 
@@ -132,6 +134,7 @@ This patch reverts the removal of Hercules-compatible ISA display card framebuff
 5. 7.1.x_restore-isa-pcmcia-net.patch
 6. 7.0.x_fix-387-fpu-clone-sigfpe.patch
 7. 7.0.x_force-486-fpu-check.patch
+8. 7.0.x_vga16fb-force-ega-fix.patch
 
 ### [7.1.x_restore-M486-M486SX-ELAN.patch](shork-486/patches/linux/7.1.x/7.1.x_restore-M486-M486SX-ELAN.patch)
 
@@ -174,6 +177,7 @@ This patch reverts the removal of several ISA and PCMCIA network drivers from [t
 
 1. 7.0.x_fix-387-fpu-clone-sigfpe.patch
 2. 7.0.x_force-486-fpu-check.patch
+3. 7.0.x_vga16fb-force-ega-fix.patch
 
 ### [~~7.0.x_6.14.11-e820.patch~~](shork-486/patches/linux/7.0.x/7.0.x_6.14.11-e820.patch), [~~7.0.x_6.14.11-e820-v2.patch~~](shork-486/patches/linux/7.0.x/7.0.x_6.14.11-e820-v2.patch)
 
@@ -191,9 +195,19 @@ This patch fixes an issue introduced in [157266edcc56](https://git.kernel.org/pu
 
 This patch fixes an issue with spurious SIGFPE signals when using threaded programs with floating-point operations on a 486SX-class CPU. Such a scenario requires 387 math emulation, and `fpu_clone()` would raise these signals when new threads were created. This patch fixes the issue by correcting the falsely-zeroed x87 control word `dst_fpu->fpstate->regs.soft.cwd`, which should instead be masked rather than left to raise the signals. This issue was found during SHORK 486's development.
 
-
 ### [7.0.x_force-486-fpu-check.patch](shork-486/patches/linux/7.0.x/7.0.x_force-486-fpu-check.patch)
 
 * Original kernel: 7.0.0 (likely earlier)
 
 This patch forces a manual FPU presence check for a family 4 CPU if CPUID is available but doesn't report the FPU feature bit. While this may not apply to real hardware, it was found that on 86Box when an Intel i486SX-S or i486SX2 is installed with a 487SX, the 487SX does not take over and report that an FPU is present, yet FPU functions work. Thus, this patch will make sure that `/proc/cpuinfo` at least reports that *an* FPU is present.
+
+### [7.0.x_vga16fb-force-ega-fix.patch](shork-486/patches/linux/7.0.x/7.0.x_vga16fb-force-ega-fix.patch)
+
+* Original kernel: 7.0.0 (likely earlier)
+
+This patch adds a kernel command line parameter (`vga16fb.force`) that allows vga16fb to be force-bound when desired, and fixes its EGA support. This provides a general framebuffer for ISA, VLB and non-VESA PCI EGA-/VGA-compatible display cards. It addresses the following:
+*  `screen_info_video_type()` never recognised EGA text-mode boot.
+* The driver always defaulted to VGA-only 640x480 mode with VGA pixel clocks and CRTC timings.
+* The EGA colour palette bits were mapped in the wrong order.
+* EGA's identical RGB offsets made `fbcon` fall back to a 4-colour grey palette.
+* `vga_imageblit_expand()`'s EGA text drawing was corrupted.

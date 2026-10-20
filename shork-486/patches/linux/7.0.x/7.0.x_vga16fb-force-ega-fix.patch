@@ -1,0 +1,203 @@
+############################################################################
+## 7.0.x_vga16fb-force-ega-fix.patch                                      ##
+############################################################################
+## Adds a kernel command line parameter that allows vga16fb to be forced  ##
+## on, and fixes EGA support                                              ##
+############################################################################
+## This patch is a derivative work of the Linux kernel. It is licensed    ##
+## separately under the terms of the GNU GPLv2 licence, and is            ##
+## distributed as part of the SHORK project. See the accompanying COPYING ##
+## file in the parent directory for details.                              ##
+############################################################################
+## Kali (links.sharktastica.co.uk)                                        ##
+############################################################################
+
+diff --git a/drivers/video/fbdev/vga16fb.c b/drivers/video/fbdev/vga16fb.c
+index cdd6b8de0c..1fd123a9e5 100644
+--- a/drivers/video/fbdev/vga16fb.c
++++ b/drivers/video/fbdev/vga16fb.c
+@@ -182,6 +182,17 @@ static inline void setindex(int index)
+ 	vga_io_w(VGA_GFX_I, index);
+ }
+ 
++/*
++ * Patch for SHORK 486:
++ * By default, vga16fb only binds when the bootloader left the card in a
++ * 16-colour graphics mode. Booting with "vga16fb.force=1" makes it bind on
++ * any EGA/VGA card regardless of vga= value. Off by default.
++ */
++static bool force;
++module_param(force, bool, 0444);
++MODULE_PARM_DESC(force, "Bind to EGA/VGA hardware regardless of vga= mode "
++	"(default: off)");
++
+ /* Check if the video mode is supported by the driver */
+ static inline int check_mode_supported(const struct screen_info *si)
+ {
+@@ -191,6 +202,13 @@ static inline int check_mode_supported(const struct screen_info *si)
+ 	if (type != VIDEO_TYPE_EGAC && type != VIDEO_TYPE_VGAC)
+ 		return -ENODEV;
+ 
++	/*
++	 * Patch for SHORK 486:
++	 * Force bind if desired
++	 */
++	if (force)
++		return 0;
++
+ 	if (si->orig_video_mode != 0x0D &&	/* 320x200/4 (EGA) */
+ 	    si->orig_video_mode != 0x0E &&	/* 640x200/4 (EGA) */
+ 	    si->orig_video_mode != 0x10 &&	/* 640x350/4 (EGA) */
+@@ -272,14 +290,22 @@ static void vga16fb_clock_chip(struct vga16fb_par *par,
+ 		{ 70616 /* 14.161 */, 0x04, 0x08},
+ 		{ 39721 /* 25.175 */, 0x00, 0x00},
+ 		{ 35308 /* 28.322 */, 0x04, 0x00},
++		{     0 /* bad */,    0x00, 0x00}},
++	/*
++	 * Patch for SHORK 486:
++	 * EGA clock table
++	 */
++		egaclocks[] = {
++		{ 69841 /* 14.318 */, 0x00, 0x00},
++		{ 61512 /* 16.257 */, 0x04, 0x00},
+ 		{     0 /* bad */,    0x00, 0x00}};
+ 	int err;
+ 
+ 	*pixclock = (*pixclock * mul) / div;
+-	best = vgaclocks;
++	best = par->isVGA ? vgaclocks : egaclocks;
+ 	err = *pixclock - best->pixclock;
+ 	if (err < 0) err = -err;
+-	for (ptr = vgaclocks + 1; ptr->pixclock; ptr++) {
++	for (ptr = best + 1; ptr->pixclock; ptr++) {
+ 		int tmp;
+ 
+ 		tmp = *pixclock - ptr->pixclock;
+@@ -398,7 +424,7 @@ static int vga16fb_check_var(struct fb_var_screeninfo *var,
+ 		FAIL("hslen too big");
+ 	if (right + hslen + left > 64)
+ 		FAIL("hblank too big");
+-	par->crtc[VGA_CRTC_H_TOTAL] = xtotal - 5;
++	par->crtc[VGA_CRTC_H_TOTAL] = xtotal - (par->isVGA ? 5 : 2);
+ 	par->crtc[VGA_CRTC_H_BLANK_START] = xres - 1;
+ 	par->crtc[VGA_CRTC_H_DISP] = xres - 1;
+ 	pos = xres + right;
+@@ -407,7 +433,7 @@ static int vga16fb_check_var(struct fb_var_screeninfo *var,
+ 	par->crtc[VGA_CRTC_H_SYNC_END] = pos & 0x1F;
+ 	pos += left - 2; /* blank_end + 2 <= total + 5 */
+ 	par->crtc[VGA_CRTC_H_BLANK_END] = (pos & 0x1F) | 0x80;
+-	if (pos & 0x20)
++	if ((pos & 0x20) && par->isVGA)
+ 		par->crtc[VGA_CRTC_H_SYNC_END] |= 0x80;
+ 
+ 	yres = var->yres;
+@@ -520,6 +546,18 @@ static int vga16fb_check_var(struct fb_var_screeninfo *var,
+ 
+ 	var->red.offset = var->green.offset = var->blue.offset =
+ 	var->transp.offset = 0;
++
++	/*
++	 * Patch for SHORK 486:
++	 * Offsets that make vga16fb use 16-colour with EGA, instead of 4-colour
++	 * grey.
++	 */
++	if (!par->isVGA) {
++		var->red.offset = 4;
++		var->green.offset = 2;
++		var->blue.offset = 0;
++	}
++
+ 	var->red.length = var->green.length = var->blue.length =
+ 		(par->isVGA) ? 6 : 2;
+ 	var->transp.length = 0;
+@@ -577,7 +615,7 @@ static int vga16fb_set_par(struct fb_info *info)
+ 	else if (par->mode & MODE_8BPP)
+ 		atc[VGA_ATC_MODE] = 0x41;
+ 	else
+-		atc[VGA_ATC_MODE] = 0x81;
++		atc[VGA_ATC_MODE] = par->isVGA ? 0x81 : 0x01;
+ 	atc[VGA_ATC_OVERSCAN] = 0x00;	/* 0 for EGA, 0xFF for VGA */
+ 	atc[VGA_ATC_PLANE_ENABLE] = 0x0F;
+ 	if (par->mode & MODE_8BPP)
+@@ -651,12 +689,12 @@ static int vga16fb_set_par(struct fb_info *info)
+ 
+ static void ega16_setpalette(int regno, unsigned red, unsigned green, unsigned blue)
+ {
+-	static const unsigned char map[] = { 000, 001, 010, 011 };
++	static const unsigned char map[] = { 000, 010, 001, 011 };
+ 	int val;
+ 
+ 	if (regno >= 16)
+ 		return;
+-	val = map[red>>14] | ((map[green>>14]) << 1) | ((map[blue>>14]) << 2);
++	val = map[blue>>14] | ((map[green>>14]) << 1) | ((map[red>>14]) << 2);
+ 	vga_io_r(VGA_IS1_RC);   /* ! 0x3BA */
+ 	vga_io_wattr(regno, val);
+ 	vga_io_r(VGA_IS1_RC);   /* some clones need it */
+@@ -1197,19 +1235,18 @@ static void vga_imageblit_expand(struct fb_info *info, const struct fb_image *im
+ 				setmode(0);
+ 				setop(0);
+ 				setsr(0xf);
+-				setcolor(image->bg_color);
+-				selectmask();
+-
+-				setmask(0xff);
+ 				for (y = 0; y < image->height; y++) {
+ 					dst = where;
+-					for (x=image->width/8; x--;){
+-						rmw(dst);
+-						setcolor(image->fg_color);
++					for (x = image->width/8; x--; dst++, cdat++) {
++						setcolor(image->bg_color);
+ 						selectmask();
++						setmask(0xff);
++						rmw(dst);
+ 						if (*cdat) {
+-							setmask(*cdat++);
+-							rmw(dst++);
++							setcolor(image->fg_color);
++							selectmask();
++							setmask(*cdat);
++							rmw(dst);
+ 						}
+ 					}
+ 					where += info->fix.line_length;
+@@ -1356,6 +1393,24 @@ static int vga16fb_probe(struct platform_device *dev)
+ 	vga16fb_defined.green.length = i;
+ 	vga16fb_defined.blue.length  = i;
+ 
++	/*
++	 * Patch for SHORK 486:
++	 * EGA does 640x350 @ 21.85kHz/~60Hz on 16.257MHz clock, with positive
++	 * hsync and negative vsync
++	 */
++	if (!par->isVGA) {
++		vga16fb_defined.yres = 350;
++		vga16fb_defined.yres_virtual = 350;
++		vga16fb_defined.pixclock = 61512;
++		vga16fb_defined.left_margin = 48;
++		vga16fb_defined.right_margin = 16;
++		vga16fb_defined.hsync_len = 40;
++		vga16fb_defined.upper_margin = 8;
++		vga16fb_defined.lower_margin = 4;
++		vga16fb_defined.vsync_len = 4;
++		vga16fb_defined.sync = FB_SYNC_HOR_HIGH_ACT;
++	}
++
+ 	/* name should not depend on EGA/VGA */
+ 	info->fbops = &vga16fb_ops;
+ 	info->var = vga16fb_defined;
+diff --git a/include/linux/screen_info.h b/include/linux/screen_info.h
+index c022403c59..c1efac5208 100644
+--- a/include/linux/screen_info.h
++++ b/include/linux/screen_info.h
+@@ -95,7 +95,8 @@ static inline unsigned int screen_info_video_type(const struct screen_info *si)
+ 	unsigned int type;
+ 
+ 	// check if display output is on
+-	if (!si->orig_video_isVGA)
++	if (!si->orig_video_isVGA && (!si->orig_video_lines ||
++		!si->orig_video_cols))
+ 		return 0;
+ 
+ 	// check for a known VIDEO_TYPE_ constant

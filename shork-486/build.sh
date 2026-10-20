@@ -5058,6 +5058,9 @@ compile_kernel()
     echo -e "${GREEN}Applying 7.0.x_unsupported-486-586-msgs patch...${RESET}"
     patch -p1 < "${PATCHES_DIR}/linux/7.0.x/7.0.x_unsupported-486-586-msgs.patch"
 
+    echo -e "${GREEN}Applying 7.0.x_vga16fb-force-ega-fix patch...${RESET}"
+    patch -p1 < "${PATCHES_DIR}/linux/7.0.x/7.0.x_vga16fb-force-ega-fix.patch"
+
     echo -e "${GREEN}Compiling Linux kernel...${RESET}"
     make ARCH=x86 olddefconfig
     make ARCH=x86 bzImage -j"$JOBS"
