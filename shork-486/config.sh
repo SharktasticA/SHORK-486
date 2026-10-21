@@ -641,7 +641,7 @@ BUNDLED_SOFTWARE=(
         "lua"               "*Embedded scripting & extensions language (0.4MiB)"    "INCLUDE_LUA"               "false"     "always"
         "lynx"              "*Terminal web browser (7.3MiB)"                        "INCLUDE_LYNX"              "true"      "always"
         "memtester"         "*Userspace memory subsystem fault tester (0.05MiB)"    "INCLUDE_MEMTESTER"         "false"     "always"
-        "mg"                "*Emacs-style text editor (0.3MiB)"                     "INCLUDE_MG"                "false"     "always"
+        "mg"                "*Emacs-style text editor (0.4MiB)"                     "INCLUDE_MG"                "false"     "always"
         "micropython"       "*Python 3.4-syntax intepreter (0.7MiB)"                "INCLUDE_MICROPYTHON"       "false"     "always"
         "mpg321"            "MP3 player (0.4MiB)"                                   "INCLUDE_MPG321"            "false"     "always"
         "mt-st"             "*Tape drive tools (0.2MiB)"                            "INCLUDE_MT_ST"             "false"     "always"
