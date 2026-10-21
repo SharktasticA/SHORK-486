@@ -209,7 +209,7 @@ BINUTILS_TEST_VER="2.47"
 BINUTILS_VER="2.37"
 
 BROTLI_SRC="https://github.com/google/brotli.git"
-BROTLI_VER="1.2.0"
+BROTLI_VER="1.2.1"
 
 C3270_SRC="https://github.com/pmattes/x3270.git"
 C3270_VER="4.5ga6"
@@ -379,7 +379,7 @@ LIBXLSXWRITER_VER="1.2.4"
 LIBXML2_SRC="https://github.com/gnome/libxml2.git"
 LIBXML2_VER="2.15.4"
 LIBZIP_SRC="https://github.com/nih-at/libzip.git"
-LIBZIP_VER="1.12"
+LIBZIP_VER="1.12.1"
 LLVM_SRC="https://github.com/llvm/llvm-project.git"
 LLVM_VER="23.1.1"
 LSB_RELEASE_MIN_SRC="https://github.com/deepin-community/lsb-release-minimal.git"
@@ -387,7 +387,7 @@ LSB_RELEASE_MIN_VER="12.0-2"
 LUA_SRC="https://github.com/lua/lua.git"
 LUA_VER="5.5.1"
 LYNX_SRC="https://github.com/ThomasDickey/lynx-snapshots.git"
-LYNX_VER="2-9-3a"
+LYNX_VER="2-9-3f"
 
 LZ4_SRC="https://github.com/lz4/lz4.git"
 LZ4_VER="1.10.0"
@@ -6557,6 +6557,7 @@ get_tinyx()
     fi
 
     patch -p1 < "${PATCHES_DIR}/tinyx/vga16fb_support.patch"
+    git add .
 
     export ACLOCAL_PATH="$SYSROOT/usr/share/aclocal"
     LINK_LIBS="-lXtst -lXi -lXext -lXfixes -lXfont -lfontenc -lX11 -lxcb -lXau -lXdmcp -lfreetype -lpng -lz -lm"

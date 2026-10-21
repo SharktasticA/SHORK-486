@@ -174,7 +174,7 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 | [jq](https://jqlang.org/) | `jq` | 1.8.2 | Command-line JSON processor | MIT + CC BY 3.0 + ICU |✓|||||
 | [lsb-release-minimal](https://github.com/deepin-community/lsb-release-minimal) | `lsb_release` | 12.0-2 | Linux Standard Base/distribution info reporter | ISC |✓|**✓**|✓|✓|✓|
 | [Lua](https://www.lua.org/) | `lua` | 5.5.1 | Embedded scripting & extensions language | MIT |✓|**✓**|||✓|
-| [Lynx](https://github.com/ThomasDickey/lynx-snapshots)¶ | `lynx` | 2-9-3a | Terminal web browser | GNU GPLv2 |✓|**✓**|||||
+| [Lynx](https://github.com/ThomasDickey/lynx-snapshots)¶ | `lynx` | 2-9-3f | Terminal web browser | GNU GPLv2 |✓|**✓**|||||
 | [memtester](https://pyropus.ca./software/memtester/) | `memtester` | 4.7.1 | Userspace memory subsystem fault tester | GNU GPLv2 |✓|**✓**|✓|✓|✓|
 | [Mg](https://github.com/troglobit/mg) | `mg` | 4.5 | Emacs-style text editor | Unlicense |✓|**✓**|✓||✓|
 | [MicroPython](https://github.com/micropython/micropython) | `micropython` | 1.29.0 | Python 3.4-syntax intepreter | MIT |✓|**✓**|||✓|
@@ -211,7 +211,7 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 
 | Name | Version | For | Licence(s) |
 |------|---------|-----|------------|
-| [Brotli](https://github.com/google/brotli) | 1.2.0 | GnuTLS | MIT |
+| [Brotli](https://github.com/google/brotli) | 1.2.1 | GnuTLS | MIT |
 | [console-data](https://packages.debian.org/trixie/console-data) & [KBD](https://git.kernel.org/pub/scm/linux/kernel/git/legion/kbd.git) | 1.12-9 & 2.10.0  | Keymaps pack | GNU GPLv2 |
 | [console-setup](https://packages.debian.org/trixie/console-setup) | 1.249 | Console fonts pack | Public domain (most), SIL OFL 1.1 (Terminus) |
 | [GLib](https://download.gnome.org/sources/glib/) | 2.90.1 | Midnight Commander | LGPLv2.1 |
@@ -247,7 +247,7 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 | [libuv](https://github.com/libuv/libuv) | 1.53.0 | BIND 9 | MIT |
 | [libxlsxwriter](https://github.com/jmcnamara/libxlsxwriter) | 1.2.4 | sc-im | BSD 2-Clause |
 | [libxml2](https://github.com/gnome/libxml2) | 2.15.4 | sc-im, Universal Ctags | MIT |
-| [libzip](https://github.com/nih-at/libzip) | 1.12 | Midnight Commander, sc-im | BSD 3-Clause |
+| [libzip](https://github.com/nih-at/libzip) | 1.12.1 | Midnight Commander, sc-im | BSD 3-Clause |
 | [musl](somethhttps://musl.libc.org/) | 1.2.6 | GCC, Tiny C Compiler | MIT |
 | [ncurses](https://invisible-island.net/ncurses/) | 6.6 | Cscope, CTris, dialog, htop, Lynx, Midnight Commander, nano, Ncdu, NetHack, New BSD Games, sc-im, SHORKMINES, tic, tmux, tn5250, util-linux, x3270 | MIT |
 | [nPth](https://www.gnupg.org/software/npth/index.html) | 1.8 | GnuPG | LGPLv2.1 |
