@@ -120,7 +120,7 @@ INCLUDE_TMUX=false
 INCLUDE_UTIL_LINUX=false
 INCLUDE_VIM=false
 INCLUDE_CON_FONTS=false
-ENABLE_FB_VBE=false
+ENABLE_FB=false
 USE_GRUB=false
 INCLUDE_GUI=false
 ENABLE_HELP_VERBOSE=false
@@ -285,7 +285,7 @@ save_env()
         echo "INCLUDE_UTIL_LINUX=$INCLUDE_UTIL_LINUX"
         echo "INCLUDE_VIM=$INCLUDE_VIM"
         echo "INCLUDE_CON_FONTS=$INCLUDE_CON_FONTS"
-        echo "ENABLE_FB_VBE=$ENABLE_FB_VBE"
+        echo "ENABLE_FB=$ENABLE_FB"
         echo "USE_GRUB=$USE_GRUB"
         echo "INCLUDE_GUI=$INCLUDE_GUI"
         echo "ENABLE_HELP_VERBOSE=$ENABLE_HELP_VERBOSE"
@@ -400,7 +400,7 @@ set_mini_vars()
 
     ENABLE_CDROM=false
     INCLUDE_CON_FONTS=false
-    ENABLE_FB_VBE=false
+    ENABLE_FB=false
     USE_GRUB=false
     INCLUDE_GUI=false
     ENABLE_HELP_VERBOSE=false
@@ -437,7 +437,7 @@ set_terminal_vars()
 
     ENABLE_CDROM=true
     INCLUDE_CON_FONTS=true
-    ENABLE_FB_VBE=true
+    ENABLE_FB=true
     ENABLE_HELP_VERBOSE=true
     INCLUDE_KEYMAPS=true
     ENABLE_LOOP=true
@@ -468,7 +468,7 @@ set_writer_vars()
 
     ENABLE_CDROM=true
     INCLUDE_CON_FONTS=true
-    ENABLE_FB_VBE=true
+    ENABLE_FB=true
     ENABLE_HELP_VERBOSE=true
     INCLUDE_KEYMAPS=true
     ENABLE_MENU=true
@@ -513,7 +513,7 @@ set_default_vars()
 
     ENABLE_CDROM=true
     INCLUDE_CON_FONTS=true
-    ENABLE_FB_VBE=true
+    ENABLE_FB=true
     ENABLE_HELP_VERBOSE=true
     INCLUDE_KEYMAPS=true
     ENABLE_LOOP=true
@@ -1604,7 +1604,7 @@ OPTIONS=$(dialog --clear \
     --checklist "Select what other options to include. Some of these are benign, some may increase the RAM and disk space requirement considerably, some are experimental.\n* This option would be included in a \"default\" build\n† This option has specific memory requirements (check GitHub repository's README)" $HEIGHT $WIDTH 9 \
     "cdrom"         "*Kernel-level CD-ROM & DVD-ROM support"                    $(val $ENABLE_CDROM) \
     "con-fonts"     "*Console fonts pack (0.6MiB)"                              $(val $INCLUDE_CON_FONTS) \
-    "fb-vbe"        "*†Kernel-level framebuffer & VBE support"                  $(val $ENABLE_FB_VBE) \
+    "fb"            "*†vesafb & vga16fb framebuffer support"                    $(val $ENABLE_FB) \
     "grub"          "GRUB 2.x instead of EXTLINUX (4MiB)"                       $(val $USE_GRUB) \
     "gui"           "†SHORKGUI (46MiB, EXPERIMENTAL)"                           $(val $INCLUDE_GUI) \
     "help-verbose"  "*BusyBox verbose --help"                                   $(val $ENABLE_HELP_VERBOSE) \
@@ -1629,7 +1629,7 @@ if [[ $SKIPPED -eq 1 ]]; then
 else
     if [[ $OPTIONS =~ "cdrom" ]];           then ENABLE_CDROM=true;         else ENABLE_CDROM=false;            fi
     if [[ $OPTIONS =~ "con-fonts" ]];       then INCLUDE_CON_FONTS=true;    else INCLUDE_CON_FONTS=false;       fi
-    if [[ $OPTIONS =~ "fb-vbe" ]];          then ENABLE_FB_VBE=true;        else ENABLE_FB_VBE=false;           fi
+    if [[ $OPTIONS =~ "fb" ]];              then ENABLE_FB=true;            else ENABLE_FB=false;               fi
     if [[ $OPTIONS =~ "grub" ]];            then USE_GRUB=true;             else USE_GRUB=false;                fi
     if [[ $OPTIONS =~ "gui" ]];             then INCLUDE_GUI=true;          else INCLUDE_GUI=false;             fi
     if [[ $OPTIONS =~ "help-verbose" ]];    then ENABLE_HELP_VERBOSE=true;  else ENABLE_HELP_VERBOSE=false;     fi
@@ -1785,20 +1785,20 @@ if [ "$FIX_EXTLINUX" = true ] && [ "$USE_GRUB" = true ]; then
     fi
 fi
 
-# Conflict Resolution - +INCLUDE_GUI/-ENABLE_FB_VBE
-if [ "$INCLUDE_GUI" = true ] && [ "$ENABLE_FB_VBE" = false ]; then
+# Conflict Resolution - +INCLUDE_GUI/-ENABLE_FB
+if [ "$INCLUDE_GUI" = true ] && [ "$ENABLE_FB" = false ]; then
     dialog --clear \
         --backtitle "SHORK 486 Build Configurator" \
-        --title "Conflict Resolution - +INCLUDE_GUI/-ENABLE_FB_VBE" \
-        --yes-label "Enable FB & VBE" \
+        --title "Conflict Resolution - +INCLUDE_GUI/-ENABLE_FB" \
+        --yes-label "Enable FB" \
         --no-label "Exclude SHORKGUI" \
-        --yesno "You have chosen to include SHORKGUI but not enable kernel-level framebuffer and VBE support. Both are required to start an X server for the GUI. Do you wish to enable the required support, or exclude SHORKGUI?" \
+        --yesno "You have chosen to include SHORKGUI but not enable vesafb and vga16fb framebuffer support. A framebuffer is required to start an X server for the GUI. Do you wish to enable the required support, or exclude SHORKGUI?" \
         7 "$WIDTH"
 
     CHOICE=$?
 
     if [[ $CHOICE -eq 0 ]]; then
-        ENABLE_FB_VBE=true
+        ENABLE_FB=true
     elif [[ $CHOICE -eq 1 ]]; then
         INCLUDE_GUI=false
     fi

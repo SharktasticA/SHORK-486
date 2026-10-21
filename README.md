@@ -580,7 +580,7 @@ EXTLINUX (SHORK 486/586), ISOLINUX (SHORK DISC) and SYSLINUX (SHORK DISKETTE) ar
 
 #### Options
 
-* **fb-vbe**: Adds kernel-level framebuffer and VESA BIOS Extensions (VBE) support and enables BusyBox's `fbset` and `fbsplash` implementations. This allows `shorkhelp` to list and select VBE-style resolutions, which when used also creates a framebuffer device an X server can use.
+* **fb**: Adds vesafb and vga16fb framebuffer support and enables BusyBox's `fbset` and `fbsplash` implementations. This allows a framebuffer device to be created when supported hardware is present, which in turn allows an X server to run, and gives applications per-pixel read/write capabilities. `shorkset` will also be able to offer VBE-style resolutions for vesafb, and other framebuffer-specific settings.
 
 * **grub**: Uses a GRUB 2.x bootloader instead of EXTLINUX. GRUB may be more familiar to modern Linux users, but it requires approximately 12MiB more space than EXTLINUX. The build script overrides this option if you said "Yes" to using SHORK's patched fork of EXTLINUX.
 

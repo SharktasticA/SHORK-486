@@ -530,7 +530,7 @@ USE_TORVALDS=false
 
 ENABLE_CDROM=false
 ENABLE_EPOLL=false
-ENABLE_FB_VBE=false
+ENABLE_FB=false
 ENABLE_HELP_VERBOSE=false
 ENABLE_HIGHMEM=false
 ENABLE_LOOP=false
@@ -740,9 +740,9 @@ else
     fi
 fi
 
-# Ensure VM86 is enabled with FB_VBE
+# Ensure VM86 is enabled with FB
 # NOT NEEDED YET
-#if [ "$ENABLE_FB_VBE" = true ]; then
+#if [ "$ENABLE_FB" = true ]; then
 #    ENABLE_VM86=true
 #fi
 
@@ -781,10 +781,10 @@ if [ "$INCLUDE_BIND9_DNSUTILS" = true ] || [ "$INCLUDE_MICRO" = true ]; then
     ENABLE_EPOLL=true
 fi
 
-# Ensure FB_VBE is enabled with GUI, NCDU or UTIL_LINUX
+# Ensure FB is enabled with GUI, NCDU or UTIL_LINUX
 if [ "$INCLUDE_GUI" = true ] || [ "$INCLUDE_NCDU" = true ] ||
    [ "$INCLUDE_UTIL_LINUX" = true ]; then
-    ENABLE_FB_VBE=true
+    ENABLE_FB=true
 fi
 
 # Ensure FREEDOS is excluded without DOSEMU2
@@ -983,7 +983,7 @@ NEED_ZLIB=false
 NEED_ZSTD=false
 
 # NOT NEEDED YET
-#if $ENABLE_FB_VBE; then
+#if $ENABLE_FB; then
 #    NEED_X86EMU=true
 #fi
 
@@ -4507,7 +4507,7 @@ get_busybox()
     patch -p1 < "${PATCHES_DIR}/busybox/1.38.0_lsblk_swap.patch"
 
     if [ "$BUILD_TYPE" != "micro" ]; then
-        if $ENABLE_FB_VBE; then
+        if $ENABLE_FB; then
             echo -e "${GREEN}Enabling BusyBox's fbset and fbsplash utilities...${RESET}"
             merge_bb_frag "${CONFIGS_DIR}/busybox/busybox.config.fb.frag"
         fi
@@ -4807,8 +4807,8 @@ configure_kernel()
             FRAGS+="${CONFIGS_DIR}/linux/linux.config.epoll.frag "
         fi
         
-        if $ENABLE_FB_VBE; then
-            echo -e "${GREEN}Enabling kernel-level framebuffer & VBE support...${RESET}"
+        if $ENABLE_FB; then
+            echo -e "${GREEN}Enabling vesafb & vga16fb framebuffer support...${RESET}"
             FRAGS+="${CONFIGS_DIR}/linux/linux.config.fb.frag "
         fi
 
@@ -9394,7 +9394,7 @@ get_shorkset()
     # Compile and install
     make clean
     echo -e "${GREEN}Compiling shorkset...${RESET}"
-    if $ENABLE_FB_VBE; then
+    if $ENABLE_FB; then
         make FB=1 -j"$JOBS" CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
     else
         make -j"$JOBS" CC="${CC_STATIC}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
@@ -10711,7 +10711,7 @@ build_filesystem()
         copy_sysfile "${CURR_DIR}"/sysfiles/mg "${DESTDIR}"/etc/mg
     fi
 
-    if $ENABLE_FB_VBE; then
+    if $ENABLE_FB; then
         mkdir -p "${DESTDIR}/usr/share/backgrounds"
         if [ "$ID" == "shork-486" ]; then
             copy_sysfile "${CURR_DIR}"/branding/shork-486_640x480.ppm "${DESTDIR}"/usr/share/backgrounds/shork_640x480.ppm
@@ -11899,10 +11899,10 @@ get_installed_progs_feats()
             EXCLUDED_FEATURES+=("kernel-level eventpoll support")
         fi
 
-        if $ENABLE_FB_VBE; then
-            INCLUDED_FEATURES+=("kernel-level framebuffer & VBE support")
+        if $ENABLE_FB; then
+            INCLUDED_FEATURES+=("vesafb & vga16fb framebuffer support")
         else
-            EXCLUDED_FEATURES+=("kernel-level framebuffer & VBE support")
+            EXCLUDED_FEATURES+=("vesafb & vga16fb framebuffer support")
         fi
 
         if $ENABLE_HIGHMEM; then
