@@ -14,10 +14,13 @@ The SHORK project includes patching the Linux kernel to keep supporting 486/586 
             <a href="GALLERY.md">Photos & screenshots</a>
         </td>
         <td>
-            <a href="RUNNING.md">Running SHORK</a>
+            <a href="HARDWARE.md">Hardware supported by SHORK</a>
         </td>
         <td>
             <a href="DRIVERS.md">Drivers provided by SHORK</a>
+        </td>
+        <td>
+            <a href="RUNNING.md">Running SHORK</a>
         </td>
     </tr>
     <tr>
