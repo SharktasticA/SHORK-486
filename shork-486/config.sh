@@ -1606,7 +1606,7 @@ OPTIONS=$(dialog --clear \
     "con-fonts"     "*Console fonts pack (0.6MiB)"                              $(val $INCLUDE_CON_FONTS) \
     "fb"            "*†vesafb & vga16fb framebuffer support"                    $(val $ENABLE_FB) \
     "grub"          "GRUB 2.x instead of EXTLINUX (4MiB)"                       $(val $USE_GRUB) \
-    "gui"           "†SHORKGUI (46MiB, EXPERIMENTAL)"                           $(val $INCLUDE_GUI) \
+    "gui"           "†SHORKGUI (22.7MiB, EXPERIMENTAL)"                         $(val $INCLUDE_GUI) \
     "help-verbose"  "*BusyBox verbose --help"                                   $(val $ENABLE_HELP_VERBOSE) \
     "highmem"       "†Kernel-level high memory support"                         $(val $ENABLE_HIGHMEM) \
     "loop"          "*Kernel-level loopback device support & losetup"           $(val $ENABLE_LOOP) \
