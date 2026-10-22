@@ -10905,7 +10905,7 @@ compress_filesystem()
 {
     cd "${DESTDIR}"
     echo -e "${GREEN}Compressing root filesystem into one file...${RESET}"
-    find . | cpio -H newc -o | xz --check=crc32 --lzma2=dict=512KiB -e > "${CURR_DIR}"/build/rootfs.cpio.xz
+    find . | cpio -H newc -o | xz --format=lzma --check=crc32 --lzma1=dict=512KiB -e > "${CURR_DIR}"/build/rootfs.cpio.lzma
 }
 
 # Find and set EXTLINUX MBR binary (can be different depending on distro)
@@ -11545,7 +11545,7 @@ build_diskette_img()
 
     # Copy compressed root filesystem
     echo -e "${GREEN}Copying compressed root filesystem...${RESET}"
-    sudo cp rootfs.cpio.xz "/mnt/${ID}"
+    sudo cp rootfs.cpio.lzma "/mnt/${ID}"
 
     # Make directory to be used as /home when booted
     sudo mkdir "/mnt/${ID}/data" || true

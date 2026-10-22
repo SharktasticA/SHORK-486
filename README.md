@@ -434,7 +434,7 @@ The following outlines what the build script will typically do.
 * All licences for SHORK's components and bundled software are copied to the root filesystem.
 * Building the root filesystem continues. Any further required subdirectories are created, and any required system files and default configuration files are copied. Keymaps, the PCI IDs database, and (if SHORK DISC) payload are also copied at this point.
 * If building a multi-user system, specific permissions are applied to files in the root filesystem to ensure sensitive executables can only be run by root, `sudo`, etc.
-* If SHORK DISKETTE, the root filesystem is compressed into a `.cpio.xz` archive.
+* If SHORK DISKETTE, the root filesystem is compressed into a `.cpio.lzma` archive.
 * If the patched EXTLINUX/ISOLINUX/SYSLINUX option was enabled, SHORK's fork of SYSLINUX is downloaded and compiled.
 * If SHORK 486/586 and using EXTLINUX, the right MBR binary is found in the host's filesystem.
 * The result disk (SHORK 486/586), disc (SHORK DISC) or diskette (SHORK DISKETTE) image is created, and the kernel, root filesystem and bootloader are installed to it.

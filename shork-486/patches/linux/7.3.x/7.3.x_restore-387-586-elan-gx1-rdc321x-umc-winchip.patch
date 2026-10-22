@@ -166,7 +166,7 @@ index bdad90f21..0d53a3462 100644
 +	  Linux can emulate a math coprocessor (used for floating point
 +	  operations) if you don't have one. 486DX and Pentium processors have
 +	  a math coprocessor built in, 486SX and 386 do not, unless you added
-+	  a 487DX or 387, respectively. (The messages during boot time can
++	  a 487SX or 387, respectively. (The messages during boot time can
 +	  give you some hints here ["man dmesg"].) Everyone needs either a
 +	  coprocessor or this emulation.
 +
