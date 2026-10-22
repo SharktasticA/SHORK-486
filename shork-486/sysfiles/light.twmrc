@@ -71,21 +71,21 @@ Button2 = : iconmgr : f.iconify
 
 menu "defops"
 {
-    "SHORKGUI"	        f.title
-    "Show Tasklist"	    f.showiconmgr
-    "Hide Tasklist"	    f.hideiconmgr
-    "Force Close"		f.destroy
+    "SHORKGUI"          f.title
+    "Show Tasklist"     f.showiconmgr
+    "Hide Tasklist"     f.hideiconmgr
+    "Kill Window"       f.destroy
     "----------------"  f.nop
     "Terminal (62x18)"  f.exec "st -g 62x18 &"
     "Terminal (80x24)"  f.exec "st -g 80x24 &"
     "----------------"  f.nop
-    "Calculator"        f.exec "xcalc &"
-    "Clock"             f.exec "xclock -name Clock &"
-    "CPU Load"          f.exec "xload -name \"CPU Load\" -fn fixed &"
-    "Eyes"              f.exec "xeyes -name Eyes &"
+    "Calculator"        f.exec "xcalc -g 130x170 &"
+    "Clock"             f.exec "xclock -g 130x130 -name Clock &"
+    "CPU Load"          f.exec "xload -g 130x130 -name \"CPU %\" -fn fixed &"
+    "Eyes"              f.exec "xeyes -g 130x85 -name Eyes &"
     "Neko"              f.exec "oneko &"
     "----------------"  f.nop
-    "Quit"		        f.quit
+    "Quit"              f.quit
 }
 
 
