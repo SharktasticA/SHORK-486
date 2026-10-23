@@ -232,6 +232,7 @@ CTAGS_SRC="https://github.com/universal-ctags/ctags.git"
 CTAGS_VER="6.2.1"
 
 CTRIS_SRC="https://github.com/MitchelPaulin/CTris.git"
+CTRIS_VER="4cf68a9"
 
 CURL_SRC="https://curl.se/download"
 CURL_VER="8.23.0"
@@ -7572,6 +7573,7 @@ get_ctris()
         echo -e "${GREEN}Downloading CTris...${RESET}"
         git clone $CTRIS_SRC
         cd CTris
+        git checkout $CTRIS_VER
     fi
 
     # Patch Makefile to support our cross-compiler and gpm

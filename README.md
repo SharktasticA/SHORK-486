@@ -174,23 +174,23 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 * **P:** plus/max - **D:** default - **W:** writer - **T:** terminal - **O:** offline
 * **✓** indicates the software is included for the given edition
 
-| Name | Version | Purpose | Licence(s) |P|D|W|T|O|
-|------|---------|---------|------------|-|-|-|-|-|
+|     Name     | Version | Purpose | Licences |P|D|W|T|O|
+|--------------|---------|---------|----------|-|-|-|-|-|
 | [BIND 9 DNS utilities](https://www.isc.org/bind/)<br>`arpaname`, `delv`, `dig`, `host`, `mdig`, `nslookup`\*, `nsupdate` | 9.20.29 | DNS query & update tools | MPL 2.0 |✓|||||
 | [chrony](https://chrony-project.org/)<br>`chronyc`, `chronyd` | 4.9 | NTP daemon & interface | GNU GPLv2 |✓|**✓**||✓||
 | [Cscope](https://cscope.sourceforge.net/)<br>`cscope` | 15.9 | C/C++ code browser | BSD 3-Clause |✓|||||
-| [CTris](https://github.com/MitchelPaulin/CTris)<br>`ctris` | | Tetris clone | MIT |✓|**✓**|||✓|
+| [CTris](https://github.com/MitchelPaulin/CTris)<br>`ctris` | `4cf68a9` | Tetris clone | MIT |✓|**✓**|||✓|
 | [cURL](https://curl.se/)<br>`curl` | 8.23.0 | HTTP client & transfer utility | MIT |✓|**✓**||✓||
-| [dialog](https://invisible-mirror.net/dialog/dialog.html)<br>`dialog` | 1.3-20260721 | Shell script TUI widgets | LGPLv2.1 |✓|**✓**|||✓|
+| [dialog](https://invisible-mirror.net/dialog/dialog.html)<br>`dialog` | 1.3-20260721 | Shell script TUI widgets | GNU LGPLv2.1 |✓|**✓**|||✓|
 | [dosfstools](https://github.com/dosfstools/dosfstools/)<br>e.g. `dosfsck`, `mkdosfs`\* | 4.2 | FAT family filesystem utilities | GNU GPLv3 |✓|**✓**|||✓|
-| [Dropbear](https://github.com/mkj/dropbear)<br>`scp`, `ssh` | 2026.94 | SCP and SSH clients | MIT + BSD 2-Clause |✓|**✓**||✓||
-| [e2fsprogs](https://e2fsprogs.sourceforge.net/)<br>e.g. `blkid`\*, `fsck`, `mke2fs`\*, `resize2fs`, `tune2fs`, `uuidgen`\* | 1.47.4 | ext2/3/4 filesystem utilities | GNU GPLv2 + LGPLv2 |✓|**✓**|||✓|
+| [Dropbear](https://github.com/mkj/dropbear)<br>`scp`, `ssh` | 2026.94 | SCP and SSH clients | MIT +<br>BSD 2-Clause |✓|**✓**||✓||
+| [e2fsprogs](https://e2fsprogs.sourceforge.net/)<br>e.g. `blkid`\*, `chattr`\*, `fsck`\*, `lsattr`\*, `mke2fs`\*, `resize2fs`, `tune2fs`\*, `uuidgen`\* | 1.47.4 | ext2/3/4 filesystem utilities | GNU GPLv2 + LGPLv2 |✓|**✓**|||✓|
 | [file](https://github.com/file/file)<br>`file` | 5_48 | File identification | BSD 2-Clause |✓|**✓**|||✓|
 | [Git](https://github.com/git/git)<br>`git` | 2.56.0 | Source control client | GNU GPLv2 |✓|**✓**|||||
 | [GNU Autoconf](https://www.gnu.org/software/autoconf/)<br>`autoconf`, `autoreconf` | 2.73 | configure script generator | GNU GPLv2 |✓|||||
 | [GNU Automake](https://www.gnu.org/software/automake/)<br>`aclocal`, `automake` | 1.19 | Makefile.in generator | GNU GPLv2 |✓|||||
 | [GNU Binutils](https://musl.cc/)‡<br>e.g. `ar`\*, `as`, `gprof`, `ld`, `nm`, `objdump`, `ranlib`,`readelf`, `strings`\*, `strip` | 2.37 | Binary tools to compliment GCC | GNU GPLv3 |✓|||||
-| [GNU Compiler Collection](https://musl.cc/)‡§<br>`gcc`, `g++`, `gfortran` | 11.2.1 | C, C++ and Fortran compilers | GNU GPLv3 + GCC RLE |✓|||||
+| [GNU Compiler Collection](https://musl.cc/)‡§<br>`gcc`, `g++`, `gfortran` | 11.2.1 | C, C++ and Fortran compilers | GNU GPLv3 +<br>GCC RLE |✓|||||
 | [GNU Indent](https://www.gnu.org/software/indent/)<br>`indent` | 2.2.13 | C code formatter | GNU GPLv3 |✓|||||
 | [GNU Libtool](https://www.gnu.org/software/libtool/)<br>`libtool`, `libtoolize` | 2.6.2 | Portable shared library build helper | GNU GPLv2 |✓|||||
 | [GNU m4](https://www.gnu.org/software/m4/)<br>`m4` | 1.4.21 | General-purpose macro processor | GNU GPLv3 |✓|||||
@@ -201,7 +201,7 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 | [gpm](https://www.nico.schottelius.org/software/gpm/)<br>`gpm` | 1.20.7 | Virtual console mouse | GNU GPLv2 |✓|✓|✓|✓|✓|
 | [htop](https://github.com/htop-dev/htop)¶<br>`htop` | 3.5.3 | Interactive process viewer | GNU GPLv2 |✓|**✓**|✓||✓|
 | [Joe's Own Editor](https://github.com/joe-editor/joe)<br>`joe` | 4.8 | WordStar & Emacs-blend text editor | GNU GPLv2 |✓||✓|||
-| [jq](https://jqlang.org/)<br>`jq` | 1.8.2 | Command-line JSON processor | MIT + CC BY 3.0 + ICU |✓|||||
+| [jq](https://jqlang.org/)<br>`jq` | 1.8.2 | Command-line JSON processor | MIT +<br>CC BY 3.0 +<br>ICU |✓|||||
 | [lsb-release-minimal](https://github.com/deepin-community/lsb-release-minimal)<br>`lsb_release` | 12.0-2 | Linux Standard Base/distribution info reporter | ISC |✓|**✓**|✓|✓|✓|
 | [Lua](https://www.lua.org/)<br>`lua` | 5.5.1 | Embedded scripting & extensions language | MIT |✓|**✓**|||✓|
 | [Lynx](https://github.com/ThomasDickey/lynx-snapshots)¶<br>`lynx` | 2-9-3f | Terminal web browser | GNU GPLv2 |✓|**✓**|||||
@@ -217,13 +217,13 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 | [PatchELF](https://github.com/nixos/patchelf)<br>`patchelf` | 0.19.2 | ELF binary patching | GNU GPLv3 |✓|||||
 | [Perl](https://www.perl.org/)<br>`perl` | 5.44.0 | General-purpose scripting language | GNU GPLv1 |✓|||||
 | [sc-im](https://github.com/andmarti1424/sc-im)<br>`sc-im` | 0.8.5 | Terminal spreadsheet editor | BSD 4-Clause |✓|**✓**|✓||✓|
-| [strace](https://github.com/strace/strace)<br>`strace` | 7.2 | System calls & signals tracer | LGPLv2.1 |✓|**✓**|||✓|
-| [sudo](https://www.sudo.ws/)‖<br>`sudo`, `sudoedit`, `visudo` | 1.9.17p2 | Run command as root/substitute user | ISC + BSD 2-Clause + BSD 3-Clause + zlib |✓|**✓**|✓|✓|✓|
+| [strace](https://github.com/strace/strace)<br>`strace` | 7.2 | System calls & signals tracer | GNU LGPLv2.1 |✓|**✓**|||✓|
+| [sudo](https://www.sudo.ws/)‖<br>`sudo`, `sudoedit`, `visudo` | 1.9.17p2 | Run command as root/substitute user | ISC +<br>BSD 2-Clause +<br>BSD 3-Clause +<br>zlib |✓|**✓**|✓|✓|✓|
 | [tcpdump](https://www.tcpdump.org)<br>`tcpdump` | 4.99.7 | Packet analyzer | BSD 3-Clause |✓|||||
 | [Tilde](https://os.ghalkes.nl/tilde/)¶<br>`tilde` | 1.1.3 | GUI-like text editor | GNU GPLv3 |✓||✓|||
-| [Tiny C Compiler](https://bellard.org/tcc/)§<br>`tcc` | `e5eedc0` | C compiler | LGPLv2.1 |✓|**✓**|||✓|
+| [Tiny C Compiler](https://bellard.org/tcc/)§<br>`tcc` | `e5eedc0` | C compiler | GNU LGPLv2.1 |✓|**✓**|||✓|
 | [tmux](https://github.com/tmux/tmux)<br>`tmux` | 3.8 | Terminal multiplexer | ISC |✓|**✓**|✓|✓|✓|
-| [tn5250](https://github.com/tn5250/tn5250)†<br>`tn5250` | 0.18.0 | TCP/IP 5250 terminal emulator | LGPLv2.1 |✓|||✓||
+| [tn5250](https://github.com/tn5250/tn5250)†<br>`tn5250` | 0.18.0 | TCP/IP 5250 terminal emulator | GNU LGPLv2.1 |✓|||✓||
 | [tnftp](https://ftp.netbsd.org/pub/NetBSD/misc/tnftp/)<br>`ftp` | 20260211 | FTP client | BSD 2-Clause |✓|**✓**||✓||
 | [Universal Ctags](https://ctags.io/)<br>`ctags`, `readtags` | 6.2.1 | Source code object indexing | GNU GPLv2 |✓|||||
 | [util-linux](https://github.com/util-linux/util-linux)<br>`cfdisk`, `fdisk`\*, `lscpu`, `partx`, `sfdisk`, `whereis` | 2.42.4 | Extra Linux utilities | GNU GPLv2 |✓|**✓**|||✓|
@@ -232,24 +232,24 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 
 * _\* Replaces a BusyBox version of the same utility_
 * _† Inclusion is experimental - expect bugs_
-* _‡ GCC and GNU Binutils are separate projects but are bundled together as one complete toolchain_
+* _‡ GCC and GNU Binutils are separate projects but are bundled together as one complete toolchain, separate in the table for easy reading_
 * _§ Includes musl for their libc_
 * _‖ Only included with multi-user configurations_
 * _¶ Supports mouse input with gpm_
 
 #### Libraries, prerequisites & extras
 
-| Name | Version | For | Licence(s) |
-|------|---------|-----|------------|
+| Name | Version | For | Licences |
+|------|---------|-----|----------|
 | [Brotli](https://github.com/google/brotli) | 1.2.1 | GnuTLS | MIT |
 | [console-data](https://packages.debian.org/trixie/console-data) & [KBD](https://git.kernel.org/pub/scm/linux/kernel/git/legion/kbd.git) | 1.12-9 & 2.10.0  | Keymaps pack | GNU GPLv2 |
-| [console-setup](https://packages.debian.org/trixie/console-setup) | 1.249 | Console fonts pack | Public domain (most), SIL OFL 1.1 (Terminus) |
-| [GLib](https://download.gnome.org/sources/glib/) | 2.90.1 | Midnight Commander | LGPLv2.1 |
+| [console-setup](https://packages.debian.org/trixie/console-setup) | 1.249 | Console fonts pack | Public domain (most)<br>SIL OFL 1.1 (Terminus) |
+| [GLib](https://download.gnome.org/sources/glib/) | 2.90.1 | Midnight Commander | GNU LGPLv2.1 |
 | [GNU Libidn2](https://ftp.gnu.org/gnu/libidn) | 2.3.8 | BIND 9, GnuTLS | GNU GPLv3 |
 | [GNU Libtasn1](https://www.gnu.org/software/libtasn1/) | 4.21.0 | GnuTLS | GNU GPLv3 |
 | [GNU libunistring](https://www.gnu.org/software/libunistring/) | 1.4.2 | GnuTLS, Tilde | GNU GPLv3 |
 | [GNU Nettle](https://www.lysator.liu.se/~nisse/nettle/) | 4.0 | chrony, GnuTLS | GNU GPLv2 |
-| [GnuTLS](https://www.gnutls.org/) | 3.8.13 | chrony | LGPLv2.1 |
+| [GnuTLS](https://www.gnutls.org/) | 3.8.13 | chrony | GNU LGPLv2.1 |
 | [IBM3161-font](https://github.com/wyatt8740/IBM3161-font) | 1.0 | Console fonts pack | Unifont GPLv2 |
 | [Inconsolata-psf](https://github.com/xeechou/Inconsolata-psf) | | Console fonts pack | SIL OFL 1.1 |
 | [libao](https://github.com/xiph/libao) | 1.2.2 | mpg321 | GNU GPLv2 |
@@ -263,7 +263,7 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 | [libksba](https://www.gnupg.org/software/libksba/index.html) | 1.8.1 | GnuPG | GNU GPLv3 |
 | [libmad](https://github.com/markjeee/libmad) | 0.15.1b | mpg321 | GNU GPLv2 |
 | [libpcap](https://www.tcpdump.org/) | 1.11.0 | tcpdump | BSD 3-Clause |
-| [libsmi](https://www.ibr.cs.tu-bs.de/projects/libsmi/) | 0.4.8 | tcpdump | BSD-like + Beerware |
+| [libsmi](https://www.ibr.cs.tu-bs.de/projects/libsmi/) | 0.4.8 | tcpdump | BSD-like +<br>Beerware |
 | libss | 1.47.4 | e2fsprogs | MIT SIPB |
 | [libssh2](https://github.com/libssh2/libssh2) | 1.11.1 | Midnight Commander | BSD 3-Clause |
 | [libt3config](https://os.ghalkes.nl/t3/libt3config.html) | 1.0.0 | Tilde | GNU GPLv3 |
@@ -272,7 +272,7 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 | [libt3widget](https://os.ghalkes.nl/t3/libt3widget.html) | 1.2.2 | Tilde | GNU GPLv3 |
 | [libt3window](https://os.ghalkes.nl/t3/libt3window.html) | 0.4.2 | Tilde | GNU GPLv3 |
 | [libtranscript](https://os.ghalkes.nl/libtranscript.html) | 0.3.4 | Tilde | GNU GPLv3 |
-| [liburcu](https://github.com/urcu/userspace-rcu) | 0.15.7 | BIND 9 | LGPLv2.1 |
+| [liburcu](https://github.com/urcu/userspace-rcu) | 0.15.7 | BIND 9 | GNU LGPLv2.1 |
 | libuuid | 1.47.4 | e2fsprogs | BSD 3-Clause |
 | [libuv](https://github.com/libuv/libuv) | 1.53.0 | BIND 9 | MIT |
 | [libxlsxwriter](https://github.com/jmcnamara/libxlsxwriter) | 1.2.4 | sc-im | BSD 2-Clause |
@@ -280,11 +280,11 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 | [libzip](https://github.com/nih-at/libzip) | 1.12.1 | Midnight Commander, sc-im | BSD 3-Clause |
 | [musl](somethhttps://musl.libc.org/) | 1.2.6 | GCC, Tiny C Compiler | MIT |
 | [ncurses](https://invisible-island.net/ncurses/) | 6.6 | Cscope, CTris, dialog, htop, Lynx, Midnight Commander, nano, Ncdu, NetHack, New BSD Games, sc-im, SHORKMINES, tic, tmux, tn5250, util-linux, x3270 | MIT |
-| [nPth](https://www.gnupg.org/software/npth/index.html) | 1.8 | GnuPG | LGPLv2.1 |
+| [nPth](https://www.gnupg.org/software/npth/index.html) | 1.8 | GnuPG | GNU LGPLv2.1 |
 | [OpenSSL](https://github.com/openssl/openssl) | 3.6.5 | cURL, Git, Lynx, Midnight Commander, tcpdump, tn5250 | Apache 2.0 |
-| [PCRE2](https://pcre2project.github.io/pcre2/) | 10.49 | GLib, Tilde | BSD 3-Clause w/ PCRE2 exception |
+| [PCRE2](https://pcre2project.github.io/pcre2/) | 10.49 | GLib, Tilde | BSD 3-Clause w/<br>PCRE2 exception |
 | [zlib](https://github.com/madler/zlib) | 1.3.2 | Git, GLib, GnuPG, libzip | zlib |
-| [Zstandard](https://github.com/Facebook/zstd) | 1.5.7 | GnuTLS | BSD 3-Clause, **GPLv2** |
+| [Zstandard](https://github.com/Facebook/zstd) | 1.5.7 | GnuTLS | BSD 3-Clause or<br>**GNU GPLv2** |
 
 ### SHORK Utilities (SHORKUTILS)
 
@@ -349,35 +349,25 @@ SHORK DISC is a specialised version of the SHORK 486 Operating System that can b
 
 ### Bundled software
 
-| Name | Command(s) | Version | Purpose | Licence(s) |
-|------|------------|---------|---------|------------|
-| [dosfstools](https://github.com/dosfstools/dosfstools/) | e.g. `dosfsck`, `mkdosfs` | 4.2 | FAT family filesystem utilities | GNU GPLv3 |
-| [e2fsprogs](https://e2fsprogs.sourceforge.net/)| e.g. `blkid`, `fsck`, `mke2fs`, `resize2fs`, `tune2fs`, `uuidgen` | 1.47.4 | ext2/3/4 filesystem utilities | GNU GPLv2 + LGPLv2 |
-| [file](https://github.com/file/file) | `file` | 5_48 | File identification | BSD 2-Clause |
-| [Ncdu](https://dev.yorhel.nl/ncdu) | `ncdu` | 1.22 | Disk usage analyser | MIT |
-| [strace](https://github.com/strace/strace) | `strace` | 7.2 | System calls & signals tracer | LGPLv2.1 |
-| [util-linux](https://github.com/util-linux/util-linux) | `cfdisk`, `fdisk`, `lscpu`, `partx`, `sfdisk`, `whereis` | 2.42.4 | Extra Linux utilities | GNU GPLv2 |
-
-#### Libraries & prerequisites
-
-| Name | Version | For | Licence(s) |
-|------|---------|-----|------------|
-| libcom_err | 1.47.4 | e2fsprogs | MIT SIPB |
-| libss | 1.47.4 | e2fsprogs | MIT SIPB |
-| libuuid | 1.47.4 | e2fsprogs | BSD 3-Clause |
+* [dosfstools](#bundled-software)
+* [e2fsprogs](#bundled-software)
+* [file](#bundled-software)
+* [Ncdu](#bundled-software)
+* [strace](#bundled-software)
+* [util-linux](#bundled-software)
 
 ### SHORK Utilities (shorkutils)
 
-* **[shorkfetch](https://github.com/SharktasticA/shorkfetch)**
-* **[shorkhelp](https://github.com/SharktasticA/shorkhelp)**
-* **[shorkut](https://github.com/SharktasticA/shorkut)**
+* [shorkfetch](https://github.com/SharktasticA/shorkfetch)
+* [shorkhelp](https://github.com/SharktasticA/shorkhelp)
+* [shorkut](https://github.com/SharktasticA/shorkut)
 
 ### SHORK Entertainment (shorktainment)
 
-* **[shorklocomotive](https://github.com/SharktasticA/shorklocomotive)**
-* **[shorkmatrix](https://github.com/SharktasticA/shorkmatrix)**
-* **[shorkmines](https://github.com/SharktasticA/shorkmines)**
-* **[shorksay](https://github.com/SharktasticA/shorksay)**
+* [shorklocomotive](https://github.com/SharktasticA/shorklocomotive)
+* [shorkmatrix](https://github.com/SharktasticA/shorkmatrix)
+* [shorkmines](https://github.com/SharktasticA/shorkmines)
+* [shorksay](https://github.com/SharktasticA/shorksay)
 
 
 
@@ -411,8 +401,8 @@ SHORK DISKETTE is a specialised version of the SHORK 486 Operating System that i
 
 ### SHORK Utilities (shorkutils)
 
-* **[shorkfetch](https://github.com/SharktasticA/shorkfetch)**
-* **[shorkhelp](https://github.com/SharktasticA/shorkhelp)**
+* [shorkfetch](https://github.com/SharktasticA/shorkfetch)
+* [shorkhelp](https://github.com/SharktasticA/shorkhelp)
 
 
 
@@ -456,7 +446,7 @@ If you are using an Arch, Debian or Fedora-based Linux distribution, run `build.
 
 ### WSL building
 
-If you are using Windows, SHORK can be built under Windows Subsystem for Linux 2 if you install and use Debian as the distribution choice. WSL1 is not supported as it cannot run 32-bit binaries (which is needed as the cross-compiler SHORK uses is 32-bit). See above for the required Debian host packages.
+If you are using Windows, SHORK can be built under Windows Subsystem for Linux 2, though it has only been tested with a Debian guest thus far. WSL1 is not supported as it cannot run 32-bit binaries (which is needed as the cross-compiler SHORK uses is 32-bit). See above for the required packages for the Linux guest.
 
 ### Dockerised building
 
@@ -488,15 +478,15 @@ The following outlines what the build script will typically do.
 * An after-build report is generated and (if SHORK 486/586) copied to the result image.
 * If SHORK 486/586, qemu-img is used to produce a VMware virtual machine disk based on the result image.
 * The same permission checks and fixes from the start are run again to ensure no root-only permissions are left behind.
-* And stale mounts and block-device mappings left by image builds are cleaned up.
+* Any stale mounts and block device mappings left by image builds are cleaned up.
 
 ### After building
 
 Once built, one or more disk images and an after-build report (`report.txt`) should be present in the `images` folder. The possible images are as follows:
 
 * `shork-486.img`/`shork-586.img`: Can be used as-is with PC emulation software like 86Box or written to a real disk using (e.g.) `dd`.
-* `shork-486.vmdk`/`shork-586.vmdk`: Can be used as-is with VMware Workstation or Player.
-* `shork-disc.iso` Can be used as-is as an inserted optical disc on most PC emulation and virtualisation software or burned to a real disc using burning software.
+* `shork-486.vmdk`/`shork-586.vmdk`: Can be used as-is with VMware Workstation/Player or VirtualBox.
+* `shork-disc.iso` Can be used as-is as an inserted optical disc on most PC emulation and virtualisation software or burned to a real disc.
 * `shork-diskette.img` Can be used as-is as an inserted floppy diskette on most PC emulation and virtualisation software or written to a real diskette using (e.g.) `dd`.
 
 It is recommended to move or copy the images out of this directory before extensive or serious use because they will be replaced if the build process is rerun. The after-build report is provided to confirm whether the build was completed as intended. It confirms the type of build made, the time it took to create, the minimum system memory requirement, some handy disk/disc/diskette image statistics, and which programs or features are included or excluded.
