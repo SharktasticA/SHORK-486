@@ -71,5 +71,3 @@ printf "\n\n"
 if [ -f /usr/bin/shorkstall ]; then
     printf "To install SHORK to a fixed disk or floppy diskette, please run \033[32mshorkstall\033[0m.\n\n"
 fi
-
-/bin/sh -l -m
