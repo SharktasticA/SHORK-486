@@ -724,7 +724,7 @@ if [[ "$ID" == "shork-"*86 ]]; then
     fi
 elif [ "$ID" == "shork-disc" ]; then
     echo -e "${GREEN}Noting minimum memory requirements for SHORK DISC...${RESET}"
-    EST_MIN_RAM="8MiB"
+    EST_MIN_RAM="12MiB"
 elif [ "$ID" == "shork-diskette" ]; then
     echo -e "${GREEN}Noting minimum memory requirements for SHORK DISKETTE...${RESET}"
     EST_MIN_RAM="16MiB"
@@ -12055,6 +12055,8 @@ get_installed_progs_feats()
         fi
 
         check_installed_file "musl for TCC ${MUSL_VER}" "/usr/local/musl/lib/libc.so"
+    fi
+    if [[ "$ID" == "shork-"*86 ]] || [ "$ID" == "shork-disc" ]; then
         check_installed_file "pci.ids database" "/usr/share/misc/pci.ids"
     fi
 
@@ -12129,8 +12131,6 @@ get_installed_progs_feats()
         check_installed_file "tmux ${TMUX_VER}" "/usr/bin/tmux"
         check_installed_file "tn5250 ${TN5250_VER}" "/usr/bin/tn5250"
         check_installed_file "Vim ${VIM_VER}" "/usr/bin/vim"
-        check_installed_file "dosfstools ${DOSFSTOOLS_VER}" "/sbin/fatlabel"
-        check_installed_file "e2fsprogs ${E2FSPROGS_VER}" "/usr/bin/chattr"
         check_installed_file "sudo ${SUDO_VER}" "/usr/bin/sudo"
         check_installed_file "Ncdu ${NCDU_VER}" "/usr/bin/ncdu"
         check_installed_file "GnuPG ${GNUPG_VER}" "/usr/bin/gpg"
@@ -12151,6 +12151,8 @@ get_installed_progs_feats()
         check_installed_file "util-linux ${UTIL_LINUX_VER}" "/usr/bin/whereis"
         check_installed_file "file ${FILE_VER}" "/usr/bin/file"
         check_installed_file "strace ${STRACE_VER}" "/usr/bin/strace"
+        check_installed_file "dosfstools ${DOSFSTOOLS_VER}" "/sbin/fatlabel"
+        check_installed_file "e2fsprogs ${E2FSPROGS_VER}" "/usr/bin/chattr"
     fi
 
     if [[ ${#INCLUDED_FEATURES[@]} -gt 0 ]]; then

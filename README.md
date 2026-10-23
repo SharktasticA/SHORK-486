@@ -331,7 +331,7 @@ SHORK DISC is a specialised version of the SHORK 486 Operating System that can b
 * Processor:
     * As standard: Intel 486SX or compatible (no FPU required)
     * Can also configure for 486DX, 586, 586 TSC or 586 MMX for optimisation
-* Memory: 8MiB RAM
+* Memory: 12MiB RAM
 * Disc: any CD+/-R/RW
 * Graphics: IBM EGA, VGA or compatible
 * Monitor: 640x350 (EGA), 640x480 (VGA) or higher
@@ -339,13 +339,13 @@ SHORK DISC is a specialised version of the SHORK 486 Operating System that can b
 
 ### BusyBox
 
-    ar, ash, awk, basename, bunzip2, bzcat, bzip2, cat, clear, cp, cpio,
-    date, dd, df, diff, dirname, dmesg, echo, ed, eject, expr, fdformat,
-    free, grep, gunzip, gzip, hexdump, hostname, init, less, ln, ls, lsblk,
-    lspci, lsscsi, lzcat, lzma, lzop, lzopcat, mdev, mkdir, mount, mv,
-    patch, printenv, printf, pwd, rev, rm, sed, sync, tar, tee, test, touch,
-    true, umount, uname, uncompress, unlzma, unlzop, unxz, unzip, vi,
-    volname, which, xxd, xz, xzcat, zcat
+    ar, ash, awk, basename, bunzip2, bzcat, bzip2, cat, chmod, clear, cp,
+    cpio, date, dd, df, diff, dirname, dmesg, echo, ed, eject, expr,
+    fatattr, fdformat, free, grep, gunzip, gzip, hexdump, hostname, init,
+    less, ln, ls, lsblk, lspci, lsscsi, lzcat, lzma, lzop, lzopcat, mdev,
+    mkdir, mount, mv, patch, printenv, printf, pwd, rev, rm, sed, sync, tar,
+    tee, test, touch, true, umount, uname, uncompress, unlzma, unlzop, unxz,
+    unzip, vi, volname, which, xxd, xz, xzcat, zcat
 
 ### Bundled software
 
