@@ -781,9 +781,8 @@ if [ "$INCLUDE_BIND9_DNSUTILS" = true ] || [ "$INCLUDE_MICRO" = true ]; then
     ENABLE_EPOLL=true
 fi
 
-# Ensure FB is enabled with GUI, NCDU or UTIL_LINUX
-if [ "$INCLUDE_GUI" = true ] || [ "$INCLUDE_NCDU" = true ] ||
-   [ "$INCLUDE_UTIL_LINUX" = true ]; then
+# Ensure FB is enabled with GUI
+if [ "$INCLUDE_GUI" = true ]; then
     ENABLE_FB=true
 fi
 
