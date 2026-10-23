@@ -60,7 +60,7 @@ The SHORK 486 Operating System is a modern and maintained Linux distribution tha
 
 The SHORK 486 Operating System is available in four versions: SHORK 486, SHORK 586, SHORK DISC and SHORK DISKETTE. **SHORK 486** and **SHORK 586** are for hard and solid-state disks. At present, the difference between them is just optimisation for their respective x86 revision, and which one you get depends on the target architecture you build SHORK for. They otherwise comprise the same feature set and available programs.
 
-**SHORK DISC** is for CD and DVD discs, envisioned as a completely immutable system or diagnostic aid, and will eventually be used as SHORK 486's installation media. **SHORK DISKETTE** is for floppy diskettes and is envisioned as a diagnostic aid or a CD-ROM boot disk.
+**SHORK DISC** is for CD and DVD discs, envisioned as a completely immutable system or diagnostic aid, and will eventually be used as SHORK 486's installation media. **SHORK DISKETTE** is for floppy diskettes and is envisioned as a handy emergency Linux environment, diagnostic aid and CD-ROM boot disk.
 
 
 
@@ -102,7 +102,7 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 
 * Processor:
     * As standard: Intel 486SX or compatible (no FPU required)
-    * Can also select 486SX, 486DX, 586, 586 TSC or 586 MMX for optimisation
+    * Can also configure for 486DX, 586, 586 TSC or 586 MMX for optimisation
 * Memory:
     * **Default: 16MiB RAM (8MiB swap recommended)**
     * Max: 32MiB RAM (recommended), 24MiB RAM + 8MiB swap (acceptable)
@@ -112,6 +112,7 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
     * Offline: 12MiB RAM (8MiB swap recommended)
     * Mini: 8MiB RAM
     * Micro: 7MiB RAM
+    * _**Note:** Add ~2MiB to RAM requirement to all except Max if symmetric multiprocessing support is enabled with no swap memory_
 * IDE or SCSI disk: 
     * **Default: 120MiB**
     * Max: 690MiB
@@ -123,24 +124,49 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
     * Micro: 4MiB
 * Graphics: IBM EGA, VGA or compatible
 * Monitor: 640x350 (EGA), 640x480 (VGA) or higher
+* Keyboard: AT or PS/2
+* Mouse: serial or PS/2
 
 ### BusyBox
 
 #### Base
 
-<p><code>ar, arch, ascii, ash, awk, base32, base64, basename, bc, beep, blkid, bunzip2, bzcat, bzip2, cal, cat, cksum, chmod, chvt, clear, comm, cp, cpio, crc32, crontab, cut, date, dc, dd, df, diff, dirname, dmesg, dos2unix, du, echo, ed, egrep, eject, env, expand, expr, factor, fallocate, false, fdflush, fdformat, fdisk, fgrep, find, fold, free, fuser, getfattr, getopt, grep, gunzip, gzip, halt, head, hexdump, hexedit, hostid, hostname, hwclock, init, install, iostat, kill, killall, less, link, ln, loadkmap, ls, lsblk, lsof, lspci, lsscsi, lzcat, lzma, lzop, lzopcat, man, mdev, md5sum, mkdir, mkdosfs/mkfs.vfat, mke2fs/mkfs.ext2, mkfifo, mknod, mktemp, mkswap, more, mount, mountpoint, mv, nice, nl, nohup, nproc, od, partprobe, paste, patch, pgrep, pidof, pkill, pmap, poweroff printenv, printf, ps, pstree, pwd, pwdx, readlink, realpath, reboot, rev, rm, rmdir, sed, seq, setfattr, setfont, sha1sum, sha256sum, sha384sum, sha3sum, sha512sum, shred, showkey, shuf, sleep, sort, split, stat, strings, stty, sum, swapoff, swapon, sync, tac, tail, tar, taskset, tee, test, time, timeout, top, touch, tr, tree, true, truncate, tsort, tty, umount, uname, uncompress, unexpand, uniq, unix2dos, unlink, unlzma, unlzop, unxz, unzip, uptime, usleep, uudecode, uuencode, uuidgen, vi, vmstat, volname, watch, wc, which, whoami, xargs, xxd, xz, xzcat, yes, zcat</code></p>
+    ar, arch, ascii, ash, awk, base32, base64, basename, bc, beep, blkid,
+    bunzip2, bzcat, bzip2, cal, cat, cksum, chmod, chvt, clear, comm, cp,
+    cpio, crc32, crontab, cut, date, dc, dd, df, diff, dirname, dmesg,
+    dos2unix, du, echo, ed, egrep, eject, env, expand, expr, factor,
+    fallocate, false, fdflush, fdformat, fdisk, fgrep, find, fold, free,
+    fuser, getfattr, getopt, grep, gunzip, gzip, halt, head, hexdump,
+    hexedit, hostid, hostname, hwclock, init, install, iostat, kill,
+    killall, less, link, ln, loadkmap, ls, lsblk, lsof, lspci, lsscsi,
+    lzcat, lzma, lzop, lzopcat, man, mdev, md5sum, mkdir, mkdosfs/mkfs.vfat,
+    mke2fs/mkfs.ext2, mkfifo, mknod, mktemp, mkswap, more, mount,
+    mountpoint, mv, nice, nl, nohup, nproc, od, partprobe, paste, patch,
+    pgrep, pidof, pkill, pmap, poweroff printenv, printf, ps, pstree, pwd,
+    pwdx, readlink, realpath, reboot, rev, rm, rmdir, sed, seq, setfattr,
+    setfont, sha1sum, sha256sum, sha384sum, sha3sum, sha512sum, shred,
+    showkey, shuf, sleep, sort, split, stat, strings, stty, sum, swapoff,
+    swapon, sync, tac, tail, tar, taskset, tee, test, time, timeout, top,
+    touch, tr, tree, true, truncate, tsort, tty, umount, uname, uncompress,
+    unexpand, uniq, unix2dos, unlink, unlzma, unlzop, unxz, unzip, uptime,
+    usleep, uudecode, uuencode, uuidgen, vi, vmstat, volname, watch, wc,
+    which, whoami, xargs, xxd, xz, xzcat, yes, zcat
 
 #### Framebuffer support enabled
 
-<p><code>fbset, fbsplash</code></p>
+    fbset, fbsplash
 
 #### Multi-user support enabled
 
-<p><code>addgroup, adduser, chgrp, chown, chpasswd, chroot, cryptpw, delgroup, deluser, getty, id, login, logname, mkpasswd, passwd, su, sulogin, users, w and who</code></p>
+    addgroup, adduser, chgrp, chown, chpasswd, chroot, cryptpw, delgroup,
+    deluser, getty, id, login, logname, mkpasswd, passwd, su, sulogin,
+    users, w and who
 
 #### Networking support enabled
 
-<p><code>dnsdomainname, ftpd, ftpget, ftpput, ifconfig, inetd, ip, ipcalc, nc, netcat, netstat, nslookup, ping, pscan, route, telnet, telnetd, tftp, tftpd, traceroute, udhcpc, wget and whois</code></p>
+    dnsdomainname, ftpd, ftpget, ftpput, ifconfig, inetd, ip, ipcalc, nc,
+    netcat, netstat, nslookup, ping, pscan, route, telnet, telnetd, tftp,
+    tftpd, traceroute, udhcpc, wget and whois
 
 ### Bundled software
 
@@ -303,15 +329,22 @@ SHORK DISC is a specialised version of the SHORK 486 Operating System that can b
 * BIOS: El Torito supported
 * Processor:
     * As standard: Intel 486SX or compatible (no FPU required)
-    * Can also select 486SX, 486DX, 586, 586 TSC or 586 MMX for optimisation
+    * Can also configure for 486DX, 586, 586 TSC or 586 MMX for optimisation
 * Memory: 8MiB RAM
 * Disc: any CD+/-R/RW
 * Graphics: IBM EGA, VGA or compatible
 * Monitor: 640x350 (EGA), 640x480 (VGA) or higher
+* Keyboard: AT or PS/2
 
 ### BusyBox
 
-<p><code>ar, ash, awk, basename, bunzip2, bzcat, bzip2, cat, clear, cp, cpio, date, dd, df, diff, dirname, dmesg, echo, ed, eject, expr, fdformat, free, grep, gunzip, gzip, hexdump, hostname, init, less, ln, ls, lsblk, lspci, lsscsi, lzcat, lzma, lzop, lzopcat, mdev, mkdir, mount, mv, patch, printenv, printf, pwd, rev, rm, sed, sync, tar, tee, test, touch, true, umount, uname, uncompress, unlzma, unlzop, unxz, unzip, vi, volname, which, xxd, xz, xzcat, zcat</code></p>
+    ar, ash, awk, basename, bunzip2, bzcat, bzip2, cat, clear, cp, cpio,
+    date, dd, df, diff, dirname, dmesg, echo, ed, eject, expr, fdformat,
+    free, grep, gunzip, gzip, hexdump, hostname, init, less, ln, ls, lsblk,
+    lspci, lsscsi, lzcat, lzma, lzop, lzopcat, mdev, mkdir, mount, mv,
+    patch, printenv, printf, pwd, rev, rm, sed, sync, tar, tee, test, touch,
+    true, umount, uname, uncompress, unlzma, unlzop, unxz, unzip, vi,
+    volname, which, xxd, xz, xzcat, zcat
 
 ### Bundled software
 
@@ -335,6 +368,7 @@ SHORK DISC is a specialised version of the SHORK 486 Operating System that can b
 
 * **[shorkfetch](https://github.com/SharktasticA/shorkfetch)**
 * **[shorkhelp](https://github.com/SharktasticA/shorkhelp)**
+* **[shorkut](https://github.com/SharktasticA/shorkut)**
 
 ### SHORK Entertainment (shorktainment)
 
@@ -347,25 +381,36 @@ SHORK DISC is a specialised version of the SHORK 486 Operating System that can b
 
 ## SHORK DISKETTE
 
-SHORK DISKETTE is a specialised version of the SHORK 486 Operating System that is cut-down enough to fit on a 1.44MB floppy diskette. Only a subset of BusyBox commands and utilities and SHORK Utilities are available for it due to space constraints, and is only offered as a single-user (root) system with a small amount of persistent storage in `/home`. It is envisioned as a diagnostic aid or a CD-ROM boot disk (2.88MB only at present).
+SHORK DISKETTE is a specialised version of the SHORK 486 Operating System that is cut-down enough to fit on a 1.44MB floppy diskette. Only a subset of BusyBox commands and utilities and SHORK Utilities are available for it due to space constraints, and is only offered as a single-user (root) system with a small amount of persistent storage in `/home`. It is envisioned as a handy emergency Linux environment, diagnostic aid and CD-ROM boot disk.
 
 ### Hardware requirements
 
 * Processor:
     * As standard: Intel 486SX or compatible (no FPU required)
-    * Can also select 486SX, 486DX, 586, 586 TSC or 586 MMX for optimisation
+    * Can also configure for 486DX, 586, 586 TSC or 586 MMX for optimisation
 * Memory: 16MiB RAM
 * Diskette: 1.44 or 2.88MB
 * Graphics: IBM EGA, VGA or compatible
 * Monitor: 640x350 (EGA), 640x480 (VGA) or higher
+* Keyboard: AT or PS/2
 
 ### BusyBox
 
-<p><code>ash, awk, basename, cat, clear, cp, date, dd, df, echo, expr, free, grep, hostname, init, less, ln, ls, lsblk, mdev, mkdir, mount, mv, printenv, printf, pwd, rev, rm, sed, sync, tee, test, touch, true, umount, uname, vi, which</code></p>
+#### Base
+
+    ash, awk, basename, cat, chmod, clear, cp, date, dd, df, echo, expr,
+    free, grep, hostname, init, less, ln, ls, lsblk, mdev, mkdir, mount, mv,
+    printenv, printf, pwd, rev, rm, sed, sync, tee, test, touch, true,
+    umount, uname, vi
+
+#### Block device support enabled
+
+    blkid, eject, fdformat, fdisk, fsck, mkdosfs/mkfs.vfat, mke2fs/mkfs.ext2
 
 ### SHORK Utilities (shorkutils)
 
 * **[shorkfetch](https://github.com/SharktasticA/shorkfetch)**
+* **[shorkhelp](https://github.com/SharktasticA/shorkhelp)**
 
 
 
@@ -492,7 +537,7 @@ When running the SHORK 486 Build Configurator, you will be prompted to select th
     * __If "Custom" build type selected:__
         * Ethernet networking support (yes/no)
 * _If SHORK DISKETTE:_
-    * Hard Drive, CD-ROM & DVD-ROM support (yes/no)
+    * Block Device support (yes/no)
 * Patched [EXT/ISO/SYS]LINUX (yes/no)
 * Hostname (text input)
 * _If SHORK 486/586:_

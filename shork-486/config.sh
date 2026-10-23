@@ -1038,7 +1038,6 @@ elif [ "$ID" == "shork-diskette" ]; then
 
     if [[ $CHOICE -eq 0 ]]; then
         TARGET_DISK=1
-        ENABLE_CDROM=false
     elif [[ $CHOICE -eq 1 ]]; then
         TARGET_DISK=2
     fi
@@ -1231,7 +1230,7 @@ if [[ "$ID" == "shork-"*86 ]]; then
         --backtitle "SHORK 486 Build Configurator" \
         --title "Symmetric Multiprocessing Support" \
         $DEFAULT_FLAG \
-        --yesno "Do you want to build SHORK with symmetric multiprocessing (SMP) support? This allows you to take advantage of extra processing cores and threads if you are running SHORK on a multi-socket Intel Pentium system, or wanting to use SHORK on much newer hardware. In turn, SMP raises physical memory requirements by ~2MiB if no swap memory is available. SHORK with SMP support can still run on single-thread systems." \
+        --yesno "Do you want to build SHORK with symmetric multiprocessing (SMP) support? This allows you to take advantage of extra processing cores and threads if you are running SHORK on a multi-socket Intel Pentium system, or wanting to use SHORK on much newer hardware. In turn, SMP can raise physical memory requirements by ~2MiB if no swap memory is available. SHORK with SMP support can still run on single-thread systems." \
         10 $WIDTH
 
     CHOICE=$?
@@ -1276,8 +1275,8 @@ fi
 
 
 
-# Get Hard Drive, CD-ROM & DVD-ROM support choice (DISKETTE)
-if [ "$ID" == "shork-diskette" ] && [ "$TARGET_DISK" -eq 2 ]; then
+# Get Block Device support choice (DISKETTE)
+if [ "$ID" == "shork-diskette" ]; then
     DEFAULT_FLAG=""
     if ! $ENABLE_CDROM; then
         DEFAULT_FLAG="--defaultno"
@@ -1285,10 +1284,10 @@ if [ "$ID" == "shork-diskette" ] && [ "$TARGET_DISK" -eq 2 ]; then
 
     dialog --clear \
         --backtitle "SHORK 486 Build Configurator" \
-        --title "Hard Drive, CD-ROM & DVD-ROM Support" \
+        --title "Block Device Support" \
         $DEFAULT_FLAG \
-        --yesno "Do you want to enable kernel-level hard drive, CD-ROM & DVD-ROM support in SHORK DISKETTE? This will allow SHORK DISKETTE to recognise and mount SCSI and IDE fixed disks and optical media, but will increase the kernel's size by ~200KiB, limiting persistent storage." \
-        8 $WIDTH
+        --yesno "Do you want to enable block device support in SHORK? It includes kernel-level IDE and SCSI hard drive, CD-ROM & DVD-ROM support, and some of BusyBox's filesystem utilities. This will be at the expense of persistent storage." \
+        7 $WIDTH
 
     CHOICE=$?
 

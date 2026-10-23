@@ -4507,6 +4507,12 @@ get_busybox()
     patch -p1 < "${PATCHES_DIR}/busybox/1.38.0_lsblk_swap.patch"
 
     if [ "$BUILD_TYPE" != "micro" ]; then
+        if [ "$ID" == "shork-diskette" ] && 
+             "$ENABLE_CDROM" == true ]; then
+            echo -e "${GREEN}Enabling BusyBox's filesystem utilities...${RESET}"
+            merge_bb_frag "${CONFIGS_DIR}/busybox/busybox.config.fs.frag"
+        fi
+
         if $ENABLE_FB; then
             echo -e "${GREEN}Enabling BusyBox's fbset and fbsplash utilities...${RESET}"
             merge_bb_frag "${CONFIGS_DIR}/busybox/busybox.config.fb.frag"
@@ -4794,11 +4800,12 @@ configure_kernel()
 
     if [ "$BUILD_TYPE" != "micro" ]; then
         if $ENABLE_CDROM; then
-            echo -e "${GREEN}Enabling kernel-level CD-ROM & DVD-ROM support...${RESET}"
             if [[ "$ID" == "shork-"*86 ]] || [ "$ID" == "shork-disc" ]; then
+                echo -e "${GREEN}Enabling kernel-level CD-ROM & DVD-ROM support...${RESET}"
                 FRAGS+="${CONFIGS_DIR}/linux/linux.config.cdrom.frag "
             elif [ "$ID" == "shork-diskette" ]; then
-                FRAGS+="${CONFIGS_DIR}/linux/linux.config.cdrom.diskette.frag "
+                echo -e "${GREEN}Enabling kernel-level block device support...${RESET}"
+                FRAGS+="${CONFIGS_DIR}/linux/linux.config.block.frag "
             fi
         fi
 
@@ -11867,13 +11874,16 @@ get_included_busybox_commands()
     check_bb_config "CONFIG_FBSET" ""
     check_bb_config "CONFIG_FBSPLASH" ""
 
+    # Added 2026-10-23
+    check_bb_config "CONFIG_FSCK" ""
+
     readarray -t INCLUDED_BB_CMDS < <(printf '%s\n' "${INCLUDED_BB_CMDS[@]}" | sort)
     readarray -t EXCLUDED_BB_CMDS < <(printf '%s\n' "${EXCLUDED_BB_CMDS[@]}" | sort)
 }
 
 # Checks what kernel-level support, programs and features are enabled and
-# puts them in either an EXCLUDED or INCLUDED list for the after-build report
-# to display
+# puts them in either an EXCLUDED or INCLUDED list for the after-build
+# report to display
 get_installed_progs_feats()
 {
     # Kernel features
@@ -11883,13 +11893,17 @@ get_installed_progs_feats()
         else
             EXCLUDED_FEATURES+=("kernel-level event interface support")
         fi
-    fi
 
-    if [ "$ID" != "shork-disc" ]; then
         if $ENABLE_CDROM; then
             INCLUDED_FEATURES+=("kernel-level CD-ROM & DVD-ROM support")
         else
             EXCLUDED_FEATURES+=("kernel-level CD-ROM & DVD-ROM support")
+        fi
+    elif [ "$ID" == "shork-diskette" ]; then
+        if $ENABLE_CDROM; then
+            INCLUDED_FEATURES+=("kernel-level block device support")
+        else
+            EXCLUDED_FEATURES+=("kernel-level block device support")
         fi
     fi
 
@@ -12040,16 +12054,17 @@ get_installed_progs_feats()
     if [ "$BUILD_TYPE" != "micro" ]; then
         check_installed_file "SHORKFETCH ${SHORKFETCH_VER}" "/usr/bin/shorkfetch"
         check_installed_file "SHORKHELP" "/usr/bin/shorkhelp"
-        check_installed_file "SHORKUT" "/sbin/shorkut"
         if [[ "$ID" == "shork-"*86 ]]; then
             check_installed_file "SHORKBIN" "/usr/bin/shorkbin"
             check_installed_file "SHORKDIR" "/usr/bin/shorkdir"
             check_installed_file "SHORKGUI" "/usr/bin/shorkgui"
             check_installed_file "SHORKOFF" "/sbin/shorkoff"
             check_installed_file "SHORKSET" "/usr/libexec/shorkset"
+            check_installed_file "SHORKUT" "/sbin/shorkut"
         fi
         if [ "$ID" == "shork-disc" ]; then
             check_installed_file "SHORKSTALL" "/usr/bin/shorkstall"
+            check_installed_file "SHORKUT" "/sbin/shorkut"
         fi
     fi
 
@@ -12130,8 +12145,12 @@ get_installed_progs_feats()
         check_installed_file "strace ${STRACE_VER}" "/usr/bin/strace"
     fi
 
-    readarray -t INCLUDED_FEATURES < <(printf '%s\n' "${INCLUDED_FEATURES[@]}" | sort)
-    readarray -t EXCLUDED_FEATURES < <(printf '%s\n' "${EXCLUDED_FEATURES[@]}" | sort)
+    if [[ ${#INCLUDED_FEATURES[@]} -gt 0 ]]; then
+        readarray -t INCLUDED_FEATURES < <(printf '%s\n' "${INCLUDED_FEATURES[@]}" | sort)
+    fi
+    if [[ ${#EXCLUDED_FEATURES[@]} -gt 0 ]]; then
+        readarray -t EXCLUDED_FEATURES < <(printf '%s\n' "${EXCLUDED_FEATURES[@]}" | sort)
+    fi
 }
 
 # Generate a report to go in the images folder to indicate details about this build
