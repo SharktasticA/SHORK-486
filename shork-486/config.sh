@@ -596,6 +596,7 @@ set_disc_vars()
     INCLUDE_DOSFSTOOLS=true
     INCLUDE_E2FSPROGS=true
     INCLUDE_FILE=true
+    INCLUDE_NCDU=true
     INCLUDE_SHORKTAINMENT=true
     INCLUDE_STRACE=true
     INCLUDE_UTIL_LINUX=true

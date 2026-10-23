@@ -354,6 +354,7 @@ SHORK DISC is a specialised version of the SHORK 486 Operating System that can b
 | [dosfstools](https://github.com/dosfstools/dosfstools/) | e.g. `dosfsck`, `mkdosfs` | 4.2 | FAT family filesystem utilities | GNU GPLv3 |
 | [e2fsprogs](https://e2fsprogs.sourceforge.net/)| e.g. `blkid`, `fsck`, `mke2fs`, `resize2fs`, `tune2fs`, `uuidgen` | 1.47.4 | ext2/3/4 filesystem utilities | GNU GPLv2 + LGPLv2 |
 | [file](https://github.com/file/file) | `file` | 5_48 | File identification | BSD 2-Clause |
+| [Ncdu](https://dev.yorhel.nl/ncdu) | `ncdu` | 1.22 | Disk usage analyser | MIT |
 | [strace](https://github.com/strace/strace) | `strace` | 7.2 | System calls & signals tracer | LGPLv2.1 |
 | [util-linux](https://github.com/util-linux/util-linux) | `cfdisk`, `fdisk`, `lscpu`, `partx`, `sfdisk`, `whereis` | 2.42.4 | Extra Linux utilities | GNU GPLv2 |
 
