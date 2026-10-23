@@ -13116,18 +13116,18 @@ fi
 if [ "$BUILD_TYPE" != "micro" ]; then
     get_shorkfetch
     get_shorkhelp
-    get_shorkut
     if [[ "$ID" == "shork-"*86 ]]; then
         get_shorkcommon_sh
         get_shorkbin
         get_shorkdir
         get_shorkoff
         get_shorkset
-    fi
-    if [ "$ID" == "shork-disc" ]; then
+        get_shorkut
+    elif [ "$ID" == "shork-disc" ]; then
         if $INCLUDE_SHORKSTALL; then
             get_shorkstall
         fi
+        get_shorkut
     fi
 
     if $INCLUDE_SHORKTAINMENT; then
