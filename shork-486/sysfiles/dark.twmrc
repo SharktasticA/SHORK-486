@@ -10,11 +10,11 @@ NoTitleHighlight
 
 
 
-TitleFont       "fixed"
-MenuFont        "fixed"
-ResizeFont      "fixed"
-IconFont        "fixed"
-IconManagerFont "fixed"
+TitleFont       "6x13"
+MenuFont        "6x13"
+ResizeFont      "6x13"
+IconFont        "6x13"
+IconManagerFont "6x13"
 
 
 

@@ -31,6 +31,13 @@ trap cleanup EXIT INT TERM
 
 
 FB_WIDTH=$(cat /sys/class/graphics/fb0/virtual_size | cut -d',' -f1)
+FB_BPP=$(cat /sys/class/graphics/fb0/bits_per_pixel 2>/dev/null)
+case "$FB_BPP" in
+    4)  XOR_VALUE=1 ;;
+    15) XOR_VALUE=32767 ;;
+    16) XOR_VALUE=65535 ;;
+    *)  XOR_VALUE=16777215 ;;
+esac
 FONT_DIR="/usr/lib/X11/fonts/misc"
 MODE="dark"
 
@@ -47,30 +54,34 @@ export FONTCONFIG_PATH=/etc/fonts
 export FONTCONFIG_FILE=/etc/fonts/fonts.conf
 export XLOCALEDIR=/usr/share/X11/locale
 
-Xfbdev :0 vt1 -extension XFree86-Bigfont -mouse /dev/input/mice -mouse /dev/ttyS0 -fp $FONT_DIR 2>/dev/null &
+Xfbdev :0 vt1 -extension XFree86-Bigfont -mouse /dev/input/mice -mouse /dev/ttyS0 -fp $FONT_DIR 2>/tmp/xlog &
 X_PID=$!
 
-MAX_RETRIES=15
+MAX_RETRIES=10
 COUNT=0
 while ! xset -q >/dev/null 2>&1; do
-    sleep 1
     COUNT=$((COUNT + 1))
     if [ $COUNT -ge $MAX_RETRIES ]; then
-        printf "\nERROR: Xfbdev failed to respond after $MAX_RETRIES seconds.\n" | fold -s -w "$TERM_WIDTH"
+        printf "\nERROR: Xfbdev failed to respond after 5 seconds.\n" | fold -s -w "$TERM_WIDTH"
         exit 1
     elif ! kill -0 $X_PID 2>/dev/null; then
         printf "\nERROR: Xfbdev exited unexpectedly.\n" | fold -s -w "$TERM_WIDTH"
         exit 1
     fi
+    sleep 0.5
 done
 
 if [ $MODE == "light" ]; then 
-    xli -onroot -center -border white -quiet /usr/share/backgrounds/shork_1024x768_invert.png
-    sed "s/@FB_WIDTH@/$FB_WIDTH/g" /usr/share/X11/twm/light.twmrc > /tmp/shorkgui.twmrc
+    xli -onroot -center -border white -quiet /usr/share/backgrounds/shork_640x480_invert.png
+    sed -e "s/@FB_WIDTH@/$FB_WIDTH/g" \
+        -e "s/^XorValue 1\$/XorValue $XOR_VALUE/" \
+        /usr/share/X11/twm/light.twmrc > /tmp/shorkgui.twmrc
 else
-    xli -onroot -center -border black -quiet /usr/share/backgrounds/shork_1024x768.png
-    sed "s/@FB_WIDTH@/$FB_WIDTH/g" /usr/share/X11/twm/dark.twmrc > /tmp/shorkgui.twmrc
+    xli -onroot -center -border black -quiet /usr/share/backgrounds/shork_640x480.png
+    sed -e "s/@FB_WIDTH@/$FB_WIDTH/g" \
+        -e "s/^XorValue 1\$/XorValue $XOR_VALUE/" \
+        /usr/share/X11/twm/dark.twmrc > /tmp/shorkgui.twmrc
 fi
 
-sleep 1
+sleep 0.5
 twm -f /tmp/shorkgui.twmrc 2>/dev/null

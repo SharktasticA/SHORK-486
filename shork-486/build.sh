@@ -6258,14 +6258,18 @@ get_fonts()
 
     echo -e "${GREEN}Installing bitmap fonts...${RESET}"
     mkdir -p "$BIT_FONT_DIR"
-    for f in 6x13 7x14 8x13 9x15; do
+    for f in 6x12 6x13 7x14 8x13 9x15; do
         for suffix in "" "-ISO8859-1"; do
             src="$SYSROOT/usr/lib/X11/fonts/misc/${f}${suffix}.pcf.gz"
             [ -f "$src" ] && cp "$src" "$BIT_FONT_DIR"
         done
     done
     cp "$SYSROOT/usr/lib/X11/fonts/misc/cursor.pcf.gz" "$BIT_FONT_DIR"
-    echo "fixed -misc-fixed-medium-r-normal--14-130-75-75-c-70-iso10646-1" | tee "$BIT_FONT_DIR/fonts.alias" > /dev/null
+    {
+        echo "fixed -misc-fixed-medium-r-normal--14-130-75-75-c-70-iso10646-1"
+        echo "6x12 -misc-fixed-medium-r-semicondensed--12-110-75-75-c-60-iso10646-1"
+        echo "6x13 -misc-fixed-medium-r-semicondensed--13-120-75-75-c-60-iso10646-1"
+    } > "$BIT_FONT_DIR/fonts.alias"
     cd "${DESTDIR}"/usr/lib/X11/fonts/misc
     sudo rm -f fonts.dir fonts.scale
     mkfontscale .
@@ -10733,12 +10737,12 @@ build_filesystem()
         mkdir -p "${DESTDIR}/usr/share/backgrounds"
         if [ "$ID" == "shork-486" ]; then
             copy_sysfile "${CURR_DIR}"/branding/shork-486_640x480.ppm "${DESTDIR}"/usr/share/backgrounds/shork_640x480.ppm
-            copy_sysfile "${CURR_DIR}"/branding/shork-486_1024x768.png "${DESTDIR}"/usr/share/backgrounds/shork_1024x768.png
-            copy_sysfile "${CURR_DIR}"/branding/shork-486_1024x768_invert.png "${DESTDIR}"/usr/share/backgrounds/shork_1024x768_invert.png
+            copy_sysfile "${CURR_DIR}"/branding/shork-486_640x480.png "${DESTDIR}"/usr/share/backgrounds/shork_640x480.png
+            copy_sysfile "${CURR_DIR}"/branding/shork-486_640x480_invert.png "${DESTDIR}"/usr/share/backgrounds/shork_640x480_invert.png
         elif [ "$ID" == "shork-586" ]; then
             copy_sysfile "${CURR_DIR}"/branding/shork-586_640x480.ppm "${DESTDIR}"/usr/share/backgrounds/shork_640x480.ppm
-            copy_sysfile "${CURR_DIR}"/branding/shork-586_1024x768.png "${DESTDIR}"/usr/share/backgrounds/shork_1024x768.png
-            copy_sysfile "${CURR_DIR}"/branding/shork-586_1024x768_invert.png "${DESTDIR}"/usr/share/backgrounds/shork_1024x768_invert.png
+            copy_sysfile "${CURR_DIR}"/branding/shork-586_640x480.png "${DESTDIR}"/usr/share/backgrounds/shork_640x480.png
+            copy_sysfile "${CURR_DIR}"/branding/shork-586_640x480_invert.png "${DESTDIR}"/usr/share/backgrounds/shork_640x480_invert.png
         fi
     fi
 

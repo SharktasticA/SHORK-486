@@ -5,7 +5,7 @@ XCalc.IconPixmap:   calculator
 
 
 XCalc*Cursor:       hand2
-XCalc*Font:         fixed
+XCalc*Font:         6x13
 XCalc*ShapeStyle:   rectangle
 
 

@@ -68,7 +68,7 @@ index ae89381..38e0c23 100644
 +}
 +
 +static void *fbdevWindowPlanar(ScreenPtr pScreen, CARD32 row, CARD32 offset,
-+			int mode, CARD32 * size, void *closure)
++			int mode, CARD32 *size, void *closure)
 +{
 +	KdScreenPriv(pScreen);
 +	FbdevPriv *priv = pScreenPriv->card->driver;

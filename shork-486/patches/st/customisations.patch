@@ -18,7 +18,7 @@ index fd2bd87..152fd18 100644
   * font: see http://freedesktop.org/software/fontconfig/fontconfig-user.html
   */
 -static char *font = "Liberation Mono:pixelsize=12:antialias=true:autohint=true";
-+static char *font = "fixed:pixelsize=14";
++static char *font = "fixed:pixelsize=13:file=/usr/lib/X11/fonts/misc/6x13.pcf.gz:antialias=false";
  static int borderpx = 2;
  
  /*
