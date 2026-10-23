@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Busybox version: 1.38.0
-# Sat Jun 13 19:27:41 2026
+# Fri Oct 23 08:42:19 2026
 #
 CONFIG_HAVE_DOT_CONFIG=y
 
@@ -224,7 +224,7 @@ CONFIG_CAT=y
 CONFIG_FEATURE_CATN=y
 CONFIG_FEATURE_CATV=y
 # CONFIG_CHGRP is not set
-# CONFIG_CHMOD is not set
+CONFIG_CHMOD=y
 # CONFIG_CHOWN is not set
 # CONFIG_FEATURE_CHOWN_LONG_OPTIONS is not set
 # CONFIG_CHROOT is not set
@@ -400,7 +400,7 @@ CONFIG_DEFAULT_SETFONT_DIR=""
 # CONFIG_START_STOP_DAEMON is not set
 # CONFIG_FEATURE_START_STOP_DAEMON_LONG_OPTIONS is not set
 # CONFIG_FEATURE_START_STOP_DAEMON_FANCY is not set
-CONFIG_WHICH=y
+# CONFIG_WHICH is not set
 
 #
 # klibc-utils
