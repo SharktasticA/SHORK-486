@@ -4569,11 +4569,15 @@ get_busybox()
         fi
 
         if $INCLUDE_E2FSPROGS; then
-            echo -e "${GREEN}Disabling BusyBox's blkid, mke2fs/mkfs.ext2 and uuidgen implementations in favour of e2fsprogs'...${RESET}"
+            echo -e "${GREEN}Disabling BusyBox's blkid, chattr, fsck, lsattr, mke2fs/mkfs.ext2, tune2fs and uuidgen implementations in favour of e2fsprogs'...${RESET}"
             disable_bb_feat "CONFIG_BLKID"
+            disable_bb_feat "CONFIG_CHATTR"
             disable_bb_feat "CONFIG_FEATURE_BLKID_TYPE"
+            disable_bb_feat "CONFIG_FSCK"
+            disable_bb_feat "CONFIG_LSATTR"
             disable_bb_feat "CONFIG_MKE2FS"
             disable_bb_feat "CONFIG_MKFS_EXT2"
+            disable_bb_feat "CONFIG_TUNE2FS"
             disable_bb_feat "CONFIG_UUIDGEN"
         fi
 
@@ -11875,7 +11879,11 @@ get_included_busybox_commands()
     check_bb_config "CONFIG_FBSPLASH" ""
 
     # Added 2026-10-23
+    check_bb_config "CONFIG_CHATTR" ""
+    check_bb_config "CONFIG_FATATTR" ""
     check_bb_config "CONFIG_FSCK" ""
+    check_bb_config "CONFIG_LSATTR" ""
+    check_bb_config "CONFIG_TUNE2FS" ""
 
     readarray -t INCLUDED_BB_CMDS < <(printf '%s\n' "${INCLUDED_BB_CMDS[@]}" | sort)
     readarray -t EXCLUDED_BB_CMDS < <(printf '%s\n' "${EXCLUDED_BB_CMDS[@]}" | sort)

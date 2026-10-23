@@ -132,25 +132,26 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 #### Base
 
     ar, arch, ascii, ash, awk, base32, base64, basename, bc, beep, blkid,
-    bunzip2, bzcat, bzip2, cal, cat, cksum, chmod, chvt, clear, comm, cp,
-    cpio, crc32, crontab, cut, date, dc, dd, df, diff, dirname, dmesg,
-    dos2unix, du, echo, ed, egrep, eject, env, expand, expr, factor,
-    fallocate, false, fdflush, fdformat, fdisk, fgrep, find, fold, free,
-    fuser, getfattr, getopt, grep, gunzip, gzip, halt, head, hexdump,
-    hexedit, hostid, hostname, hwclock, init, install, iostat, kill,
-    killall, less, link, ln, loadkmap, ls, lsblk, lsof, lspci, lsscsi,
-    lzcat, lzma, lzop, lzopcat, man, mdev, md5sum, mkdir, mkdosfs/mkfs.vfat,
-    mke2fs/mkfs.ext2, mkfifo, mknod, mktemp, mkswap, more, mount,
-    mountpoint, mv, nice, nl, nohup, nproc, od, partprobe, paste, patch,
-    pgrep, pidof, pkill, pmap, poweroff printenv, printf, ps, pstree, pwd,
-    pwdx, readlink, realpath, reboot, rev, rm, rmdir, sed, seq, setfattr,
-    setfont, sha1sum, sha256sum, sha384sum, sha3sum, sha512sum, shred,
-    showkey, shuf, sleep, sort, split, stat, strings, stty, sum, swapoff,
-    swapon, sync, tac, tail, tar, taskset, tee, test, time, timeout, top,
-    touch, tr, tree, true, truncate, tsort, tty, umount, uname, uncompress,
-    unexpand, uniq, unix2dos, unlink, unlzma, unlzop, unxz, unzip, uptime,
-    usleep, uudecode, uuencode, uuidgen, vi, vmstat, volname, watch, wc,
-    which, whoami, xargs, xxd, xz, xzcat, yes, zcat
+    bunzip2, bzcat, bzip2, cal, cat, chattr, chmod, chvt, cksum, clear,
+    comm, cp, cpio, crc32, crontab, cut, date, dc, dd, df, diff, dirname,
+    dmesg, dos2unix, du, echo, ed, egrep, eject, env, expand, expr, factor,
+    fallocate, false, fatattr, fdflush, fdformat, fdisk, fgrep, find, fold,
+    free, fsck, fuser, getfattr, getopt, grep, gunzip, gzip, halt, head,
+    hexdump, hexedit, hostid, hostname, hwclock, init, install, iostat,
+    kill, killall, less, link, ln, loadkmap, ls, lsattr, lsblk, lsof, lspci,
+    lsscsi, lzcat, lzma, lzop, lzopcat, man, md5sum, mdev, mkdir,
+    mkdosfs/mkfs.vfat, mke2fs/mkfs.ext2, mkfifo, mknod, mkswap, mktemp,
+    more, mount, mountpoint, mv, nice, nl, nohup, nproc, od, partprobe,
+    paste, patch, pgrep, pidof, pkill, pmap, poweroff, printenv, printf, ps,
+    pstree, pwd, pwdx, readlink, realpath, reboot, rev, rm, rmdir, sed, seq,
+    setfattr, setfont, sha1sum, sha256sum, sha384sum, sha3sum, sha512sum,
+    showkey, shred, shuf, sleep, sort, split, stat, strings, stty, sum,
+    swapoff, swapon, sync, tac, tail, tar, taskset, tee, test, time,
+    timeout, top, touch, tr, tree, true, truncate, tsort, tty, tune2fs,
+    umount, uname, uncompress, unexpand, uniq, unix2dos, unlink, unlzma,
+    unlzop, unxz, unzip, uptime, usleep, uudecode, uuencode, uuidgen, vi,
+    vmstat, volname, watch, wc, which, whoami, xargs, xxd, xz, xzcat, yes,
+    zcat
 
 #### Framebuffer support enabled
 
@@ -608,7 +609,7 @@ EXTLINUX (SHORK 486/586), ISOLINUX (SHORK DISC) and SYSLINUX (SHORK DISKETTE) ar
     * **Note:** If included, BusyBox's `mkdosfs`/`mkfs.vfat` implementation will be disabled in favour of dosfstools'.
 
 * **e2fsprogs**: Adds utilities for creating, inspecting and maintaining ext2, ext3 and ext4 filesystems.
-    * **Note:** If included, BusyBox's `blkid`, `mke2fs`/`mkfs.ext2` and `uuidgen` implementations will be disabled in favour of e2fsprogs'.
+    * **Note:** If included, BusyBox's `blkid`, `chattr`, `fsck`, `lsattr`, `mke2fs`/`mkfs.ext2`, `tune2fs` and `uuidgen` implementations will be disabled in favour of e2fsprogs'.
 
 * **file**: Adds the `file` command, which can identify a file's type by checking its contents against a database of possible magic signatures. Due to the size of said database, 16MiB RAM is required for it to work correctly.
 
