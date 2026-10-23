@@ -10654,6 +10654,11 @@ build_filesystem()
         copy_sysfile "${CURR_DIR}"/sysfiles/disc/profile "${DESTDIR}"/etc/profile
         copy_sysfile "${CURR_DIR}"/sysfiles/disc/rc "${DESTDIR}"/etc/init.d/rc
         copy_sysfile "${CURR_DIR}"/sysfiles/disc/welcome "${DESTDIR}"/banners/welcome
+    
+        echo -e "${GREEN}Copying and compiling terminfo database...${RESET}"
+        mkdir -p "${DESTDIR}"/usr/share/terminfo/src/
+        cp "${CURR_DIR}"/sysfiles/terminfo.src "${DESTDIR}"/usr/share/terminfo/src/
+        tic -x -1 -o "${DESTDIR}"/usr/share/terminfo "${DESTDIR}"/usr/share/terminfo/src/terminfo.src
     elif [ "$ID" == "shork-diskette" ]; then
         copy_sysfile "${CURR_DIR}"/sysfiles/diskette/profile "${DESTDIR}"/etc/profile
         copy_sysfile "${CURR_DIR}"/sysfiles/diskette/rc "${DESTDIR}"/etc/init.d/rc
