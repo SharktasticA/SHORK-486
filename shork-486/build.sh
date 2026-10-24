@@ -1029,7 +1029,7 @@ if $INCLUDE_HWINFO; then
     NEED_X86EMU=true
 fi
 
-if $INCLUDE_LYNX; then
+if $INCLUDE_LYNX || $INCLUDE_TN5250; then
     NEED_OPENSSL=true
 fi
 
@@ -8511,23 +8511,23 @@ get_nethack()
 
     # Compile
     echo -e "${GREEN}Compiling NetHack...${RESET}"
-    make CROSS_TO_I486=1 WANT_WIN_TTY=1 -j"$JOBS" all \
+    make CROSS_TO_I486=1 WANT_WIN_TTY=1 WANT_WIN_CURSES=1 -j"$JOBS" all \
         I486_CC="${CC_STATIC}" \
         I486_CXX="${CXX_STATIC}" \
         I486_AR="${AR}" \
         I486_CFLAGS="${CFLAGS_NOPIE} -ffunction-sections -fdata-sections" \
         I486_NCURSES_INC="-I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
-        I486_NCURSES_LIB="${PREFIX}/lib/libncursesw.a" \
+        I486_NCURSES_LIB="${PREFIX}/lib/libncursesw.a ${PREFIX}/lib/libgpm.a" \
         I486_HACKDIR=/usr/games/nethackdir
 
     echo -e "${GREEN}Assembling NetHack package..${RESET}"
-    make CROSS_TO_I486=1 WANT_WIN_TTY=1 -j"$JOBS" package \
+    make CROSS_TO_I486=1 WANT_WIN_TTY=1 WANT_WIN_CURSES=1 -j"$JOBS" package \
         I486_CC="${CC_STATIC}" \
         I486_CXX="${CXX_STATIC}" \
         I486_AR="${AR}" \
         I486_CFLAGS="${CFLAGS_NOPIE} -ffunction-sections -fdata-sections" \
         I486_NCURSES_INC="-I${PREFIX}/include -I${PREFIX}/include/ncursesw" \
-        I486_NCURSES_LIB="${PREFIX}/lib/libncursesw.a" \
+        I486_NCURSES_LIB="${PREFIX}/lib/libncursesw.a ${PREFIX}/lib/libgpm.a" \
         I486_HACKDIR=/usr/games/nethackdir
 
     # Install
@@ -8535,6 +8535,8 @@ get_nethack()
     HACKDIR_DEST="${DESTDIR}/usr/games/lib/nethackdir"
     install -D -m 755 "targets/i486/pkg/nethack" "${DESTDIR}/usr/bin/nethack"
     install -D -m 644 "targets/i486/pkg/.nethackrc" "${DESTDIR}/root/.nethackrc"
+    echo "OPTIONS=windowtype:curses" >> "${DESTDIR}/root/.nethackrc"
+    echo "OPTIONS=mouse_support:1" >> "${DESTDIR}/root/.nethackrc"
     install -D -m 666 "targets/i486/pkg/record" "${HACKDIR_DEST}/record"
     install -D -m 755 "targets/i486/pkg/recover" "${HACKDIR_DEST}/recover"
     for f in nhdat symbols sysconf; do
@@ -8704,7 +8706,7 @@ get_sc_im()
             -DSNAME=\\\"sc-im\\\" -DHELP_PATH=\\\"/usr/share/sc-im\\\" \
             -DCONFIG_DIR=\\\".config/sc-im\\\" -DCONFIG_FILE=\\\"scimrc\\\" \
             -DHISTORY_DIR=\\\".cache\\\" -DHISTORY_FILE=\\\"sc-iminfo\\\" \
-            -DUSECOLORS -DUNDO -DMAXROWS=65536 \
+            -DUSECOLORS -DUNDO -DMOUSE -DMAXROWS=65536 \
             -DXLSX -DODS -DXLSX_EXPORT" \
         LDLIBS="-lxlsxwriter -lxml2 -lzip -lz -lm -lncursesw -ltinfo -lpthread -lgpm" \
         LDFLAGS="-static -L${PREFIX}/lib" \

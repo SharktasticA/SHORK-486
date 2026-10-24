@@ -181,7 +181,7 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 | [Cscope](https://cscope.sourceforge.net/)<br>`cscope` | 15.9 | C/C++ code browser | BSD 3-Clause |✓|||||
 | [CTris](https://github.com/MitchelPaulin/CTris)<br>`ctris` | `4cf68a9` | Tetris clone | MIT |✓|**✓**|||✓|
 | [cURL](https://curl.se/)<br>`curl` | 8.23.0 | HTTP client & transfer utility | MIT |✓|**✓**||✓||
-| [dialog](https://invisible-mirror.net/dialog/dialog.html)<br>`dialog` | 1.3-20260721 | Shell script TUI widgets | GNU LGPLv2.1 |✓|**✓**|||✓|
+| [dialog](https://invisible-mirror.net/dialog/dialog.html)¶<br>`dialog` | 1.3-20260721 | Shell script TUI widgets | GNU LGPLv2.1 |✓|**✓**|||✓|
 | [dosfstools](https://github.com/dosfstools/dosfstools/)<br>e.g. `dosfsck`, `mkdosfs`\* | 4.2 | FAT family filesystem utilities | GNU GPLv3 |✓|**✓**|||✓|
 | [Dropbear](https://github.com/mkj/dropbear)<br>`scp`, `ssh` | 2026.94 | SCP and SSH clients | MIT +<br>BSD 2-Clause |✓|**✓**||✓||
 | [e2fsprogs](https://e2fsprogs.sourceforge.net/)<br>e.g. `blkid`\*, `chattr`\*, `fsck`\*, `lsattr`\*, `mke2fs`\*, `resize2fs`, `tune2fs`\*, `uuidgen`\* | 1.47.4 | ext2/3/4 filesystem utilities | GNU GPLv2 + LGPLv2 |✓|**✓**|||✓|
@@ -212,11 +212,11 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 | [mt-st](https://github.com/iustin/mt-st)<br>`mt`, `stinit` | 1.8 | Tape drive tools | GNU GPLv2 |✓|**✓**|||✓|
 | [NASM](https://www.nasm.us/)<br>`nasm`, `ndisasm` | 3.02 | Portable x86 assembler & disassembler | BSD 2-Clause |✓|||||
 | [Ncdu](https://dev.yorhel.nl/ncdu)<br>`ncdu` | 1.22 | Disk usage analyser | MIT |✓|**✓**|✓||✓|
-| [NetHack](https://github.com/NetHack/NetHack)<br>`nethack` | 5.0.0 | Dungeon exploration game | NetHack GPL |✓|||||
-| [New BSD Games](https://github.com/abakh/nbsdgames)<br>`nbsdgames` | 6.0.3 | Terminal games pack (22) | Public domain |✓|||||
+| [NetHack](https://github.com/NetHack/NetHack)¶<br>`nethack` | 5.0.0 | Dungeon exploration game | NetHack GPL |✓|||||
+| [New BSD Games](https://github.com/abakh/nbsdgames)¶<br>`nbsdgames` | 6.0.3 | Terminal games pack (22) | Public domain |✓|||||
 | [PatchELF](https://github.com/nixos/patchelf)<br>`patchelf` | 0.19.2 | ELF binary patching | GNU GPLv3 |✓|||||
 | [Perl](https://www.perl.org/)<br>`perl` | 5.44.0 | General-purpose scripting language | GNU GPLv1 |✓|||||
-| [sc-im](https://github.com/andmarti1424/sc-im)<br>`sc-im` | 0.8.5 | Terminal spreadsheet editor | BSD 4-Clause |✓|**✓**|✓||✓|
+| [sc-im](https://github.com/andmarti1424/sc-im)¶<br>`sc-im` | 0.8.5 | Terminal spreadsheet editor | BSD 4-Clause |✓|**✓**|✓||✓|
 | [strace](https://github.com/strace/strace)<br>`strace` | 7.2 | System calls & signals tracer | GNU LGPLv2.1 |✓|**✓**|||✓|
 | [sudo](https://www.sudo.ws/)‖<br>`sudo`, `sudoedit`, `visudo` | 1.9.17p2 | Run command as root/substitute user | ISC +<br>BSD 2-Clause +<br>BSD 3-Clause +<br>zlib |✓|**✓**|✓|✓|✓|
 | [tcpdump](https://www.tcpdump.org)<br>`tcpdump` | 4.99.7 | Packet analyzer | BSD 3-Clause |✓|||||
@@ -228,7 +228,7 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 | [Universal Ctags](https://ctags.io/)<br>`ctags`, `readtags` | 6.2.1 | Source code object indexing | GNU GPLv2 |✓|||||
 | [util-linux](https://github.com/util-linux/util-linux)<br>`cfdisk`, `fdisk`\*, `lscpu`, `partx`, `sfdisk`, `whereis` | 2.42.4 | Extra Linux utilities | GNU GPLv2 |✓|**✓**|||✓|
 | [Vim](https://www.vim.org/)†¶<br>`ex`, `view`, `rvim`, `rview`, `vim`, `vimdiff`, `vimtutor`, `xxd`\* | 9.2.1071 | Vi IMproved text editor | Vim |✓||✓|||
-| [x3270](https://github.com/pmattes/x3270)†<br>`c3270` | 4.5ga6 | 3270 terminal emulator | BSD 3-Clause |✓|||||
+| [x3270](https://github.com/pmattes/x3270)†¶<br>`c3270` | 4.5ga6 | 3270 terminal emulator | BSD 3-Clause |✓|||||
 
 * _\* Replaces a BusyBox version of the same utility_
 * _† Inclusion is experimental - expect bugs_
