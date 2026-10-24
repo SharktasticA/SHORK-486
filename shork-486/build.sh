@@ -6456,7 +6456,7 @@ get_openmotif()
         AR="$AR" \
         RANLIB="$RANLIB" \
         STRIP="$STRIP" \
-        CFLAGS="--sysroot=${SYSROOT} -O2 -march=${ARCH} -I${SYSROOT}/usr/include -Wno-error -Wno-maybe-uninitialized -Wno-array-bounds -Wno-int-in-bool-context"
+        CFLAGS="${CFLAGS_COMMON}"
 
     # Patch for "undefined reference to 'main'"
     sed -i 's/^LEX =.*/LEX = flex/' tools/wml/Makefile
@@ -6591,9 +6591,10 @@ get_tinyx()
         --enable-xfbdev \
         CC="${CC_STATIC}" \
         CPPFLAGS="-I$SYSROOT/usr/include -I$SYSROOT/usr/include/freetype2" \
-        CFLAGS="-O2 -march=${ARCH} -mtune=${ARCH} -fomit-frame-pointer -ffast-math -mno-fancy-math-387 -pipe --sysroot=$SYSROOT" \
+        CFLAGS="${CFLAGS_COMMON}" \
         LDFLAGS="-static -L$SYSROOT/usr/lib --sysroot=$SYSROOT" \
-        LIBS="$LINK_LIBS" \XSERVERCFLAGS_CFLAGS="-I$SYSROOT/usr/include -I$SYSROOT/usr/include/freetype2" XSERVERLIBS_LIBS="$LINK_LIBS"
+        LIBS="$LINK_LIBS" \
+        XSERVERCFLAGS_CFLAGS="-I$SYSROOT/usr/include -I$SYSROOT/usr/include/freetype2" XSERVERLIBS_LIBS="$LINK_LIBS"
     make -j"$JOBS"
     make DESTDIR="$DESTDIR" install
 }
@@ -6634,7 +6635,7 @@ get_twm()
     ./autogen.sh
     ./configure --host="$HOST" --prefix=/usr \
         CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP" \
-        CFLAGS="-O2 -march=${ARCH} -mtune=${ARCH} -fomit-frame-pointer -ffast-math -pipe --sysroot=$SYSROOT" \
+        CFLAGS="${CFLAGS_COMMON}" \
         CPPFLAGS="-I$SYSROOT/usr/include" \
         LDFLAGS="-static -L$SYSROOT/usr/lib --sysroot=$SYSROOT"
     make -j"$JOBS"
@@ -6668,7 +6669,7 @@ get_nedit()
     sed -i 's|-I../Microline||g' makefiles/Makefile.linux
     sed -i 's|../Microline/XmL/libXmL.a||g' makefiles/Makefile.linux
 
-    export CFLAGS="--sysroot=${SYSROOT} -O2 -march=${ARCH} -I${SYSROOT}/usr/include"
+    export CFLAGS="${CFLAGS_COMMON}"
     export LDFLAGS="--sysroot=${SYSROOT} -L${SYSROOT}/usr/lib"
 
     # Compile and install
@@ -6744,7 +6745,7 @@ get_st()
     echo -e "${GREEN}Compiling st...${RESET}"
     make -j"$JOBS" \
         CC="$CC_STATIC" AR="$AR" RANLIB="$RANLIB" STRIP="$STRIP" \
-        CFLAGS="-O2 -march=${ARCH} -mtune=${ARCH} -fomit-frame-pointer -ffast-math -pipe" \
+        CFLAGS="${CFLAGS_COMMON}" \
         CPPFLAGS="-I$SYSROOT/usr/include -I$SYSROOT/usr/include/freetype2" \
         LDFLAGS="-static -L$SYSROOT/usr/lib --sysroot=$SYSROOT" \
         LIBS="-lXft -lfontconfig -lfreetype -lXrender -lX11 -lxcb -lXau -lXdmcp -lexpat -lpng -lz -lm"
