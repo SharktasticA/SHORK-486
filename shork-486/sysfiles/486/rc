@@ -26,12 +26,34 @@ LOG_LINE=0
 PCMCIA_BRIDGES="i82092 i82365 pd6729 tcic"
 # Flags if shorkset.conf has been loaded
 SHORKSET_LOADED=0
+# Saved tty settings whilst input is locked
+STTY_SAVED=""
 # Row count
 TERM_HEIGHT=25
 # Column count
 TERM_WIDTH=80
 
 
+
+# Disables keyboard input and text cursor
+input_lock()
+{
+    SAVED="$(stty -g 2>/dev/null)" || return
+    stty -echo -icanon -isig min 0 time 0 2>/dev/null || return
+    STTY_SAVED="$SAVED"
+    printf '\033[?25l'
+}
+
+# Restores keyboard input and text cursor
+input_unlock()
+{
+    trap - EXIT
+    if [ -n "$STTY_SAVED" ]; then
+        dd of=/dev/null bs=256 2>/dev/null
+        stty "$STTY_SAVED" 2>/dev/null
+    fi
+    printf '\033[?25h' 
+}
 
 # Prints a systemd-style log message or progress bar
 # $1 - Message to print
@@ -254,8 +276,9 @@ term_size()
 
 
 
-# Hide text cursor
-printf '\033[?25l'
+trap input_unlock EXIT
+trap 'exit 1' INT TERM HUP
+input_lock
 
 # Entry datetime
 DATETIME="$(date +%Y%m%d%H%M%S)"
@@ -482,5 +505,4 @@ fi
 echo "$MFK_DEFAULT" > /proc/sys/vm/min_free_kbytes
 sleep 0.125
 
-# Show text cursor
-printf '\033[?25h'
+input_unlock
