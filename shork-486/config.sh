@@ -25,7 +25,7 @@ HEIGHT=20
 CUSTOM_DEF_SWAP=0
 CUSTOM_MIN_DISK=8
 DEFAULT_DEF_SWAP=8
-DEFAULT_MIN_DISK=120
+DEFAULT_MIN_DISK=128
 MAX_DEF_SWAP=16
 MAX_MIN_DISK=690
 MICRO_DEF_SWAP=0
@@ -33,7 +33,7 @@ MICRO_MIN_DISK=4
 MINI_DEF_SWAP=0
 MINI_MIN_DISK=8
 OFFLINE_DEF_SWAP=8
-OFFLINE_MIN_DISK=70
+OFFLINE_MIN_DISK=90
 PLUS_DEF_SWAP=16
 PLUS_MIN_DISK=670
 TERM_DEF_SWAP=8
@@ -76,6 +76,7 @@ INCLUDE_CTAGS=false
 INCLUDE_CTRIS=false
 INCLUDE_CURL=false
 INCLUDE_DIALOG=false
+INCLUDE_DOSEMU2=false
 INCLUDE_DOSFSTOOLS=false
 INCLUDE_DROPBEAR=false
 INCLUDE_E2FSPROGS=false
@@ -121,6 +122,7 @@ INCLUDE_UTIL_LINUX=false
 INCLUDE_VIM=false
 INCLUDE_CON_FONTS=false
 ENABLE_FB=false
+INCLUDE_FREEDOS=false
 USE_GRUB=false
 INCLUDE_GUI=false
 ENABLE_HELP_VERBOSE=false
@@ -240,6 +242,7 @@ save_env()
         echo "INCLUDE_CTRIS=$INCLUDE_CTRIS"
         echo "INCLUDE_CURL=$INCLUDE_CURL"
         echo "INCLUDE_DIALOG=$INCLUDE_DIALOG"
+        echo "INCLUDE_DOSEMU2=$INCLUDE_DOSEMU2"
         echo "INCLUDE_DOSFSTOOLS=$INCLUDE_DOSFSTOOLS"
         echo "INCLUDE_DROPBEAR=$INCLUDE_DROPBEAR"
         echo "INCLUDE_E2FSPROGS=$INCLUDE_E2FSPROGS"
@@ -286,6 +289,7 @@ save_env()
         echo "INCLUDE_VIM=$INCLUDE_VIM"
         echo "INCLUDE_CON_FONTS=$INCLUDE_CON_FONTS"
         echo "ENABLE_FB=$ENABLE_FB"
+        echo "INCLUDE_FREEDOS=$INCLUDE_FREEDOS"
         echo "USE_GRUB=$USE_GRUB"
         echo "INCLUDE_GUI=$INCLUDE_GUI"
         echo "ENABLE_HELP_VERBOSE=$ENABLE_HELP_VERBOSE"
@@ -339,6 +343,10 @@ set_mini_vars()
     if [ -z "$4" ] || [ "$4" = false ]; then
         ENABLE_DYN_SWAP=false
     fi
+    # Four argument =true bypasses resetting INCLUDE_FREEDOS
+    if [ -z "$5" ] || [ "$5" = false ]; then
+        INCLUDE_FREEDOS=false
+    fi
 
     SETUP_DYN_SWAP=false
     ENABLE_NET_ETH=false
@@ -353,6 +361,7 @@ set_mini_vars()
     INCLUDE_CTRIS=false
     INCLUDE_CURL=false
     INCLUDE_DIALOG=false
+    INCLUDE_DOSEMU2=false
     INCLUDE_DOSFSTOOLS=false
     INCLUDE_DROPBEAR=false
     INCLUDE_E2FSPROGS=false
@@ -420,7 +429,7 @@ set_mini_vars()
 
 set_terminal_vars()
 {
-    set_mini_vars true true true true
+    set_mini_vars true true true true true
 
     SETUP_DYN_SWAP=true
     ENABLE_NET_ETH=true
@@ -449,7 +458,7 @@ set_terminal_vars()
 
 set_writer_vars()
 {
-    set_mini_vars true true true true
+    set_mini_vars true true true true true
 
     SETUP_DYN_SWAP=true
 
@@ -478,7 +487,7 @@ set_writer_vars()
 
 set_default_vars()
 {
-    set_mini_vars true true true true
+    set_mini_vars true true true true true
 
     SETUP_DYN_SWAP=true
     ENABLE_NET_ETH=true
@@ -487,6 +496,7 @@ set_default_vars()
     INCLUDE_CTRIS=true
     INCLUDE_CURL=true
     INCLUDE_DIALOG=true
+    INCLUDE_DOSEMU2=true
     INCLUDE_DOSFSTOOLS=true
     INCLUDE_DROPBEAR=true
     INCLUDE_E2FSPROGS=true
@@ -618,6 +628,7 @@ BUNDLED_SOFTWARE=(
         "ctris"             "*Tetris clone (0.6MiB)"                                "INCLUDE_CTRIS"             "false"     "always"
         "curl"              "HTTP client & transfer utility (8MiB)"                 "INCLUDE_CURL"              "true"      "always"
         "dialog"            "*Shell script TUI widgets (0.5MiB)"                    "INCLUDE_DIALOG"            "false"     "always"
+        "dosemu2"           "*†DOS emulation (4.1MiB)"                              "INCLUDE_DOSEMU2"           "false"     "always"
         "dosfstools"        "*FAT12/16/32 filesystem utilities (0.8MiB)"            "INCLUDE_DOSFSTOOLS"        "false"     "always"
         "dropbear"          "*SCP & SSH client (0.4MiB)"                            "INCLUDE_DROPBEAR"          "true"      "never"
         "dropbear"          "*SCP & SSH client + SSH daemon (1.1MiB)"               "INCLUDE_DROPBEAR"          "true"      "only"
@@ -802,12 +813,12 @@ if [[ "$ID" == "shork-"*86 ]]; then
         --cancel-label "Quit" \
         --default-item "$BUILD_TYPE" \
         --menu "Select the build type, presets for SHORK feature levels. The recommended minimum requirements for each are enclosed in brackets. The \"custom\" option will enable further prompts for software and feature selection." 18 $WIDTH 9 \
-        "default"   "Typical experience             (16MiB RAM, 8MiB swap, 120MiB disk)" \
+        "default"   "Typical experience             (16MiB RAM, 8MiB swap, 128MiB disk)" \
         "max"       "Largest configuration          (24MiB RAM, 16MiB swap, 690MiB disk)" \
         "plus"      "Default w/ optional software   (16MiB RAM, 16MiB swap, 670MiB disk)" \
         "writer"    "Writing focused                (16MiB RAM, 16MiB swap, 90MiB disk)" \
         "terminal"  "Remote session & file transfer (16MiB RAM, 8MiB swap, 70MiB disk)" \
-        "offline"   "Default w/o networking         (12MiB RAM, 8MiB swap, 65MiB disk)" \
+        "offline"   "Default w/o networking         (12MiB RAM, 8MiB swap, 90MiB disk)" \
         "mini"      "Small configuration            (8MiB RAM, 8MiB disk)" \
         "micro"     "Extremely tiny configuration   (7MiB RAM, 4MiB disk)" \
         "custom"    "Requirements depend on subsequent choices" \
@@ -1508,143 +1519,167 @@ fi
 
 
 # If build type isn't custom, it's time to exit!
-if [ "$BUILD_TYPE" != "custom" ]; then
-    exit 0
+if [ "$BUILD_TYPE" = "custom" ]; then
+    # Get bundled software choices (486/586)
+    BUNDLED_FILTERED=()
+    filter_bundled
+
+    BUNDLED=$(dialog --clear \
+        --backtitle "SHORK 486 Build Configurator" \
+        --title "Bundled Software" \
+        --cancel-label "Skip" \
+        --checklist "Select what software to bundle with SHORK.\n* This option would be included in a \"default\" build\n† This option has specific memory requirements (check GitHub repository's README)" $HEIGHT $WIDTH 8 \
+        "${BUNDLED_FILTERED[@]}" \
+        2>&1 >/dev/tty)
+
+    SKIPPED=$?
+
+    if [[ $SKIPPED -eq 1 ]]; then
+        :
+    else
+        if [[ $BUNDLED =~ "bind9-dnsutils" ]];      then INCLUDE_BIND9_DNSUTILS=true;   else INCLUDE_BIND9_DNSUTILS=false;  fi
+        if [[ $BUNDLED =~ "c3270" ]];               then INCLUDE_C3270=true;            else INCLUDE_C3270=false;           fi
+        if [[ $BUNDLED =~ "chrony" ]];              then INCLUDE_CHRONY=true;           else INCLUDE_CHRONY=false;          fi
+        if [[ $BUNDLED =~ "cscope" ]];              then INCLUDE_CSCOPE=true;           else INCLUDE_CSCOPE=false;          fi
+        if [[ $BUNDLED =~ "ctags" ]];               then INCLUDE_CTAGS=true;            else INCLUDE_CTAGS=false;           fi
+        if [[ $BUNDLED =~ "ctris" ]];               then INCLUDE_CTRIS=true;            else INCLUDE_CTRIS=false;           fi
+        if [[ $BUNDLED =~ "curl" ]];                then INCLUDE_CURL=true;             else INCLUDE_CURL=false;            fi
+        if [[ $BUNDLED =~ "dialog" ]];              then INCLUDE_DIALOG=true;           else INCLUDE_DIALOG=false;          fi
+        if [[ $BUNDLED =~ "dosemu2" ]]              then INCLUDE_DOSEMU2=true;          else INCLUDE_DOSEMU2=false;         fi
+        if [[ $BUNDLED =~ "dosfstools" ]]           then INCLUDE_DOSFSTOOLS=true;       else INCLUDE_DOSFSTOOLS=false;      fi
+        if [[ $BUNDLED =~ "dropbear" ]];            then INCLUDE_DROPBEAR=true;         else INCLUDE_DROPBEAR=false;        fi
+        if [[ $BUNDLED =~ "e2fsprogs" ]];           then INCLUDE_E2FSPROGS=true;        else INCLUDE_E2FSPROGS=false;       fi
+        if [[ $BUNDLED =~ "file" ]];                then INCLUDE_FILE=true;             else INCLUDE_FILE=false;            fi
+        if [[ $BUNDLED =~ "gcc" ]];                 then INCLUDE_GCC=true;              else INCLUDE_GCC=false;             fi
+        if [[ $BUNDLED =~ "git" ]];                 then INCLUDE_GIT=true;              else INCLUDE_GIT=false;             fi
+        if [[ $BUNDLED =~ "gnupg" ]];               then INCLUDE_GNUPG=true;            else INCLUDE_GNUPG=false;           fi
+        if [[ $BUNDLED =~ "gnu-autoconf" ]];        then INCLUDE_AUTOCONF=true;         else INCLUDE_AUTOCONF=false;        fi
+        if [[ $BUNDLED =~ "gnu-automake" ]];        then INCLUDE_AUTOMAKE=true;         else INCLUDE_AUTOMAKE=false;        fi
+        if [[ $BUNDLED =~ "gnu-indent" ]]           then INCLUDE_INDENT=true;           else INCLUDE_INDENT=false;          fi
+        if [[ $BUNDLED =~ "gnu-libtool" ]];         then INCLUDE_LIBTOOL=true;          else INCLUDE_LIBTOOL=false;         fi
+        if [[ $BUNDLED =~ "gnu-m4" ]];              then INCLUDE_M4=true;               else INCLUDE_M4=false;              fi
+        if [[ $BUNDLED =~ "gnu-make" ]];            then INCLUDE_MAKE=true;             else INCLUDE_MAKE=false;            fi
+        if [[ $BUNDLED =~ "gnu-midnight-cmdr" ]];   then INCLUDE_MIDNIGHT_CMDR=true;    else INCLUDE_MIDNIGHT_CMDR=false;   fi
+        if [[ $BUNDLED =~ "gnu-nano" ]];            then INCLUDE_NANO=true;             else INCLUDE_NANO=false;            fi
+        if [[ $BUNDLED =~ "gpm" ]];                 then INCLUDE_GPM=true;              else INCLUDE_GPM=false;             fi
+        if [[ $BUNDLED =~ "htop" ]];                then INCLUDE_HTOP=true;             else INCLUDE_HTOP=false;            fi
+        if [[ $BUNDLED =~ "joe" ]];                 then INCLUDE_JOE=true;              else INCLUDE_JOE=false;             fi
+        if [[ $BUNDLED =~ "jq" ]];                  then INCLUDE_JQ=true;               else INCLUDE_JQ=false;              fi
+        if [[ $BUNDLED =~ "lsb-release-min" ]];     then INCLUDE_LSB_RELEASE_MIN=true;  else INCLUDE_LSB_RELEASE_MIN=false; fi
+        if [[ $BUNDLED =~ "lua" ]];                 then INCLUDE_LUA=true;              else INCLUDE_LUA=false;             fi
+        if [[ $BUNDLED =~ "lynx" ]];                then INCLUDE_LYNX=true;             else INCLUDE_LYNX=false;            fi
+        if [[ $BUNDLED =~ "memtester" ]];           then INCLUDE_MEMTESTER=true;        else INCLUDE_MEMTESTER=false;       fi
+        if [[ $BUNDLED =~ "mg" ]];                  then INCLUDE_MG=true;               else INCLUDE_MG=false;              fi
+        if [[ $BUNDLED =~ "micropython" ]];         then INCLUDE_MICROPYTHON=true;      else INCLUDE_MICROPYTHON=false;     fi
+        if [[ $BUNDLED =~ "mpg321" ]];              then INCLUDE_MPG321=true;           else INCLUDE_MPG321=false;          fi
+        if [[ $BUNDLED =~ "mt-st" ]];               then INCLUDE_MT_ST=true;            else INCLUDE_MT_ST=false;           fi
+        if [[ $BUNDLED =~ "nasm" ]];                then INCLUDE_NASM=true;             else INCLUDE_NASM=false;            fi
+        if [[ $BUNDLED =~ "nbsdgames" ]];           then INCLUDE_NBSDGAMES=true;        else INCLUDE_NBSDGAMES=false;       fi
+        if [[ $BUNDLED =~ "ncdu" ]];                then INCLUDE_NCDU=true;             else INCLUDE_NCDU=false;            fi
+        if [[ $BUNDLED =~ "nethack" ]];             then INCLUDE_NETHACK=true;          else INCLUDE_NETHACK=false;         fi
+        if [[ $BUNDLED =~ "patchelf" ]];            then INCLUDE_PATCHELF=true;         else INCLUDE_PATCHELF=false;        fi
+        if [[ $BUNDLED =~ "perl" ]];                then INCLUDE_PERL=true;             else INCLUDE_PERL=false;            fi
+        if [[ $BUNDLED =~ "sc-im" ]];               then INCLUDE_SC_IM=true;            else INCLUDE_SC_IM=false;           fi
+        if [[ $BUNDLED =~ "shorktainment" ]];       then INCLUDE_SHORKTAINMENT=true;    else INCLUDE_SHORKTAINMENT=false;   fi
+        if [[ $BUNDLED =~ "strace" ]];              then INCLUDE_STRACE=true;           else INCLUDE_STRACE=false;          fi
+        if [[ $BUNDLED =~ "sudo" ]];                then INCLUDE_SUDO=true;             else INCLUDE_SUDO=false;            fi
+        if [[ $BUNDLED =~ "tcc" ]];                 then INCLUDE_TCC=true;              else INCLUDE_TCC=false;             fi
+        if [[ $BUNDLED =~ "tcpdump" ]];             then INCLUDE_TCPDUMP=true;          else INCLUDE_TCPDUMP=false;         fi
+        if [[ $BUNDLED =~ "tilde" ]];               then INCLUDE_TILDE=true;            else INCLUDE_TILDE=false;           fi
+        if [[ $BUNDLED =~ "tmux" ]];                then INCLUDE_TMUX=true;             else INCLUDE_TMUX=false;            fi
+        if [[ $BUNDLED =~ "tn5250" ]];              then INCLUDE_TN5250=true;           else INCLUDE_TN5250=false;          fi
+        if [[ $BUNDLED =~ "tnftp" ]];               then INCLUDE_TNFTP=true;            else INCLUDE_TNFTP=false;           fi
+        if [[ $BUNDLED =~ "util-linux" ]];          then INCLUDE_UTIL_LINUX=true;       else INCLUDE_UTIL_LINUX=false;      fi
+        if [[ $BUNDLED =~ "vim" ]];                 then INCLUDE_VIM=true;              else INCLUDE_VIM=false;             fi
+    fi
+
+    # Enable prerequisites for selected bundled software
+    if [ "$INCLUDE_MPG321" = true ]; then
+        ENABLE_SOUND=true
+    fi
+    if [ "$INCLUDE_MT_ST" = true ]; then
+        ENABLE_SCSI_EXP=true
+    fi
+
+
+
+    # Get option choices (486/586)
+    OPTIONS=$(dialog --clear \
+        --backtitle "SHORK 486 Build Configurator" \
+        --title "Options" \
+        --cancel-label "Skip" \
+        --checklist "Select what other options to include. Some of these are benign, some may increase the RAM and disk space requirement considerably, some are experimental.\n* This option would be included in a \"default\" build\n† This option has specific memory requirements (check GitHub repository's README)" $HEIGHT $WIDTH 9 \
+        "cdrom"         "*Kernel-level CD-ROM & DVD-ROM support"                    $(val $ENABLE_CDROM) \
+        "con-fonts"     "*Console fonts pack (0.6MiB)"                              $(val $INCLUDE_CON_FONTS) \
+        "fb"            "*†vesafb & vga16fb framebuffer support"                    $(val $ENABLE_FB) \
+        "grub"          "GRUB 2.x instead of EXTLINUX (4MiB)"                       $(val $USE_GRUB) \
+        "gui"           "†SHORKGUI (22.7MiB, EXPERIMENTAL)"                         $(val $INCLUDE_GUI) \
+        "help-verbose"  "*BusyBox verbose --help"                                   $(val $ENABLE_HELP_VERBOSE) \
+        "highmem"       "†Kernel-level high memory support"                         $(val $ENABLE_HIGHMEM) \
+        "loop"          "*Kernel-level loopback device support & losetup"           $(val $ENABLE_LOOP) \
+        "menu"          "*Menu-based bootloader (0.5MiB)"                           $(val $ENABLE_MENU) \
+        "no-vdso32"     "*Disable 32-bit vDSO & SEP usage"                          $(val $ENABLE_NO_VDS032) \
+        "pci.ids"       "*PCI IDs database (0.1MiB)"                                $(val $INCLUDE_PCI_IDS) \
+        "pcmcia"        "*Kernel-level PCMCIA support"                              $(val $ENABLE_PCMCIA) \
+        "sata"          "†Kernel-level SATA support"                                $(val $ENABLE_SATA) \
+        "scsi-exp"      "*Kernel-level SCSI media changer & tape drive support"     $(val $ENABLE_SCSI_EXP) \
+        "sound"         "Kernel-level sound support"                                $(val $ENABLE_SOUND) \
+        "usb"           "Kernel-level USB & HID support & lsusb (0.2MiB)"           $(val $ENABLE_USB) \
+        "zswap"         "*Kernel-level zswap support"                               $(val $ENABLE_ZSWAP) \
+        2>&1 >/dev/tty)
+        #"keymaps"   "Keymaps (0.06MiB)"             $(val $INCLUDE_KEYMAPS) \
+        
+    SKIPPED=$?
+
+    if [[ $SKIPPED -eq 1 ]]; then
+        :
+    else
+        if [[ $OPTIONS =~ "cdrom" ]];           then ENABLE_CDROM=true;         else ENABLE_CDROM=false;            fi
+        if [[ $OPTIONS =~ "con-fonts" ]];       then INCLUDE_CON_FONTS=true;    else INCLUDE_CON_FONTS=false;       fi
+        if [[ $OPTIONS =~ "fb" ]];              then ENABLE_FB=true;            else ENABLE_FB=false;               fi
+        if [[ $OPTIONS =~ "grub" ]];            then USE_GRUB=true;             else USE_GRUB=false;                fi
+        if [[ $OPTIONS =~ "gui" ]];             then INCLUDE_GUI=true;          else INCLUDE_GUI=false;             fi
+        if [[ $OPTIONS =~ "help-verbose" ]];    then ENABLE_HELP_VERBOSE=true;  else ENABLE_HELP_VERBOSE=false;     fi
+        if [[ $OPTIONS =~ "highmem" ]];         then ENABLE_HIGHMEM=true;       else ENABLE_HIGHMEM=false;          fi
+        if [[ $OPTIONS =~ "loop" ]];            then ENABLE_LOOP=true;          else ENABLE_LOOP=false;             fi
+        #if [[ $OPTIONS =~ "keymaps" ]];         then $INCLUDE_KEYMAPS=true;     else $INCLUDE_KEYMAPS=false;        fi
+        if [[ $OPTIONS =~ "menu" ]];            then ENABLE_MENU=true;          else ENABLE_MENU=false;             fi
+        if [[ $OPTIONS =~ "no-vdso32" ]];       then ENABLE_NO_VDS032=true;     else ENABLE_NO_VDS032=false;        fi
+        if [[ $OPTIONS =~ "pci.ids" ]];         then INCLUDE_PCI_IDS=true;      else INCLUDE_PCI_IDS=false;         fi
+        if [[ $OPTIONS =~ "pcmcia" ]];          then ENABLE_PCMCIA=true;        else ENABLE_PCMCIA=false;           fi
+        if [[ $OPTIONS =~ "sata" ]];            then ENABLE_SATA=true;          else ENABLE_SATA=false;             fi
+        if [[ $OPTIONS =~ "scsi-exp" ]];        then ENABLE_SCSI_EXP=true;      else ENABLE_SCSI_EXP=false;         fi
+        if [[ $OPTIONS =~ "sound" ]];           then ENABLE_SOUND=true;         else ENABLE_SOUND=false;            fi
+        if [[ $OPTIONS =~ "usb" ]];             then ENABLE_USB=true;           else ENABLE_USB=false;              fi
+        if [[ $OPTIONS =~ "zswap" ]];           then ENABLE_ZSWAP=true;         else ENABLE_ZSWAP=false;            fi
+    fi
 fi
 
 
 
-# Get bundled software choices (486/586)
-BUNDLED_FILTERED=()
-filter_bundled
+# Get include FreeDOS choice (+INCLUDE_DOSEMU2)
+if [ "$INCLUDE_DOSEMU2" = true ]; then
+    DEFAULT_FLAG=""
+    if ! $INCLUDE_FREEDOS; then
+        DEFAULT_FLAG="--defaultno"
+    fi
 
-BUNDLED=$(dialog --clear \
-    --backtitle "SHORK 486 Build Configurator" \
-    --title "Bundled Software" \
-    --cancel-label "Skip" \
-    --checklist "Select what software to bundle with SHORK.\n* This option would be included in a \"default\" build\n† This option has specific memory requirements (check GitHub repository's README)" $HEIGHT $WIDTH 8 \
-    "${BUNDLED_FILTERED[@]}" \
-    2>&1 >/dev/tty)
+    dialog --clear \
+        --backtitle "SHORK 486 Build Configurator" \
+        --title "Bundled FreeDOS environment" \
+        $DEFAULT_FLAG \
+        --yesno "Since SHORK includes DOS emulation, do you want to bundle a minimal FreeDOS environment? Choosing \"Yes\" includes a FreeDOS kernel, COMMAND.COM, DEBUG.COM, EDIT.EXE, MEM.EXE, MORE.EXE, MOVE.EXE and XCOPY.EXE (total ~0.5MiB).\n\nIf you choose \"No\", you will need to install or supply a DOS yourself to use DOS emulation. You can copy a preinstalled DOS to the \"payload/drive_c\" directory, and it will automatically be copied into SHORK's disk image. " \
+        11 $WIDTH
 
-SKIPPED=$?
+    CHOICE=$?
 
-if [[ $SKIPPED -eq 1 ]]; then
-    :
+    if [[ $CHOICE -eq 0 ]]; then
+        INCLUDE_FREEDOS=true
+    else
+        INCLUDE_FREEDOS=false
+    fi
 else
-    if [[ $BUNDLED =~ "bind9-dnsutils" ]];      then INCLUDE_BIND9_DNSUTILS=true;   else INCLUDE_BIND9_DNSUTILS=false;  fi
-    if [[ $BUNDLED =~ "c3270" ]];               then INCLUDE_C3270=true;            else INCLUDE_C3270=false;           fi
-    if [[ $BUNDLED =~ "chrony" ]];              then INCLUDE_CHRONY=true;           else INCLUDE_CHRONY=false;          fi
-    if [[ $BUNDLED =~ "cscope" ]];              then INCLUDE_CSCOPE=true;           else INCLUDE_CSCOPE=false;          fi
-    if [[ $BUNDLED =~ "ctags" ]];               then INCLUDE_CTAGS=true;            else INCLUDE_CTAGS=false;           fi
-    if [[ $BUNDLED =~ "ctris" ]];               then INCLUDE_CTRIS=true;            else INCLUDE_CTRIS=false;           fi
-    if [[ $BUNDLED =~ "curl" ]];                then INCLUDE_CURL=true;             else INCLUDE_CURL=false;            fi
-    if [[ $BUNDLED =~ "dialog" ]];              then INCLUDE_DIALOG=true;           else INCLUDE_DIALOG=false;          fi
-    if [[ $BUNDLED =~ "dosfstools" ]]           then INCLUDE_DOSFSTOOLS=true;       else INCLUDE_DOSFSTOOLS=false;      fi
-    if [[ $BUNDLED =~ "dropbear" ]];            then INCLUDE_DROPBEAR=true;         else INCLUDE_DROPBEAR=false;        fi
-    if [[ $BUNDLED =~ "e2fsprogs" ]];           then INCLUDE_E2FSPROGS=true;        else INCLUDE_E2FSPROGS=false;       fi
-    if [[ $BUNDLED =~ "file" ]];                then INCLUDE_FILE=true;             else INCLUDE_FILE=false;            fi
-    if [[ $BUNDLED =~ "gcc" ]];                 then INCLUDE_GCC=true;              else INCLUDE_GCC=false;             fi
-    if [[ $BUNDLED =~ "git" ]];                 then INCLUDE_GIT=true;              else INCLUDE_GIT=false;             fi
-    if [[ $BUNDLED =~ "gnupg" ]];               then INCLUDE_GNUPG=true;            else INCLUDE_GNUPG=false;           fi
-    if [[ $BUNDLED =~ "gnu-autoconf" ]];        then INCLUDE_AUTOCONF=true;         else INCLUDE_AUTOCONF=false;        fi
-    if [[ $BUNDLED =~ "gnu-automake" ]];        then INCLUDE_AUTOMAKE=true;         else INCLUDE_AUTOMAKE=false;        fi
-    if [[ $BUNDLED =~ "gnu-indent" ]]           then INCLUDE_INDENT=true;           else INCLUDE_INDENT=false;          fi
-    if [[ $BUNDLED =~ "gnu-libtool" ]];         then INCLUDE_LIBTOOL=true;          else INCLUDE_LIBTOOL=false;         fi
-    if [[ $BUNDLED =~ "gnu-m4" ]];              then INCLUDE_M4=true;               else INCLUDE_M4=false;              fi
-    if [[ $BUNDLED =~ "gnu-make" ]];            then INCLUDE_MAKE=true;             else INCLUDE_MAKE=false;            fi
-    if [[ $BUNDLED =~ "gnu-midnight-cmdr" ]];   then INCLUDE_MIDNIGHT_CMDR=true;    else INCLUDE_MIDNIGHT_CMDR=false;   fi
-    if [[ $BUNDLED =~ "gnu-nano" ]];            then INCLUDE_NANO=true;             else INCLUDE_NANO=false;            fi
-    if [[ $BUNDLED =~ "gpm" ]];                 then INCLUDE_GPM=true;              else INCLUDE_GPM=false;             fi
-    if [[ $BUNDLED =~ "htop" ]];                then INCLUDE_HTOP=true;             else INCLUDE_HTOP=false;            fi
-    if [[ $BUNDLED =~ "joe" ]];                 then INCLUDE_JOE=true;              else INCLUDE_JOE=false;             fi
-    if [[ $BUNDLED =~ "jq" ]];                  then INCLUDE_JQ=true;               else INCLUDE_JQ=false;              fi
-    if [[ $BUNDLED =~ "lsb-release-min" ]];     then INCLUDE_LSB_RELEASE_MIN=true;  else INCLUDE_LSB_RELEASE_MIN=false; fi
-    if [[ $BUNDLED =~ "lua" ]];                 then INCLUDE_LUA=true;              else INCLUDE_LUA=false;             fi
-    if [[ $BUNDLED =~ "lynx" ]];                then INCLUDE_LYNX=true;             else INCLUDE_LYNX=false;            fi
-    if [[ $BUNDLED =~ "memtester" ]];           then INCLUDE_MEMTESTER=true;        else INCLUDE_MEMTESTER=false;       fi
-    if [[ $BUNDLED =~ "mg" ]];                  then INCLUDE_MG=true;               else INCLUDE_MG=false;              fi
-    if [[ $BUNDLED =~ "micropython" ]];         then INCLUDE_MICROPYTHON=true;      else INCLUDE_MICROPYTHON=false;     fi
-    if [[ $BUNDLED =~ "mpg321" ]];              then INCLUDE_MPG321=true;           else INCLUDE_MPG321=false;          fi
-    if [[ $BUNDLED =~ "mt-st" ]];               then INCLUDE_MT_ST=true;            else INCLUDE_MT_ST=false;           fi
-    if [[ $BUNDLED =~ "nasm" ]];                then INCLUDE_NASM=true;             else INCLUDE_NASM=false;            fi
-    if [[ $BUNDLED =~ "nbsdgames" ]];           then INCLUDE_NBSDGAMES=true;        else INCLUDE_NBSDGAMES=false;       fi
-    if [[ $BUNDLED =~ "ncdu" ]];                then INCLUDE_NCDU=true;             else INCLUDE_NCDU=false;            fi
-    if [[ $BUNDLED =~ "nethack" ]];             then INCLUDE_NETHACK=true;          else INCLUDE_NETHACK=false;         fi
-    if [[ $BUNDLED =~ "patchelf" ]];            then INCLUDE_PATCHELF=true;         else INCLUDE_PATCHELF=false;        fi
-    if [[ $BUNDLED =~ "perl" ]];                then INCLUDE_PERL=true;             else INCLUDE_PERL=false;            fi
-    if [[ $BUNDLED =~ "sc-im" ]];               then INCLUDE_SC_IM=true;            else INCLUDE_SC_IM=false;           fi
-    if [[ $BUNDLED =~ "shorktainment" ]];       then INCLUDE_SHORKTAINMENT=true;    else INCLUDE_SHORKTAINMENT=false;   fi
-    if [[ $BUNDLED =~ "strace" ]];              then INCLUDE_STRACE=true;           else INCLUDE_STRACE=false;          fi
-    if [[ $BUNDLED =~ "sudo" ]];                then INCLUDE_SUDO=true;             else INCLUDE_SUDO=false;            fi
-    if [[ $BUNDLED =~ "tcc" ]];                 then INCLUDE_TCC=true;              else INCLUDE_TCC=false;             fi
-    if [[ $BUNDLED =~ "tcpdump" ]];             then INCLUDE_TCPDUMP=true;          else INCLUDE_TCPDUMP=false;         fi
-    if [[ $BUNDLED =~ "tilde" ]];               then INCLUDE_TILDE=true;            else INCLUDE_TILDE=false;           fi
-    if [[ $BUNDLED =~ "tmux" ]];                then INCLUDE_TMUX=true;             else INCLUDE_TMUX=false;            fi
-    if [[ $BUNDLED =~ "tn5250" ]];              then INCLUDE_TN5250=true;           else INCLUDE_TN5250=false;          fi
-    if [[ $BUNDLED =~ "tnftp" ]];               then INCLUDE_TNFTP=true;            else INCLUDE_TNFTP=false;           fi
-    if [[ $BUNDLED =~ "util-linux" ]];          then INCLUDE_UTIL_LINUX=true;       else INCLUDE_UTIL_LINUX=false;      fi
-    if [[ $BUNDLED =~ "vim" ]];                 then INCLUDE_VIM=true;              else INCLUDE_VIM=false;             fi
-fi
-
-# Enable prerequisites for selected bundled software
-if [ "$INCLUDE_MPG321" = true ]; then
-    ENABLE_SOUND=true
-fi
-if [ "$INCLUDE_MT_ST" = true ]; then
-    ENABLE_SCSI_EXP=true
-fi
-
-
-
-# Get option choices (486/586)
-OPTIONS=$(dialog --clear \
-    --backtitle "SHORK 486 Build Configurator" \
-    --title "Options" \
-    --cancel-label "Skip" \
-    --checklist "Select what other options to include. Some of these are benign, some may increase the RAM and disk space requirement considerably, some are experimental.\n* This option would be included in a \"default\" build\n† This option has specific memory requirements (check GitHub repository's README)" $HEIGHT $WIDTH 9 \
-    "cdrom"         "*Kernel-level CD-ROM & DVD-ROM support"                    $(val $ENABLE_CDROM) \
-    "con-fonts"     "*Console fonts pack (0.6MiB)"                              $(val $INCLUDE_CON_FONTS) \
-    "fb"            "*†vesafb & vga16fb framebuffer support"                    $(val $ENABLE_FB) \
-    "grub"          "GRUB 2.x instead of EXTLINUX (4MiB)"                       $(val $USE_GRUB) \
-    "gui"           "†SHORKGUI (22.7MiB, EXPERIMENTAL)"                         $(val $INCLUDE_GUI) \
-    "help-verbose"  "*BusyBox verbose --help"                                   $(val $ENABLE_HELP_VERBOSE) \
-    "highmem"       "†Kernel-level high memory support"                         $(val $ENABLE_HIGHMEM) \
-    "loop"          "*Kernel-level loopback device support & losetup"           $(val $ENABLE_LOOP) \
-    "menu"          "*Menu-based bootloader (0.5MiB)"                           $(val $ENABLE_MENU) \
-    "no-vdso32"     "*Disable 32-bit vDSO & SEP usage"                          $(val $ENABLE_NO_VDS032) \
-    "pci.ids"       "*PCI IDs database (0.1MiB)"                                $(val $INCLUDE_PCI_IDS) \
-    "pcmcia"        "*Kernel-level PCMCIA support"                              $(val $ENABLE_PCMCIA) \
-    "sata"          "†Kernel-level SATA support"                                $(val $ENABLE_SATA) \
-    "scsi-exp"      "*Kernel-level SCSI media changer & tape drive support"     $(val $ENABLE_SCSI_EXP) \
-    "sound"         "Kernel-level sound support"                                $(val $ENABLE_SOUND) \
-    "usb"           "Kernel-level USB & HID support & lsusb (0.2MiB)"           $(val $ENABLE_USB) \
-    "zswap"         "*Kernel-level zswap support"                               $(val $ENABLE_ZSWAP) \
-    2>&1 >/dev/tty)
-    #"keymaps"   "Keymaps (0.06MiB)"             $(val $INCLUDE_KEYMAPS) \
-    
-SKIPPED=$?
-
-if [[ $SKIPPED -eq 1 ]]; then
-    :
-else
-    if [[ $OPTIONS =~ "cdrom" ]];           then ENABLE_CDROM=true;         else ENABLE_CDROM=false;            fi
-    if [[ $OPTIONS =~ "con-fonts" ]];       then INCLUDE_CON_FONTS=true;    else INCLUDE_CON_FONTS=false;       fi
-    if [[ $OPTIONS =~ "fb" ]];              then ENABLE_FB=true;            else ENABLE_FB=false;               fi
-    if [[ $OPTIONS =~ "grub" ]];            then USE_GRUB=true;             else USE_GRUB=false;                fi
-    if [[ $OPTIONS =~ "gui" ]];             then INCLUDE_GUI=true;          else INCLUDE_GUI=false;             fi
-    if [[ $OPTIONS =~ "help-verbose" ]];    then ENABLE_HELP_VERBOSE=true;  else ENABLE_HELP_VERBOSE=false;     fi
-    if [[ $OPTIONS =~ "highmem" ]];         then ENABLE_HIGHMEM=true;       else ENABLE_HIGHMEM=false;          fi
-    if [[ $OPTIONS =~ "loop" ]];            then ENABLE_LOOP=true;          else ENABLE_LOOP=false;             fi
-    #if [[ $OPTIONS =~ "keymaps" ]];         then $INCLUDE_KEYMAPS=true;     else $INCLUDE_KEYMAPS=false;        fi
-    if [[ $OPTIONS =~ "menu" ]];            then ENABLE_MENU=true;          else ENABLE_MENU=false;             fi
-    if [[ $OPTIONS =~ "no-vdso32" ]];       then ENABLE_NO_VDS032=true;     else ENABLE_NO_VDS032=false;        fi
-    if [[ $OPTIONS =~ "pci.ids" ]];         then INCLUDE_PCI_IDS=true;      else INCLUDE_PCI_IDS=false;         fi
-    if [[ $OPTIONS =~ "pcmcia" ]];          then ENABLE_PCMCIA=true;        else ENABLE_PCMCIA=false;           fi
-    if [[ $OPTIONS =~ "sata" ]];            then ENABLE_SATA=true;          else ENABLE_SATA=false;             fi
-    if [[ $OPTIONS =~ "scsi-exp" ]];        then ENABLE_SCSI_EXP=true;      else ENABLE_SCSI_EXP=false;         fi
-    if [[ $OPTIONS =~ "sound" ]];           then ENABLE_SOUND=true;         else ENABLE_SOUND=false;            fi
-    if [[ $OPTIONS =~ "usb" ]];             then ENABLE_USB=true;           else ENABLE_USB=false;              fi
-    if [[ $OPTIONS =~ "zswap" ]];           then ENABLE_ZSWAP=true;         else ENABLE_ZSWAP=false;            fi
+    INCLUDE_FREEDOS=false
 fi
 
 

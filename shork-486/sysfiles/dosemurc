@@ -1,9 +1,0 @@
-$_cpu = "80286"
-$_mathco = (off)
-$_ext_mem = (0)
-$_xms = (0)
-$_ems = (0)
-$_dpmi = (0)
-$_layout = "us"
-$_rawkeyboard = (0)
-$_mouse_internal = (off)

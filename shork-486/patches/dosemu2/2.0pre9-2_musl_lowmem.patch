@@ -1,0 +1,373 @@
+############################################################################
+## 2.0pre9-2_musl_lowmem.patch                                            ##
+############################################################################
+## Fixes compatibility with musl, reduces memory footprint, removes the   ##
+## startup banner, forces blinking mode on Linux console, and fixes code  ##
+## that only compiled with X86_EMULATOR.                                  ##
+############################################################################
+## This patch is a derivative work of dosemu2. It is licensed separately  ##
+## under the terms of the GNU GPLv2 licence, and is distributed as part   ##
+## of the SHORK project. See the accompanying COPYING file in this        ##
+## directory for details.                                                 ##
+############################################################################
+## Kali (links.sharktastica.co.uk)                                        ##
+############################################################################
+
+diff --git a/configure.ac b/configure.ac
+index 3ecd739..42f33ff 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -595,9 +595,9 @@ if test "$CONFIG_HOST" = "Linux"; then
+       DNATIVE=1
+       AC_SUBST(DNATIVE)
+     fi
+-
+-    AC_DEFINE(USE_KVM)
+-    KVM=1
++    # Patch for SHORK 486:
++    # KVM=1 was previously always defined when CONFIG_HOST="Linux", yet
++    # SHORK will likely never use KVM
+     AC_SUBST(KVM)
+   fi
+ fi
+diff --git a/src/base/core/int.c b/src/base/core/int.c
+index 212df1f..dab1984 100644
+--- a/src/base/core/int.c
++++ b/src/base/core/int.c
+@@ -59,9 +59,12 @@
+ #include "coopth.h"
+ #include "mhpdbg.h"
+ #include "ipx.h"
+-#ifdef X86_EMULATOR
++/**
++ * Patch for SHORK 486:
++ * cpu-emu.h was previously only included when X86_EMULATOR, but its
++ * e_invalidate_pa() was used outside of this.
++ */
+ #include "cpu-emu.h"
+-#endif
+ 
+ #include "emudpmi.h"
+ 
+@@ -457,9 +460,9 @@ static int dos_helper(int stk_offs, int revect)
+ 	}
+ 	if (config.quiet)
+ 	    break;
+-	p_dos_str(PACKAGE_NAME " " VERSTR " Configured: " CONFIG_TIME "\n");
+-//	p_dos_str
+-//	    ("Please test against a recent version before reporting bugs and problems.\n");
++/*	p_dos_str(PACKAGE_NAME " " VERSTR " Configured: " CONFIG_TIME "\n");
++	p_dos_str
++	    ("Please test against a recent version before reporting bugs and problems.\n");
+ 	p_dos_str
+ 	    ("Get the latest code at http://dosemu2.github.io/dosemu2\n");
+ 	p_dos_str
+@@ -471,7 +474,7 @@ static int dos_helper(int stk_offs, int revect)
+ 	     "This is free software, GPL v2 (or any later version) "
+ 	     "distribution conditions.\n");
+ 	p_dos_str("\n");
+-	break;
++	break;*/
+ 
+     case DOS_HELPER_PRESTROKES_START:
+ 	start_pre_strokes();
+diff --git a/src/base/core/priv.c b/src/base/core/priv.c
+index 9888871..bf88e3d 100644
+--- a/src/base/core/priv.c
++++ b/src/base/core/priv.c
+@@ -189,6 +189,12 @@ gid_t get_orig_gid(void)
+ 
+ int priv_drop(void)
+ {
++  /**
++   * Patch for SHORK 486:
++   * Let dosemu2 run as root without dropping privileges
++   */
++  if (skip_priv_setting)
++    return 1;
+   if (setreuid(uid,uid) || setregid(gid,gid))
+     {
+       error("Cannot drop root uid or gid!\n");
+diff --git a/src/base/init/config.c b/src/base/init/config.c
+index 13a5fe9..cd734a7 100644
+--- a/src/base/init/config.c
++++ b/src/base/init/config.c
+@@ -899,10 +899,15 @@ static void read_cpu_info(void)
+ 
+ static void config_post_process(void)
+ {
++    /**
++     * Patch for SHORK 486:
++     * "di" was previously declared within X86_EMULATOR, but used outside of
++     * it
++     */
++    char *di;
+ #ifdef X86_EMULATOR
+     char buf[256];
+     size_t n;
+-    char *di;
+     FILE *f = popen("uname -r", "r");
+     n = fread(buf, 1, sizeof(buf) - 1, f);
+     buf[n >= 0 ? n : 0] = 0;
+diff --git a/src/base/kbd_unicode/serv_xlat.c b/src/base/kbd_unicode/serv_xlat.c
+index 68253da..bd776b4 100644
+--- a/src/base/kbd_unicode/serv_xlat.c
++++ b/src/base/kbd_unicode/serv_xlat.c
+@@ -685,7 +685,7 @@ static void init_one_deadkey(void *p, t_keysym dead_sym, t_keysym in, t_keysym o
+ 		charset->keys[in].key;
+ 	charset->keys[out].shiftstate =
+ 		charset->keys[in].shiftstate;
+-	charset->keys[out].deadsym = dead_sym;
++	PS_SET_DEADSYM(&charset->keys[out], dead_sym);
+ 	charset->keys[out].map = charset->keys[dead_sym].map;
+ }
+ 
+@@ -745,7 +745,7 @@ static void dump_charset(struct character_translate_rules *charset)
+ 			 charset->keys[i].key,
+ 			 charset->keys[i].shiftstate,
+ 			 charset->keys[i].shiftstate_mask,
+-			 charset->keys[i].deadsym,
++			 PS_DEADSYM(&charset->keys[i]),
+ 			 charset->keys[i].character,
+ 			 charset->keys[i].character);
+ 	}
+@@ -759,16 +759,23 @@ static void init_charset_keys(struct character_translate_rules *charset,
+ 	struct char_set *keyb_charset = trconfig.keyb_config_charset;
+ 
+ 	/* first initialize the charset_keys to nothing */
++	/**
++	 * Patch for SHORK 486:
++	 * An all-zero entry means "nothing", so the table (which lives in .bss)
++	 * now no longer needs to be written for ~65k keysyms that have no
++	 * character, and those pages never become resident.
++	 */
++	static int keys_inited;
++	if (keys_inited)
++		memset(charset->keys, 0, sizeof(charset->keys));
++	keys_inited = 1;
+ 	for (i = 0; i < NUM_KEYSYMS; i++) {
+ 		unsigned char buff[1];
+ 		struct char_set_state keyb_state;
+ 		init_charset_state(&keyb_state, keyb_charset);
+ 		/* FIXME: handle smaller tables ?*/
+-		unicode_to_charset(&keyb_state, i, buff, 1);
+-		charset->keys[i].key = NUM_VOID;
+-		charset->keys[i].shiftstate = 0;
+-		charset->keys[i].deadsym = DKY_VOID;
+-		charset->keys[i].character = buff[0];
++		if (unicode_to_charset(&keyb_state, i, buff, 1) == 1)
++			charset->keys[i].character = buff[0];
+ 		cleanup_charset_state(&keyb_state);
+ 	}
+ 
+@@ -2062,15 +2069,15 @@ static void put_character_symbol(
+ 	/* switch active keymap if needed */
+ 	state->rules->activemap = key->map;
+ 	new_shiftstate = key->shiftstate | (old_shiftstate & key->shiftstate_mask);
+-	if (key->deadsym == DKY_VOID) {
++	if (PS_DEADSYM(key) == DKY_VOID) {
+ 		new_shiftstate |= modifiers;
+ 	}
+ 	if (key->key != NUM_VOID) {
+ 		if (make) {
+ 			/* Note: dead keys always have the same shiftstate */
+ 			sync_shift_state(new_shiftstate, state);
+-			put_character_symbol(PRESS, 0, key->deadsym, state);
+-			put_character_symbol(RELEASE, 0, key->deadsym, state);
++			put_character_symbol(PRESS, 0, PS_DEADSYM(key), state);
++			put_character_symbol(RELEASE, 0, PS_DEADSYM(key), state);
+ 			put_keynum_r(PRESS, key->key, state);
+ 		}
+ 		else {
+@@ -2240,7 +2247,7 @@ int move_key(Boolean make, t_keysym key)
+ 	t_keysym deadsym;
+ 	sym_info = &input_keyboard_state.rules->charset.keys[key];
+ 	keynum = sym_info->key;
+-	deadsym = sym_info->deadsym;
++	deadsym = PS_DEADSYM(sym_info);
+ 	k_printf("move_key: key=%04x keynum=%04x\n",
+ 		key, keynum);
+ 	/* move_key only works for key caps, and a symbol only reachable
+diff --git a/src/dosext/dpmi/dnative/sigsegv.c b/src/dosext/dpmi/dnative/sigsegv.c
+index 90779b7..72ee7f1 100644
+--- a/src/dosext/dpmi/dnative/sigsegv.c
++++ b/src/dosext/dpmi/dnative/sigsegv.c
+@@ -786,10 +786,15 @@ void signal_set_altstack(int on)
+   } else {
+     stk.ss_sp = cstack;
+     stk.ss_size = SIGSTACK_SIZE;
++    /**
++     * Patch for SHORK 486:
++     * No longer pass SS_ONSTACK: musl's sigaltstack() wrapper rejects
++     * it with EINVAL.
++     */
+ #if SIGALTSTACK_WA
+-    stk.ss_flags = SS_ONSTACK | (need_sas_wa ? 0 : SS_AUTODISARM);
++    stk.ss_flags = (need_sas_wa ? 0 : SS_AUTODISARM);
+ #else
+-    stk.ss_flags = SS_ONSTACK | SS_AUTODISARM;
++    stk.ss_flags = SS_AUTODISARM;
+ #endif
+     err = sigaltstack(&stk, NULL);
+   }
+diff --git a/src/dosext/dpmi/emudpmi.h b/src/dosext/dpmi/emudpmi.h
+index 2d08ceb..6539097 100644
+--- a/src/dosext/dpmi/emudpmi.h
++++ b/src/dosext/dpmi/emudpmi.h
+@@ -27,7 +27,12 @@
+ 
+ #define DPMI_page_size		4096	/* 4096 bytes per page */
+ 
+-#define DPMI_pm_stack_size	0xf000	/* locked protected mode stack for exceptions, */
++/**
++ * Patch for SHORK 486:
++ * In line with changes made in memory.c, we also shrink this exceptions
++ * stack 60KiB -> 16KiB.
++ */
++#define DPMI_pm_stack_size	0x4000	/* locked protected mode stack for exceptions, */
+ 					/* hardware interrupts, software interrups 0x1c, */
+ 					/* 0x23, 0x24 and real mode callbacks */
+ 
+diff --git a/src/dosext/dpmi/memory.c b/src/dosext/dpmi/memory.c
+index 98e342b..66fca3c 100644
+--- a/src/dosext/dpmi/memory.c
++++ b/src/dosext/dpmi/memory.c
+@@ -51,7 +51,13 @@ unsigned int pm_block_handle_used;       /* tracking handle */
+ static smpool mem_pool;
+ static unsigned char *dpmi_lin_rsv_base;
+ static unsigned char *dpmi_base;
+-static const int dpmi_reserved_space = 4 * 1024 * 1024; // reserve 4Mb
++/**
++ * Patch for SHORK 486:
++ * DPMI pool is zero-filled/resident at startup, taking up significant
++ * amount of memory for our usecase. The pool is to be shrunk from 4MiB to
++ * 256KiB.
++ */
++static const int dpmi_reserved_space = 256 * 1024; // reserve 256Kb
+ 
+ /* utility routines */
+ 
+@@ -162,6 +168,12 @@ static int uncommit(void *ptr, size_t size)
+ {
+   if (mprotect_mapping(MAPPING_DPMI, DOSADDR_REL(ptr), size, PROT_NONE) == -1)
+     return 0;
++  /**
++   * Patch for SHORK 486:
++   * uncommit() previously only mprotect()s the DPMI pool to PROT_NONE,
++   * leaving its zero-filled pages resident
++   */
++  madvise(ptr, size, MADV_DONTNEED);
+   return 1;
+ }
+ 
+diff --git a/src/include/cpu-emu.h b/src/include/cpu-emu.h
+index 6744055..dfc339c 100644
+--- a/src/include/cpu-emu.h
++++ b/src/include/cpu-emu.h
+@@ -101,12 +101,27 @@ int e_dpmi(cpuctx_t *scp);
+ void e_dpmi_b0x(int op,cpuctx_t *scp);
+ extern int in_dpmi_emu;
+ 
++/**
++ * Patch for SHORK 486:
++ * instr_emu_sim(), instr_emu_sim_reset_count(), InvalidateSegs() and
++ * e_querymprot() were previously only defined when X86_EMULATOR. We stub
++ * them to 0 to prevent issues.
++ */
+ /* called/used from vgaemu.c */
++#ifdef X86_EMULATOR
+ int instr_emu_sim(cpuctx_t *scp, int pmode, int cnt);
+ void instr_emu_sim_reset_count(int cnt);
++#else
++#define instr_emu_sim(scp, pmode, cnt) 0
++#define instr_emu_sim_reset_count(cnt) do { } while (0)
++#endif
+ 
+ /* called from emu-ldt.c */
++#ifdef X86_EMULATOR
+ void InvalidateSegs(void);
++#else
++#define InvalidateSegs() do { } while (0)
++#endif
+ 
+ #ifdef X86_JIT
+ /* called from sigsegv.c */
+@@ -125,6 +140,10 @@ void e_gen_sigalrm(void);
+ #endif
+ 
+ /* called from dos2linux.c */
++#ifdef X86_EMULATOR
+ int e_querymprot(dosaddr_t addr);
++#else
++#define e_querymprot(addr) 0
++#endif
+ 
+ #endif	/*DOSEMU_CPUEMU_H*/
+diff --git a/src/include/emu.h b/src/include/emu.h
+index c4243d9..3d9c7e6 100644
+--- a/src/include/emu.h
++++ b/src/include/emu.h
+@@ -159,6 +159,17 @@ typedef struct config_info {
+        #define EMU_FULL() (EMU_V86() && EMU_DPMI())
+        #define IS_EMU() (EMU_V86() || EMU_DPMI())
+        boolean cpusim;
++#else
++       /**
++        * Patch for SHORK 486:
++        * EMU_V86(), EMU_DPMI(), EMU_FULL() and IS_EMU() were previously
++        * only defined when X86_EMULATOR. We stub them to 0 to prevent
++        * issues.
++        */
++       #define EMU_V86() 0
++       #define EMU_DPMI() 0
++       #define EMU_FULL() 0
++       #define IS_EMU() 0
+ #endif
+        int cpu_vm;
+        int cpu_vm_dpmi;
+diff --git a/src/include/keyboard/keystate.h b/src/include/keyboard/keystate.h
+index 7819618..631fbf2 100644
+--- a/src/include/keyboard/keystate.h
++++ b/src/include/keyboard/keystate.h
+@@ -13,12 +13,15 @@ typedef Bit32u keystring;
+ struct press_state {
+ 	unsigned char	character;
+ 	t_keynum	key;
+-	t_keysym	deadsym;
++	t_keysym	deadsym_x;
+ 	t_modifiers	shiftstate;
+ 	t_modifiers	shiftstate_mask;
+ 	int 		map;
+ };
+ 
++#define PS_DEADSYM(ps) ((t_keysym)((ps)->deadsym_x ^ DKY_VOID))
++#define PS_SET_DEADSYM(ps, val) ((ps)->deadsym_x = (t_keysym)((val) ^ DKY_VOID))
++
+ struct character_translate_rules {
+ 	struct press_state keys[NUM_KEYSYMS];
+ };
+diff --git a/src/plugin/term/terminal.c b/src/plugin/term/terminal.c
+index 13237cb..3642dc0 100644
+--- a/src/plugin/term/terminal.c
++++ b/src/plugin/term/terminal.c
+@@ -669,7 +669,19 @@ static int slang_update (void)
+    static int last_row, last_col, last_vis = -1, help_showing;
+    static const char *last_prompt = NULL;
+ 
+-   SLtt_Blink_Mode = (vga.attr.data[0x10] & 0x8) != 0;
++   /**
++    * Patch for SHORK 486:
++    * For when the Linux console cannot do 16 background colours, dosemu2
++    * emits blinks even when guest programs may have tried to turn the VGA
++    * blink bit off.
++    */
++   static int linux_console = -1;
++   if (linux_console < 0)
++   {
++      const char *tn = getenv("TERM");
++      linux_console = tn && !strncmp(tn, "linux", 5);
++   }
++   SLtt_Blink_Mode = ((vga.attr.data[0x10] & 0x8) != 0) || linux_console;
+ 
+    if (DOSemu_Slang_Show_Help)
+      {

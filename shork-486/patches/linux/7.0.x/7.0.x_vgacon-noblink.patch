@@ -1,0 +1,86 @@
+############################################################################
+## 7.0.x_vgacon-noblink.patch                                             ##
+############################################################################
+## Makes vgacon show bright colours to produce a 16-colour palette        ##
+## instead of 8 colours + blinking. Also adds a kernel command-line       ##
+## parameter to disable this.                                             ##
+############################################################################
+## This patch is a derivative work of the Linux kernel. It is licensed    ##
+## separately under the terms of the GNU GPLv2 licence, and is            ##
+## distributed as part of the SHORK project. See the accompanying COPYING ##
+## file in the parent directory for details.                              ##
+############################################################################
+## Kali (links.sharktastica.co.uk)                                        ##
+############################################################################
+
+diff --git a/drivers/video/console/vgacon.c b/drivers/video/console/vgacon.c
+index 37bd18730..0447e13b6 100644
+--- a/drivers/video/console/vgacon.c
++++ b/drivers/video/console/vgacon.c
+@@ -107,6 +107,49 @@ static int __init no_scroll(char *str)
+ 
+ __setup("no-scroll", no_scroll);
+ 
++/*
++ * Patch for SHORK 486:
++ * Default to bright colours to produce a 16-colour palette instead of 8
++ * colours + blinking. Text-mode attribute bit 7 is either "blink" or
++ * "bright background" depending on bit 3 of the ATC Mode Control register.
++ * Also add "vgacon.blink" as a kernel command line parameter to restore the
++ * default behaviour.
++ */
++static bool vga_hw_blink;
++module_param_named(blink, vga_hw_blink, bool, 0444);
++MODULE_PARM_DESC(blink,
++	"Keep VGA hardware blink enabled with 8 background colours instead of "
++	"no blinking but 16 colours");
++
++static void vgacon_set_blink(void)
++{
++	unsigned long flags;
++	u8 mode;
++
++	/* Only VGA has a readable ATC; EGA's is write-only */
++	if (vga_video_type != VIDEO_TYPE_VGAC || vga_hw_blink)
++		return;
++
++	raw_spin_lock_irqsave(&vga_lock, flags);
++	/*
++	 * vga_rattr()/vga_wattr() do NOT reset the ATC index/data
++	 * flip-flop, so do it by hand before each access (as
++	 * vgacon_do_font_op() does).  Index with the PAS bit (0x20) set
++	 * so the screen stays enabled.
++	 */
++	inb_p(VGA_IS1_RC);
++	mode = vga_rattr(vgastate.vgabase,
++			 VGA_ATC_MODE | VGA_AR_ENABLE_DISPLAY);
++	/* Bit 0 = graphics mode: not a text mode, leave it alone */
++	if (!(mode & 0x01)) {
++		inb_p(VGA_IS1_RC);
++		vga_wattr(vgastate.vgabase,
++			  VGA_ATC_MODE | VGA_AR_ENABLE_DISPLAY, mode & ~0x08);
++	}
++	inb_p(VGA_IS1_RC);	/* leave flip-flop in the index state */
++	raw_spin_unlock_irqrestore(&vga_lock, flags);
++}
++
+ /*
+  * By replacing the four outb_p with two back to back outw, we can reduce
+  * the window of opportunity to see text mislocated to the RHS of the
+@@ -364,6 +407,8 @@ static const char *vgacon_startup(void)
+ 	vgacon_xres = vga_si->orig_video_cols * VGA_FONTWIDTH;
+ 	vgacon_yres = vga_scan_lines;
+ 
++	vgacon_set_blink();
++
+ 	return display_desc;
+ }
+ 
+@@ -811,6 +856,7 @@ static bool vgacon_blank(struct vc_data *c, enum vesa_blank_mode blank,
+ 			vga_palette_blanked = false;
+ 			return 0;
+ 		}
++		vgacon_set_blink();
+ 		vga_is_gfx = false;
+ 		/* Tell console.c that it has to restore the screen itself */
+ 		return 1;

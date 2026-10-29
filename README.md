@@ -1,6 +1,6 @@
 # SHORK 486, 586, DISC & DISKETTE
 
-**SHORK 486** is a free and open-source operating system for 486 and 586/Pentium (P5) era vintage personal computers! It is a 32-bit Linux distribution aiming to be lean yet functional, giving such retro hardware the best chance possible to run modern, updated software. A "default" SHORK 486 system aims to work with at least 16MiB of system memory and take up no more than ~120MiB on your disk. Despite those constraints, this experience includes [Linux kernel 7.3](KERNEL.md), a BusyBox userspace with many typical Linux commands, custom SHORK Utilities such as SHORKDIR (TUI file browser) and SHORKFETCH (*fetch utility), a terminal multiplexer, a C compiler, Lua intepreter, Python 3.4-syntax interpreter and dialog for shell TUI widgets, a text web browser, FTP, NTP, SCP/SSH, Telnet and TFTP clients and servers, Git source control client, ed, Mg, nano and vi editors, a spreadsheet editor, minesweeper- and Tetris-clone games, DOS and ext2/3/4 filesystem tools, IDE and SCSI CD-ROM and DVD-ROM support, SCSI tape drive support, ISA, PCI and PCMCIA ethernet, support for most major national keyboard layouts, and a cute ASCII shark welcome screen!
+**SHORK 486** is a free and open-source operating system for 486 and 586/Pentium (P5) era vintage personal computers! It is a 32-bit Linux distribution aiming to be lean yet functional, giving such retro hardware the best chance possible to run modern, updated software. A "default" SHORK 486 system aims to work with at least 16MiB of system memory and take up no more than ~128MiB on your disk. Despite those constraints, this experience includes [Linux kernel 7.3](KERNEL.md), a BusyBox userspace with many typical Linux commands, custom SHORK Utilities such as SHORKDIR (TUI file browser) and SHORKFETCH (*fetch utility), experimental text-mode DOS emulation, a terminal multiplexer, a C compiler, Lua intepreter, Python 3.4-syntax interpreter and dialog for shell TUI widgets, a text web browser, FTP, NTP, SCP/SSH, Telnet and TFTP clients and servers, Git source control client, ed, Mg, nano and vi editors, a spreadsheet editor, minesweeper- and Tetris-clone games, DOS and ext2/3/4 filesystem tools, IDE and SCSI CD-ROM and DVD-ROM support, SCSI tape drive support, ISA, PCI and PCMCIA ethernet, support for most major national keyboard layouts, gpm console mouse support, and a cute ASCII shark welcome screen!
 
 A build configurator is available to alter the SHORK 486 Operating System to your liking. For example, you can select the "mini" variant that requires just 8MiB RAM and ~8MiB disk space, whilst still including most typical commands as before, some custom SHORK Utilities, and the ed and vi editors. You can also configure SHORK 486 for symmetric multiprocessing support, multi-user support and serial console use, and pick and choose specific software and other features to include. Versions of SHORK 486 that can be optimised specifically for 5x86/K5/Pentium (**SHORK 586**), burned to a CD (**SHORK DISC**) or small enough to fit on a 1.44MB floppy diskette (**SHORK DISKETTE**) are also available. **Suggestions, feedback, and observations/opinions on performance wanted!**
 
@@ -114,12 +114,12 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
     * Micro: 7MiB RAM
     * _**Note:** Add ~2MiB to RAM requirement to all except Max if symmetric multiprocessing support is enabled with no swap memory_
 * IDE or SCSI disk: 
-    * **Default: 120MiB**
+    * **Default: 128MiB**
     * Max: 690MiB
     * Plus: 670MiB
     * Writer: 90MiB
     * Terminal: 70MiB
-    * Offline: 70MiB
+    * Offline: 90MiB
     * Mini: 8MiB
     * Micro: 4MiB
 * Graphics: IBM EGA, VGA or compatible
@@ -182,7 +182,8 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 | [CTris](https://github.com/MitchelPaulin/CTris)<br>`ctris` | `4cf68a9` | Tetris clone | MIT |✓|**✓**|||✓|
 | [cURL](https://curl.se/)<br>`curl` | 8.23.0 | HTTP client & transfer utility | MIT |✓|**✓**||✓||
 | [dialog](https://invisible-mirror.net/dialog/dialog.html)¶<br>`dialog` | 1.3-20260721 | Shell script TUI widgets | GNU LGPLv2.1 |✓|**✓**|||✓|
-| [dosfstools](https://github.com/dosfstools/dosfstools/)<br>e.g. `dosfsck`, `mkdosfs`\* | 4.2 | FAT family filesystem utilities | GNU GPLv3 |✓|**✓**|||✓|
+| [dosemu2](https://github.com/dosemu2/dosemu2)†<br>`dosemu` | 2.0pre9-2 | DOS emulation | GNU GPLv2 |✓|**✓**|||✓|
+| [dosfstools](https://github.com/dosfstools/dosfstools)<br>e.g. `dosfsck`, `mkdosfs`\* | 4.2 | FAT family filesystem utilities | GNU GPLv3 |✓|**✓**|||✓|
 | [Dropbear](https://github.com/mkj/dropbear)<br>`scp`, `ssh` | 2026.94 | SCP and SSH clients | MIT +<br>BSD 2-Clause |✓|**✓**||✓||
 | [e2fsprogs](https://e2fsprogs.sourceforge.net/)<br>e.g. `blkid`\*, `chattr`\*, `fsck`\*, `lsattr`\*, `mke2fs`\*, `resize2fs`, `tune2fs`\*, `uuidgen`\* | 1.47.4 | ext2/3/4 filesystem utilities | GNU GPLv2 + LGPLv2 |✓|**✓**|||✓|
 | [file](https://github.com/file/file)<br>`file` | 5_48 | File identification | BSD 2-Clause |✓|**✓**|||✓|
@@ -255,6 +256,7 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 | [libao](https://github.com/xiph/libao) | 1.2.2 | mpg321 | GNU GPLv2 |
 | [libassuan](https://www.gnupg.org/software/libassuan/index.html) | 3.0.2 | GnuPG | GNU GPLv3 |
 | libcom_err | 1.47.4 | e2fsprogs | MIT SIPB |
+| [libb64](https://github.com/libb64/libb64) | 2.0.0.1 | dosemu2 | Public domain |
 | [libevent](https://github.com/libevent/libevent) | 2.1.13 | tmux | BSD 3-Clause |
 | [libffi](https://github.com/libffi/libffi) | 3.8.0 | GLib | MIT |
 | [libgcrypt](https://www.gnupg.org/software/libgcrypt/index.html) | 1.12.4 | GnuPG | GNU GPLv3 |
@@ -283,6 +285,7 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 | [nPth](https://www.gnupg.org/software/npth/index.html) | 1.8 | GnuPG | GNU LGPLv2.1 |
 | [OpenSSL](https://github.com/openssl/openssl) | 3.6.5 | cURL, Git, Lynx, Midnight Commander, tcpdump, tn5250 | Apache 2.0 |
 | [PCRE2](https://pcre2project.github.io/pcre2/) | 10.49 | GLib, Tilde | BSD 3-Clause w/<br>PCRE2 exception |
+| [S-Lang](https://www.jedsoft.org/slang/) | 2.3.3 | dosemu2 | GNU GPLv2 |
 | [zlib](https://github.com/madler/zlib) | 1.3.2 | Git, GLib, GnuPG, libzip | zlib |
 | [Zstandard](https://github.com/Facebook/zstd) | 1.5.7 | GnuTLS | BSD 3-Clause or<br>**GNU GPLv2** |
 
@@ -541,6 +544,8 @@ When running the SHORK 486 Build Configurator, you will be prompted to select th
     * __If "Custom" build type selected:__
         * Bundled software (multiple choice)
         * Options (all other configuration) (multiple choice)
+    * __If DOS emulation included:__
+        * Bundled FreeDOS environment (yes/no)
 
 Below are further explanations for options that could not fit into the configurator itself.
 
@@ -595,6 +600,11 @@ EXTLINUX (SHORK 486/586), ISOLINUX (SHORK DISC) and SYSLINUX (SHORK DISKETTE) ar
 
 
 #### Bundled Software
+
+* **dosemu2**: Adds dosemu2 to provide a DOS emulation environment. Currently, SHORK's inclusion of it is useful only for text-mode DOS applications - trying to run a graphics-mode application will likely crash, but work to address this is underway. It ideally requires 24MiB RAM, or at least 16MiB RAM with 8MiB swap. Efforts to bring this memory requirement down are also underway.
+    * **dosemu2's inclusion is an experimental feature - expect quirks and incompleteness!**
+    * Including dosemu2 will also give you the option to include a bundled FreeDOS environment for it toward the end of the Build Configurator. It includes the FreeDOS kernel, COMMAND.COM, DEBUG.COM, EDIT.EXE, MEM.EXE, MORE.EXE, MOVE.EXE and XCOPY.EXE (total ~0.5MiB).
+    * If you decline the aforementioned option, you will need to install or provide your own DOS. To help with this, you can create the `shork-486/payload/drive_c` directory and copy a complete DOS installation into it, so that it will be subsequently copied into the final hard disk image for you. This directory is not deleted or modified by the build process, so it is safe to keep files in it across multiple builds.
 
 * **dosfstools**: Adds utilities for creating, inspecting and maintaining FAT12, FAT16 and FAT32 filesystems.
     * **Note:** If included, BusyBox's `mkdosfs`/`mkfs.vfat` implementation will be disabled in favour of dosfstools'.

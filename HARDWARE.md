@@ -22,7 +22,7 @@ SHORK 486/586 CPU support depends on the target architecture selected when runni
         * For 586s with TSC register, RDTSC instruction and MMX support.
         * Supports at least Intel Pentium MMX, Pentium OverDrive MMX, or newer.
 
-## System architecture & buses
+## System architectures & buses
 
 ### ISA, VLB & PCI
 
@@ -45,7 +45,7 @@ MDA, CGA, EGA, VGA and compatible display cards for the ISA, MCA, VLB or PCI bus
     * Enabled with the "force vga16fb" option in `shorkset` -> Drivers -> Framebuffers.
 * `vesafb`
     * Requires a VBE2+ PCI display card
-    * Enable by selecting a VBE-style resolution in `shorkset` -> Display resolution.
+    * Enabled by selecting a VBE-style resolution in `shorkset` -> Display resolution.
 
 ## Networking
 

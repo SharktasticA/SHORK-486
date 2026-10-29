@@ -35,10 +35,12 @@ Whilst the SHORK 486 repository is largely licensed under GPL 3.0 terms, these p
 13. 7.0.x_fix-387-fpu-clone-sigfpe.patch
 14. 7.0.x_force-486-fpu-check.patch
 15. 7.0.x_vga16fb-force-ega-fix.patch
+16. 7.0.x_vgacon-noblink.patch
 
 ### [7.3.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.patch](shork-486/patches/linux/7.3.x/7.3.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.patch)
 
 * Original kernel: 7.3
+* Type: driver restoration
 * Context: https://www.phoronix.com/news/AMD-K5-CPUs, https://www.phoronix.com/news/AMD-Elan-Linux-Driver-Removal
 
 This is a modification of `7.2.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.patch` that allows it to be cleanly applied to 7.3.x. This patch reverts the removal of various TSC-less and CX8-less CPU build targets, 486-related plumming, AMD Élan support, and 387 maths emulation support from [this patch series](https://lore.kernel.org/all/20250425084216.3913608-1-mingo@kernel.org/). It includes build targets for "586" (AMD K5, Cyrix 5x86, etc.), AMD Élan, IDT Winchip, RDC R-321x and UMC U5x, x87 math emulation support, and Geode GX1 support.
@@ -46,12 +48,14 @@ This is a modification of `7.2.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.pa
 ### [7.3.x_restore-doubletalk-pc.patch](shork-486/patches/linux/7.3.x/7.3.x_restore-doubletalk-pc.patch)
 
 * Original kernel: 7.3
+* Type: driver restoration
 
 This is a modification of `7.2.x_restore-doubletalk-pc.patch` that allows it to be cleanly applied to 7.3.x. This patch reverts the removal of the RC Systems DoubleTalk PC ISA card driver by [this patch](https://lore.kernel.org/all/20260502043341.34324-1-enelsonmoore@gmail.com/).
 
 ### [7.3.x_restore-xircom-cardbus.patch](shork-486/patches/linux/7.3.x/7.3.x_restore-xircom-cardbus.patch)
 
 * Original kernel: 7.3
+* Type: driver restoration
 
 This patch reverts the removal of the Xircom Tulip CardBus driver (`xircom_cb`) by [this patch](https://lore.kernel.org/all/am48DR5FC-xTY3-D@ThinkPad-P15/). In addition, a [previously proposed patch](https://lore.kernel.org/all/amzqfjeo0Yo1p0Rd@ThinkPad-P15/) to fix an underflow issue before the driver was dropped has also been applied.
 
@@ -75,10 +79,12 @@ This patch reverts the removal of the Xircom Tulip CardBus driver (`xircom_cb`) 
 12. 7.2.x_restore-hgafb.patch
 13. 7.0.x_force-486-fpu-check.patch
 14. 7.0.x_vga16fb-force-ega-fix.patch
+15. 7.0.x_vgacon-noblink.patch
 
 ### [7.2.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.patch](shork-486/patches/linux/7.2.x/7.2.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.patch)
 
 * Original kernel: 7.2.0
+* Type: driver restoration
 * Context: https://www.phoronix.com/news/AMD-K5-CPUs, https://www.phoronix.com/news/AMD-Elan-Linux-Driver-Removal
 
 This patch reverts the removal of various TSC-less and CX8-less CPU build targets, 486-related plumming, AMD Élan support, and 387 maths emulation support from [this patch series](https://lore.kernel.org/all/20250425084216.3913608-1-mingo@kernel.org/). It includes build targets for "586" (AMD K5, Cyrix 5x86, etc.), AMD Élan, IDT Winchip, RDC R-321x and UMC U5x, x87 math emulation support, and Geode GX1 support.
@@ -86,6 +92,7 @@ This patch reverts the removal of various TSC-less and CX8-less CPU build target
 ### [7.2.x_restore-isa-pcmcia-net.patch](shork-486/patches/linux/7.2.x/7.2.x_restore-isa-pcmcia-net.patch)
 
 * Original kernel: 7.2.0
+* Type: driver restoration
 * Context: https://www.phoronix.com/news/Linux-7.1-Removes-Old-Net, https://lore.kernel.org/all/20260422-v7-0-0-net-next-driver-removal-v1-v2-0-08a5b59784d5@lunn.ch/
 
 This is a modification of `7.1.x_restore-isa-pcmcia-net.patch` that allows it to be cleanly applied to 7.2.x. This patch reverts the removal of several ISA and PCMCIA network drivers from [this patch series](https://github.com/search?q=repo%3Atorvalds%2Flinux+net-next+driver-removal&type=commits). It includes the ISA drivers `3c515`, `lance`, `smc9194`, `ultra` and `wd80x3`, and the PCMCIA drivers `3c574`, `3c589`, `ax88190`, `fmvj18x`, `nmclan` and `smc91c92`. Several of these drivers include hardware relevant for SHORK 486.
@@ -93,6 +100,7 @@ This is a modification of `7.1.x_restore-isa-pcmcia-net.patch` that allows it to
 ### [7.2.x_restore-arcnet-isa-pcmcia.patch](shork-486/patches/linux/7.2.x/7.2.x_restore-arcnet-isa-pcmcia.patch)
 
 * Original kernel: 7.2.0
+* Type: driver restoration
 * Context: https://www.phoronix.com/news/Linux-To-Drop-ARCnet-ISA-PCMCIA
 
 This patch reverts the removal of various ISA and PCMCIA ARCnet drivers and documentation from [this patch series](https://lore.kernel.org/netdev/20260521001631.45434-1-enelsonmoore@gmail.com/T/). This was done as per the request of a user.
@@ -100,24 +108,28 @@ This patch reverts the removal of various ISA and PCMCIA ARCnet drivers and docu
 ### [7.2.x_restore-pcmcia-bt.patch](shork-486/patches/linux/7.2.x/7.2.x_restore-pcmcia-bt.patch)
 
 * Original kernel: 7.2.0
+* Type: driver restoration
 
 This patch reverts the removal of PCMCIA Bluetooth drivers by [this patch](https://lore.kernel.org/all/20260503033201.19719-1-enelsonmoore@gmail.com/). This includes drivers for HCI BlueCard (Anycom), HCI BT3C (3Com) and  HCI DTL1 (Nokia). This is done for their likely inclusion in future SHORK 686.
 
 ### [7.2.x_restore-doubletalk-pc.patch](shork-486/patches/linux/7.2.x/7.2.x_restore-doubletalk-pc.patch)
 
 * Original kernel: 7.2.0
+* Type: driver restoration
 
 This patch reverts the removal of the RC Systems DoubleTalk PC ISA card driver by [this patch](https://lore.kernel.org/all/20260502043341.34324-1-enelsonmoore@gmail.com/).
 
 ### [7.2.x_restore-mdacon.patch](shork-486/patches/linux/7.2.x/7.2.x_restore-mdacon.patch)
 
 * Original kernel: 7.2.0
+* Type: driver restoration
 
 This patch reverts the removal of MDA console support by [this patch](https://lore.kernel.org/all/20260520033155.17378-1-enelsonmoore@gmail.com/). It allows an ISA MDA or Hercules-compatible display card to be used as a secondary text console.
 
 ### [7.2.x_restore-hgafb.patch](shork-486/patches/linux/7.2.x/7.2.x_restore-hgafb.patch)
 
 * Original kernel: 7.2.0
+* Type: driver restoration
 
 This patch reverts the removal of Hercules-compatible ISA display card framebuffer support by [this patch](https://lore.kernel.org/all/20260503045653.33522-1-enelsonmoore@gmail.com/).
 
@@ -135,10 +147,12 @@ This patch reverts the removal of Hercules-compatible ISA display card framebuff
 6. 7.0.x_fix-387-fpu-clone-sigfpe.patch
 7. 7.0.x_force-486-fpu-check.patch
 8. 7.0.x_vga16fb-force-ega-fix.patch
+9. 7.0.x_vgacon-noblink.patch
 
 ### [7.1.x_restore-M486-M486SX-ELAN.patch](shork-486/patches/linux/7.1.x/7.1.x_restore-M486-M486SX-ELAN.patch)
 
 * Original kernel: 7.1.0
+* Type: driver restoration
 * Context: https://www.phoronix.com/news/Linux-7.1-Begins-Removing-i486
 
 This patch reverts the changes made in [8b793a92d862](https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=8b793a92d862c89055daa97ffa61a6929cf732f9) during 7.1-rc1 and restores the ability to target and compile the kernel for 486(DX), 486SX and 486-based Élan processors. 
@@ -146,6 +160,7 @@ This patch reverts the changes made in [8b793a92d862](https://git.kernel.org/pub
 ### [7.1.x_restore-pcmcia-hosts.patch](shork-486/patches/linux/7.1.x/7.1.x_restore-pcmcia-hosts.patch)
 
 * Original kernel: 7.1.0
+* Type: driver restoration
 * Context: https://www.phoronix.com/news/Linux-7.1-Drops-Old-PCMCIA-Code
 
 This patch reverts the changes made in [b3c26ea81ccc](https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=b3c26ea81ccc522e77ed0b1707add61fc9206216) during 7.1-rc1 that restores some legacy PCMCIA host controller drivers and associated infrastructure. The drivers include i82092, i82365 and tcic.
@@ -153,6 +168,7 @@ This patch reverts the changes made in [b3c26ea81ccc](https://git.kernel.org/pub
 ### [7.1.x_restore-no-pci-devices.patch](shork-486/patches/linux/7.1.x/7.1.x_restore-no-pci-devices.patch)
 
 * Original kernel: 7.1.0
+* Type: fix
 * Context: https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=40286d6379aacfcc053253ef78dc78b09addffda
 
 This patch reverts the removal of the `no_pci_devices` function in [d79dc408deb6](https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=d79dc408deb6c192adbad7893ee0c22d50826511) as it is required by the above patch to restore the `pc110pad` driver.
@@ -160,6 +176,7 @@ This patch reverts the removal of the `no_pci_devices` function in [d79dc408deb6
 ### [7.1.x_restore-pc110pad.patch](shork-486/patches/linux/7.1.x/7.1.x_restore-pc110pad.patch)
 
 * Original kernel: 7.1.0
+* Type: driver restoration
 * Context: https://www.phoronix.com/news/Linux-7.1-PCI
 
 This patch reverts the removal of the `pc110pad` driver in [6f468ea360f0](https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=6f468ea360f0a6a1e45854afbc3019842ed891a8). This is for the IBM Palm Top PC 110's trackpad. The PC 110 is a 486SX-based device and a target for SHORK 486.
@@ -167,6 +184,7 @@ This patch reverts the removal of the `pc110pad` driver in [6f468ea360f0](https:
 ### [7.1.x_restore-isa-pcmcia-net.patch](shork-486/patches/linux/7.1.x/7.1.x_restore-isa-pcmcia-net.patch)
 
 * Original kernel: 7.1.0
+* Type: driver restoration
 * Context: https://www.phoronix.com/news/Linux-7.1-Removes-Old-Net, https://lore.kernel.org/all/20260422-v7-0-0-net-next-driver-removal-v1-v2-0-08a5b59784d5@lunn.ch/
 
 This patch reverts the removal of several ISA and PCMCIA network drivers from [this patch series](https://github.com/search?q=repo%3Atorvalds%2Flinux+net-next+driver-removal&type=commits). It includes the ISA drivers `3c515`, `lance`, `smc9194`, `ultra` and `wd80x3`, and the PCMCIA drivers `3c574`, `3c589`, `ax88190`, `fmvj18x`, `nmclan` and `smc91c92`. Several of these drivers include hardware relevant for SHORK 486.
@@ -178,13 +196,14 @@ This patch reverts the removal of several ISA and PCMCIA network drivers from [t
 1. 7.0.x_fix-387-fpu-clone-sigfpe.patch
 2. 7.0.x_force-486-fpu-check.patch
 3. 7.0.x_vga16fb-force-ega-fix.patch
+4. 7.0.x_vgacon-noblink.patch
 
 ### [~~7.0.x_6.14.11-e820.patch~~](shork-486/patches/linux/7.0.x/7.0.x_6.14.11-e820.patch), [~~7.0.x_6.14.11-e820-v2.patch~~](shork-486/patches/linux/7.0.x/7.0.x_6.14.11-e820-v2.patch)
 
 _No longer required as of [7.0.7](https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/diff/?id=v7.0.7&id2=v7.0.6&dt=2) and [7.1-rc3](https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=5772f6535227ebd104065d80afa8ed3478d34c5c)_
 
-
 * Original kernel: 7.0.0
+* Type: fix
 * Context: https://github.com/SharktasticA/SHORK-486/issues/3, https://lore.kernel.org/lkml/20260415003021.1543723-1-david@davidgow.net/
 
 This patch fixes an issue introduced in [157266edcc56](https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?h=master&id=157266edcc56715323de1bd60e49194b3b66a174) during 7.0-rc1 that prevented the use of fallbacks when a received e820 map has no/too few entries, in turn preventing booting on certain old BIOSes and usually manifesting as a "Real mode trampoline was not allocated" error.
@@ -192,22 +211,33 @@ This patch fixes an issue introduced in [157266edcc56](https://git.kernel.org/pu
 ### [7.0.x_fix-387-fpu-clone-sigfpe.patch](shork-486/patches/linux/7.0.x/7.0.x_fix-387-fpu-clone-sigfpe.patch)
 
 * Original kernel: 7.0.0 (likely earlier)
+* Type: fix
 
 This patch fixes an issue with spurious SIGFPE signals when using threaded programs with floating-point operations on a 486SX-class CPU. Such a scenario requires 387 math emulation, and `fpu_clone()` would raise these signals when new threads were created. This patch fixes the issue by correcting the falsely-zeroed x87 control word `dst_fpu->fpstate->regs.soft.cwd`, which should instead be masked rather than left to raise the signals. This issue was found during SHORK 486's development.
 
 ### [7.0.x_force-486-fpu-check.patch](shork-486/patches/linux/7.0.x/7.0.x_force-486-fpu-check.patch)
 
 * Original kernel: 7.0.0 (likely earlier)
+* Type: fix
 
 This patch forces a manual FPU presence check for a family 4 CPU if CPUID is available but doesn't report the FPU feature bit. While this may not apply to real hardware, it was found that on 86Box when an Intel i486SX-S or i486SX2 is installed with a 487SX, the 487SX does not take over and report that an FPU is present, yet FPU functions work. Thus, this patch will make sure that `/proc/cpuinfo` at least reports that *an* FPU is present.
 
 ### [7.0.x_vga16fb-force-ega-fix.patch](shork-486/patches/linux/7.0.x/7.0.x_vga16fb-force-ega-fix.patch)
 
 * Original kernel: 7.0.0 (likely earlier)
+* Type: fix & SHORK experience improvement
 
-This patch adds a kernel command line parameter (`vga16fb.force`) that allows vga16fb to be force-bound when desired, and fixes its EGA support. This provides a general framebuffer for ISA, VLB and non-VESA PCI EGA-/VGA-compatible display cards. It addresses the following:
+This patch adds a kernel command-line parameter (`vga16fb.force`) that allows the 16-colour VGA framebuffer driver (vga16fb) to be force-bound when desired, and fixes its EGA support. This provides a general framebuffer for ISA, VLB and non-VESA PCI EGA-/VGA-compatible display cards. It addresses the following:
 *  `screen_info_video_type()` never recognised EGA text-mode boot.
 * The driver always defaulted to VGA-only 640x480 mode with VGA pixel clocks and CRTC timings.
 * The EGA colour palette bits were mapped in the wrong order.
 * EGA's identical RGB offsets made `fbcon` fall back to a 4-colour grey palette.
 * `vga_imageblit_expand()`'s EGA text drawing was corrupted.
+
+
+### [7.0.x_vgacon-noblink.patch](shork-486/patches/linux/7.0.x/7.0.x_vgacon-noblink.patch)
+
+* Original kernel: 7.0.0 (likely earlier)
+* Type: SHORK experience improvement
+
+This patch makes the VGA text console driver (vgacon) show 16 background colours instead of 8 colours plus blinking text by default. These changes primarily improve dosemu2 experience when using vgacon. This also adds a kernel command-line parameter (`vgacon.blink`) that allows the previous behaviour to be restored.
