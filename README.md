@@ -523,7 +523,7 @@ When running the SHORK 486 Build Configurator, you will be prompted to select th
 * _If SHORK DISKETTE:_
     * Target diskette size (1.44MB or 2.88MB)
 * Target architecture (486SX, 486DX, 586, 586TSC or 586MMX)
-* Linux kernel version (7.3, 7.2.12, 7.1.13 or 7.0.14)
+* Linux kernel version (7.3, 7.2.13, 7.1.13 or 7.0.14)
 * Keyboard scancode set (skip, set 2 or set 3)
 * _If SHORK 486/586:_
     * __If not "Micro" or "Mini" build type selected:__

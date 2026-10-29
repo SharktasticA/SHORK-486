@@ -76,8 +76,9 @@ menu "defops"
     "Hide Tasklist"     f.hideiconmgr
     "Kill Window"       f.destroy
     "----------------"  f.nop
-    "Terminal (62x18)"  f.exec "st -g 62x18 &"
-    "Terminal (80x24)"  f.exec "st -g 80x24 &"
+    "Terminal (80x25)"  f.exec "st -g 80x25 &"
+    "Terminal (64x20)"  f.exec "st -g 64x20 &"
+    "Terminal (48x15)"  f.exec "st -g 48x15 &"
     "----------------"  f.nop
     "Calculator"        f.exec "xcalc -g 130x170 &"
     "Clock"             f.exec "xclock -g 130x130 -name Clock &"

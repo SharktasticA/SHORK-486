@@ -202,7 +202,7 @@ AUTOMAKE_SRC="https://ftp.gnu.org/gnu/automake"
 AUTOMAKE_VER="1.19"
 
 BIND9_SRC="https://downloads.isc.org/isc/bind9"
-BIND9_VER="9.20.29"
+BIND9_VER="9.20.30"
 
 BINUTILS_TEST_SRC="https://ftp.gnu.org/gnu/binutils"
 BINUTILS_TEST_VER="2.47"
@@ -469,7 +469,8 @@ SNAPPY_SRC="https://github.com/google/snappy.git"
 SNAPPY_VER="1.2.2"
 
 STRACE_SRC="https://github.com/strace/strace.git"
-STRACE_VER="7.2"
+STRACE_VER="7.3"
+
 SUDO_SRC="https://www.sudo.ws/dist"
 SUDO_VER="1.9.17p2"
 TCC_SRC="https://github.com/Tiny-C-Compiler/tinycc-mirror-repository.git"
