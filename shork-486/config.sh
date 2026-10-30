@@ -54,7 +54,7 @@ TARGET_SWAP=0
 ENABLE_DYN_SWAP=false
 SETUP_DYN_SWAP=false
 TARGET_ARCH="486SX"
-LINUX_VER="7.3"
+LINUX_VER="7.3.1"
 SCANCODE_SET=-1
 SET_KEYMAP="qwerty_en_us"
 ENABLE_SMP=false
@@ -1122,9 +1122,9 @@ LINUX_VER=$(dialog --clear \
     --title "Linux Kernel Version" \
     --cancel-label "Quit" \
     --default-item "$LINUX_VER" \
-    --menu "Please select which Linux kernel version you wish to use. It's recommended to use the latest version without \"-rc\". If you experience hardware compatibility issues, try building with an older kernel to see if that resolves them (if so, please report this as an issue on the SHORK 486 GitHub repository). Only select a \"-rc\" kernel if you know what you're doing." 15 $WIDTH 5 \
-    "7.3"       "7.3    (2026-10-18, mainline)" \
-    "7.2.13"    "7.2.13 (2026-10-26, stable)" \
+    --menu "Please select a Linux kernel version to use. It's recommended to use the latest mainline or stable version. If you experience hardware compatibility issues, try building with an older kernel to see if that resolves them (if so, please report this as an issue on the SHORK 486 GitHub repository). Only select a \"testing\" kernel (when available) if you know what you're doing." 15 $WIDTH 5 \
+    "7.3.1"     "7.3.1  (2026-10-30, stable)" \
+    "7.2.14"    "7.2.14 (2026-10-30, stable)" \
     "7.1.13"    "7.1.13 (2026-09-02, EOL)" \
     "7.0.14"    "7.0.14 (2026-06-27, EOL)" \
     3>&1 1>&2 2>&3)
@@ -1148,7 +1148,7 @@ CHOICE=$(dialog --clear \
     --title "Keyboard Scancode Set" \
     --default-item "$CHOICE_DEFAULT" \
     --menu "Do you want to specify an IBM scancode set for SHORK to request? For most AT and PS/2 keyboards, this is likely not needed and can be skipped. But some specific keyboards or computers with integrated keyboards have been known to require a specific one and are listed below.\n\nKnown to require set 3: IBM 9545 ThinkPad 755C" \
-    16 $WIDTH 3 \
+    15 $WIDTH 3 \
     "-"     "Skip (recommended for most)" \
     "2"     "Set 2 (AT & PS/2)" \
     "3"     "Set 3 (PS/2 & 315X/316X/3179/3180/319X/3270 PC/3290-2/InfoWindow)" \

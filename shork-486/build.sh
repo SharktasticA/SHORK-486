@@ -184,7 +184,7 @@ NEEDED_MESON="1.4.0"
 # Target software/feature versions
 LINUX_STABLE_SRC="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git"
 LINUX_TORVALDS_SRC="https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
-LINUX_VER="7.3"
+LINUX_VER="7.3.1"
 
 BUSYBOX_SRC="https://busybox.net/downloads"
 BUSYBOX_VER="1.38.0"
@@ -4951,7 +4951,11 @@ configure_kernel()
     echo -e "${GREEN}Copying base ${DIST} kernel configuration file...${RESET}"
 
     if [[ "$ID" == "shork-"*86 ]] || [ "$ID" == "shork-disc" ]; then
-        cp "$CONFIGS_DIR"/linux/linux.config.base .config
+        if [ "$BUILD_TYPE" = "micro" ]; then
+            cp "$CONFIGS_DIR"/linux/linux.config.base.micro .config
+        else
+            cp "$CONFIGS_DIR"/linux/linux.config.base .config
+        fi
     elif [ "$ID" == "shork-diskette" ]; then
         cp "$CONFIGS_DIR"/linux/linux.config.base.diskette .config
     fi
@@ -5087,9 +5091,6 @@ configure_kernel()
             echo -e "${GREEN}Enabling kernel-level zswap support...${RESET}"
             FRAGS+="${CONFIGS_DIR}/linux/linux.config.zswap.frag "
         fi
-    else
-        echo -e "${GREEN}Enabling SHORK 486/586 Micro kernel tweaks...${RESET}"
-        FRAGS+="${CONFIGS_DIR}/linux/linux.config.micro.frag "
     fi
 
     if $PATCH_TEST; then
