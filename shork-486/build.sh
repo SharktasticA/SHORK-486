@@ -6746,11 +6746,12 @@ get_st()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading st...${RESET}"
-        git clone git://git.suckless.org/st
+        git clone --branch 0.9.3 --depth 1 git://git.suckless.org/st
         cd st
     fi
 
-    patch -p1 < "${PATCHES_DIR}/st/customisations.patch"
+    patch -p1 < "${PATCHES_DIR}/st/0.9.3_scrollback.patch"
+    patch -p1 < "${PATCHES_DIR}/st/0.9.3_customisations.patch"
 
     # Compile and install
     echo -e "${GREEN}Compiling st...${RESET}"
