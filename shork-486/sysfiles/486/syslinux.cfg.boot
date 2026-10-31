@@ -1,5 +1,5 @@
 ######################################################
-## /mnt/ID/boot/syslinux/syslinux.cfg               ##
+## /boot/syslinux/syslinux.cfg                      ##
 ######################################################
 ## EXTLINUX bootloader configuration (boot only)    ##
 ######################################################

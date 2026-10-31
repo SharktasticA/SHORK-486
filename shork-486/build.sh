@@ -916,19 +916,19 @@ fi
 
 # Host prerequisite packages
 PKGS_ARCH="autoconf base-devel bc bison bzip2 ca-certificates cdrtools \
-    cmake cpio dosfstools e2fsprogs flex fontconfig gettext git gperf grub \
+    cmake cpio dosfstools e2fsprogs flex fontconfig gettext git gperf \
     libffi libtool make meson multipath-tools nasm ncurses ninja pciutils \
     pkgconf python qemu-img syslinux systemd texinfo unzip util-linux wget \
     xorg-bdftopcf xorg-font-util xorg-mkfontscale xz"
 PKGS_DEB="autoconf autopoint bc bison bzip2 cmake e2fsprogs extlinux fdisk \
-    flex fontconfig genisoimage gettext gettext-base git gperf grub-common \
-    grub-pc isolinux kpartx libffi-dev libncurses-dev libtool libtool-bin \
+    flex fontconfig genisoimage gettext gettext-base git gperf \
+    isolinux kpartx libffi-dev libncurses-dev libtool libtool-bin \
     libxcb1-dev make meson nasm ninja-build pciutils pkg-config \
     python-is-python3 python3 qemu-utils syslinux texinfo unzip uuid-dev \
     wget xfonts-utils xz-utils"
 PKGS_RPM="autoconf automake bc bdftopcf bison byacc cmake dialog \
     docbook-utils-pdf docbook2X dosfstools e2fsprogs flex fontconfig gcc \
-    genisoimage gettext git gperf grub2-common grub2-pc kpartx \
+    genisoimage gettext git gperf kpartx \
     libffi-devel libtool libuuid-devel make meson mkfontscale nasm \
     ncurses-devel ninja-build patch perl pciutils python3 qemu-img sudo \
     syslinux-extlinux syslinux-nonlinux texinfo util-linux \
@@ -1455,6 +1455,9 @@ make_pkg()
 install_arch_prerequisites()
 {
     PACKAGES="${PKGS_ARCH}"
+    if $USE_GRUB; then
+        PACKAGES+=" grub"
+    fi
     if $INCLUDE_MICRO; then
         PACKAGES+=" go"
     fi
@@ -1488,6 +1491,9 @@ install_arch_prerequisites()
 install_debian_prerequisites()
 {
     PACKAGES="${PKGS_DEB}"
+    if $USE_GRUB; then
+        PACKAGES+=" grub-common grub-pc"
+    fi
     if $INCLUDE_MICRO; then
         PACKAGES+=" golang-go"
     fi
@@ -1529,6 +1535,9 @@ install_debian_prerequisites()
 install_fedora_prerequisites()
 {
     PACKAGES="${PKGS_RPM}"
+    if $USE_GRUB; then
+        PACKAGES+=" grub2-common grub2-pc"
+    fi
     if $INCLUDE_MICRO; then
         PACKAGES+=" golang"
     fi
@@ -11375,11 +11384,19 @@ install_grub_bootloader()
     sudo mount --bind /proc "/mnt/${ID}/proc"
     sudo mount --bind /sys  "/mnt/${ID}/sys"
 
-    GRUB_CMD="grub-install"
-    if ! command -v "$GRUB_CMD" >/dev/null 2>&1; then
-        GRUB_CMD="/usr/sbin/grub2-install"
+    GRUB_CMD=""
+    for CAND in grub-install grub2-install; do
+        CAND_PATH=$(PATH="$PATH:/usr/sbin:/sbin" command -v "$CAND")
+        if [ -n "$CAND_PATH" ]; then
+            GRUB_CMD="$CAND_PATH"
+            break
+        fi
+    done
+    if [ -z "$GRUB_CMD" ]; then
+        echo -e "${GREEN}ERROR: grub-install could not be found${RESET}"
+        exit 1
     fi
-    sudo $GRUB_CMD --target=i386-pc --boot-directory="/mnt/${ID}/boot" --modules="ext2 part_msdos biosdisk" --force "$1"
+    sudo "$GRUB_CMD" --target=i386-pc --boot-directory="/mnt/${ID}/boot" --modules="ext2 part_msdos biosdisk" --force "$1"
 
     # Configure for SERIAL_CON_PORT if serial console mode is enabled
     if $ENABLE_SERIAL_CON; then
