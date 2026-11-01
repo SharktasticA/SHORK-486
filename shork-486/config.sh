@@ -1113,7 +1113,7 @@ LINUX_VER=$(dialog --clear \
     --default-item "$LINUX_VER" \
     --menu "Please select a Linux kernel version to use. It's recommended to use the latest mainline or stable version. If you experience hardware compatibility issues, try building with an older kernel to see if that resolves them (if so, please report this as an issue on the SHORK 486 GitHub repository). Only select a \"testing\" kernel (when available) if you know what you're doing." 15 $WIDTH 5 \
     "7.3.1"     "7.3.1  (2026-10-30, stable)" \
-    "7.2.14"    "7.2.14 (2026-10-30, stable)" \
+    "7.2.15"    "7.2.15 (2026-11-01, EOL)" \
     "7.1.13"    "7.1.13 (2026-09-02, EOL)" \
     "7.0.14"    "7.0.14 (2026-06-27, EOL)" \
     3>&1 1>&2 2>&3)
