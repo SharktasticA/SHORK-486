@@ -11,16 +11,18 @@
 
 
 
+set -e
+
 PATCHES_DIR=$(pwd)
 
 if [[ -d tmp/linux ]]; then
     cd tmp/linux
-    git reset --hard v7.3
+    git reset --hard v7.4-rc1
     git clean -fdx
 else
     mkdir -p tmp
     cd tmp
-    git clone --depth=1 --branch v7.3 https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+    git clone --depth=1 --branch v7.4-rc1 https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
     cd linux
 fi
 
@@ -38,7 +40,12 @@ patch -p1 < "${PATCHES_DIR}/linux/7.2.x/7.2.x_restore-mdacon.patch"
 patch -p1 < "${PATCHES_DIR}/linux/7.2.x/7.2.x_restore-hgafb.patch"
 patch -p1 < "${PATCHES_DIR}/linux/7.3.x/7.3.x_restore-doubletalk-pc.patch"
 patch -p1 < "${PATCHES_DIR}/linux/7.3.x/7.3.x_restore-xircom-cardbus.patch"
-patch -p1 < "${PATCHES_DIR}/linux/7.0.x/7.0.x_fix-387-fpu-clone-sigfpe.patch"
+patch -p1 < "${PATCHES_DIR}/linux/7.4.x/7.4.x_fix-387-fpu-clone-sigfpe.patch"
+patch -p1 < "${PATCHES_DIR}/linux/7.4.x/7.4.x_restore-fpu-emu-hooks.patch"
+patch -p1 < "${PATCHES_DIR}/linux/7.4.x/7.4.x_restore-cr4-read-fault-handler.patch"
+patch -p1 < "${PATCHES_DIR}/linux/7.0.x/7.0.x_force-486-fpu-check.patch"
+patch -p1 < "${PATCHES_DIR}/linux/7.0.x/7.0.x_unsupported-486-586-msgs.patch"
+patch -p1 < "${PATCHES_DIR}/linux/7.0.x/7.0.x_vga16fb-force-ega-fix.patch"
 
 git add .
 git commit -m "---"
