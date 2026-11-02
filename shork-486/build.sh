@@ -251,6 +251,10 @@ EMACS_SRC="https://ftp.gnu.org/gnu/emacs"
 EMACS_VER="31.1"
 FILE_SRC="https://github.com/file/file.git"
 FILE_VER="5_48"
+
+FLTK_SRC="https://github.com/fltk/fltk.git"
+FLTK_VER="1.4.5"
+
 GCC_SRC="https://more.musl.cc/11/i686-linux-musl"
 GCC_VER="11.2.1"
 GCCGO_SRC="https://ftp.gnu.org/gnu/gcc"
@@ -6516,6 +6520,76 @@ get_xbiff()
     make DESTDIR="${DESTDIR}" install
 }
 
+get_fltk()
+{
+    # Prevent hard-coded paths poisoning the cross-compilation linker
+    find "$SYSROOT/usr/lib" -name "*.la" -delete
+
+    cd "${CURR_DIR}/build"
+
+    # Skip if already built
+    if [ -f "$SYSROOT/usr/lib/libfltk.a" ]; then
+        echo -e "${LIGHT_RED}FLTK already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d fltk ]; then
+        echo -e "${YELLOW}FLTK source already present, resetting...${RESET}"
+        cd fltk
+        git config --global --add safe.directory "${CURR_DIR}/build/fltk"
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading FLTK...${RESET}"
+        git clone --branch "release-${FLTK_VER}" --depth 1 "$FLTK_SRC"
+        cd fltk
+    fi
+
+    export PKG_CONFIG_SYSROOT_DIR="$SYSROOT"
+    export PKG_CONFIG_LIBDIR="$SYSROOT/usr/lib/pkgconfig:$SYSROOT/usr/share/pkgconfig"
+
+    # Compile and install
+    echo -e "${GREEN}Compiling and installing FLTK...${RESET}"
+    autoconf
+    ./configure \
+        --host="$HOST" \
+        --prefix="${SYSROOT}/usr" \
+        --x-includes="${SYSROOT}/usr/include" \
+        --x-libraries="${SYSROOT}/usr/lib" \
+        --disable-shared \
+        --disable-wayland \
+        --disable-gl \
+        --disable-threads \
+        --disable-xinerama \
+        --disable-xcursor \
+        --disable-xfixes \
+        --disable-fluid \
+        --disable-test \
+        --disable-forms \
+        --disable-print \
+        --disable-svg \
+        --disable-gdiplus \
+        --enable-localjpeg \
+        --enable-localpng \
+        --enable-localzlib \
+        --disable-xft \
+        CC="$CC_STATIC" \
+        CXX="$CXX_STATIC" \
+        AR="$AR" \
+        RANLIB="$RANLIB" \
+        STRIP="$STRIP" \
+        CFLAGS="${CFLAGS_COMMON} -ffunction-sections -fdata-sections" \
+        CXXFLAGS="${CFLAGS_COMMON} -ffunction-sections -fdata-sections -fno-exceptions -fno-rtti" \
+        LDFLAGS="-Wl,--gc-sections" \
+        LIBS="${XFT_LIBS} -lX11 -lxcb -lXau -lXdmcp"
+    make -j"$JOBS" DIRS="src"
+    make -C FL install
+    mkdir -p "$SYSROOT/usr/lib" "$SYSROOT/usr/bin"
+    cp -a lib/*.a "$SYSROOT/usr/lib/"
+    install -m 755 fltk-config "$SYSROOT/usr/bin/fltk-config"
+}
+
 prepare_x11()
 {
     export PKG_CONFIG_DIR=""
@@ -6553,6 +6627,7 @@ prepare_x11()
     get_libxkbfile
     get_xbitmaps
     get_openmotif
+    #get_fltk
     #get_xbiff
 }
 
