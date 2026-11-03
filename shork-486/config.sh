@@ -129,6 +129,7 @@ ENABLE_HIGHMEM=false
 INCLUDE_KEYMAPS=false
 ENABLE_LOOP=false
 ENABLE_MENU=false
+ENABLE_MOUSE=false
 ENABLE_NO_VDS032=true
 INCLUDE_PCI_IDS=false
 ENABLE_PCMCIA=false
@@ -295,6 +296,7 @@ save_env()
         echo "INCLUDE_KEYMAPS=$INCLUDE_KEYMAPS"
         echo "ENABLE_LOOP=$ENABLE_LOOP"
         echo "ENABLE_MENU=$ENABLE_MENU"
+        echo "ENABLE_MOUSE=$ENABLE_MOUSE"
         echo "ENABLE_NO_VDS032=$ENABLE_NO_VDS032"
         echo "INCLUDE_PCI_IDS=$INCLUDE_PCI_IDS"
         echo "ENABLE_PCMCIA=$ENABLE_PCMCIA"
@@ -411,6 +413,7 @@ set_mini_vars()
     INCLUDE_KEYMAPS=false
     ENABLE_LOOP=false
     ENABLE_MENU=false
+    ENABLE_MOUSE=false
     ENABLE_NO_VDS032=true
     INCLUDE_PCI_IDS=false
     ENABLE_PCMCIA=false
@@ -446,6 +449,7 @@ set_terminal_vars()
     INCLUDE_KEYMAPS=true
     ENABLE_LOOP=true
     ENABLE_MENU=true
+    ENABLE_MOUSE=true
     INCLUDE_PCI_IDS=true
     ENABLE_PCMCIA=true
     ENABLE_ZSWAP=true
@@ -477,6 +481,7 @@ set_writer_vars()
     ENABLE_HELP_VERBOSE=true
     INCLUDE_KEYMAPS=true
     ENABLE_MENU=true
+    ENABLE_MOUSE=true
     INCLUDE_PCI_IDS=true
     ENABLE_ZSWAP=true
 }
@@ -524,6 +529,7 @@ set_default_vars()
     INCLUDE_KEYMAPS=true
     ENABLE_LOOP=true
     ENABLE_MENU=true
+    ENABLE_MOUSE=true
     INCLUDE_PCI_IDS=true
     ENABLE_PCMCIA=true
     ENABLE_SCSI_EXP=true
@@ -1083,7 +1089,7 @@ TARGET_ARCH=$(dialog --clear \
     --menu "Please select the 486 or 586 architecture revision that best includes your target hardware for optimisation purposes. Otherwise, stick with \"486SX\" for the most universal support. The choice here will decide whether the operating system is called \"SHORK 486\" or \"SHORK 586\"." 15 $WIDTH 5 \
     "486SX"     "Intel 486SX + compatible (supports x87 emulation)" \
     "486DX"     "Intel 486DX/487SX + compatible" \
-    "586"       "AMD K5 & Cyrix 5x86 (\"586\" w/o TSC)" \
+    "586"       "AMD K5, Cyrix 5x86/6x86 & IBM 5x86C (\"586\" w/o TSC)" \
     "586TSC"    "Intel Pentium (586 w/ TSC)" \
     "586MMX"    "Intel Pentium MMX (586 w/ TSC & MMX) or newer" \
     3>&1 1>&2 2>&3)
@@ -1620,6 +1626,7 @@ OPTIONS=$(dialog --clear \
     "highmem"       "†Kernel-level high memory support"                         $(val $ENABLE_HIGHMEM) \
     "loop"          "*Kernel-level loopback device support & losetup"           $(val $ENABLE_LOOP) \
     "menu"          "*Menu-based bootloader (0.5MiB)"                           $(val $ENABLE_MENU) \
+    "mouse"         "*Kernel-level mouse support"                               $(val $ENABLE_MOUSE) \
     "no-vdso32"     "*Disable 32-bit vDSO & SEP usage"                          $(val $ENABLE_NO_VDS032) \
     "pci.ids"       "*PCI IDs database (0.1MiB)"                                $(val $INCLUDE_PCI_IDS) \
     "pcmcia"        "*Kernel-level PCMCIA support"                              $(val $ENABLE_PCMCIA) \
@@ -1646,6 +1653,7 @@ else
     if [[ $OPTIONS =~ "loop" ]];            then ENABLE_LOOP=true;          else ENABLE_LOOP=false;             fi
     #if [[ $OPTIONS =~ "keymaps" ]];         then $INCLUDE_KEYMAPS=true;     else $INCLUDE_KEYMAPS=false;        fi
     if [[ $OPTIONS =~ "menu" ]];            then ENABLE_MENU=true;          else ENABLE_MENU=false;             fi
+    if [[ $OPTIONS =~ "mouse" ]];           then ENABLE_MOUSE=true;         else ENABLE_MOUSE=false;            fi
     if [[ $OPTIONS =~ "no-vdso32" ]];       then ENABLE_NO_VDS032=true;     else ENABLE_NO_VDS032=false;        fi
     if [[ $OPTIONS =~ "pci.ids" ]];         then INCLUDE_PCI_IDS=true;      else INCLUDE_PCI_IDS=false;         fi
     if [[ $OPTIONS =~ "pcmcia" ]];          then ENABLE_PCMCIA=true;        else ENABLE_PCMCIA=false;           fi
@@ -1791,6 +1799,44 @@ if [ "$FIX_EXTLINUX" = true ] && [ "$USE_GRUB" = true ]; then
         USE_GRUB=false
     elif [[ $CHOICE -eq 1 ]]; then
         FIX_EXTLINUX=false
+    fi
+fi
+
+# Conflict Resolution - +INCLUDE_GPM/-ENABLE_MOUSE
+if [ "$INCLUDE_GPM" = true ] && [ "$ENABLE_MOUSE" = false ]; then
+    dialog --clear \
+        --backtitle "SHORK 486 Build Configurator" \
+        --title "Conflict Resolution - +INCLUDE_GPM/-ENABLE_MOUSE" \
+        --yes-label "Enable support" \
+        --no-label "Exclude gpm" \
+        --yesno "You have chosen to enable gpm console mouse but disable kernel-level mouse support. Kernel-level support is required for gpm to work. Do you wish to enable the required support, or exclude gpm?" \
+        7 "$WIDTH"
+
+    CHOICE=$?
+
+    if [[ $CHOICE -eq 0 ]]; then
+        ENABLE_MOUSE=true
+    elif [[ $CHOICE -eq 1 ]]; then
+        INCLUDE_GPM=false
+    fi
+fi
+
+# Conflict Resolution - +INCLUDE_GUI/-ENABLE_MOUSE
+if [ "$INCLUDE_GUI" = true ] && [ "$ENABLE_MOUSE" = false ]; then
+    dialog --clear \
+        --backtitle "SHORK 486 Build Configurator" \
+        --title "Conflict Resolution - +INCLUDE_GUI/-ENABLE_MOUSE" \
+        --yes-label "Enable support" \
+        --no-label "Exclude SHORKGUI" \
+        --yesno "You have chosen to enable SHORKGUI but disable kernel-level mouse support. Kernel-level support is required for SHORKGUI to work correctly. Do you wish to enable the required support, or exclude SHORKGUI?" \
+        7 "$WIDTH"
+
+    CHOICE=$?
+
+    if [[ $CHOICE -eq 0 ]]; then
+        ENABLE_MOUSE=true
+    elif [[ $CHOICE -eq 1 ]]; then
+        INCLUDE_GUI=false
     fi
 fi
 

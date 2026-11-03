@@ -801,12 +801,6 @@ fi
 if [ "$INCLUDE_DOSEMU2" = false ] && [ "$INCLUDE_FREEDOS" = true ]; then
     INCLUDE_FREEDOS=false
 fi
-
-# Ensure MODULES is enabled with PCMCIA or SOUND
-if [ "$ENABLE_PCMCIA" = true ] || [ "$ENABLE_SOUND" = true ]; then
-    ENABLE_MODULES=true
-fi
-
 # Ensure MODULES, SOUND and SYSVIPC are enabled with MPG321
 if [ "$INCLUDE_MPG321" = true ]; then
     ENABLE_MODULES=true
@@ -817,6 +811,12 @@ fi
 # Ensure MOUSE is enabled with GPM or GUI
 if [ "$INCLUDE_GPM" = true ] || [ "$INCLUDE_GUI" = true ]; then
     ENABLE_MOUSE=true
+fi
+
+# Ensure MODULES is enabled with MOUSE, PCMCIA or SOUND
+if [ "$ENABLE_MOUSE" = true ] || [ "$ENABLE_SOUND" = true ] ||
+    [ "$ENABLE_SOUND" = true ]; then
+    ENABLE_MODULES=true
 fi
 
 # Ensure MULTIUSER_KRN is enabled with MULTIUSER_REAL
@@ -4862,7 +4862,7 @@ configure_kernel()
         fi
 
         if $ENABLE_MODULES; then
-            echo -e "${GREEN}Enabling kernel-level modules support...${RESET}"
+            echo -e "${GREEN}Enabling loadable kernel module support...${RESET}"
             FRAGS+="${CONFIGS_DIR}/linux/linux.config.modules.frag "
         fi
 
@@ -12047,9 +12047,9 @@ get_installed_progs_feats()
         fi
 
         if $ENABLE_MODULES; then
-            INCLUDED_FEATURES+=("kernel-level modules support")
+            INCLUDED_FEATURES+=("loadable kernel module support")
         else
-            EXCLUDED_FEATURES+=("kernel-level modules support")
+            EXCLUDED_FEATURES+=("loadable kernel module support")
         fi
 
         if $ENABLE_MOUSE; then
