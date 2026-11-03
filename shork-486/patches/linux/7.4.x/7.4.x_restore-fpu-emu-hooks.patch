@@ -1,0 +1,279 @@
+############################################################################
+## 7.4.x_restore-fpu-emu-hooks.patch                                      ##
+############################################################################
+## This patch is a derivative work of the Linux kernel. It is licensed    ##
+## separately under the terms of the GNU GPLv2 licence, and is            ##
+## distributed as part of the SHORK project. See the accompanying COPYING ##
+## file in the parent directory for details.                              ##
+############################################################################
+## Kali (links.sharktastica.co.uk)                                        ##
+############################################################################
+
+diff --git a/arch/x86/include/asm/fpu/regset.h b/arch/x86/include/asm/fpu/regset.h
+index 433720990..972ba29ab 100644
+--- a/arch/x86/include/asm/fpu/regset.h
++++ b/arch/x86/include/asm/fpu/regset.h
+@@ -9,8 +9,10 @@
+ 
+ extern user_regset_active_fn regset_fpregs_active, regset_xregset_fpregs_active,
+ 				ssp_active;
+-extern user_regset_get2_fn fpregs_get, xfpregs_get, xstateregs_get, ssp_get;
+-extern user_regset_set_fn fpregs_set, xfpregs_set, xstateregs_set, ssp_set;
++extern user_regset_get2_fn fpregs_get, xfpregs_get, fpregs_soft_get,
++				xstateregs_get, ssp_get;
++extern user_regset_set_fn fpregs_set, xfpregs_set, fpregs_soft_set,
++				xstateregs_set, ssp_set;
+ 
+ /*
+  * xstateregs_active == regset_fpregs_active. Please refer to the comment
+diff --git a/arch/x86/include/asm/fpu/sched.h b/arch/x86/include/asm/fpu/sched.h
+index 67b0dfa35..ed1d8bfd5 100644
+--- a/arch/x86/include/asm/fpu/sched.h
++++ b/arch/x86/include/asm/fpu/sched.h
+@@ -33,7 +33,8 @@ extern void fpu_flush_thread(void);
+  */
+ static inline void switch_fpu(struct task_struct *old, int cpu)
+ {
+-	if (!test_tsk_thread_flag(old, TIF_NEED_FPU_LOAD) &&
++ 	if (!test_tsk_thread_flag(old, TIF_NEED_FPU_LOAD) &&
++	    cpu_feature_enabled(X86_FEATURE_FPU) &&
+ 	    !(old->flags & (PF_KTHREAD | PF_USER_WORKER))) {
+ 		struct fpu *old_fpu = x86_task_fpu(old);
+ 
+diff --git a/arch/x86/include/asm/fpu/types.h b/arch/x86/include/asm/fpu/types.h
+index ea02832f7..93e99d258 100644
+--- a/arch/x86/include/asm/fpu/types.h
++++ b/arch/x86/include/asm/fpu/types.h
+@@ -74,6 +74,30 @@ struct fxregs_state {
+ /* Copy both mxcsr & mxcsr_flags with a single u64 memcpy: */
+ #define MXCSR_AND_FLAGS_SIZE sizeof(u64)
+ 
++/*
++ * Software based FPU emulation state. This is arbitrary really,
++ * it matches the x87 format to make it easier to understand:
++ */
++struct swregs_state {
++	u32			cwd;
++	u32			swd;
++	u32			twd;
++	u32			fip;
++	u32			fcs;
++	u32			foo;
++	u32			fos;
++	/* 8*10 bytes for each FP-reg = 80 bytes: */
++	u32			st_space[20];
++	u8			ftop;
++	u8			changed;
++	u8			lookahead;
++	u8			no_update;
++	u8			rm;
++	u8			alimit;
++	struct math_emu_info	*info;
++	u32			entry_eip;
++};
++
+ /*
+  * List of XSAVE features Linux knows about:
+  */
+@@ -345,6 +369,7 @@ struct xregs_state {
+ union fpregs_state {
+ 	struct fregs_state		fsave;
+ 	struct fxregs_state		fxsave;
++	struct swregs_state		soft;
+ 	struct xregs_state		xsave;
+ 	u8 __padding[PAGE_SIZE];
+ };
+diff --git a/arch/x86/include/asm/math_emu.h b/arch/x86/include/asm/math_emu.h
+new file mode 100644
+index 000000000..3c4274308
+--- /dev/null
++++ b/arch/x86/include/asm/math_emu.h
+@@ -0,0 +1,15 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef _ASM_X86_MATH_EMU_H
++#define _ASM_X86_MATH_EMU_H
++
++#include <asm/ptrace.h>
++
++/* This structure matches the layout of the data saved to the stack
++   following a device-not-present interrupt, part of it saved
++   automatically by the 80386/80486.
++   */
++struct math_emu_info {
++	long ___orig_eip;
++	struct pt_regs *regs;
++};
++#endif /* _ASM_X86_MATH_EMU_H */
+diff --git a/arch/x86/include/asm/processor.h b/arch/x86/include/asm/processor.h
+index 77488ff5e..ec9db0dfa 100644
+--- a/arch/x86/include/asm/processor.h
++++ b/arch/x86/include/asm/processor.h
+@@ -10,7 +10,7 @@ struct mm_struct;
+ struct io_bitmap;
+ struct vm86;
+ 
+-#include <asm/ptrace.h>
++#include <asm/math_emu.h>
+ #include <asm/segment.h>
+ #include <asm/types.h>
+ #include <uapi/asm/sigcontext.h>
+diff --git a/arch/x86/include/asm/traps.h b/arch/x86/include/asm/traps.h
+index e13f1025c..3f24cc472 100644
+--- a/arch/x86/include/asm/traps.h
++++ b/arch/x86/include/asm/traps.h
+@@ -37,6 +37,8 @@ static inline int get_si_code(unsigned long condition)
+ 		return TRAP_BRKPT;
+ }
+ 
++void math_emulate(struct math_emu_info *);
++
+ bool fault_in_kernel_space(unsigned long address);
+ 
+ #ifdef CONFIG_VMAP_STACK
+diff --git a/arch/x86/kernel/fpu/bugs.c b/arch/x86/kernel/fpu/bugs.c
+index 4b84cd0a9..edbafc594 100644
+--- a/arch/x86/kernel/fpu/bugs.c
++++ b/arch/x86/kernel/fpu/bugs.c
+@@ -29,6 +29,10 @@ void __init fpu__init_check_bugs(void)
+ {
+ 	s32 fdiv_bug;
+ 
++	/* kernel_fpu_begin/end() relies on patched alternative instructions. */
++	if (!boot_cpu_has(X86_FEATURE_FPU))
++		return;
++
+ 	kernel_fpu_begin();
+ 
+ 	/*
+diff --git a/arch/x86/kernel/fpu/core.c b/arch/x86/kernel/fpu/core.c
+index ccf37e443..ad1ed4387 100644
+--- a/arch/x86/kernel/fpu/core.c
++++ b/arch/x86/kernel/fpu/core.c
+@@ -512,7 +512,7 @@ void kernel_fpu_begin_mask(unsigned int kfpu_mask)
+ 	if (likely(kfpu_mask & KFPU_MXCSR) && boot_cpu_has(X86_FEATURE_XMM))
+ 		ldmxcsr(MXCSR_DEFAULT);
+ 
+-	if (unlikely(kfpu_mask & KFPU_387))
++	if (unlikely(kfpu_mask & KFPU_387) && boot_cpu_has(X86_FEATURE_FPU))
+ 		asm volatile ("fninit");
+ }
+ EXPORT_SYMBOL_GPL(kernel_fpu_begin_mask);
+@@ -867,6 +867,11 @@ void fpu__clear_user_states(struct fpu *fpu)
+ 	WARN_ON_FPU(fpu != x86_task_fpu(current));
+ 
+ 	fpregs_lock();
++	if (!cpu_feature_enabled(X86_FEATURE_FPU)) {
++		fpu_reset_fpstate_regs();
++		fpregs_unlock();
++		return;
++	}
+ 
+ 	/*
+ 	 * Ensure that current's supervisor states are loaded into their
+@@ -903,6 +908,9 @@ void fpu_flush_thread(void)
+  */
+ void switch_fpu_return(void)
+ {
++	if (!cpu_feature_enabled(X86_FEATURE_FPU))
++		return;
++
+ 	fpregs_restore_userregs();
+ }
+ EXPORT_SYMBOL_FOR_KVM(switch_fpu_return);
+diff --git a/arch/x86/kernel/fpu/init.c b/arch/x86/kernel/fpu/init.c
+index 6960437c3..bc4f22235 100644
+--- a/arch/x86/kernel/fpu/init.c
++++ b/arch/x86/kernel/fpu/init.c
+@@ -31,6 +31,8 @@ static void fpu__init_cpu_generic(void)
+ 
+ 	cr0 = read_cr0();
+ 	cr0 &= ~(X86_CR0_TS|X86_CR0_EM); /* clear TS and EM */
++	if (!boot_cpu_has(X86_FEATURE_FPU))
++		cr0 |= X86_CR0_EM;
+ 	write_cr0(cr0);
+ 
+ 	/* Flush out any pending x87 state: */
+@@ -201,7 +203,9 @@ static void __init fpu__init_system_xstate_size_legacy(void)
+ 	 * Note that the size configuration might be overwritten later
+ 	 * during fpu__init_system_xstate().
+ 	 */
+-	if (cpu_feature_enabled(X86_FEATURE_FXSR)) {
++	if (!cpu_feature_enabled(X86_FEATURE_FPU)) {
++		size = sizeof(struct swregs_state);
++	} else if (cpu_feature_enabled(X86_FEATURE_FXSR)) {
+ 		size = sizeof(struct fxregs_state);
+ 		fpu_user_cfg.legacy_features = XFEATURE_MASK_FPSSE;
+ 	} else {
+diff --git a/arch/x86/kernel/fpu/regset.c b/arch/x86/kernel/fpu/regset.c
+index f96affd83..6f2b3c6e6 100644
+--- a/arch/x86/kernel/fpu/regset.c
++++ b/arch/x86/kernel/fpu/regset.c
+@@ -406,6 +406,9 @@ int fpregs_get(struct task_struct *target, const struct user_regset *regset,
+ 	struct fxregs_state fxsave, *fx;
+ 
+ 	sync_fpstate(fpu);
++ 
++	if (!cpu_feature_enabled(X86_FEATURE_FPU))
++		return fpregs_soft_get(target, regset, to);
+ 
+ 	if (!cpu_feature_enabled(X86_FEATURE_FXSR)) {
+ 		return membuf_write(&to, &fpu->fpstate->regs.fsave,
+@@ -438,6 +441,9 @@ int fpregs_set(struct task_struct *target, const struct user_regset *regset,
+ 	if (pos != 0 || count != sizeof(struct user_i387_ia32_struct))
+ 		return -EINVAL;
+ 
++	if (!cpu_feature_enabled(X86_FEATURE_FPU))
++		return fpregs_soft_set(target, regset, pos, count, kbuf, ubuf);
++
+ 	ret = user_regset_copyin(&pos, &count, &kbuf, &ubuf, &env, 0, -1);
+ 	if (ret)
+ 		return ret;
+diff --git a/arch/x86/kernel/fpu/signal.c b/arch/x86/kernel/fpu/signal.c
+index 164255df3..1797eaeb2 100644
+--- a/arch/x86/kernel/fpu/signal.c
++++ b/arch/x86/kernel/fpu/signal.c
+@@ -212,6 +212,14 @@ bool copy_fpstate_to_sigframe(void __user *buf, void __user *buf_fx, int size, u
+ 	ia32_fxstate &= (IS_ENABLED(CONFIG_X86_32) ||
+ 			 IS_ENABLED(CONFIG_IA32_EMULATION));
+ 
++	if (!cpu_feature_enabled(X86_FEATURE_FPU)) {
++		struct user_i387_ia32_struct fp;
++
++		fpregs_soft_get(current, NULL, (struct membuf){.p = &fp,
++						.left = sizeof(fp)});
++		return !copy_to_user(buf, &fp, sizeof(fp));
++	}
++
+ 	if (!access_ok(buf, size))
+ 		return false;
+ 
+@@ -491,6 +499,13 @@ bool fpu__restore_sig(void __user *buf, int ia32_frame)
+ 	if (!access_ok(buf, size))
+ 		goto out;
+ 
++	if (!IS_ENABLED(CONFIG_X86_64) && !cpu_feature_enabled(X86_FEATURE_FPU)) {
++		success = !fpregs_soft_set(current, NULL, 0,
++					   sizeof(struct user_i387_ia32_struct),
++					   NULL, buf);
++		goto out;
++	}
++
+ 	if (use_xsave()) {
+ 		struct _fpx_sw_bytes fx_sw_user;
+ 
+diff --git a/arch/x86/kernel/fpu/xstate.c b/arch/x86/kernel/fpu/xstate.c
+index da3037143..19a36aea3 100644
+--- a/arch/x86/kernel/fpu/xstate.c
++++ b/arch/x86/kernel/fpu/xstate.c
+@@ -811,6 +811,11 @@ void __init fpu__init_system_xstate(unsigned int legacy_size)
+ 	int err;
+ 	int i;
+ 
++	if (!boot_cpu_has(X86_FEATURE_FPU)) {
++		pr_info("x86/fpu: No FPU detected\n");
++		return;
++	}
++
+ 	if (!boot_cpu_has(X86_FEATURE_XSAVE)) {
+ 		pr_info("x86/fpu: x87 FPU will use %s\n",
+ 			boot_cpu_has(X86_FEATURE_FXSR) ? "FXSAVE" : "FSAVE");

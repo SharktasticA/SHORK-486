@@ -4989,7 +4989,7 @@ compile_kernel()
     sed -i "s/printf '%s' -dirty/printf '%s'/" scripts/setlocalversion
 
     # Apply our patches
-    if [[ "$LINUX_VER" == 7.3* ]]; then
+    if [[ "$LINUX_VER" == 7.3* ]] || [[ "$LINUX_VER" == 7.4* ]]; then
         echo -e "${GREEN}Applying 7.3.x_restore-387-586-elan-gx1-rdc321x-umc-winchip...${RESET}"
         patch -p1 < "${PATCHES_DIR}/linux/7.3.x/7.3.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.patch"
 
@@ -5075,8 +5075,19 @@ compile_kernel()
         patch -p1 < "${PATCHES_DIR}/linux/7.1.x/7.1.x_restore-isa-pcmcia-net.patch"
     fi
 
-    echo -e "${GREEN}Applying 7.0.x_387-fpu-clone-sigfpe patch...${RESET}"
-    patch -p1 < "${PATCHES_DIR}/linux/7.0.x/7.0.x_fix-387-fpu-clone-sigfpe.patch"
+    if [[ "$LINUX_VER" == 7.4* ]]; then
+        echo -e "${GREEN}Applying 7.4.x_fix-387-fpu-clone-sigfpe patch...${RESET}"
+        patch -p1 < "${PATCHES_DIR}/linux/7.4.x/7.4.x_fix-387-fpu-clone-sigfpe.patch"
+
+        echo -e "${GREEN}Applying 7.4.x_restore-cr4-read-fault-handler patch...${RESET}"
+        patch -p1 < "${PATCHES_DIR}/linux/7.4.x/7.4.x_restore-fpu-emu-hooks.patch"
+
+        echo -e "${GREEN}Applying 7.4.x_restore-cr4-read-fault-handler patch...${RESET}"
+        patch -p1 < "${PATCHES_DIR}/linux/7.4.x/7.4.x_restore-cr4-read-fault-handler.patch"
+    else
+        echo -e "${GREEN}Applying 7.0.x_fix-387-fpu-clone-sigfpe patch...${RESET}"
+        patch -p1 < "${PATCHES_DIR}/linux/7.0.x/7.0.x_fix-387-fpu-clone-sigfpe.patch"
+    fi
 
     echo -e "${GREEN}Applying 7.0.x_force-486-fpu-check patch...${RESET}"
     patch -p1 < "${PATCHES_DIR}/linux/7.0.x/7.0.x_force-486-fpu-check.patch"
