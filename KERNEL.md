@@ -37,24 +37,37 @@ Whilst the SHORK 486 repository is largely licensed under GPL 3.0 terms, these p
 15. 7.4.x_restore-cr4-read-fault-handler.patch
 16. 7.0.x_force-486-fpu-check.patch
 17. 7.0.x_vga16fb-force-ega-fix.patch
+18. 7.4.x_vgacon-noblink.patch
 
 ### [7.4.x_fix-387-fpu-clone-sigfpe.patch](shork-486/patches/linux/7.4.x/7.4.x_fix-387-fpu-clone-sigfpe.patch)
 
 * Original kernel: 7.4-rc1
+* Type: fix
 
-This is a modification of `7.0.x_fix-387-fpu-clone-sigfpe.patch` that allows it to be cleanly applied to 7.4.x. This patch fixes an issue with spurious SIGFPE signals when using threaded programs with floating-point operations on a 486SX-class CPU. Such a scenario requires 387 math emulation, and `fpu_clone()` would raise these signals when new threads were created. This patch fixes the issue by correcting the falsely-zeroed x87 control word `dst_fpu->fpstate->regs.soft.cwd`, which should instead be masked rather than left to raise the signals. This issue was found during SHORK 486's development.
+This is a modification of `7.0.x_fix-387-fpu-clone-sigfpe.patch` that allows it to be cleanly applied to 7.4.x.
 
 ### [7.4.x_restore-fpu-emu-hooks.patch](shork-486/patches/linux/7.4.x/7.4.x_restore-fpu-emu-hooks.patch)
 
 * Original kernel: 7.4-rc1
+* Type: fix
 
 This patch reverts the removal of leftover x87 math emulation glue and hooks during [this patch series](https://lore.kernel.org/all/20261020044415.GAatbxnwqKePxD-0FC@fat_crate.local/).
 
 ### [7.4.x_restore-cr4-read-fault-handler.patch](shork-486/patches/linux/7.4.x/7.4.x_restore-cr4-read-fault-handler.patch)
 
 * Original kernel: 7.4-rc1
+* Type: fix
 
 This patch reverts the removal of the CR4 read fault handler in `native_read_cr4()` by [this patch](https://lore.kernel.org/all/179090607545.3910103.1809258617237617452.tip-bot2@tip-bot2/). The removal was done since all the x86 CPUs the kernel supports since 7.1 have the CR4 register, but 486SX, 486DX, i486DX2 and compatibles do not, resulting in the kernel only booting on IntelDX4, Pentium or newer.
+
+### [7.4.x_vgacon-noblink.patch](shork-486/patches/linux/7.4.x/7.4.x_vgacon-noblink.patch)
+
+* Original kernel: 7.4-rc1
+* Type: SHORK experience improvement
+
+This is a modification of `7.0.x_vgacon-noblink.patch` that allows it to be cleanly applied to 7.4.x.
+
+
 
 ## 7.3.x
 
@@ -83,14 +96,14 @@ This patch reverts the removal of the CR4 read fault handler in `native_read_cr4
 * Type: driver restoration
 * Context: https://www.phoronix.com/news/AMD-K5-CPUs, https://www.phoronix.com/news/AMD-Elan-Linux-Driver-Removal
 
-This is a modification of `7.2.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.patch` that allows it to be cleanly applied to 7.3.x. This patch reverts the removal of various TSC-less and CX8-less CPU build targets, 486-related plumming, AMD Élan support, and 387 maths emulation support from [this patch series](https://lore.kernel.org/all/20250425084216.3913608-1-mingo@kernel.org/). It includes build targets for "586" (AMD K5, Cyrix 5x86, etc.), AMD Élan, IDT Winchip, RDC R-321x and UMC U5x, x87 math emulation support, and Geode GX1 support.
+This is a modification of `7.2.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.patch` that allows it to be cleanly applied to 7.3.x.
 
 ### [7.3.x_restore-doubletalk-pc.patch](shork-486/patches/linux/7.3.x/7.3.x_restore-doubletalk-pc.patch)
 
 * Original kernel: 7.3
 * Type: driver restoration
 
-This is a modification of `7.2.x_restore-doubletalk-pc.patch` that allows it to be cleanly applied to 7.3.x. This patch reverts the removal of the RC Systems DoubleTalk PC ISA card driver by [this patch](https://lore.kernel.org/all/20260502043341.34324-1-enelsonmoore@gmail.com/).
+This is a modification of `7.2.x_restore-doubletalk-pc.patch` that allows it to be cleanly applied to 7.3.x.
 
 ### [7.3.x_restore-xircom-cardbus.patch](shork-486/patches/linux/7.3.x/7.3.x_restore-xircom-cardbus.patch)
 
@@ -135,7 +148,7 @@ This patch reverts the removal of various TSC-less and CX8-less CPU build target
 * Type: driver restoration
 * Context: https://www.phoronix.com/news/Linux-7.1-Removes-Old-Net, https://lore.kernel.org/all/20260422-v7-0-0-net-next-driver-removal-v1-v2-0-08a5b59784d5@lunn.ch/
 
-This is a modification of `7.1.x_restore-isa-pcmcia-net.patch` that allows it to be cleanly applied to 7.2.x. This patch reverts the removal of several ISA and PCMCIA network drivers from [this patch series](https://github.com/search?q=repo%3Atorvalds%2Flinux+net-next+driver-removal&type=commits). It includes the ISA drivers `3c515`, `lance`, `smc9194`, `ultra` and `wd80x3`, and the PCMCIA drivers `3c574`, `3c589`, `ax88190`, `fmvj18x`, `nmclan` and `smc91c92`. Several of these drivers include hardware relevant for SHORK 486.
+This is a modification of `7.1.x_restore-isa-pcmcia-net.patch` that allows it to be cleanly applied to 7.2.x.
 
 ### [7.2.x_restore-arcnet-isa-pcmcia.patch](shork-486/patches/linux/7.2.x/7.2.x_restore-arcnet-isa-pcmcia.patch)
 

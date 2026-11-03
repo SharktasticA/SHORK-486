@@ -5272,8 +5272,12 @@ compile_kernel()
     echo -e "${GREEN}Applying 7.0.x_vga16fb-force-ega-fix patch...${RESET}"
     patch -p1 < "${PATCHES_DIR}/linux/7.0.x/7.0.x_vga16fb-force-ega-fix.patch"
 
-    echo -e "${GREEN}Applying 7.0.x_vgacon-noblink patch...${RESET}"
-    patch -p1 < "${PATCHES_DIR}/linux/7.0.x/7.0.x_vgacon-noblink.patch"
+    if [[ "$LINUX_VER" == 7.4* ]]; then
+        echo -e "${GREEN}Applying 7.4.x_vgacon-noblink patch...${RESET}"
+        patch -p1 < "${PATCHES_DIR}/linux/7.4.x/7.4.x_vgacon-noblink.patch"
+    else
+        patch -p1 < "${PATCHES_DIR}/linux/7.0.x/7.0.x_vgacon-noblink.patch"
+    fi
 
     echo -e "${GREEN}Compiling Linux kernel...${RESET}"
     make ARCH=x86 olddefconfig
