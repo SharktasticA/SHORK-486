@@ -87,6 +87,7 @@ INCLUDE_GNUPG=false
 INCLUDE_GPM=false
 INCLUDE_HTOP=false
 INCLUDE_INDENT=false
+INCLUDE_ISAPNPTOOLS=false
 INCLUDE_JOE=false
 INCLUDE_LIBTOOL=false
 INCLUDE_LSB_RELEASE_MIN=false
@@ -130,6 +131,7 @@ ENABLE_HIGHMEM=false
 INCLUDE_KEYMAPS=false
 ENABLE_LOOP=false
 ENABLE_MENU=false
+ENABLE_MOUSE=false
 ENABLE_NO_VDS032=true
 INCLUDE_PCI_IDS=false
 ENABLE_PCMCIA=false
@@ -253,6 +255,7 @@ save_env()
         echo "INCLUDE_GPM=$INCLUDE_GPM"
         echo "INCLUDE_HTOP=$INCLUDE_HTOP"
         echo "INCLUDE_INDENT=$INCLUDE_INDENT"
+        echo "INCLUDE_ISAPNPTOOLS=$INCLUDE_ISAPNPTOOLS"
         echo "INCLUDE_JOE=$INCLUDE_JOE"
         echo "INCLUDE_JQ=$INCLUDE_JQ"
         echo "INCLUDE_LIBTOOL=$INCLUDE_LIBTOOL"
@@ -297,6 +300,7 @@ save_env()
         echo "INCLUDE_KEYMAPS=$INCLUDE_KEYMAPS"
         echo "ENABLE_LOOP=$ENABLE_LOOP"
         echo "ENABLE_MENU=$ENABLE_MENU"
+        echo "ENABLE_MOUSE=$ENABLE_MOUSE"
         echo "ENABLE_NO_VDS032=$ENABLE_NO_VDS032"
         echo "INCLUDE_PCI_IDS=$INCLUDE_PCI_IDS"
         echo "ENABLE_PCMCIA=$ENABLE_PCMCIA"
@@ -372,6 +376,7 @@ set_mini_vars()
     INCLUDE_GPM=false
     INCLUDE_HTOP=false
     INCLUDE_INDENT=false
+    INCLUDE_ISAPNPTOOLS=false
     INCLUDE_JOE=false
     INCLUDE_JQ=false
     INCLUDE_LIBTOOL=false
@@ -417,6 +422,7 @@ set_mini_vars()
     INCLUDE_KEYMAPS=false
     ENABLE_LOOP=false
     ENABLE_MENU=false
+    ENABLE_MOUSE=false
     ENABLE_NO_VDS032=true
     INCLUDE_PCI_IDS=false
     ENABLE_PCMCIA=false
@@ -438,6 +444,7 @@ set_terminal_vars()
     INCLUDE_CURL=true
     INCLUDE_DROPBEAR=true
     INCLUDE_GPM=true
+    INCLUDE_ISAPNPTOOLS=true
     INCLUDE_LSB_RELEASE_MIN=true
     INCLUDE_MEMTESTER=true
     INCLUDE_TMUX=true
@@ -451,6 +458,7 @@ set_terminal_vars()
     INCLUDE_KEYMAPS=true
     ENABLE_LOOP=true
     ENABLE_MENU=true
+    ENABLE_MOUSE=true
     INCLUDE_PCI_IDS=true
     ENABLE_PCMCIA=true
     ENABLE_ZSWAP=true
@@ -463,6 +471,7 @@ set_writer_vars()
     SETUP_DYN_SWAP=true
 
     INCLUDE_HTOP=true
+    INCLUDE_ISAPNPTOOLS=true
     INCLUDE_GPM=true
     INCLUDE_JOE=true
     INCLUDE_LSB_RELEASE_MIN=true
@@ -481,6 +490,7 @@ set_writer_vars()
     ENABLE_HELP_VERBOSE=true
     INCLUDE_KEYMAPS=true
     ENABLE_MENU=true
+    ENABLE_MOUSE=true
     INCLUDE_PCI_IDS=true
     ENABLE_ZSWAP=true
 }
@@ -504,6 +514,7 @@ set_default_vars()
     INCLUDE_GIT=true
     INCLUDE_GPM=true
     INCLUDE_HTOP=true
+    INCLUDE_ISAPNPTOOLS=true
     INCLUDE_LSB_RELEASE_MIN=true
     INCLUDE_LUA=true
     INCLUDE_LYNX=true
@@ -528,6 +539,7 @@ set_default_vars()
     INCLUDE_KEYMAPS=true
     ENABLE_LOOP=true
     ENABLE_MENU=true
+    ENABLE_MOUSE=true
     INCLUDE_PCI_IDS=true
     ENABLE_PCMCIA=true
     ENABLE_SCSI_EXP=true
@@ -647,6 +659,7 @@ BUNDLED_SOFTWARE=(
         "gnupg"             "OpenPGP-compliant encryption & signing (25MiB)"        "INCLUDE_GNUPG"             "false"     "always"
         "gpm"               "*Virtual console mouse (0.6MiB)"                       "INCLUDE_GPM"               "false"     "always"
         "htop"              "*Interactive process viewer (0.6MiB)"                  "INCLUDE_HTOP"              "false"     "always"
+        "isapnptools"       "*ISA PnP utilities (0.2MiB)"                           "INCLUDE_ISAPNPTOOLS"       "false"     "always"
         "joe"               "WordStar & Emacs-blend text editor (1.9MiB)"           "INCLUDE_JOE"               "false"     "always"
         "jq"                "Command-line JSON processor (0.9MiB)"                  "INCLUDE_JQ"                "false"     "always"
         "lsb-release-min"   "*LSB/distribution info reporter (0.03MiB)"             "INCLUDE_LSB_RELEASE_MIN"   "false"     "always"
@@ -1087,7 +1100,7 @@ TARGET_ARCH=$(dialog --clear \
     --menu "Please select the 486 or 586 architecture revision that best includes your target hardware for optimisation purposes. Otherwise, stick with \"486SX\" for the most universal support. The choice here will decide whether the operating system is called \"SHORK 486\" or \"SHORK 586\"." 15 $WIDTH 5 \
     "486SX"     "Intel 486SX + compatible (supports x87 emulation)" \
     "486DX"     "Intel 486DX/487SX + compatible" \
-    "586"       "AMD K5 & Cyrix 5x86 (\"586\" w/o TSC)" \
+    "586"       "AMD K5, Cyrix 5x86/6x86 & IBM 5x86C (\"586\" w/o TSC)" \
     "586TSC"    "Intel Pentium (586 w/ TSC)" \
     "586MMX"    "Intel Pentium MMX (586 w/ TSC & MMX) or newer" \
     3>&1 1>&2 2>&3)
@@ -1122,15 +1135,16 @@ LINUX_VER=$(dialog --clear \
     --title "Linux Kernel Version" \
     --cancel-label "Quit" \
     --default-item "$LINUX_VER" \
-    --menu "Please select a Linux kernel version to use. It's recommended to use the latest mainline or stable version. If you experience hardware compatibility issues, try building with an older kernel to see if that resolves them (if so, please report this as an issue on the SHORK 486 GitHub repository). Only select a \"testing\" kernel (when available) if you know what you're doing." 15 $WIDTH 5 \
-    "7.3.1"     "7.3.1  (2026-10-30, stable)" \
-    "7.2.15"    "7.2.15 (2026-11-01, EOL)" \
-    "7.1.13"    "7.1.13 (2026-09-02, EOL)" \
-    "7.0.14"    "7.0.14 (2026-06-27, EOL)" \
+    --menu "Please select a Linux kernel version to use. It's recommended to use the latest mainline or stable version. If you experience hardware compatibility issues, try building with an older kernel to see if that resolves them (if so, please report this as an issue on the SHORK 486 GitHub repository). Only select a \"testing\" kernel (when available) if you know what you're doing." 16 $WIDTH 5 \
+    "7.4-rc1"   "7.4-rc1 (2026-11-01, testing)" \
+    "7.3.1"     "7.3.1   (2026-10-30, stable)" \
+    "7.2.15"    "7.2.15  (2026-11-01, EOL)" \
+    "7.1.13"    "7.1.13  (2026-09-02, EOL)" \
+    "7.0.14"    "7.0.14  (2026-06-27, EOL)" \
     3>&1 1>&2 2>&3)
 
 if [[ ! -n "$LINUX_VER" ]]; then
-    LINUX_VER="7.3"
+    LINUX_VER="7.3.1"
     exit 0
 fi
 
@@ -1603,83 +1617,55 @@ if [ "$BUILD_TYPE" = "custom" ]; then
 
 
 
-    # Get option choices (486/586)
-    OPTIONS=$(dialog --clear \
-        --backtitle "SHORK 486 Build Configurator" \
-        --title "Options" \
-        --cancel-label "Skip" \
-        --checklist "Select what other options to include. Some of these are benign, some may increase the RAM and disk space requirement considerably, some are experimental.\n* This option would be included in a \"default\" build\n† This option has specific memory requirements (check GitHub repository's README)" $HEIGHT $WIDTH 9 \
-        "cdrom"         "*Kernel-level CD-ROM & DVD-ROM support"                    $(val $ENABLE_CDROM) \
-        "con-fonts"     "*Console fonts pack (0.6MiB)"                              $(val $INCLUDE_CON_FONTS) \
-        "fb"            "*†vesafb & vga16fb framebuffer support"                    $(val $ENABLE_FB) \
-        "grub"          "GRUB 2.x instead of EXTLINUX (4MiB)"                       $(val $USE_GRUB) \
-        "gui"           "†SHORKGUI (22.7MiB, EXPERIMENTAL)"                         $(val $INCLUDE_GUI) \
-        "help-verbose"  "*BusyBox verbose --help"                                   $(val $ENABLE_HELP_VERBOSE) \
-        "highmem"       "†Kernel-level high memory support"                         $(val $ENABLE_HIGHMEM) \
-        "loop"          "*Kernel-level loopback device support & losetup"           $(val $ENABLE_LOOP) \
-        "menu"          "*Menu-based bootloader (0.5MiB)"                           $(val $ENABLE_MENU) \
-        "no-vdso32"     "*Disable 32-bit vDSO & SEP usage"                          $(val $ENABLE_NO_VDS032) \
-        "pci.ids"       "*PCI IDs database (0.1MiB)"                                $(val $INCLUDE_PCI_IDS) \
-        "pcmcia"        "*Kernel-level PCMCIA support"                              $(val $ENABLE_PCMCIA) \
-        "sata"          "†Kernel-level SATA support"                                $(val $ENABLE_SATA) \
-        "scsi-exp"      "*Kernel-level SCSI media changer & tape drive support"     $(val $ENABLE_SCSI_EXP) \
-        "sound"         "Kernel-level sound support"                                $(val $ENABLE_SOUND) \
-        "usb"           "Kernel-level USB & HID support & lsusb (0.2MiB)"           $(val $ENABLE_USB) \
-        "zswap"         "*Kernel-level zswap support"                               $(val $ENABLE_ZSWAP) \
-        2>&1 >/dev/tty)
-        #"keymaps"   "Keymaps (0.06MiB)"             $(val $INCLUDE_KEYMAPS) \
-        
-    SKIPPED=$?
+# Get option choices (486/586)
+OPTIONS=$(dialog --clear \
+    --backtitle "SHORK 486 Build Configurator" \
+    --title "Options" \
+    --cancel-label "Skip" \
+    --checklist "Select what other options to include. Some of these are benign, some may increase the RAM and disk space requirement considerably, some are experimental.\n* This option would be included in a \"default\" build\n† This option has specific memory requirements (check GitHub repository's README)" $HEIGHT $WIDTH 9 \
+    "cdrom"         "*Kernel-level CD-ROM & DVD-ROM support"                    $(val $ENABLE_CDROM) \
+    "con-fonts"     "*Console fonts pack (0.6MiB)"                              $(val $INCLUDE_CON_FONTS) \
+    "fb"            "*†vesafb & vga16fb framebuffer support"                    $(val $ENABLE_FB) \
+    "grub"          "GRUB 2.x instead of EXTLINUX (4MiB)"                       $(val $USE_GRUB) \
+    "gui"           "†SHORKGUI (22.7MiB, EXPERIMENTAL)"                         $(val $INCLUDE_GUI) \
+    "help-verbose"  "*BusyBox verbose --help"                                   $(val $ENABLE_HELP_VERBOSE) \
+    "highmem"       "†Kernel-level high memory support"                         $(val $ENABLE_HIGHMEM) \
+    "loop"          "*Kernel-level loopback device support & losetup"           $(val $ENABLE_LOOP) \
+    "menu"          "*Menu-based bootloader (0.5MiB)"                           $(val $ENABLE_MENU) \
+    "no-vdso32"     "*Disable 32-bit vDSO & SEP usage"                          $(val $ENABLE_NO_VDS032) \
+    "pci.ids"       "*PCI IDs database (0.1MiB)"                                $(val $INCLUDE_PCI_IDS) \
+    "pcmcia"        "*Kernel-level PCMCIA support"                              $(val $ENABLE_PCMCIA) \
+    "sata"          "†Kernel-level SATA support"                                $(val $ENABLE_SATA) \
+    "scsi-exp"      "*Kernel-level SCSI media changer & tape drive support"     $(val $ENABLE_SCSI_EXP) \
+    "sound"         "Kernel-level sound support"                                $(val $ENABLE_SOUND) \
+    "usb"           "Kernel-level USB & HID support & lsusb (0.2MiB)"           $(val $ENABLE_USB) \
+    "zswap"         "*Kernel-level zswap support"                               $(val $ENABLE_ZSWAP) \
+    2>&1 >/dev/tty)
+    #"keymaps"   "Keymaps (0.06MiB)"             $(val $INCLUDE_KEYMAPS) \
+    
+SKIPPED=$?
 
-    if [[ $SKIPPED -eq 1 ]]; then
-        :
-    else
-        if [[ $OPTIONS =~ "cdrom" ]];           then ENABLE_CDROM=true;         else ENABLE_CDROM=false;            fi
-        if [[ $OPTIONS =~ "con-fonts" ]];       then INCLUDE_CON_FONTS=true;    else INCLUDE_CON_FONTS=false;       fi
-        if [[ $OPTIONS =~ "fb" ]];              then ENABLE_FB=true;            else ENABLE_FB=false;               fi
-        if [[ $OPTIONS =~ "grub" ]];            then USE_GRUB=true;             else USE_GRUB=false;                fi
-        if [[ $OPTIONS =~ "gui" ]];             then INCLUDE_GUI=true;          else INCLUDE_GUI=false;             fi
-        if [[ $OPTIONS =~ "help-verbose" ]];    then ENABLE_HELP_VERBOSE=true;  else ENABLE_HELP_VERBOSE=false;     fi
-        if [[ $OPTIONS =~ "highmem" ]];         then ENABLE_HIGHMEM=true;       else ENABLE_HIGHMEM=false;          fi
-        if [[ $OPTIONS =~ "loop" ]];            then ENABLE_LOOP=true;          else ENABLE_LOOP=false;             fi
-        #if [[ $OPTIONS =~ "keymaps" ]];         then $INCLUDE_KEYMAPS=true;     else $INCLUDE_KEYMAPS=false;        fi
-        if [[ $OPTIONS =~ "menu" ]];            then ENABLE_MENU=true;          else ENABLE_MENU=false;             fi
-        if [[ $OPTIONS =~ "no-vdso32" ]];       then ENABLE_NO_VDS032=true;     else ENABLE_NO_VDS032=false;        fi
-        if [[ $OPTIONS =~ "pci.ids" ]];         then INCLUDE_PCI_IDS=true;      else INCLUDE_PCI_IDS=false;         fi
-        if [[ $OPTIONS =~ "pcmcia" ]];          then ENABLE_PCMCIA=true;        else ENABLE_PCMCIA=false;           fi
-        if [[ $OPTIONS =~ "sata" ]];            then ENABLE_SATA=true;          else ENABLE_SATA=false;             fi
-        if [[ $OPTIONS =~ "scsi-exp" ]];        then ENABLE_SCSI_EXP=true;      else ENABLE_SCSI_EXP=false;         fi
-        if [[ $OPTIONS =~ "sound" ]];           then ENABLE_SOUND=true;         else ENABLE_SOUND=false;            fi
-        if [[ $OPTIONS =~ "usb" ]];             then ENABLE_USB=true;           else ENABLE_USB=false;              fi
-        if [[ $OPTIONS =~ "zswap" ]];           then ENABLE_ZSWAP=true;         else ENABLE_ZSWAP=false;            fi
-    fi
-fi
-
-
-
-# Get include FreeDOS choice (+INCLUDE_DOSEMU2)
-if [ "$INCLUDE_DOSEMU2" = true ]; then
-    DEFAULT_FLAG=""
-    if ! $INCLUDE_FREEDOS; then
-        DEFAULT_FLAG="--defaultno"
-    fi
-
-    dialog --clear \
-        --backtitle "SHORK 486 Build Configurator" \
-        --title "Bundled FreeDOS environment" \
-        $DEFAULT_FLAG \
-        --yesno "Since SHORK includes DOS emulation, do you want to bundle a minimal FreeDOS environment? Choosing \"Yes\" includes a FreeDOS kernel, COMMAND.COM, DEBUG.COM, EDIT.EXE, MEM.EXE, MORE.EXE, MOVE.EXE and XCOPY.EXE (total ~0.5MiB).\n\nIf you choose \"No\", you will need to install or supply a DOS yourself to use DOS emulation. You can copy a preinstalled DOS to the \"payload/drive_c\" directory, and it will automatically be copied into SHORK's disk image. " \
-        11 $WIDTH
-
-    CHOICE=$?
-
-    if [[ $CHOICE -eq 0 ]]; then
-        INCLUDE_FREEDOS=true
-    else
-        INCLUDE_FREEDOS=false
-    fi
+if [[ $SKIPPED -eq 1 ]]; then
+    :
 else
-    INCLUDE_FREEDOS=false
+    if [[ $OPTIONS =~ "cdrom" ]];           then ENABLE_CDROM=true;         else ENABLE_CDROM=false;            fi
+    if [[ $OPTIONS =~ "con-fonts" ]];       then INCLUDE_CON_FONTS=true;    else INCLUDE_CON_FONTS=false;       fi
+    if [[ $OPTIONS =~ "fb" ]];              then ENABLE_FB=true;            else ENABLE_FB=false;               fi
+    if [[ $OPTIONS =~ "grub" ]];            then USE_GRUB=true;             else USE_GRUB=false;                fi
+    if [[ $OPTIONS =~ "gui" ]];             then INCLUDE_GUI=true;          else INCLUDE_GUI=false;             fi
+    if [[ $OPTIONS =~ "help-verbose" ]];    then ENABLE_HELP_VERBOSE=true;  else ENABLE_HELP_VERBOSE=false;     fi
+    if [[ $OPTIONS =~ "highmem" ]];         then ENABLE_HIGHMEM=true;       else ENABLE_HIGHMEM=false;          fi
+    if [[ $OPTIONS =~ "loop" ]];            then ENABLE_LOOP=true;          else ENABLE_LOOP=false;             fi
+    #if [[ $OPTIONS =~ "keymaps" ]];         then $INCLUDE_KEYMAPS=true;     else $INCLUDE_KEYMAPS=false;        fi
+    if [[ $OPTIONS =~ "menu" ]];            then ENABLE_MENU=true;          else ENABLE_MENU=false;             fi
+    if [[ $OPTIONS =~ "no-vdso32" ]];       then ENABLE_NO_VDS032=true;     else ENABLE_NO_VDS032=false;        fi
+    if [[ $OPTIONS =~ "pci.ids" ]];         then INCLUDE_PCI_IDS=true;      else INCLUDE_PCI_IDS=false;         fi
+    if [[ $OPTIONS =~ "pcmcia" ]];          then ENABLE_PCMCIA=true;        else ENABLE_PCMCIA=false;           fi
+    if [[ $OPTIONS =~ "sata" ]];            then ENABLE_SATA=true;          else ENABLE_SATA=false;             fi
+    if [[ $OPTIONS =~ "scsi-exp" ]];        then ENABLE_SCSI_EXP=true;      else ENABLE_SCSI_EXP=false;         fi
+    if [[ $OPTIONS =~ "sound" ]];           then ENABLE_SOUND=true;         else ENABLE_SOUND=false;            fi
+    if [[ $OPTIONS =~ "usb" ]];             then ENABLE_USB=true;           else ENABLE_USB=false;              fi
+    if [[ $OPTIONS =~ "zswap" ]];           then ENABLE_ZSWAP=true;         else ENABLE_ZSWAP=false;            fi
 fi
 
 
@@ -1817,6 +1803,44 @@ if [ "$FIX_EXTLINUX" = true ] && [ "$USE_GRUB" = true ]; then
         USE_GRUB=false
     elif [[ $CHOICE -eq 1 ]]; then
         FIX_EXTLINUX=false
+    fi
+fi
+
+# Conflict Resolution - +INCLUDE_GPM/-ENABLE_MOUSE
+if [ "$INCLUDE_GPM" = true ] && [ "$ENABLE_MOUSE" = false ]; then
+    dialog --clear \
+        --backtitle "SHORK 486 Build Configurator" \
+        --title "Conflict Resolution - +INCLUDE_GPM/-ENABLE_MOUSE" \
+        --yes-label "Enable support" \
+        --no-label "Exclude gpm" \
+        --yesno "You have chosen to enable gpm console mouse but disable kernel-level mouse support. Kernel-level support is required for gpm to work. Do you wish to enable the required support, or exclude gpm?" \
+        7 "$WIDTH"
+
+    CHOICE=$?
+
+    if [[ $CHOICE -eq 0 ]]; then
+        ENABLE_MOUSE=true
+    elif [[ $CHOICE -eq 1 ]]; then
+        INCLUDE_GPM=false
+    fi
+fi
+
+# Conflict Resolution - +INCLUDE_GUI/-ENABLE_MOUSE
+if [ "$INCLUDE_GUI" = true ] && [ "$ENABLE_MOUSE" = false ]; then
+    dialog --clear \
+        --backtitle "SHORK 486 Build Configurator" \
+        --title "Conflict Resolution - +INCLUDE_GUI/-ENABLE_MOUSE" \
+        --yes-label "Enable support" \
+        --no-label "Exclude SHORKGUI" \
+        --yesno "You have chosen to enable SHORKGUI but disable kernel-level mouse support. Kernel-level support is required for SHORKGUI to work correctly. Do you wish to enable the required support, or exclude SHORKGUI?" \
+        7 "$WIDTH"
+
+    CHOICE=$?
+
+    if [[ $CHOICE -eq 0 ]]; then
+        ENABLE_MOUSE=true
+    elif [[ $CHOICE -eq 1 ]]; then
+        INCLUDE_GUI=false
     fi
 fi
 

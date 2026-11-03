@@ -296,6 +296,10 @@ INCONSOLATA_SRC="https://github.com/xeechou/Inconsolata-psf.git"
 
 INDENT_SRC="https://ftp.gnu.org/gnu/indent"
 INDENT_VER="2.2.13"
+
+ISAPNPTOOLS_SRC="https://github.com/retroprom/isapnptools.git"
+ISAPNPTOOLS_VER="1.27"
+
 JOE_SRC="https://github.com/joe-editor/joe.git"
 JOE_VER="4.8"
 JQ_SRC="https://github.com/jqlang/jq.git"
@@ -593,6 +597,7 @@ INCLUDE_GUI=false
 INCLUDE_HTOP=false
 INCLUDE_HWINFO=false
 INCLUDE_INDENT=false
+INCLUDE_ISAPNPTOOLS=false
 INCLUDE_JOE=false
 INCLUDE_JQ=false
 INCLUDE_KEYMAPS=false
@@ -804,12 +809,6 @@ fi
 if [ "$INCLUDE_DOSEMU2" = false ] && [ "$INCLUDE_FREEDOS" = true ]; then
     INCLUDE_FREEDOS=false
 fi
-
-# Ensure MODULES is enabled with PCMCIA or SOUND
-if [ "$ENABLE_PCMCIA" = true ] || [ "$ENABLE_SOUND" = true ]; then
-    ENABLE_MODULES=true
-fi
-
 # Ensure MODULES, SOUND and SYSVIPC are enabled with MPG321
 if [ "$INCLUDE_MPG321" = true ]; then
     ENABLE_MODULES=true
@@ -820,6 +819,12 @@ fi
 # Ensure MOUSE is enabled with GPM or GUI
 if [ "$INCLUDE_GPM" = true ] || [ "$INCLUDE_GUI" = true ]; then
     ENABLE_MOUSE=true
+fi
+
+# Ensure MODULES is enabled with MOUSE, PCMCIA or SOUND
+if [ "$ENABLE_MOUSE" = true ] || [ "$ENABLE_SOUND" = true ] ||
+    [ "$ENABLE_SOUND" = true ]; then
+    ENABLE_MODULES=true
 fi
 
 # Ensure MULTIUSER_KRN is enabled with MULTIUSER_REAL
@@ -5026,7 +5031,7 @@ configure_kernel()
         fi
 
         if $ENABLE_MODULES; then
-            echo -e "${GREEN}Enabling kernel-level modules support...${RESET}"
+            echo -e "${GREEN}Enabling loadable kernel module support...${RESET}"
             FRAGS+="${CONFIGS_DIR}/linux/linux.config.modules.frag "
         fi
 
@@ -5158,7 +5163,7 @@ compile_kernel()
     sed -i "s/printf '%s' -dirty/printf '%s'/" scripts/setlocalversion
 
     # Apply our patches
-    if [[ "$LINUX_VER" == 7.3* ]]; then
+    if [[ "$LINUX_VER" == 7.3* ]] || [[ "$LINUX_VER" == 7.4* ]]; then
         echo -e "${GREEN}Applying 7.3.x_restore-387-586-elan-gx1-rdc321x-umc-winchip...${RESET}"
         patch -p1 < "${PATCHES_DIR}/linux/7.3.x/7.3.x_restore-387-586-elan-gx1-rdc321x-umc-winchip.patch"
 
@@ -5244,8 +5249,19 @@ compile_kernel()
         patch -p1 < "${PATCHES_DIR}/linux/7.1.x/7.1.x_restore-isa-pcmcia-net.patch"
     fi
 
-    echo -e "${GREEN}Applying 7.0.x_387-fpu-clone-sigfpe patch...${RESET}"
-    patch -p1 < "${PATCHES_DIR}/linux/7.0.x/7.0.x_fix-387-fpu-clone-sigfpe.patch"
+    if [[ "$LINUX_VER" == 7.4* ]]; then
+        echo -e "${GREEN}Applying 7.4.x_fix-387-fpu-clone-sigfpe patch...${RESET}"
+        patch -p1 < "${PATCHES_DIR}/linux/7.4.x/7.4.x_fix-387-fpu-clone-sigfpe.patch"
+
+        echo -e "${GREEN}Applying 7.4.x_restore-cr4-read-fault-handler patch...${RESET}"
+        patch -p1 < "${PATCHES_DIR}/linux/7.4.x/7.4.x_restore-fpu-emu-hooks.patch"
+
+        echo -e "${GREEN}Applying 7.4.x_restore-cr4-read-fault-handler patch...${RESET}"
+        patch -p1 < "${PATCHES_DIR}/linux/7.4.x/7.4.x_restore-cr4-read-fault-handler.patch"
+    else
+        echo -e "${GREEN}Applying 7.0.x_fix-387-fpu-clone-sigfpe patch...${RESET}"
+        patch -p1 < "${PATCHES_DIR}/linux/7.0.x/7.0.x_fix-387-fpu-clone-sigfpe.patch"
+    fi
 
     echo -e "${GREEN}Applying 7.0.x_force-486-fpu-check patch...${RESET}"
     patch -p1 < "${PATCHES_DIR}/linux/7.0.x/7.0.x_force-486-fpu-check.patch"
@@ -7498,11 +7514,12 @@ get_prog_git()
     local PATCH_FILE="$7"
     local AUTOGEN=$8
     local AUTORECONF=$9
-    local CONFIGURE_PREFIX="${10}" 
-    local CONFIGURE="${11}"
-    local EXTRA_CFLAGS="${12}"
-    local EXTRA_LDFLAGS="${13}"
-    local EXTRA_LIBS="${14}"
+    local REPLACE_CONFIG_GUESS="${10}" 
+    local CONFIGURE_PREFIX="${11}" 
+    local CONFIGURE="${12}"
+    local EXTRA_CFLAGS="${13}"
+    local EXTRA_LDFLAGS="${14}"
+    local EXTRA_LIBS="${15}"
 
     if [ -n "$CONFIGURE_PREFIX" ]; then
         CONFIGURE_PREFIX=("--prefix=${CONFIGURE_PREFIX}")
@@ -7557,10 +7574,15 @@ get_prog_git()
         ./bootstrap.sh
     fi
     if [ -x ./configure ] || [ -f ./configure ]; then
+        if $REPLACE_CONFIG_GUESS; then
+            cp "${CURR_DIR}/compilation/config.guess" config.guess
+            cp "${CURR_DIR}/compilation/config.sub" config.sub
+        fi
+
         CC="${CC_STATIC}" \
         CFLAGS="${CFLAGS_NOPIE} ${EXTRA_CFLAGS} -ffunction-sections -fdata-sections" \
         LDFLAGS="-static -Wl,--gc-sections -s -L${PREFIX}/lib ${EXTRA_LDFLAGS}" \
-        LIBS="-Wl,--start-group ${EXTRA_LIBS}" \
+        LIBS="-Wl,--start-group ${EXTRA_LIBS} -Wl,--end-group" \
         ./configure \
             --host="${HOST}" \
             "${CONFIGURE_PREFIX}" \
@@ -7575,7 +7597,7 @@ get_prog_git()
             CFLAGS="${CFLAGS_NOPIE} ${EXTRA_CFLAGS} -ffunction-sections -fdata-sections" \
             CPPFLAGS="-I${SYSROOT}/include -I${PREFIX}/include -I${PREFIX}/include/ncursesw -DHAVE_FORKPTY" \
             LDFLAGS="-static -Wl,--gc-sections -s -L${PREFIX}/lib ${EXTRA_LDFLAGS}" \
-            LIBS="-Wl,--start-group ${EXTRA_LIBS}" \
+            LIBS="-Wl,--start-group ${EXTRA_LIBS} -Wl,--end-group" \
             LIBEVENT_CFLAGS="${CFLAGS_NOPIE}" \
             LIBEVENT_LIBS="-L${PREFIX}/lib -levent" \
             CURSES_CFLAGS="${CFLAGS_NOPIE} -I${PREFIX}/include" \
@@ -8099,37 +8121,6 @@ get_gcc()
     fi
 
     GCC_SYSROOT="${DESTDIR}/opt/${CROSS_ARCH}-linux-musl-native"
-
-    if $INCLUDE_LUA; then
-        echo -e "${GREEN}Installing Lua headers and library...${RESET}"
-        install -D -m 644 "${CURR_DIR}/build/lua/liblua.a" "$GCC_SYSROOT/lib/liblua.a"
-        install -D -m 644 "${CURR_DIR}/build/lua/lua.h" "$GCC_SYSROOT/include/lua.h"
-        install -D -m 644 "${CURR_DIR}/build/lua/luaconf.h" "$GCC_SYSROOT/include/luaconf.h"
-        install -D -m 644 "${CURR_DIR}/build/lua/lualib.h" "$GCC_SYSROOT/include/lualib.h"
-        install -D -m 644 "${CURR_DIR}/build/lua/lauxlib.h" "$GCC_SYSROOT/include/lauxlib.h"
-    fi
-
-    if $NEED_CURL; then
-        echo -e "${GREEN}Installing libcurl and related headers...${RESET}"
-        mkdir -p "$GCC_SYSROOT/include/curl"
-        cp "$SYSROOT/include/curl/"*.h "$GCC_SYSROOT/include/curl/"
-        install -D -m 644 "$SYSROOT/lib/libcurl.a" "$GCC_SYSROOT/lib/libcurl.a"
-    fi
-
-    if $NEED_OPENSSL; then
-        echo -e "${GREEN}Installing OpenSSL and related headers...${RESET}"
-        mkdir -p "$GCC_SYSROOT/include/openssl"
-        cp "$SYSROOT/include/openssl/"*.h "$GCC_SYSROOT/include/openssl/"
-        install -D -m 644 "$SYSROOT/lib/libssl.a" "$GCC_SYSROOT/lib/libssl.a"
-        install -D -m 644 "$SYSROOT/lib/libcrypto.a" "$GCC_SYSROOT/lib/libcrypto.a"
-    fi
-
-    if $NEED_ZLIB; then
-        echo -e "${GREEN}Installing zlib and related headers...${RESET}"
-        install -D -m 644 "$SYSROOT/usr/include/zlib.h" "$GCC_SYSROOT/include/zlib.h"
-        install -D -m 644 "$SYSROOT/usr/include/zconf.h" "$GCC_SYSROOT/include/zconf.h"
-        install -D -m 644 "$SYSROOT/usr/lib/libz.a" "$GCC_SYSROOT/lib/libz.a"
-    fi
 }
 
 # Download and compile Git
@@ -10498,6 +10489,13 @@ copy_licences()
         CSV+="\nInconsolata,SIL OFL 1.1,inconsolata.txt"
     fi
 
+    if $INCLUDE_ISAPNPTOOLS &&
+        [ -f "${CURR_DIR}/build/isapnptools/COPYING" ]; then
+        cp "${CURR_DIR}/build/isapnptools/COPYING" \
+            "${DESTDIR}/LICENCES/isapnptools.txt" || true
+        CSV+="\nisapnptools,GNU GPLv2,isapnptools.txt"
+    fi
+
     if [ "$ID" == "shork-disc" ] &&
        $FIX_EXTLINUX &&
         [ -f "${CURR_DIR}/build/syslinux/COPYING" ]; then
@@ -12307,9 +12305,9 @@ get_installed_progs_feats()
         fi
 
         if $ENABLE_MODULES; then
-            INCLUDED_FEATURES+=("kernel-level modules support")
+            INCLUDED_FEATURES+=("loadable kernel module support")
         else
-            EXCLUDED_FEATURES+=("kernel-level modules support")
+            EXCLUDED_FEATURES+=("loadable kernel module support")
         fi
 
         if $ENABLE_MOUSE; then
@@ -12512,6 +12510,7 @@ get_installed_progs_feats()
         check_installed_file "chrony ${CHRONY_VER}" "/usr/bin/chronyc"
         check_installed_file "tcpdump ${TCPDUMP_VER}" "/usr/bin/tcpdump"
         check_installed_file "NetHack ${NETHACK_VER}" "/usr/bin/nethack"
+        check_installed_file "isapnptools ${ISAPNPTOOLS_VER}" "/sbin/isapnp"
     fi
     if [[ "$ID" == "shork-"*86 ]] || [ "$ID" == "shork-disc" ]; then
         check_installed_file "util-linux ${UTIL_LINUX_VER}" "/usr/bin/whereis"
@@ -13034,6 +13033,7 @@ if $INCLUDE_C3270; then
         "" \
         false \
         false \
+        false \
         "/usr" \
         "--enable-c3270 --disable-x3270 --disable-s3270 --disable-b3270 --disable-tcl3270 --disable-pr3287 --disable-x3270if --disable-playback  --disable-mitm --disable-wc3270" \
         "" \
@@ -13071,6 +13071,7 @@ if $INCLUDE_CSCOPE; then
         "" \
         false \
         true \
+        false \
         "/usr" \
         "" \
         "" \
@@ -13087,6 +13088,7 @@ if $INCLUDE_CTAGS; then
         "v$CTAGS_VER" \
         "" \
         true \
+        false \
         false \
         "/usr" \
         "--disable-pcre2 --disable-external-sort --disable-yaml --disable-json --disable-iconv --disable-seccomp"
@@ -13161,6 +13163,7 @@ if $INCLUDE_DOSFSTOOLS; then
         "v$DOSFSTOOLS_VER" \
         "" \
         true \
+        false \
         false \
         "" \
         "--enable-compat-symlinks --sbindir=/sbin"
@@ -13261,6 +13264,22 @@ if $INCLUDE_INDENT; then
         "/usr" \
         ""
 fi
+if $INCLUDE_ISAPNPTOOLS; then
+    get_prog_git \
+        "sbin" \
+        "isapnp" \
+        "isapnptools" \
+        "isapnptools" \
+        "$ISAPNPTOOLS_SRC" \
+        "isapnptools-$ISAPNPTOOLS_VER" \
+        "isapnptools/1.27-musl-del-old-url.patch" \
+        false \
+        false \
+        true \
+        "/usr" \
+        "--sbindir=/sbin" \
+        "-fcommon -DHAVE_STRNCASECMP -include stddef.h -include stdlib.h -include string.h -include unistd.h"
+fi
 if $INCLUDE_JOE; then
     get_joe
 fi
@@ -13275,6 +13294,7 @@ if $INCLUDE_JQ; then
         "" \
         false \
         true \
+        false \
         "/usr" \
         "--with-oniguruma=builtin"
 fi
@@ -13307,6 +13327,7 @@ if $INCLUDE_LYNX; then
         "$LYNX_SRC" \
         "v$LYNX_VER" \
         "" \
+        false \
         false \
         false \
         "/usr" \
@@ -13353,6 +13374,7 @@ if $INCLUDE_MIDNIGHT_CMDR; then
         "" \
         true \
         false \
+        false \
         "/usr" \
         "--with-screen=ncurses --without-x --disable-mclib --enable-vfs-sftp " \
         "-I${SYSROOT}/usr/include -I${PREFIX}/include" \
@@ -13371,6 +13393,7 @@ if $INCLUDE_MT_ST; then
         "$MT_ST_SRC" \
         "v$MT_ST_VER" \
         "" \
+        false \
         false \
         false \
         "/usr" \
@@ -13497,6 +13520,7 @@ if $INCLUDE_TMUX; then
         "" \
         true \
         false \
+        false \
         "/usr" \
         "LIBS=\"-levent -lncursesw -lutil -lrt -lpthread -lm\""
 fi
@@ -13519,6 +13543,42 @@ if $INCLUDE_GCC; then
     init_dyn_swap "${DESTDIR}/opt/${CROSS_ARCH}-linux-musl-native/bin/gcc"
     init_dyn_swap "${DESTDIR}/opt/${CROSS_ARCH}-linux-musl-native/bin/g++"
     init_dyn_swap "${DESTDIR}/opt/${CROSS_ARCH}-linux-musl-native/bin/gfortran"
+
+    if $INCLUDE_LUA; then
+        echo -e "${GREEN}Installing Lua headers and library...${RESET}"
+        install -D -m 644 "${CURR_DIR}/build/lua/liblua.a" "$GCC_SYSROOT/lib/liblua.a"
+        install -D -m 644 "${CURR_DIR}/build/lua/lua.h" "$GCC_SYSROOT/include/lua.h"
+        install -D -m 644 "${CURR_DIR}/build/lua/luaconf.h" "$GCC_SYSROOT/include/luaconf.h"
+        install -D -m 644 "${CURR_DIR}/build/lua/lualib.h" "$GCC_SYSROOT/include/lualib.h"
+        install -D -m 644 "${CURR_DIR}/build/lua/lauxlib.h" "$GCC_SYSROOT/include/lauxlib.h"
+    fi
+
+    if $NEED_CURL; then
+        echo -e "${GREEN}Installing libcurl and related headers...${RESET}"
+        mkdir -p "$GCC_SYSROOT/include/curl"
+        cp "$SYSROOT/include/curl/"*.h "$GCC_SYSROOT/include/curl/"
+        install -D -m 644 "$SYSROOT/lib/libcurl.a" "$GCC_SYSROOT/lib/libcurl.a"
+    fi
+
+    if $NEED_OPENSSL; then
+        echo -e "${GREEN}Installing OpenSSL and related headers...${RESET}"
+        mkdir -p "$GCC_SYSROOT/include/openssl"
+        cp "$SYSROOT/include/openssl/"*.h "$GCC_SYSROOT/include/openssl/"
+        install -D -m 644 "$SYSROOT/lib/libssl.a" "$GCC_SYSROOT/lib/libssl.a"
+        install -D -m 644 "$SYSROOT/lib/libcrypto.a" "$GCC_SYSROOT/lib/libcrypto.a"
+    fi
+
+    if $NEED_ZLIB; then
+        echo -e "${GREEN}Installing zlib and related headers...${RESET}"
+        install -D -m 644 "$SYSROOT/usr/include/zlib.h" "$GCC_SYSROOT/include/zlib.h"
+        install -D -m 644 "$SYSROOT/usr/include/zconf.h" "$GCC_SYSROOT/include/zconf.h"
+        install -D -m 644 "$SYSROOT/usr/lib/libz.a" "$GCC_SYSROOT/lib/libz.a"
+    fi
+else
+    if $INCLUDE_ISAPNPTOOLS; then
+        rm -rf "${DESTDIR}/usr/include/isapnp" \
+            "${DESTDIR}/usr/lib/libisapnp.a"
+    fi
 fi
 
 if [ "$BUILD_TYPE" != "micro" ]; then
