@@ -200,6 +200,7 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 | [GnuPG & pinentry](https://gnupg.org/)<br>e.g. `gpg`, `gpg-agent`, `gpgconf`, `kbxutil`, `pinentry`, `watchgnupg` | 2.5.24 & 1.3.3 | OpenPGP-compliant encryption & signing | GNU GPLv3 |✓|||||
 | [gpm](https://www.nico.schottelius.org/software/gpm/)<br>`gpm` | 1.20.7 | Virtual console mouse | GNU GPLv2 |✓|✓|✓|✓|✓|
 | [htop](https://github.com/htop-dev/htop)¶<br>`htop` | 3.5.3 | Interactive process viewer | GNU GPLv2 |✓|**✓**|✓||✓|
+| [isapnptools](https://github.com/retroprom/isapnptools)<br>`isapnp`, `pnpdump` | 1.27 | ISA PnP utilities | GNU GPLv2 |✓|**✓**|✓|✓|✓|
 | [Joe's Own Editor](https://github.com/joe-editor/joe)<br>`joe` | 4.8 | WordStar & Emacs-blend text editor | GNU GPLv2 |✓||✓|||
 | [jq](https://jqlang.org/)<br>`jq` | 1.8.2 | Command-line JSON processor | MIT +<br>CC BY 3.0 +<br>ICU |✓|||||
 | [lsb-release-minimal](https://github.com/deepin-community/lsb-release-minimal)<br>`lsb_release` | 12.0-2 | Linux Standard Base/distribution info reporter | ISC |✓|**✓**|✓|✓|✓|

@@ -1,0 +1,132 @@
+############################################################################
+## 1.27-musl-del-old-url.patch                                            ##
+############################################################################
+## This patch is a derivative work of isapnptools. It is licensed         ##
+## separately under the terms of the GNU GPLv2 licence, and is            ##
+## distributed as part of the SHORK project. See the accompanying COPYING ##
+## file in this directory for details.                                    ##
+############################################################################
+## Kali (links.sharktastica.co.uk)                                        ##
+############################################################################
+
+
+diff --git a/demos/demo.c b/demos/demo.c
+index 93f9ab7..7b9abcf 100644
+--- a/demos/demo.c
++++ b/demos/demo.c
+@@ -126,8 +126,6 @@ static void
+ usage(char *program_name)
+ {
+   fprintf(stderr, "\n%s\nRelease %s\nThis is free software, see the sources for details.\n"
+-	  "For latest information, see "
+-	  "http://www.roestock.demon.co.uk/isapnptools/\n"
+ 	  "This software has NO WARRANTY, use at your OWN RISK\n\n"
+ 
+ 	  "Usage: %s [--scan] [--optimal] [--irqlist] [--dmalist] [--numcards=num]\n"
+@@ -293,11 +291,7 @@ main(int argc, char **argv)
+ 
+   printf("# %s\n# Release %s\n# This is free software, see the sources for details.\n"
+ 	 "# This software has NO WARRANTY, use at your OWN RISK\n"
+-	 "#\n"
+-	 "# For latest information and FAQ on isapnp and pnpdump see:\n"
+-	 "# http://www.roestock.demon.co.uk/isapnptools/\n"
+-	 "#\n"
+-	 "# Compiler flags: %s" ,
++	 "#\n" ,
+ 	 st_demo_version, libtoolsver, libcompilerflags);
+   printf("\n\n");
+ 
+diff --git a/include/isapnp/iopl.h b/include/isapnp/iopl.h
+index 490d0ea..e944a83 100644
+--- a/include/isapnp/iopl.h
++++ b/include/isapnp/iopl.h
+@@ -58,7 +58,7 @@ extern "C" {
+ #    ifdef _AXP_
+ #       include <sys/io.h>
+ #    else
+-#       include <asm/io.h>
++#       include <sys/io.h>
+ #    endif
+ #  endif	      	   /* __GLIBC__ */
+ #else
+diff --git a/src/isapnp_main.c b/src/isapnp_main.c
+index 4c5721a..b79643f 100644
+--- a/src/isapnp_main.c
++++ b/src/isapnp_main.c
+@@ -1000,14 +1000,7 @@ banner(FILE *fp)
+ 			"This is free software, see the sources for details.\n"
+ 			"This software has NO WARRANTY, use at your OWN RISK\n"
+ 			"\n"
+-			"For details of the configuration file format, see isapnp.conf(5)\n"
+-			"For explanations of error messages, see isapnp(8)\n"
+-			"\n"
+-			"For latest information and FAQ on isapnp and pnpdump see:\n"
+-			"http://www.roestock.demon.co.uk/isapnptools/\n"
+-			"\n"
+-			"Compiler flags: %s%s\n"
+-			"\n",
++			"For details of the configuration file format, see isapnp.conf(5)\n",
+ 			rcsid,
+ 			libtoolsver,
+ 			libcompilerflags,
+diff --git a/src/isapnp_main.l b/src/isapnp_main.l
+index 1498598..f44adcc 100644
+--- a/src/isapnp_main.l
++++ b/src/isapnp_main.l
+@@ -97,6 +97,7 @@ static int configureaction = 0; /* Backwards reference to skip missing boards */
+ static int parseerror = 0;
+ 
+ #ifndef HAVE_STRNCASECMP
++#define strncasecmp isapnp_strncasecmp
+ static int strncasecmp(char *str1, char *str2, unsigned length)
+ {
+   char *buffer1, *buffer2;
+@@ -210,14 +211,7 @@ banner(FILE *fp)
+ 			"This is free software, see the sources for details.\n"
+ 			"This software has NO WARRANTY, use at your OWN RISK\n"
+ 			"\n"
+-			"For details of the configuration file format, see isapnp.conf(5)\n"
+-			"For explanations of error messages, see isapnp(8)\n"
+-			"\n"
+-			"For latest information and FAQ on isapnp and pnpdump see:\n"
+-			"http://www.roestock.demon.co.uk/isapnptools/\n"
+-			"\n"
+-			"Compiler flags: %s%s\n"
+-			"\n",
++			"For details of the configuration file format, see isapnp.conf(5)\n",
+ 			rcsid,
+ 			libtoolsver,
+ 			libcompilerflags,
+diff --git a/src/pnpdump_main.c b/src/pnpdump_main.c
+index 1c9bb0f..278961d 100644
+--- a/src/pnpdump_main.c
++++ b/src/pnpdump_main.c
+@@ -166,11 +166,6 @@ banner(FILE *fp, char *prefix)
+ 			"%sThis software has NO WARRANTY, use at your OWN RISK\n"
+ 			"%s\n"
+ 			"%sFor details of the output file format, see isapnp.conf(5)\n"
+-			"%s\n"
+-			"%sFor latest information and FAQ on isapnp and pnpdump see:\n"
+-			"%shttp://www.roestock.demon.co.uk/isapnptools/\n"
+-			"%s\n"
+-			"%sCompiler flags: %s%s\n"
+ 			"%s\n",
+ 			prefix, rcsid,
+ 			prefix, libtoolsver,
+diff --git a/src/realtime.c b/src/realtime.c
+index 84e1d5e..1c808e0 100644
+--- a/src/realtime.c
++++ b/src/realtime.c
+@@ -157,10 +157,10 @@ setroundrobin(long in_realtime_timeout)
+   }
+ 
+   /* Use the syscall, as my library not up todate */
+-  if (sched_setscheduler(mypid, SCHED_RR, &sched_p) < 0) {
++  /*if (sched_setscheduler(mypid, SCHED_RR, &sched_p) < 0) {
+     st_non_fatal_error_callback(errno,ISAPNP_E_REALTIME_NOT_SET);
+   }
+-  else {
++  else*/ {
+     realtimeok = 1;
+     signal(SIGALRM, realtime_expired);
+     alarm(in_realtime_timeout);

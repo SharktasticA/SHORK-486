@@ -86,6 +86,7 @@ INCLUDE_GNUPG=false
 INCLUDE_GPM=false
 INCLUDE_HTOP=false
 INCLUDE_INDENT=false
+INCLUDE_ISAPNPTOOLS=false
 INCLUDE_JOE=false
 INCLUDE_LIBTOOL=false
 INCLUDE_LSB_RELEASE_MIN=false
@@ -250,6 +251,7 @@ save_env()
         echo "INCLUDE_GPM=$INCLUDE_GPM"
         echo "INCLUDE_HTOP=$INCLUDE_HTOP"
         echo "INCLUDE_INDENT=$INCLUDE_INDENT"
+        echo "INCLUDE_ISAPNPTOOLS=$INCLUDE_ISAPNPTOOLS"
         echo "INCLUDE_JOE=$INCLUDE_JOE"
         echo "INCLUDE_JQ=$INCLUDE_JQ"
         echo "INCLUDE_LIBTOOL=$INCLUDE_LIBTOOL"
@@ -363,6 +365,7 @@ set_mini_vars()
     INCLUDE_GPM=false
     INCLUDE_HTOP=false
     INCLUDE_INDENT=false
+    INCLUDE_ISAPNPTOOLS=false
     INCLUDE_JOE=false
     INCLUDE_JQ=false
     INCLUDE_LIBTOOL=false
@@ -429,6 +432,7 @@ set_terminal_vars()
     INCLUDE_CURL=true
     INCLUDE_DROPBEAR=true
     INCLUDE_GPM=true
+    INCLUDE_ISAPNPTOOLS=true
     INCLUDE_LSB_RELEASE_MIN=true
     INCLUDE_MEMTESTER=true
     INCLUDE_TMUX=true
@@ -454,6 +458,7 @@ set_writer_vars()
     SETUP_DYN_SWAP=true
 
     INCLUDE_HTOP=true
+    INCLUDE_ISAPNPTOOLS=true
     INCLUDE_GPM=true
     INCLUDE_JOE=true
     INCLUDE_LSB_RELEASE_MIN=true
@@ -494,6 +499,7 @@ set_default_vars()
     INCLUDE_GIT=true
     INCLUDE_GPM=true
     INCLUDE_HTOP=true
+    INCLUDE_ISAPNPTOOLS=true
     INCLUDE_LSB_RELEASE_MIN=true
     INCLUDE_LUA=true
     INCLUDE_LYNX=true
@@ -636,6 +642,7 @@ BUNDLED_SOFTWARE=(
         "gnupg"             "OpenPGP-compliant encryption & signing (25MiB)"        "INCLUDE_GNUPG"             "false"     "always"
         "gpm"               "*Virtual console mouse (0.6MiB)"                       "INCLUDE_GPM"               "false"     "always"
         "htop"              "*Interactive process viewer (0.6MiB)"                  "INCLUDE_HTOP"              "false"     "always"
+        "isapnptools"       "*ISA PnP utilities (0.2MiB)"                           "INCLUDE_ISAPNPTOOLS"       "false"     "always"
         "joe"               "WordStar & Emacs-blend text editor (1.9MiB)"           "INCLUDE_JOE"               "false"     "always"
         "jq"                "Command-line JSON processor (0.9MiB)"                  "INCLUDE_JQ"                "false"     "always"
         "lsb-release-min"   "*LSB/distribution info reporter (0.03MiB)"             "INCLUDE_LSB_RELEASE_MIN"   "false"     "always"
@@ -1557,6 +1564,7 @@ else
     if [[ $BUNDLED =~ "gnu-nano" ]];            then INCLUDE_NANO=true;             else INCLUDE_NANO=false;            fi
     if [[ $BUNDLED =~ "gpm" ]];                 then INCLUDE_GPM=true;              else INCLUDE_GPM=false;             fi
     if [[ $BUNDLED =~ "htop" ]];                then INCLUDE_HTOP=true;             else INCLUDE_HTOP=false;            fi
+    if [[ $BUNDLED =~ "isapnptools" ]];         then INCLUDE_ISAPNPTOOLS=true;      else INCLUDE_ISAPNPTOOLS=false;     fi
     if [[ $BUNDLED =~ "joe" ]];                 then INCLUDE_JOE=true;              else INCLUDE_JOE=false;             fi
     if [[ $BUNDLED =~ "jq" ]];                  then INCLUDE_JQ=true;               else INCLUDE_JQ=false;              fi
     if [[ $BUNDLED =~ "lsb-release-min" ]];     then INCLUDE_LSB_RELEASE_MIN=true;  else INCLUDE_LSB_RELEASE_MIN=false; fi
