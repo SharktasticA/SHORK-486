@@ -546,6 +546,7 @@ USE_TORVALDS=false
 
 ENABLE_CDROM=false
 ENABLE_EPOLL=false
+ENABLE_EVDEV=false
 ENABLE_FB=false
 ENABLE_HELP_VERBOSE=false
 ENABLE_HIGHMEM=false
@@ -593,7 +594,6 @@ INCLUDE_GCC=false
 INCLUDE_GIT=false
 INCLUDE_GNUPG=false
 INCLUDE_GPM=false
-INCLUDE_GUI=false
 INCLUDE_HTOP=false
 INCLUDE_HWINFO=false
 INCLUDE_INDENT=false
@@ -625,6 +625,7 @@ INCLUDE_PCI_IDS=false
 INCLUDE_RUSTID=false
 INCLUDE_SC_IM=false
 INCLUDE_SUDO=false
+INCLUDE_SHORKGUI=false
 INCLUDE_SHORKSTALL=false
 INCLUDE_SHORKTAINMENT=false
 INCLUDE_STRACE=false
@@ -704,56 +705,12 @@ fi
 ## Overrides                                        ##
 ######################################################
 
-# Overrides to ensure the correct estimated RAM requirement is shown in the after-build report
-if [[ "$ID" == "shork-"*86 ]]; then
-    if [ "$BUILD_TYPE" = "custom" ]; then
-        echo -e "${GREEN}Noting minimum memory requirements for a SHORK 486/586 custom build...${RESET}"
-        if [ "$INCLUDE_GCC" = true ]; then
-            EST_MIN_RAM="24MiB + 8MiB swap/16MiB + 16MiB swap"
-        elif [ "$INCLUDE_GUI" = true ] || [ "$ENABLE_HIGHMEM" = true ] ||
-            [ "$ENABLE_SATA" = true ]; then
-            EST_MIN_RAM="24MiB/16MiB + 8MiB swap"
-        elif [ "$INCLUDE_DOSEMU2" = true ] ||
-            [ "$ENABLE_NET_ETH" = true ]; then
-            EST_MIN_RAM="16MiB"
-        else
-            EST_MIN_RAM="12MiB"
-        fi
-    elif [ "$BUILD_TYPE" = "default" ]; then
-        echo -e "${GREEN}Noting minimum memory requirements for SHORK 486/586 Default...${RESET}"
-        EST_MIN_RAM="16MiB"
-    elif [ "$BUILD_TYPE" = "max" ]; then
-        echo -e "${GREEN}Noting minimum memory requirements for SHORK 486/586 Max...${RESET}"
-        EST_MIN_RAM="32MiB/24MiB + 8MiB swap"
-    elif [ "$BUILD_TYPE" = "plus" ]; then
-        echo -e "${GREEN}Noting minimum memory requirements for SHORK 486/586 Plus...${RESET}"
-        EST_MIN_RAM="24MiB + 8MiB swap/16MiB + 16MiB swap"
-    elif [ "$BUILD_TYPE" = "writer" ]; then
-        echo -e "${GREEN}Noting minimum memory requirements for SHORK 486/586 Writer...${RESET}"
-        EST_MIN_RAM="24MiB + 8MiB swap/16MiB + 16MiB swap"
-    elif [ "$BUILD_TYPE" = "offline" ]; then
-        echo -e "${GREEN}Noting minimum memory requirements for SHORK 486/586 Offline...${RESET}"
-        EST_MIN_RAM="12MiB"
-    elif [ "$BUILD_TYPE" = "mini" ]; then
-        echo -e "${GREEN}Noting minimum memory requirements for SHORK 486/586 Mini...${RESET}"
-        EST_MIN_RAM="8MiB"
-    elif [ "$BUILD_TYPE" = "micro" ]; then
-        echo -e "${GREEN}Noting minimum memory requirements for SHORK 486/586 Micro...${RESET}"
-        EST_MIN_RAM="8MiB"
-    fi
-elif [ "$ID" == "shork-disc" ]; then
-    echo -e "${GREEN}Noting minimum memory requirements for SHORK DISC...${RESET}"
-    EST_MIN_RAM="12MiB"
-elif [ "$ID" == "shork-diskette" ]; then
-    echo -e "${GREEN}Noting minimum memory requirements for SHORK DISKETTE...${RESET}"
-    EST_MIN_RAM="16MiB"
-fi
-
-# Override to ensure the USED_WM is empty when the "use GUI" parameter is not used
-if ! $INCLUDE_GUI; then
+# Override to ensure the USED_WM is empty when no SHORKGUI
+if ! $INCLUDE_SHORKGUI; then
     USED_WM=""
 else
-    # If USED_WM is empty but GUI is desired, ensure the default WM (TWM) is set
+    # If USED_WM is empty but SHORKGUI is desired, ensure the default WM
+    # (TWM) is set
     if [[ $USED_WM == "" ]]; then
         USED_WM="TWM"
     fi
@@ -800,8 +757,9 @@ if [ "$INCLUDE_BIND9_DNSUTILS" = true ] || [ "$INCLUDE_MICRO" = true ]; then
     ENABLE_EPOLL=true
 fi
 
-# Ensure FB is enabled with GUI
-if [ "$INCLUDE_GUI" = true ]; then
+# Ensure EVDEV and FB are enabled with GUI
+if [ "$INCLUDE_SHORKGUI" = true ]; then
+    ENABLE_EVDEV=true
     ENABLE_FB=true
 fi
 
@@ -816,8 +774,8 @@ if [ "$INCLUDE_MPG321" = true ]; then
     ENABLE_SYSVIPC=true
 fi
 
-# Ensure MOUSE is enabled with GPM or GUI
-if [ "$INCLUDE_GPM" = true ] || [ "$INCLUDE_GUI" = true ]; then
+# Ensure MOUSE is enabled with GPM or SHORKGUI
+if [ "$INCLUDE_GPM" = true ] || [ "$INCLUDE_SHORKGUI" = true ]; then
     ENABLE_MOUSE=true
 fi
 
@@ -844,11 +802,11 @@ if [ "$INCLUDE_DOSEMU2" = true ]; then
     ENABLE_VM86=true
 fi
 
-# Ensure NET_BASE is enabled with DOSEMU2, GNUPG, GPM, GUI, HTOP, NET_ETH,
-# SUDO or TMUX
+# Ensure NET_BASE is enabled with DOSEMU2, GNUPG, GPM, HTOP, NET_ETH,
+# SHORKGUI, SUDO or TMUX
 if [ "$INCLUDE_DOSEMU2" = true ] || [ "$INCLUDE_GNUPG" = true ] || 
-    [ "$INCLUDE_GPM" = true ] || [ "$INCLUDE_GUI" = true ] ||
-    [ "$INCLUDE_HTOP" = true ] || [ "$INCLUDE_SUDO" = true ] ||
+    [ "$INCLUDE_GPM" = true ] || [ "$INCLUDE_HTOP" = true ] ||
+    [ "$INCLUDE_SHORKGUI" = true ] || [ "$INCLUDE_SUDO" = true ] ||
     [ "$INCLUDE_TMUX" = true ] || [ "$ENABLE_NET_ETH" = true ]; then
     ENABLE_NET_BASE=true
 fi
@@ -5015,9 +4973,9 @@ configure_kernel()
             FRAGS+="${CONFIGS_DIR}/linux/linux.config.fb.frag "
         fi
 
-        if $INCLUDE_GUI; then
+        if $ENABLE_EVDEV; then
             echo -e "${GREEN}Enabling kernel-level event interface support...${RESET}"
-            FRAGS+="${CONFIGS_DIR}/linux/linux.config.x11.frag "
+            FRAGS+="${CONFIGS_DIR}/linux/linux.config.evdev.frag "
         fi
 
         if $ENABLE_HIGHMEM; then
@@ -9597,7 +9555,7 @@ get_shorkfetch()
     sed -i 's|,scn,|,|' src/main.c
 
     # If no SHORKGUI included, skip DE and WM fields
-    if ! $INCLUDE_GUI; then
+    if ! $INCLUDE_SHORKGUI; then
         sed -i 's|,de,|,|' src/main.c
         sed -i 's|,wm,|,|' src/main.c
     fi
@@ -10093,7 +10051,7 @@ trim_fat()
         fi
     fi
 
-    if $INCLUDE_GUI && ! $ENABLE_MULTIUSER_REAL; then
+    if $INCLUDE_SHORKGUI && ! $ENABLE_MULTIUSER_REAL; then
         sudo rm -rf "${DESTDIR}/home"
     fi
 
@@ -11037,7 +10995,7 @@ build_filesystem()
         fi
     fi
 
-    if $INCLUDE_GUI; then
+    if $INCLUDE_SHORKGUI; then
         echo -e "${GREEN}Installing files needed for SHORKGUI...${RESET}"
         mkdir -p "${DESTDIR}/usr/share/X11/app-defaults"
         copy_sysfile "${CURR_DIR}"/shorkutils/shorkgui "${DESTDIR}"/usr/bin/shorkgui
@@ -11632,7 +11590,8 @@ build_disk_img()
         # We can assume these features demand more
         if [[ ! "$BUILD_TYPE" =~ ^(mini|micro)$ ]]; then
             OVERHEAD_MIB=16
-            if [ "$INCLUDE_GCC" = true ] || [ "$INCLUDE_GUI" = true ] ||
+            if [ "$INCLUDE_GCC" = true ] ||
+                [ "$INCLUDE_SHORKGUI" = true ] ||
                 [ "$INCLUDE_TSHARK" = true ]; then
                 OVERHEAD_MIB=48
             fi
@@ -12264,7 +12223,7 @@ get_installed_progs_feats()
 {
     # Kernel features
     if [[ "$ID" == "shork-"*86 ]]; then
-        if $INCLUDE_GUI; then
+        if $$ENABLE_EVDEV; then
             INCLUDED_FEATURES+=("kernel-level event interface support")
         else
             EXCLUDED_FEATURES+=("kernel-level event interface support")
@@ -12956,7 +12915,7 @@ if $NEED_SLANG; then
 fi
 
 # Compile SHORKGUI
-if $INCLUDE_GUI; then
+if $INCLUDE_SHORKGUI; then
     prepare_x11
     get_tinyx
     if [[ $USED_WM == "TWM" ]]; then
@@ -13147,7 +13106,7 @@ if $INCLUDE_DOSEMU2; then
         -e '/if \[ -f "\$LOG_FILE" -a -x "\/usr\/bin\/dpkg-query" \]; then/,/^fi$/d' \
         "${DESTDIR}/usr/bin/dosemu"
 
-    init_dyn_swap "${DESTDIR}/usr/bin/dosemu.bin" 8
+    init_dyn_swap "${DESTDIR}/usr/bin/dosemu.bin" 4
     cp "${CURR_DIR}/sysfiles/dos" "${DESTDIR}"/usr/bin/dos
     chmod +x "${DESTDIR}"/usr/bin/dos
 
@@ -13210,7 +13169,7 @@ if $INCLUDE_FILE; then
 fi
 if $INCLUDE_GIT; then
     get_git
-    init_dyn_swap "${DESTDIR}/usr/bin/git"
+    init_dyn_swap "${DESTDIR}/usr/bin/git" 8
 fi
 if $INCLUDE_GNUPG; then
     get_prog_tar \
@@ -13384,6 +13343,7 @@ if $INCLUDE_MIDNIGHT_CMDR; then
         "-I${SYSROOT}/usr/include -I${PREFIX}/include" \
         "-L${SYSROOT}/usr/lib -L${PREFIX}/lib" \
         "-Wl,--start-group -lssh2 -lcrypto -lz -lpcre2-8 -Wl,-Bstatic -latomic -lncursesw -ltinfo -lgpm -Wl,--end-group"
+    init_dyn_swap "${DESTDIR}/usr/bin/mc" 4
 fi
 if $INCLUDE_MPG321; then
     get_mpg321
@@ -13487,7 +13447,7 @@ if $INCLUDE_TCC; then
         "" \
         ""
     get_tcc
-    init_dyn_swap "${DESTDIR}/usr/local/bin/i386-tcc"
+    init_dyn_swap "${DESTDIR}/usr/local/bin/i386-tcc" 16
     ln -sf /usr/local/bin/i386-tcc "${DESTDIR}"/usr/bin/tcc || true
 fi
 if $INCLUDE_TCPDUMP; then
@@ -13540,7 +13500,7 @@ if $INCLUDE_TSHARK; then
 fi
 if $INCLUDE_VIM; then
     get_vim
-    init_dyn_swap "${DESTDIR}/usr/bin/vim"
+    init_dyn_swap "${DESTDIR}/usr/bin/vim" 16
 fi
 if $INCLUDE_GCC; then
     get_gcc

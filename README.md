@@ -188,12 +188,12 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 | [e2fsprogs](https://e2fsprogs.sourceforge.net/)<br>e.g. `blkid`\*, `chattr`\*, `fsck`\*, `lsattr`\*, `mke2fs`\*, `resize2fs`, `tune2fs`\*, `uuidgen`\* | 1.47.4 | ext2/3/4 filesystem utilities | GNU GPLv2 + LGPLv2 |✓|**✓**|||✓|
 | [file](https://github.com/file/file)<br>`file` | 5_48 | File identification | BSD 2-Clause |✓|**✓**|||✓|
 | [Git](https://github.com/git/git)<br>`git` | 2.56.0 | Source control client | GNU GPLv2 |✓|**✓**|||||
-| [GNU Autoconf](https://www.gnu.org/software/autoconf/)<br>`autoconf`, `autoreconf` | 2.73 | configure script generator | GNU GPLv2 |✓|||||
-| [GNU Automake](https://www.gnu.org/software/automake/)<br>`aclocal`, `automake` | 1.19 | Makefile.in generator | GNU GPLv2 |✓|||||
-| [GNU Binutils](https://musl.cc/)‡<br>e.g. `ar`\*, `as`, `gprof`, `ld`, `nm`, `objdump`, `ranlib`,`readelf`, `strings`\*, `strip` | 2.37 | Binary tools to compliment GCC | GNU GPLv3 |✓|||||
-| [GNU Compiler Collection](https://musl.cc/)‡§<br>`gcc`, `g++`, `gfortran` | 11.2.1 | C, C++ and Fortran compilers | GNU GPLv3 +<br>GCC RLE |✓|||||
+| [GNU Autoconf](https://www.gnu.org/software/autoconf/)†<br>`autoconf`, `autoreconf` | 2.73 | configure script generator | GNU GPLv2 |✓|||||
+| [GNU Automake](https://www.gnu.org/software/automake/)†<br>`aclocal`, `automake` | 1.19 | Makefile.in generator | GNU GPLv2 |✓|||||
+| [GNU Binutils](https://musl.cc/)†‡<br>e.g. `ar`\*, `as`, `gprof`, `ld`, `nm`, `objdump`, `ranlib`,`readelf`, `strings`\*, `strip` | 2.37 | Binary tools to compliment GCC | GNU GPLv3 |✓|||||
+| [GNU Compiler Collection](https://musl.cc/)†‡§<br>`gcc`, `g++`, `gfortran` | 11.2.1 | C, C++ and Fortran compilers | GNU GPLv3 +<br>GCC RLE |✓|||||
 | [GNU Indent](https://www.gnu.org/software/indent/)<br>`indent` | 2.2.13 | C code formatter | GNU GPLv3 |✓|||||
-| [GNU Libtool](https://www.gnu.org/software/libtool/)<br>`libtool`, `libtoolize` | 2.6.2 | Portable shared library build helper | GNU GPLv2 |✓|||||
+| [GNU Libtool](https://www.gnu.org/software/libtool/)†<br>`libtool`, `libtoolize` | 2.6.2 | Portable shared library build helper | GNU GPLv2 |✓|||||
 | [GNU m4](https://www.gnu.org/software/m4/)<br>`m4` | 1.4.21 | General-purpose macro processor | GNU GPLv3 |✓|||||
 | [GNU Make](https://www.gnu.org/software/make/)<br>`make` | 4.4.1 | Build automation tool | GNU GPLv3 |✓|||||
 | [GNU Midnight Commander](https://midnight-commander.org/)¶<br>`mc`, `mcdiff`, `mcedit`, `mcview` | 4.8.33 | Norton Commander-style file manager | GNU GPLv3 |✓|||||
@@ -233,7 +233,7 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 | [x3270](https://github.com/pmattes/x3270)†¶<br>`c3270` | 4.5ga6 | 3270 terminal emulator | BSD 3-Clause |✓|||||
 
 * _\* Replaces a BusyBox version of the same utility_
-* _† Inclusion is experimental - expect bugs_
+* _† Inclusion is experimental or is pending needed optimisation_
 * _‡ GCC and GNU Binutils are separate projects but are bundled together as one complete toolchain, separate in the table for easy reading_
 * _§ Includes musl for their libc_
 * _‖ Only included with multi-user configurations_
@@ -602,7 +602,7 @@ EXTLINUX (SHORK 486/586), ISOLINUX (SHORK DISC) and SYSLINUX (SHORK DISKETTE) ar
 
 #### Bundled Software
 
-* **dosemu2**: Adds dosemu2 to provide a DOS emulation environment. Currently, SHORK's inclusion of it is useful only for text-mode DOS applications - trying to run a graphics-mode application will likely crash, but work to address this is underway. It ideally requires 24MiB RAM, or at least 16MiB RAM with 8MiB swap. Efforts to bring this memory requirement down are also underway.
+* **dosemu2**: Adds dosemu2 to provide a DOS emulation environment. Currently, SHORK's inclusion of it is useful only for text-mode DOS applications - trying to run a graphics-mode application will likely crash, but work to address this is underway. It ideally requires 20MiB RAM, or at least 16MiB RAM with 4MiB swap. Efforts to bring this memory requirement down are also underway.
     * **dosemu2's inclusion is an experimental feature - expect quirks and incompleteness!**
     * Including dosemu2 will also give you the option to include a bundled FreeDOS environment for it toward the end of the Build Configurator. It includes the FreeDOS kernel, COMMAND.COM, DEBUG.COM, EDIT.EXE, MEM.EXE, MORE.EXE, MOVE.EXE and XCOPY.EXE (total ~0.5MiB).
     * If you decline the aforementioned option, you will need to install or provide your own DOS. To help with this, you can create the `shork-486/payload/drive_c` directory and copy a complete DOS installation into it, so that it will be subsequently copied into the final hard disk image for you. This directory is not deleted or modified by the build process, so it is safe to keep files in it across multiple builds.
@@ -618,11 +618,18 @@ EXTLINUX (SHORK 486/586), ISOLINUX (SHORK DISC) and SYSLINUX (SHORK DISKETTE) ar
 * **gcc**: Adds the GCC's C, C++ and Fortran compiler, musl C standard library and GNU Bintuils. Using `g++` requires more system memory than usual, hence it is not included by default. Memory requirements are ideally 32MiB system memory if no swap partition, 24MiB with 8MiB swap or 16MiB with 16MiB swap.
     * **Note:** If included, BusyBox's `ar` and `strings` implementations will be disabled in favour of GNU Binutils'.
 
-* **midnight-cmdr**: Adds the GNU Midnight Commander file manager. It presently has a hard dependency on networking, but making this optional is planned. Memory requirements are ideally 16MiB with 8MiB swap.
+* **midnight-cmdr**: Adds the GNU Midnight Commander file manager. It presently has a hard dependency on networking, but making this optional is planned. Memory requirements are ideally 16MiB with 4MiB swap.
 
 * **nbsdgames**: Adds a pack of 22 ncurses-based games. It includes battleship, checkers, darrt, fifteen, fisher, jewels, memoblocks, miketron, mines, muncher, pipes, rabbithole, redsquare, revenge, reversi, scissor, sjump, snakeduel, sos, sudoku, trsr, and tugow. They require at least 12MiB RAM.
 
 * **perl**: Includes the Perl general-purpose scripting language interpreter. Using Perl independently or Perl-based tools like GNU Autoconf or Automake require ideally 24MiB RAM, or at least 16MiB RAM with 8MiB swap.
+
+* **shorkgui**: Includes SHORK 486/586's graphical environment ("SHORKGUI"). It's comprised of the TinyX display server, TWM window manager, various supporting X11 utilities, st terminal emulator, and the `shorkgui` utility.
+    * **SHORKGUI is an experimental feature - expect quirks and incompleteness!**
+    * As it is subject to big changes, the system requirements are not set in stone. But the following should provide a usable experience for now:
+        * IntelDX4 (ideally; 486SX, 486DX, etc. work but are very slow)
+        * 24MiB physical memory
+        * A display card supported by either `vga16fb` or `vesafb` framebuffer drivers
 
 * **shorktainment**: Includes the SHORK Entertainment programs bundle: shorklocomotive, shorkmatrix, shorkmines, and shorksay.
 
@@ -634,13 +641,6 @@ EXTLINUX (SHORK 486/586), ISOLINUX (SHORK DISC) and SYSLINUX (SHORK DISKETTE) ar
 * **fb**: Adds vesafb and vga16fb framebuffer support and enables BusyBox's `fbset` and `fbsplash` implementations. This allows a framebuffer device to be created when supported hardware is present, which in turn allows an X server to run, and gives applications per-pixel read/write capabilities. `shorkset` will also be able to offer VBE-style resolutions for vesafb, and other framebuffer-specific settings.
 
 * **grub**: Uses a GRUB 2.x bootloader instead of EXTLINUX. GRUB may be more familiar to modern Linux users, but it requires approximately 12MiB more space than EXTLINUX. The build script overrides this option if you said "Yes" to using SHORK's patched fork of EXTLINUX.
-
-* **gui**: Includes SHORK 486/586's graphical environment ("SHORKGUI"). It's comprised of the TinyX display server, TWM window manager, various supporting X11 utilities, st terminal emulator, and the `shorkgui` utility.
-    * **SHORKGUI is an experimental feature - expect quirks and incompleteness!**
-    * As it is subject to big changes, the system requirements are not set in stone. But the following should provide a usable experience for now:
-        * IntelDX4 (ideally; 486SX, 486DX, etc. work but are very slow)
-        * 24MiB physical memory
-        * A display card supported by either `vga16fb` or `vesafb` framebuffer drivers
 
 * **highmem**: Adds kernel-level high memory support and declares that non-reserved physical memory starts at 16MiB instead of 1MiB. In general, this is provided in case someone wanted to try SHORK 486/586 on a more modern system with more than 875MiB RAM. **It is not needed for most '90s hardware**. Its RAM requirements are 24MiB with no swap partition or 16MiB with 8MiB swap.
 
