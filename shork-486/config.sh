@@ -708,7 +708,7 @@ BUNDLED_SOFTWARE=(
         "DNS query & update tools"
         "48MiB"
         "arpaname, delv, dig, host, mdig, nslookup, nsupdate"
-        ""
+        "Including this will replace BusyBox's nslookup implementation."
         "20MiB (ideal)/16MiB + 4MiB swap"
         "INCLUDE_BIND9_DNSUTILS"
         "true"
@@ -798,7 +798,7 @@ BUNDLED_SOFTWARE=(
         "*FAT12/16/32 filesystem utilities"
         "0.8MiB"
         "(e.g.) dosfsck, mkdosfs"
-        ""
+        "Including this will replace BusyBox's mkdosfs implementation."
         "10MiB"
         "INCLUDE_DOSFSTOOLS"
         "false"
@@ -828,7 +828,7 @@ BUNDLED_SOFTWARE=(
         "*ext2/3/4 filesystem utilities"
         "4MiB"
         "(e.g.) blkid, chattr, fsck, lsattr, mke2fs, resize2fs, tune2fs, uuidgen"
-        ""
+        "Including this will replace BusyBox's blkid, chattr, fsck, lsattr, mke2fs, tune2fs and uuidgen implementations."
         "10MiB"
         "INCLUDE_E2FSPROGS"
         "false"
@@ -848,7 +848,7 @@ BUNDLED_SOFTWARE=(
         "GCC + binutils + musl (WIP)"
         "215MiB"
         "(e.g.) ar, as, gcc, g++, gfortran, gprof, ld, nm, objdump, ranlib, readelf, strings, strip"
-        "This feature requires further optimisation. It should be usable for now, but perhaps not running as well as it could be."
+        "This feature requires further optimisation. It should be usable for now, but perhaps not running as well as it could be. Including this will replace BusyBox's ar and strings implementations."
         "32MiB (ideal)/24MiB + 8MiB swap/16MiB + 16MiB swap"
         "INCLUDE_GCC"
         "false"
@@ -1248,7 +1248,7 @@ BUNDLED_SOFTWARE=(
         "*cf/f/sfdisk, lscpu, partx & whereis"
         "4.1MiB"
         "cfdisk, fdisk, lscpu, partx, sfdisk, whereis"
-        ""
+        "Including this will replace BusyBox's fdisk implementation."
         "10MiB"
         "INCLUDE_UTIL_LINUX"
         "false"
@@ -1258,7 +1258,7 @@ BUNDLED_SOFTWARE=(
         "Vi IMproved text editor (WIP)"
         "24.2MiB"
         "ex, view, rvim, rview, vim, vimdiff, vimtutor, xxd"
-        "This feature requires further optimisation. It should be usable for now, but perhaps not running as well as it could be."
+        "This feature requires further optimisation. It should be usable for now, but perhaps not running as well as it could be. Including this will replace BusyBox's xxd implementation."
         "32MiB (ideal)/24MiB + 8MiB swap/16MiB + 16MiB swap"
         "INCLUDE_VIM"
         "false"
@@ -2175,7 +2175,7 @@ if [ "$BUILD_TYPE" = "custom" ]; then
         dialog --clear \
             --backtitle "SHORK 486 Build Configurator" \
             --title "Help: $BUNDLED_DEFAULT" \
-            --msgbox "$HELP_INFO" 11 $WIDTH
+            --msgbox "$HELP_INFO" 12 $WIDTH
     done
 
     # Enable prerequisites for selected bundled software
