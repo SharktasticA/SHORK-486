@@ -208,7 +208,7 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 | [Lua](https://www.lua.org/)<br>`lua` | 5.5.1 | Embedded scripting & extensions language | MIT |✓|**✓**|||✓|
 | [Lynx](https://github.com/ThomasDickey/lynx-snapshots)¶<br>`lynx` | 2-9-3f | Terminal web browser | GNU GPLv2 |✓|**✓**|||||
 | [memtester](https://pyropus.ca./software/memtester/)<br>`memtester` | 4.7.1 | Userspace memory subsystem fault tester | GNU GPLv2 |✓|**✓**|✓|✓|✓|
-| [Mg](https://github.com/troglobit/mg)<br>`mg` | 4.5 | Emacs-style text editor | Unlicense |✓|**✓**|✓||✓|
+| [Mg](https://github.com/troglobit/mg)<br>`mg` | 4.7 | Emacs-style text editor | Unlicense |✓|**✓**|✓||✓|
 | [MicroPython](https://github.com/micropython/micropython)<br>`micropython` | 1.29.0 | Python 3.4-syntax intepreter | MIT |✓|**✓**|||✓|
 | [mpg321](https://mpg321.sourceforge.net/)†<br>`mpg321` | 0.3.2-1 | MP3 player | GNU GPLv2 |✓|||||
 | [mt-st](https://github.com/iustin/mt-st)<br>`mt`, `stinit` | 1.8 | Tape drive tools | GNU GPLv2 |✓|**✓**|||✓|
@@ -216,7 +216,7 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 | [Ncdu](https://dev.yorhel.nl/ncdu)<br>`ncdu` | 1.22 | Disk usage analyser | MIT |✓|**✓**|✓||✓|
 | [NetHack](https://github.com/NetHack/NetHack)¶<br>`nethack` | 5.0.0 | Dungeon exploration game | NetHack GPL |✓|||||
 | [New BSD Games](https://github.com/abakh/nbsdgames)¶<br>`nbsdgames` | 6.0.3 | Terminal games pack (22) | Public domain |✓|||||
-| [PatchELF](https://github.com/nixos/patchelf)<br>`patchelf` | 0.19.2 | ELF binary patching | GNU GPLv3 |✓|||||
+| [PatchELF](https://github.com/nixos/patchelf)<br>`patchelf` | 0.19.3 | ELF binary patching | GNU GPLv3 |✓|||||
 | [Perl](https://www.perl.org/)<br>`perl` | 5.44.0 | General-purpose scripting language | GNU GPLv1 |✓|||||
 | [sc-im](https://github.com/andmarti1424/sc-im)¶<br>`sc-im` | 0.8.5 | Terminal spreadsheet editor | BSD 4-Clause |✓|**✓**|✓||✓|
 | [strace](https://github.com/strace/strace)<br>`strace` | 7.2 | System calls & signals tracer | GNU LGPLv2.1 |✓|**✓**|||✓|
@@ -287,7 +287,7 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 | [OpenSSL](https://github.com/openssl/openssl) | 3.6.5 | cURL, Git, Lynx, Midnight Commander, tcpdump, tn5250 | Apache 2.0 |
 | [PCRE2](https://pcre2project.github.io/pcre2/) | 10.49 | GLib, Tilde | BSD 3-Clause w/<br>PCRE2 exception |
 | [S-Lang](https://www.jedsoft.org/slang/) | 2.3.3 | dosemu2 | GNU GPLv2 |
-| [zlib](https://github.com/madler/zlib) | 1.3.2 | Git, GLib, GnuPG, libzip | zlib |
+| [zlib](https://github.com/madler/zlib) | 1.4 | Git, GLib, GnuPG, libzip | zlib |
 | [Zstandard](https://github.com/Facebook/zstd) | 1.5.7 | GnuTLS | BSD 3-Clause or<br>**GNU GPLv2** |
 
 ### SHORK Utilities (SHORKUTILS)
