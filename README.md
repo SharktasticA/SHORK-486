@@ -182,7 +182,7 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 | [CTris](https://github.com/MitchelPaulin/CTris)<br>`ctris` | `4cf68a9` | Tetris clone | MIT |✓|**✓**|||✓|
 | [cURL](https://curl.se/)<br>`curl` | 8.23.0 | HTTP client & transfer utility | MIT |✓|**✓**||✓||
 | [dialog](https://invisible-mirror.net/dialog/dialog.html)¶<br>`dialog` | 1.3-20260721 | Shell script TUI widgets | GNU LGPLv2.1 |✓|**✓**|||✓|
-| [dosemu2](https://github.com/dosemu2/dosemu2)†<br>`dosemu` | 2.0pre9-2 | DOS emulation | GNU GPLv2 |✓|**✓**|||✓|
+| [dosemu2](https://github.com/dosemu2/dosemu2)†<br>`dosemu` | 2.0pre9-2 | DOS emulation | GNU GPLv2 |✓|||||
 | [dosfstools](https://github.com/dosfstools/dosfstools)<br>e.g. `dosfsck`, `mkdosfs`\* | 4.2 | FAT family filesystem utilities | GNU GPLv3 |✓|**✓**|||✓|
 | [Dropbear](https://github.com/mkj/dropbear)<br>`scp`, `ssh` | 2026.94 | SCP and SSH clients | MIT +<br>BSD 2-Clause |✓|**✓**||✓||
 | [e2fsprogs](https://e2fsprogs.sourceforge.net/)<br>e.g. `blkid`\*, `chattr`\*, `fsck`\*, `lsattr`\*, `mke2fs`\*, `resize2fs`, `tune2fs`\*, `uuidgen`\* | 1.47.4 | ext2/3/4 filesystem utilities | GNU GPLv2 + LGPLv2 |✓|**✓**|||✓|

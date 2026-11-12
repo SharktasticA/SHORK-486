@@ -568,7 +568,6 @@ set_default_vars()
     INCLUDE_CTRIS=true
     INCLUDE_CURL=true
     INCLUDE_DIALOG=true
-    INCLUDE_DOSEMU2=true
     INCLUDE_DOSFSTOOLS=true
     INCLUDE_DROPBEAR=true
     INCLUDE_E2FSPROGS=true
@@ -633,6 +632,7 @@ set_plus_vars()
     INCLUDE_CSCOPE=true
     INCLUDE_CTAGS=true
     INCLUDE_CURL=true
+    INCLUDE_DOSEMU2=true
     INCLUDE_GCC=true
     INCLUDE_GNUPG=true
     INCLUDE_INDENT=true
