@@ -788,7 +788,7 @@ BUNDLED_SOFTWARE=(
         "*DOS emulation (WIP)"
         "4.1MiB"
         "dosemu"
-        "This feature is a work-in-progress and is considered experimental - expect quirks and incompleteness."
+        "This feature is a work-in-progress and is considered experimental - expect quirks and incompleteness. It is presently only suitable for text-mode operations."
         "20MiB (ideal)/16MiB + 4MiB swap"
         "INCLUDE_DOSEMU2"
         "false"
@@ -2123,7 +2123,7 @@ if [ "$BUILD_TYPE" = "custom" ]; then
             --help-button \
             --help-status \
             --default-item "$BUNDLED_DEFAULT" \
-            --checklist "Select what software to bundle with SHORK. Selecting \"Help\" will show you the selected item's commands, its minimum total system memory requirement, and any other useful context.\n* This option would be included in a \"default\" build\n" $HEIGHT $WIDTH 8 \
+            --checklist "Select what software to bundle with SHORK. Selecting \"Help\" will show you the selected item's commands, its minimum memory requirements, and any other useful context.\n* This option would be included in a \"default\" build\n" $HEIGHT $WIDTH 8 \
             "${BUNDLED_FILTERED[@]}" \
             2>&1 >/dev/tty)
         ACTION=$?
