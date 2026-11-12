@@ -55,7 +55,7 @@ ENABLE_DYN_SWAP=false
 SETUP_DYN_SWAP=false
 EST_MIN_RAM="8MiB"
 TARGET_ARCH="486SX"
-LINUX_VER="7.3.1"
+LINUX_VER="7.3.4"
 SCANCODE_SET=-1
 SET_KEYMAP="qwerty_en_us"
 ENABLE_SMP=false
@@ -1713,15 +1713,15 @@ LINUX_VER=$(dialog --clear \
     --cancel-label "Quit" \
     --default-item "$LINUX_VER" \
     --menu "Please select a Linux kernel version to use. It's recommended to use the latest mainline or stable version. If you experience hardware compatibility issues, try building with an older kernel to see if that resolves them (if so, please report this as an issue on the SHORK 486 GitHub repository). Only select a \"testing\" kernel (when available) if you know what you're doing." 16 $WIDTH 5 \
-    "7.4-rc1"   "7.4-rc1 (2026-11-01, testing)" \
-    "7.3.1"     "7.3.1   (2026-10-30, stable)" \
+    "7.4-rc2"   "7.4-rc2 (2026-11-09, testing)" \
+    "7.3.4"     "7.3.4   (2026-11-10, stable)" \
     "7.2.15"    "7.2.15  (2026-11-01, EOL)" \
     "7.1.13"    "7.1.13  (2026-09-02, EOL)" \
     "7.0.14"    "7.0.14  (2026-06-27, EOL)" \
     3>&1 1>&2 2>&3)
 
 if [[ ! -n "$LINUX_VER" ]]; then
-    LINUX_VER="7.3.1"
+    LINUX_VER="7.3.4"
     exit 0
 fi
 
