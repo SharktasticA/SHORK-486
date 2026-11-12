@@ -25,7 +25,7 @@ HEIGHT=20
 CUSTOM_DEF_SWAP=0
 CUSTOM_MIN_DISK=8
 DEFAULT_DEF_SWAP=8
-DEFAULT_MIN_DISK=120
+DEFAULT_MIN_DISK=128
 MAX_DEF_SWAP=16
 MAX_MIN_DISK=690
 MICRO_DEF_SWAP=0
@@ -33,7 +33,7 @@ MICRO_MIN_DISK=4
 MINI_DEF_SWAP=0
 MINI_MIN_DISK=8
 OFFLINE_DEF_SWAP=8
-OFFLINE_MIN_DISK=70
+OFFLINE_MIN_DISK=90
 PLUS_DEF_SWAP=16
 PLUS_MIN_DISK=670
 TERM_DEF_SWAP=8
@@ -53,8 +53,9 @@ ENABLE_BOOT_PART=false
 TARGET_SWAP=0
 ENABLE_DYN_SWAP=false
 SETUP_DYN_SWAP=false
+EST_MIN_RAM="8MiB"
 TARGET_ARCH="486SX"
-LINUX_VER="7.3.1"
+LINUX_VER="7.3.4"
 SCANCODE_SET=-1
 SET_KEYMAP="qwerty_en_us"
 ENABLE_SMP=false
@@ -76,6 +77,7 @@ INCLUDE_CTAGS=false
 INCLUDE_CTRIS=false
 INCLUDE_CURL=false
 INCLUDE_DIALOG=false
+INCLUDE_DOSEMU2=false
 INCLUDE_DOSFSTOOLS=false
 INCLUDE_DROPBEAR=false
 INCLUDE_E2FSPROGS=false
@@ -108,6 +110,7 @@ INCLUDE_NETHACK=false
 INCLUDE_PATCHELF=false
 INCLUDE_PERL=false
 INCLUDE_SC_IM=false
+INCLUDE_SHORKGUI=false
 INCLUDE_SHORKSTALL=false
 INCLUDE_SHORKTAINMENT=false
 INCLUDE_STRACE=false
@@ -122,8 +125,8 @@ INCLUDE_UTIL_LINUX=false
 INCLUDE_VIM=false
 INCLUDE_CON_FONTS=false
 ENABLE_FB=false
+INCLUDE_FREEDOS=false
 USE_GRUB=false
-INCLUDE_GUI=false
 ENABLE_HELP_VERBOSE=false
 ENABLE_HIGHMEM=false
 INCLUDE_KEYMAPS=false
@@ -138,6 +141,64 @@ ENABLE_SCSI_EXP=false
 ENABLE_SOUND=false
 ENABLE_USB=false
 ENABLE_ZSWAP=false
+
+get_est_min_ram()
+{
+    EST_MIN_RAM="8MiB"
+    if [[ "$ID" == "shork-"*86 ]]; then
+        if [ "$BUILD_TYPE" == "default" ]; then
+            EST_MIN_RAM="16MiB + 8MiB swap"
+        elif [ "$BUILD_TYPE" == "max" ]; then
+            EST_MIN_RAM="24MiB + 8MiB swap"
+        elif [ "$BUILD_TYPE" == "plus" ]; then
+            EST_MIN_RAM="16MiB + 16MiB swap"
+        elif [ "$BUILD_TYPE" == "writer" ]; then
+            EST_MIN_RAM="16MiB + 16MiB swap"
+        elif [ "$BUILD_TYPE" == "terminal" ]; then
+            EST_MIN_RAM="16MiB + 8MiB swap"
+        elif [ "$BUILD_TYPE" == "offline" ]; then
+            EST_MIN_RAM="12MiB + 8MiB swap"
+        elif [ "$BUILD_TYPE" == "mini" ]; then
+            EST_MIN_RAM="8MiB"
+        elif [ "$BUILD_TYPE" == "micro" ]; then
+            EST_MIN_RAM="7MiB"
+        elif [ "$BUILD_TYPE" == "custom" ]; then
+            local i var ram highest=8
+
+            # Features we are certain increase the minimum RAM
+            if $ENABLE_HIGHMEM || $ENABLE_SATA; then
+                EST_MIN_RAM="24MiB (ideal)/16MiB + 8MiB swap"
+                highest=24
+            elif $ENABLE_NET_ETH || $ENABLE_MULTIUSER_REAL; then
+                EST_MIN_RAM="12MiB"
+                highest=12
+            elif $ENABLE_SMP || $ENABLE_FB; then
+                EST_MIN_RAM="10MiB"
+                highest=10
+            fi
+
+            # Find the highest "Req. RAM" for an included software
+            for (( i = 0; i < ${#BUNDLED_SOFTWARE[@]}; i += 9 )); do
+                var="${BUNDLED_SOFTWARE[i+6]}"
+                [[ "${!var:-}" == true ]] || continue
+                ram="${BUNDLED_SOFTWARE[i+5]}"
+
+                # Compare leading number ("ideal" value)
+                if [[ "$ram" =~ ^([0-9]+) ]]; then
+                    val="${BASH_REMATCH[1]}"
+                    if (( val > highest )); then
+                        highest=$val
+                        EST_MIN_RAM="$ram"
+                    fi
+                fi
+            done
+        fi
+    elif [[ "$ID" == "shork-disc" ]]; then
+        EST_MIN_RAM="12MiB"
+    elif [[ "$ID" == "shork-diskette" ]]; then
+        EST_MIN_RAM="16MiB"
+    fi
+}
 
 keymap_name()
 {
@@ -206,6 +267,8 @@ load_env()
 
 save_env()
 {
+    get_est_min_ram
+
     {
         echo "ALWAYS_BUILD=$ALWAYS_BUILD"
         printf 'DIST=%s\n' "$(printf '"%s"' "$DIST")"
@@ -219,6 +282,7 @@ save_env()
         echo "TARGET_SWAP=$TARGET_SWAP"
         echo "ENABLE_DYN_SWAP=$ENABLE_DYN_SWAP"
         echo "SETUP_DYN_SWAP=$SETUP_DYN_SWAP"
+        printf 'EST_MIN_RAM=%s\n' "$(printf '"%s"' "$EST_MIN_RAM")"
         printf 'TARGET_ARCH=%s\n' "$(printf '"%s"' "$TARGET_ARCH")"
         printf 'LINUX_VER=%s\n' "$(printf '"%s"' "$LINUX_VER")"
         echo "SCANCODE_SET=$SCANCODE_SET"
@@ -242,6 +306,7 @@ save_env()
         echo "INCLUDE_CTRIS=$INCLUDE_CTRIS"
         echo "INCLUDE_CURL=$INCLUDE_CURL"
         echo "INCLUDE_DIALOG=$INCLUDE_DIALOG"
+        echo "INCLUDE_DOSEMU2=$INCLUDE_DOSEMU2"
         echo "INCLUDE_DOSFSTOOLS=$INCLUDE_DOSFSTOOLS"
         echo "INCLUDE_DROPBEAR=$INCLUDE_DROPBEAR"
         echo "INCLUDE_E2FSPROGS=$INCLUDE_E2FSPROGS"
@@ -275,6 +340,7 @@ save_env()
         echo "INCLUDE_PATCHELF=$INCLUDE_PATCHELF"
         echo "INCLUDE_PERL=$INCLUDE_PERL"
         echo "INCLUDE_SC_IM=$INCLUDE_SC_IM"
+        echo "INCLUDE_SHORKGUI=$INCLUDE_SHORKGUI"
         echo "INCLUDE_SHORKSTALL=$INCLUDE_SHORKSTALL"
         echo "INCLUDE_SHORKTAINMENT=$INCLUDE_SHORKTAINMENT"
         echo "INCLUDE_STRACE=$INCLUDE_STRACE"
@@ -289,8 +355,8 @@ save_env()
         echo "INCLUDE_VIM=$INCLUDE_VIM"
         echo "INCLUDE_CON_FONTS=$INCLUDE_CON_FONTS"
         echo "ENABLE_FB=$ENABLE_FB"
+        echo "INCLUDE_FREEDOS=$INCLUDE_FREEDOS"
         echo "USE_GRUB=$USE_GRUB"
-        echo "INCLUDE_GUI=$INCLUDE_GUI"
         echo "ENABLE_HELP_VERBOSE=$ENABLE_HELP_VERBOSE"
         echo "ENABLE_HIGHMEM=$ENABLE_HIGHMEM"
         echo "INCLUDE_KEYMAPS=$INCLUDE_KEYMAPS"
@@ -343,6 +409,10 @@ set_mini_vars()
     if [ -z "$4" ] || [ "$4" = false ]; then
         ENABLE_DYN_SWAP=false
     fi
+    # Four argument =true bypasses resetting INCLUDE_FREEDOS
+    if [ -z "$5" ] || [ "$5" = false ]; then
+        INCLUDE_FREEDOS=false
+    fi
 
     SETUP_DYN_SWAP=false
     ENABLE_NET_ETH=false
@@ -357,6 +427,7 @@ set_mini_vars()
     INCLUDE_CTRIS=false
     INCLUDE_CURL=false
     INCLUDE_DIALOG=false
+    INCLUDE_DOSEMU2=false
     INCLUDE_DOSFSTOOLS=false
     INCLUDE_DROPBEAR=false
     INCLUDE_E2FSPROGS=false
@@ -390,6 +461,7 @@ set_mini_vars()
     INCLUDE_PATCHELF=false
     INCLUDE_PERL=false
     INCLUDE_SC_IM=false
+    INCLUDE_SHORKGUI=false
     INCLUDE_SHORKSTALL=false
     INCLUDE_SHORKTAINMENT=false
     INCLUDE_STRACE=false
@@ -407,7 +479,6 @@ set_mini_vars()
     INCLUDE_CON_FONTS=false
     ENABLE_FB=false
     USE_GRUB=false
-    INCLUDE_GUI=false
     ENABLE_HELP_VERBOSE=false
     ENABLE_HIGHMEM=false
     INCLUDE_KEYMAPS=false
@@ -426,7 +497,7 @@ set_mini_vars()
 
 set_terminal_vars()
 {
-    set_mini_vars true true true true
+    set_mini_vars true true true true true
 
     SETUP_DYN_SWAP=true
     ENABLE_NET_ETH=true
@@ -457,7 +528,7 @@ set_terminal_vars()
 
 set_writer_vars()
 {
-    set_mini_vars true true true true
+    set_mini_vars true true true true true
 
     SETUP_DYN_SWAP=true
 
@@ -488,7 +559,7 @@ set_writer_vars()
 
 set_default_vars()
 {
-    set_mini_vars true true true true
+    set_mini_vars true true true true true
 
     SETUP_DYN_SWAP=true
     ENABLE_NET_ETH=true
@@ -561,6 +632,7 @@ set_plus_vars()
     INCLUDE_CSCOPE=true
     INCLUDE_CTAGS=true
     INCLUDE_CURL=true
+    INCLUDE_DOSEMU2=true
     INCLUDE_GCC=true
     INCLUDE_GNUPG=true
     INCLUDE_INDENT=true
@@ -588,7 +660,8 @@ set_max_vars()
 {
     set_plus_vars
 
-    INCLUDE_GUI=true
+    INCLUDE_SHORKGUI=true
+
     ENABLE_HIGHMEM=true
     ENABLE_SATA=true
     ENABLE_SMP=true
@@ -621,61 +694,575 @@ set_diskette_vars()
 }
 
 BUNDLED_SOFTWARE=(
-        # Name              Description                                             Responsible var             Needs net   Incl. w/ multiuser
-        "bind9-dnsutils"    "DNS query & update tools (48MiB)"                      "INCLUDE_BIND9_DNSUTILS"    "true"      "always"
-        "c3270"             "3270 terminal emulator (1.8MiB, EXPERIMENTAL)"         "INCLUDE_C3270"             "false"     "always"
-        "chrony"            "*NTP daemon and interface (0.7MiB)"                    "INCLUDE_CHRONY"            "true"      "always"
-        "cscope"            "C/C++ code browser (1MiB)"                             "INCLUDE_CSCOPE"            "false"     "always"
-        "ctags"             "Source code object indexing (1.5MiB)"                  "INCLUDE_CTAGS"             "false"     "always"
-        "ctris"             "*Tetris clone (0.6MiB)"                                "INCLUDE_CTRIS"             "false"     "always"
-        "curl"              "HTTP client & transfer utility (8MiB)"                 "INCLUDE_CURL"              "true"      "always"
-        "dialog"            "*Shell script TUI widgets (0.5MiB)"                    "INCLUDE_DIALOG"            "false"     "always"
-        "dosfstools"        "*FAT12/16/32 filesystem utilities (0.8MiB)"            "INCLUDE_DOSFSTOOLS"        "false"     "always"
-        "dropbear"          "*SCP & SSH client (0.4MiB)"                            "INCLUDE_DROPBEAR"          "true"      "never"
-        "dropbear"          "*SCP & SSH client + SSH daemon (1.1MiB)"               "INCLUDE_DROPBEAR"          "true"      "only"
-        "e2fsprogs"         "*ext2/3/4 filesystem utilities (4MiB)"                 "INCLUDE_E2FSPROGS"         "false"     "always"
-        "file"              "*†File type identification (10MiB)"                    "INCLUDE_FILE"              "false"     "always"
-        "gcc"               "†GCC + binutils + musl (215MiB)"                       "INCLUDE_GCC"               "false"     "always"
-        "git"               "*Source control client (19MiB)"                        "INCLUDE_GIT"               "true"      "always"
-        "gnu-autoconf"      "†configure script generator (2.1MiB)"                  "INCLUDE_AUTOCONF"          "false"     "always"
-        "gnu-automake"      "†Makefile.in generator (1.6MiB)"                       "INCLUDE_AUTOMAKE"          "false"     "always"
-        "gnu-indent"        "C code formatter (0.1MiB)"                             "INCLUDE_INDENT"            "false"     "always"
-        "gnu-libtool"       "Portable shared library build helper (2.4MiB)"         "INCLUDE_LIBTOOL"           "false"     "always"
-        "gnu-m4"            "General-purpose macro processor (0.4MiB)"              "INCLUDE_M4"                "false"     "always"
-        "gnu-make"          "Build automation tool (0.3MiB)"                        "INCLUDE_MAKE"              "false"     "always"
-        "gnu-midnight-cmdr" "†Norton Commander-style file manager (9MiB)"           "INCLUDE_MIDNIGHT_CMDR"     "true"      "always"
-        "gnu-nano"          "*Pico-style text editor (0.8MiB)"                      "INCLUDE_NANO"              "false"     "always"
-        "gnupg"             "OpenPGP-compliant encryption & signing (25MiB)"        "INCLUDE_GNUPG"             "false"     "always"
-        "gpm"               "*Virtual console mouse (0.6MiB)"                       "INCLUDE_GPM"               "false"     "always"
-        "htop"              "*Interactive process viewer (0.6MiB)"                  "INCLUDE_HTOP"              "false"     "always"
-        "isapnptools"       "*ISA PnP utilities (0.2MiB)"                           "INCLUDE_ISAPNPTOOLS"       "false"     "always"
-        "joe"               "WordStar & Emacs-blend text editor (1.9MiB)"           "INCLUDE_JOE"               "false"     "always"
-        "jq"                "Command-line JSON processor (0.9MiB)"                  "INCLUDE_JQ"                "false"     "always"
-        "lsb-release-min"   "*LSB/distribution info reporter (0.03MiB)"             "INCLUDE_LSB_RELEASE_MIN"   "false"     "always"
-        "lua"               "*Embedded scripting & extensions language (0.4MiB)"    "INCLUDE_LUA"               "false"     "always"
-        "lynx"              "*Terminal web browser (7.3MiB)"                        "INCLUDE_LYNX"              "true"      "always"
-        "memtester"         "*Userspace memory subsystem fault tester (0.05MiB)"    "INCLUDE_MEMTESTER"         "false"     "always"
-        "mg"                "*Emacs-style text editor (0.4MiB)"                     "INCLUDE_MG"                "false"     "always"
-        "micropython"       "*Python 3.4-syntax intepreter (0.7MiB)"                "INCLUDE_MICROPYTHON"       "false"     "always"
-        "mpg321"            "MP3 player (0.4MiB)"                                   "INCLUDE_MPG321"            "false"     "always"
-        "mt-st"             "*Tape drive tools (0.2MiB)"                            "INCLUDE_MT_ST"             "false"     "always"
-        "nasm"              "Portable x86 assembler & disassembler (2.5MiB)"        "INCLUDE_NASM"              "false"     "always"
-        "nbsdgames"         "†Terminal games pack (8MiB)"                           "INCLUDE_NBSDGAMES"         "false"     "always"
-        "ncdu"              "*Disk usage analyser (0.4MiB)"                         "INCLUDE_NCDU"              "false"     "always"
-        "nethack"           "Dungeon exploration game (4MiB)"                       "INCLUDE_NETHACK"           "false"     "always"
-        "patchelf"          "*ELF binary patching (0.9MiB)"                         "INCLUDE_PATCHELF"          "false"     "always"
-        "perl"              "†General-purpose scripting language (40.3MiB)"         "INCLUDE_PERL"              "false"     "always"
-        "sc-im"             "*Terminal spreadsheet editor (2.8MiB)"                 "INCLUDE_SC_IM"             "false"     "always"
-        "shorktainment"     "*shorkmatrix, shorkmines, shorksay & sl (0.5MiB)"      "INCLUDE_SHORKTAINMENT"     "false"     "always"
-        "strace"            "*System calls & signals tracer (1.1MiB)"               "INCLUDE_STRACE"            "false"     "always"
-        "tcc"               "*Tiny C Compiler + musl (4MiB)"                        "INCLUDE_TCC"               "false"     "always"
-        "tcpdump"           "Packet analyzer (5MiB)"                                "INCLUDE_TCPDUMP"           "true"      "always"
-        "tilde"             "GUI-like text editor (3.6MiB)"                         "INCLUDE_TILDE"             "false"     "always"
-        "tmux"              "*Terminal multiplexer (1.7MiB)"                        "INCLUDE_TMUX"              "false"     "always"
-        "tn5250"            "TCP/IP 5250 terminal emulator (6.4MiB, EXPERIMENTAL)"  "INCLUDE_TN5250"            "true"      "always"
-        "tnftp"             "*FTP client (0.3MiB)"                                  "INCLUDE_TNFTP"             "true"      "always"
-        "util-linux"        "*cf/f/sfdisk, lscpu, partx & whereis (4.1MiB)"         "INCLUDE_UTIL_LINUX"        "false"     "always"
-        "vim"               "†Vi IMproved text editor (24.2MiB)"                    "INCLUDE_VIM"               "false"     "always"
+    # Name
+    #    Description
+    #    Size
+    #    Commands
+    #    More info
+    #    Req. RAM
+    #    Responsible var
+    #    Needs net
+    #    Incl. w/ multiuser
+
+    "bind9-dnsutils"
+        "DNS query & update tools"
+        "48MiB"
+        "arpaname, delv, dig, host, mdig, nslookup, nsupdate"
+        ""
+        "20MiB (ideal)/16MiB + 4MiB swap"
+        "INCLUDE_BIND9_DNSUTILS"
+        "true"
+        "always"
+
+    "c3270"
+        "3270 emulator (WIP)"
+        "1.8MiB"
+        "c3270"
+        "This feature requires further testing. It may/may not work fine."
+        "10MiB"
+        "INCLUDE_C3270"
+        "false"
+        "always"
+
+    "chrony"
+        "*NTP daemon and interface"
+        "0.7MiB"
+        "chronyc, chronyd"
+        ""
+        "12MiB"
+        "INCLUDE_CHRONY"
+        "true"
+        "always"
+
+    "cscope"
+        "C/C++ code browser"
+        "1MiB"
+        "cscope"
+        ""
+        "10MiB"
+        "INCLUDE_CSCOPE"
+        "false"
+        "always"
+
+    "ctags"
+        "Source code object indexing"
+        "1.5MiB"
+        "ctags, readtags"
+        ""
+        "10MiB"
+        "INCLUDE_CTAGS"
+        "false"
+        "always"
+
+    "ctris"
+        "*Tetris clone"
+        "0.6MiB"
+        "ctris"
+        ""
+        "10MiB"
+        "INCLUDE_CTRIS"
+        "false"
+        "always"
+
+    "curl"
+        "HTTP client & transfer utility"
+        "8MiB"
+        "curl"
+        ""
+        "12MiB"
+        "INCLUDE_CURL"
+        "true"
+        "always"
+
+    "dialog"
+        "*Shell script TUI widgets"
+        "0.5MiB"
+        "dialog"
+        ""
+        "10MiB"
+        "INCLUDE_DIALOG"
+        "false"
+        "always"
+
+    "dosemu2"
+        "*DOS emulation (WIP)"
+        "4.1MiB"
+        "dosemu"
+        "This feature is a work-in-progress and is considered experimental - expect quirks and incompleteness. It is presently only suitable for text-mode operations."
+        "20MiB (ideal)/16MiB + 4MiB swap"
+        "INCLUDE_DOSEMU2"
+        "false"
+        "always"
+
+    "dosfstools"
+        "*FAT12/16/32 filesystem utilities"
+        "0.8MiB"
+        "(e.g.) dosfsck, mkdosfs"
+        ""
+        "10MiB"
+        "INCLUDE_DOSFSTOOLS"
+        "false"
+        "always"
+
+    "dropbear"
+        "*SCP & SSH client"
+        "0.4MiB"
+        "scp, ssh"
+        ""
+        "12MiB"
+        "INCLUDE_DROPBEAR"
+        "true"
+        "never"
+
+    "dropbear"
+        "*SCP & SSH client + SSH daemon"
+        "1.1MiB"
+        "scp, ssh, sshd"
+        ""
+        "12MiB"
+        "INCLUDE_DROPBEAR"
+        "true"
+        "only"
+
+    "e2fsprogs"
+        "*ext2/3/4 filesystem utilities"
+        "4MiB"
+        "(e.g.) blkid, chattr, fsck, lsattr, mke2fs, resize2fs, tune2fs, uuidgen"
+        ""
+        "10MiB"
+        "INCLUDE_E2FSPROGS"
+        "false"
+        "always"
+
+    "file"
+        "*File type identification"
+        "10MiB"
+        "file"
+        ""
+        "16MiB"
+        "INCLUDE_FILE"
+        "false"
+        "always"
+
+    "gcc"
+        "GCC + binutils + musl (WIP)"
+        "215MiB"
+        "(e.g.) ar, as, gcc, g++, gfortran, gprof, ld, nm, objdump, ranlib, readelf, strings, strip"
+        "This feature requires further optimisation. It should be usable for now, but perhaps not running as well as it could be."
+        "32MiB (ideal)/24MiB + 8MiB swap/16MiB + 16MiB swap"
+        "INCLUDE_GCC"
+        "false"
+        "always"
+
+    "git"
+        "*Source control client"
+        "19MiB"
+        "git"
+        ""
+        "24MiB (ideal)/16MiB + 8MiB swap"
+        "INCLUDE_GIT"
+        "true"
+        "always"
+
+    "gnu-autoconf"
+        "Configure script generator (WIP)"
+        "2.1MiB"
+        "autoconf, autoreconf"
+        "This feature requires further optimisation. It should be usable for now, but perhaps not running as well as it could be."
+        "32MiB (ideal)/24MiB + 8MiB swap/16MiB + 16MiB swap"
+        "INCLUDE_AUTOCONF"
+        "false"
+        "always"
+
+    "gnu-automake"
+        "Makefile.in generator (WIP)"
+        "1.6MiB"
+        "aclocal, automake"
+        "This feature requires further optimisation. It should be usable for now, but perhaps not running as well as it could be."
+        "32MiB (ideal)/24MiB + 8MiB swap/16MiB + 16MiB swap"
+        "INCLUDE_AUTOMAKE"
+        "false"
+        "always"
+
+    "gnu-indent"
+        "C code formatter"
+        "0.1MiB"
+        "indent"
+        ""
+        "10MiB"
+        "INCLUDE_INDENT"
+        "false"
+        "always"
+
+    "gnu-libtool"
+        "Portable shared library build helper (WIP)"
+        "2.4MiB"
+        "libtool, libtoolize"
+        "This feature requires further optimisation. It should be usable for now, but perhaps not running as well as it could be."
+        "32MiB (ideal)/24MiB + 8MiB swap/16MiB + 16MiB swap"
+        "INCLUDE_LIBTOOL"
+        "false"
+        "always"
+
+    "gnu-m4"
+        "General-purpose macro processor"
+        "0.4MiB"
+        "m4"
+        ""
+        "10MiB"
+        "INCLUDE_M4"
+        "false"
+        "always"
+
+    "gnu-make"
+        "Build automation tool"
+        "0.3MiB"
+        "make"
+        ""
+        "32MiB (ideal)/24MiB + 8MiB swap/16MiB + 16MiB swap"
+        "INCLUDE_MAKE"
+        "false"
+        "always"
+
+    "gnu-midnight-cmdr"
+        "Norton Commander-style file manager"
+        "9MiB"
+        "mc, mcdiff, mcedit, mcview"
+        ""
+        "20MiB (ideal)/16MiB + 4MiB swap"
+        "INCLUDE_MIDNIGHT_CMDR"
+        "true"
+        "always"
+
+    "gnu-nano"
+        "*Pico-style text editor"
+        "0.8MiB"
+        "nano"
+        ""
+        "10MiB"
+        "INCLUDE_NANO"
+        "false"
+        "always"
+
+    "gnupg"
+        "OpenPGP-compliant encryption & signing"
+        "25MiB"
+        "(e.g.) gpg, gpg-agent, gpgconf, kbxutil, pinentry, watchgnupg"
+        ""
+        "12MiB"
+        "INCLUDE_GNUPG"
+        "false"
+        "always"
+
+    "gpm"
+        "*Virtual console mouse"
+        "0.6MiB"
+        "gpm"
+        ""
+        "10MiB"
+        "INCLUDE_GPM"
+        "false"
+        "always"
+
+    "htop"
+        "*Interactive process viewer"
+        "0.6MiB"
+        "htop"
+        ""
+        "10MiB"
+        "INCLUDE_HTOP"
+        "false"
+        "always"
+
+    "isapnptools"
+        "*ISA PnP utilities"
+        "0.2MiB"
+        "isapnp, pnpdump"
+        ""
+        "10MiB"
+        "INCLUDE_ISAPNPTOOLS"
+        "false"
+        "always"
+
+    "joe"
+        "WordStar & Emacs-blend text editor"
+        "1.9MiB"
+        "joe"
+        ""
+        "16MiB (ideal)/12MiB + 4MiB swap"
+        "INCLUDE_JOE"
+        "false"
+        "always"
+
+    "jq"
+        "Command-line JSON processor"
+        "0.9MiB"
+        "jq"
+        ""
+        "10MiB"
+        "INCLUDE_JQ"
+        "false"
+        "always"
+
+    "lsb-release-min"
+        "*LSB/distribution info reporter"
+        "0.03MiB"
+        "lsb_release"
+        ""
+        "10MiB"
+        "INCLUDE_LSB_RELEASE_MIN"
+        "false"
+        "always"
+
+    "lua"
+        "*Embedded scripting & extensions language"
+        "0.4MiB"
+        "lua"
+        ""
+        "10MiB"
+        "INCLUDE_LUA"
+        "false"
+        "always"
+
+    "lynx"
+        "*Terminal web browser"
+        "7.3MiB"
+        "lynx"
+        ""
+        "16MiB (ideal)/12MiB + 4MiB swap"
+        "INCLUDE_LYNX"
+        "true"
+        "always"
+
+    "memtester"
+        "*Userspace memory subsystem fault tester"
+        "0.05MiB"
+        "memtester"
+        ""
+        "10MiB"
+        "INCLUDE_MEMTESTER"
+        "false"
+        "always"
+
+    "mg"
+        "*Emacs-style text editor"
+        "0.4MiB"
+        "mg"
+        ""
+        "10MiB"
+        "INCLUDE_MG"
+        "false"
+        "always"
+
+    "micropython"
+        "*Python 3.4-syntax intepreter"
+        "0.7MiB"
+        "micropython"
+        ""
+        "10MiB"
+        "INCLUDE_MICROPYTHON"
+        "false"
+        "always"
+
+    "mpg321"
+        "MP3 player (WIP)"
+        "0.4MiB"
+        "mpg321"
+        "This feature requires further optimisation. It should be usable for now, but perhaps not running as well as it could be."
+        "16MiB"
+        "INCLUDE_MPG321"
+        "false"
+        "always"
+
+    "mt-st"
+        "*Tape drive tools"
+        "0.2MiB"
+        "mt, stinit"
+        ""
+        "10MiB"
+        "INCLUDE_MT_ST"
+        "false"
+        "always"
+
+    "nasm"
+        "Portable x86 assembler & disassembler"
+        "2.5MiB"
+        "nasm, ndisasm"
+        ""
+        "12MiB"
+        "INCLUDE_NASM"
+        "false"
+        "always"
+
+    "nbsdgames"
+        "Terminal games pack"
+        "8MiB"
+        "nbsdgames"
+        ""
+        "12MiB"
+        "INCLUDE_NBSDGAMES"
+        "false"
+        "always"
+
+    "ncdu"
+        "*Disk usage analyser"
+        "0.4MiB"
+        "ncdu"
+        ""
+        "12MiB"
+        "INCLUDE_NCDU"
+        "false"
+        "always"
+
+    "nethack"
+        "Dungeon exploration game"
+        "4MiB"
+        "nethack"
+        ""
+        "12MiB"
+        "INCLUDE_NETHACK"
+        "false"
+        "always"
+
+    "patchelf"
+        "*ELF binary patching"
+        "0.9MiB"
+        "patchelf"
+        ""
+        "12MiB"
+        "INCLUDE_PATCHELF"
+        "false"
+        "always"
+
+    "perl"
+        "General-purpose scripting language"
+        "40.3MiB"
+        "perl"
+        ""
+        "24MiB (ideal)/16MiB + 8MiB swap"
+        "INCLUDE_PERL"
+        "false"
+        "always"
+
+    "sc-im"
+        "*Terminal spreadsheet editor"
+        "2.8MiB"
+        "sc-im"
+        ""
+        "12MiB"
+        "INCLUDE_SC_IM"
+        "false"
+        "always"
+
+    "shorkgui"
+        "SHORKGUI (WIP)"
+        "22.7MiB"
+        "oneko, shorkgui, st, twm, xcalc, xclock, xeyes, Xfbdev, xli, xload, xset, Xvesa"
+        "This feature is a work-in-progress and is considered experimental - expect quirks and incompleteness."
+        "24MiB (ideal)/16MiB + 8MiB swap"
+        "INCLUDE_SHORKGUI"
+        "false"
+        "always"
+
+    "shorktainment"
+        "*SHORK Entertainment"
+        "0.5MiB"
+        "shorklocomotive, shorkmatrix, shorkmines, shorksay"
+        ""
+        "10MiB"
+        "INCLUDE_SHORKTAINMENT"
+        "false"
+        "always"
+
+    "strace"
+        "*System calls & signals tracer"
+        "1.1MiB"
+        "strace"
+        ""
+        "10MiB"
+        "INCLUDE_STRACE"
+        "false"
+        "always"
+
+    "tcc"
+        "*Tiny C Compiler + musl"
+        "4MiB"
+        "tcc"
+        ""
+        "12MiB"
+        "INCLUDE_TCC"
+        "false"
+        "always"
+
+    "tcpdump"
+        "Packet analyzer"
+        "5MiB"
+        "tcpdump"
+        ""
+        "12MiB"
+        "INCLUDE_TCPDUMP"
+        "true"
+        "always"
+
+    "tilde"
+        "GUI-like text editor"
+        "3.6MiB"
+        "tilde"
+        ""
+        "12MiB"
+        "INCLUDE_TILDE"
+        "false"
+        "always"
+
+    "tmux"
+        "*Terminal multiplexer"
+        "1.7MiB"
+        "tmux"
+        ""
+        "12MiB"
+        "INCLUDE_TMUX"
+        "false"
+        "always"
+
+    "tn5250"
+        "TCP/IP 5250 emulator (WIP)"
+        "6.4MiB"
+        "tn5250"
+        "This feature requires further testing. It may/may not work fine."
+        "12MiB"
+        "INCLUDE_TN5250"
+        "true"
+        "always"
+
+    "tnftp"
+        "*FTP client"
+        "0.3MiB"
+        "ftp"
+        ""
+        "12MiB"
+        "INCLUDE_TNFTP"
+        "true"
+        "always"
+
+    "util-linux"
+        "*cf/f/sfdisk, lscpu, partx & whereis"
+        "4.1MiB"
+        "cfdisk, fdisk, lscpu, partx, sfdisk, whereis"
+        ""
+        "10MiB"
+        "INCLUDE_UTIL_LINUX"
+        "false"
+        "always"
+
+    "vim"
+        "Vi IMproved text editor (WIP)"
+        "24.2MiB"
+        "ex, view, rvim, rview, vim, vimdiff, vimtutor, xxd"
+        "This feature requires further optimisation. It should be usable for now, but perhaps not running as well as it could be."
+        "32MiB (ideal)/24MiB + 8MiB swap/16MiB + 16MiB swap"
+        "INCLUDE_VIM"
+        "false"
+        "always"
 )
 
 filter_bundled()
@@ -683,12 +1270,13 @@ filter_bundled()
     local i
     BUNDLED_FILTERED=()
 
-    for (( i = 0; i < ${#BUNDLED_SOFTWARE[@]}; i += 5 )); do
+    for (( i = 0; i < ${#BUNDLED_SOFTWARE[@]}; i += 9 )); do
         local NAME="${BUNDLED_SOFTWARE[i]}"
         local DESC="${BUNDLED_SOFTWARE[i+1]}"
-        local VAR="${BUNDLED_SOFTWARE[i+2]}"
-        local NEEDS_NET="${BUNDLED_SOFTWARE[i+3]}"
-        local INCL_MUSER="${BUNDLED_SOFTWARE[i+4]}"
+        local SIZE="${BUNDLED_SOFTWARE[i+2]}"
+        local VAR="${BUNDLED_SOFTWARE[i+6]}"
+        local NEEDS_NET="${BUNDLED_SOFTWARE[i+7]}"
+        local INCL_MUSER="${BUNDLED_SOFTWARE[i+8]}"
         local VAL
         VAL="$(val "${!VAR:-}")"
 
@@ -710,7 +1298,7 @@ filter_bundled()
             continue
         fi
 
-        BUNDLED_FILTERED+=( "$NAME" "$DESC" "$VAL" )
+        BUNDLED_FILTERED+=( "$NAME" "$DESC ($SIZE)" "$VAL" )
     done
 }
 
@@ -815,12 +1403,12 @@ if [[ "$ID" == "shork-"*86 ]]; then
         --cancel-label "Quit" \
         --default-item "$BUILD_TYPE" \
         --menu "Select the build type, presets for SHORK feature levels. The recommended minimum requirements for each are enclosed in brackets. The \"custom\" option will enable further prompts for software and feature selection." 18 $WIDTH 9 \
-        "default"   "Typical experience             (16MiB RAM, 8MiB swap, 120MiB disk)" \
-        "max"       "Largest configuration          (24MiB RAM, 16MiB swap, 690MiB disk)" \
+        "default"   "Typical experience             (16MiB RAM, 8MiB swap, 128MiB disk)" \
+        "max"       "Largest configuration          (24MiB RAM, 8MiB swap, 690MiB disk)" \
         "plus"      "Default w/ optional software   (16MiB RAM, 16MiB swap, 670MiB disk)" \
         "writer"    "Writing focused                (16MiB RAM, 16MiB swap, 90MiB disk)" \
         "terminal"  "Remote session & file transfer (16MiB RAM, 8MiB swap, 70MiB disk)" \
-        "offline"   "Default w/o networking         (12MiB RAM, 8MiB swap, 65MiB disk)" \
+        "offline"   "Default w/o networking         (12MiB RAM, 8MiB swap, 90MiB disk)" \
         "mini"      "Small configuration            (8MiB RAM, 8MiB disk)" \
         "micro"     "Extremely tiny configuration   (7MiB RAM, 4MiB disk)" \
         "custom"    "Requirements depend on subsequent choices" \
@@ -1125,15 +1713,15 @@ LINUX_VER=$(dialog --clear \
     --cancel-label "Quit" \
     --default-item "$LINUX_VER" \
     --menu "Please select a Linux kernel version to use. It's recommended to use the latest mainline or stable version. If you experience hardware compatibility issues, try building with an older kernel to see if that resolves them (if so, please report this as an issue on the SHORK 486 GitHub repository). Only select a \"testing\" kernel (when available) if you know what you're doing." 16 $WIDTH 5 \
-    "7.4-rc1"   "7.4-rc1 (2026-11-01, testing)" \
-    "7.3.1"     "7.3.1   (2026-10-30, stable)" \
+    "7.4-rc2"   "7.4-rc2 (2026-11-09, testing)" \
+    "7.3.4"     "7.3.4   (2026-11-10, stable)" \
     "7.2.15"    "7.2.15  (2026-11-01, EOL)" \
     "7.1.13"    "7.1.13  (2026-09-02, EOL)" \
     "7.0.14"    "7.0.14  (2026-06-27, EOL)" \
     3>&1 1>&2 2>&3)
 
 if [[ ! -n "$LINUX_VER" ]]; then
-    LINUX_VER="7.3.1"
+    LINUX_VER="7.3.4"
     exit 0
 fi
 
@@ -1521,133 +2109,122 @@ fi
 
 
 
-# If build type isn't custom, it's time to exit!
-if [ "$BUILD_TYPE" != "custom" ]; then
-    exit 0
-fi
+if [ "$BUILD_TYPE" = "custom" ]; then
+    # Get bundled software choices (486/586)
+    BUNDLED_DEFAULT=""
+    while true; do
+        BUNDLED_FILTERED=()
+        filter_bundled
+
+        BUNDLED=$(dialog --clear \
+            --backtitle "SHORK 486 Build Configurator" \
+            --title "Bundled Software" \
+            --no-cancel \
+            --help-button \
+            --help-status \
+            --default-item "$BUNDLED_DEFAULT" \
+            --checklist "Select what software to bundle with SHORK. Selecting \"Help\" will show you the selected item's commands, its minimum memory requirements, and any other useful context.\n* This option would be included in a \"default\" build\n" $HEIGHT $WIDTH 8 \
+            "${BUNDLED_FILTERED[@]}" \
+            2>&1 >/dev/tty)
+        ACTION=$?
+
+        SELECTED=" ${BUNDLED//\"/} "
+        if [[ $ACTION -eq 2 ]]; then
+            BUNDLED_DEFAULT="${SELECTED# HELP }"
+            BUNDLED_DEFAULT="${BUNDLED_DEFAULT%% *}"
+            SELECTED=" ${SELECTED# HELP $BUNDLED_DEFAULT} "
+        fi
+
+        # Update INCLUDE_* vars
+        for (( i = 0; i < ${#BUNDLED_SOFTWARE[@]}; i += 9 )); do
+            NAME="${BUNDLED_SOFTWARE[i]}"
+            VAR="${BUNDLED_SOFTWARE[i+6]}"
+            if [[ "$SELECTED" == *" $NAME "* ]]; then
+                declare -g "$VAR=true"
+            else
+                declare -g "$VAR=false"
+            fi
+        done
+
+        # Only finish if not showing a help dialog
+        if [[ $ACTION -ne 2 ]]; then
+            break
+        fi
+
+        # Show help dialog
+        HELP_INFO=""
+        for (( i = 0; i < ${#BUNDLED_SOFTWARE[@]}; i += 9 )); do
+            if [[ "${BUNDLED_SOFTWARE[i]}" == "$BUNDLED_DEFAULT" ]]; then
+                if [[ -n "${BUNDLED_SOFTWARE[i+3]}" ]]; then
+                    HELP_INFO="Commands: ${BUNDLED_SOFTWARE[i+3]}"
+                fi
+                if [[ -n "${BUNDLED_SOFTWARE[i+2]}" ]]; then
+                    HELP_INFO="${HELP_INFO}\nApproximate size: ${BUNDLED_SOFTWARE[i+2]}"
+                fi
+                if [[ -n "${BUNDLED_SOFTWARE[i+5]}" ]]; then
+                    HELP_INFO="${HELP_INFO}\nEst. minimum RAM: ${BUNDLED_SOFTWARE[i+5]}"
+                fi
+                if [[ -n "${BUNDLED_SOFTWARE[i+4]}" ]]; then
+                    HELP_INFO="${HELP_INFO}\n\n${BUNDLED_SOFTWARE[i+4]}"
+                else
+                    HELP_INFO="${HELP_INFO}\n\nNo additional information is available at this time."
+                fi
+                break
+            fi
+        done
+        dialog --clear \
+            --backtitle "SHORK 486 Build Configurator" \
+            --title "Help: $BUNDLED_DEFAULT" \
+            --msgbox "$HELP_INFO" 11 $WIDTH
+    done
+
+    # Enable prerequisites for selected bundled software
+    if [ "$INCLUDE_GPM" = true ]; then
+        ENABLE_MOUSE=true
+    fi
+    if [ "$INCLUDE_MPG321" = true ]; then
+        ENABLE_SOUND=true
+    fi
+    if [ "$INCLUDE_MT_ST" = true ]; then
+        ENABLE_SCSI_EXP=true
+    fi
+    if [ "$INCLUDE_SHORKGUI" = true ]; then
+        ENABLE_FB=true
+        ENABLE_MOUSE=true
+    fi
 
 
 
-# Get bundled software choices (486/586)
-BUNDLED_FILTERED=()
-filter_bundled
+    # Get option choices (486/586)
+    OPTIONS=$(dialog --clear \
+        --backtitle "SHORK 486 Build Configurator" \
+        --title "Options" \
+        --no-cancel \
+        --checklist "Select what other options to include. Some of these are benign, some may increase the RAM and disk space requirement considerably.\n* This option would be included in a \"default\" build\n† This option has specific memory requirements (check GitHub repository's README)" $HEIGHT $WIDTH 9 \
+        "cdrom"         "*Kernel-level CD-ROM & DVD-ROM support"                    $(val $ENABLE_CDROM) \
+        "con-fonts"     "*Console fonts pack (0.6MiB)"                              $(val $INCLUDE_CON_FONTS) \
+        "fb"            "*†vesafb & vga16fb framebuffer support"                    $(val $ENABLE_FB) \
+        "grub"          "GRUB 2.x instead of EXTLINUX (4MiB)"                       $(val $USE_GRUB) \
+        "help-verbose"  "*BusyBox verbose --help"                                   $(val $ENABLE_HELP_VERBOSE) \
+        "highmem"       "†Kernel-level high memory support"                         $(val $ENABLE_HIGHMEM) \
+        "loop"          "*Kernel-level loopback device support & losetup"           $(val $ENABLE_LOOP) \
+        "menu"          "*Menu-based bootloader (0.5MiB)"                           $(val $ENABLE_MENU) \
+        "mouse"         "*Kernel-level mouse support"                               $(val $ENABLE_MOUSE) \
+        "no-vdso32"     "*Disable 32-bit vDSO & SEP usage"                          $(val $ENABLE_NO_VDS032) \
+        "pci.ids"       "*PCI IDs database (0.1MiB)"                                $(val $INCLUDE_PCI_IDS) \
+        "pcmcia"        "*Kernel-level PCMCIA support"                              $(val $ENABLE_PCMCIA) \
+        "sata"          "†Kernel-level SATA support"                                $(val $ENABLE_SATA) \
+        "scsi-exp"      "*Kernel-level SCSI media changer & tape drive support"     $(val $ENABLE_SCSI_EXP) \
+        "sound"         "Kernel-level sound support"                                $(val $ENABLE_SOUND) \
+        "usb"           "Kernel-level USB & HID support & lsusb (0.2MiB)"           $(val $ENABLE_USB) \
+        "zswap"         "*Kernel-level zswap support"                               $(val $ENABLE_ZSWAP) \
+        2>&1 >/dev/tty)
+        #"keymaps"   "Keymaps (0.06MiB)"             $(val $INCLUDE_KEYMAPS) \
 
-BUNDLED=$(dialog --clear \
-    --backtitle "SHORK 486 Build Configurator" \
-    --title "Bundled Software" \
-    --cancel-label "Skip" \
-    --checklist "Select what software to bundle with SHORK.\n* This option would be included in a \"default\" build\n† This option has specific memory requirements (check GitHub repository's README)" $HEIGHT $WIDTH 8 \
-    "${BUNDLED_FILTERED[@]}" \
-    2>&1 >/dev/tty)
-
-SKIPPED=$?
-
-if [[ $SKIPPED -eq 1 ]]; then
-    :
-else
-    if [[ $BUNDLED =~ "bind9-dnsutils" ]];      then INCLUDE_BIND9_DNSUTILS=true;   else INCLUDE_BIND9_DNSUTILS=false;  fi
-    if [[ $BUNDLED =~ "c3270" ]];               then INCLUDE_C3270=true;            else INCLUDE_C3270=false;           fi
-    if [[ $BUNDLED =~ "chrony" ]];              then INCLUDE_CHRONY=true;           else INCLUDE_CHRONY=false;          fi
-    if [[ $BUNDLED =~ "cscope" ]];              then INCLUDE_CSCOPE=true;           else INCLUDE_CSCOPE=false;          fi
-    if [[ $BUNDLED =~ "ctags" ]];               then INCLUDE_CTAGS=true;            else INCLUDE_CTAGS=false;           fi
-    if [[ $BUNDLED =~ "ctris" ]];               then INCLUDE_CTRIS=true;            else INCLUDE_CTRIS=false;           fi
-    if [[ $BUNDLED =~ "curl" ]];                then INCLUDE_CURL=true;             else INCLUDE_CURL=false;            fi
-    if [[ $BUNDLED =~ "dialog" ]];              then INCLUDE_DIALOG=true;           else INCLUDE_DIALOG=false;          fi
-    if [[ $BUNDLED =~ "dosfstools" ]]           then INCLUDE_DOSFSTOOLS=true;       else INCLUDE_DOSFSTOOLS=false;      fi
-    if [[ $BUNDLED =~ "dropbear" ]];            then INCLUDE_DROPBEAR=true;         else INCLUDE_DROPBEAR=false;        fi
-    if [[ $BUNDLED =~ "e2fsprogs" ]];           then INCLUDE_E2FSPROGS=true;        else INCLUDE_E2FSPROGS=false;       fi
-    if [[ $BUNDLED =~ "file" ]];                then INCLUDE_FILE=true;             else INCLUDE_FILE=false;            fi
-    if [[ $BUNDLED =~ "gcc" ]];                 then INCLUDE_GCC=true;              else INCLUDE_GCC=false;             fi
-    if [[ $BUNDLED =~ "git" ]];                 then INCLUDE_GIT=true;              else INCLUDE_GIT=false;             fi
-    if [[ $BUNDLED =~ "gnupg" ]];               then INCLUDE_GNUPG=true;            else INCLUDE_GNUPG=false;           fi
-    if [[ $BUNDLED =~ "gnu-autoconf" ]];        then INCLUDE_AUTOCONF=true;         else INCLUDE_AUTOCONF=false;        fi
-    if [[ $BUNDLED =~ "gnu-automake" ]];        then INCLUDE_AUTOMAKE=true;         else INCLUDE_AUTOMAKE=false;        fi
-    if [[ $BUNDLED =~ "gnu-indent" ]]           then INCLUDE_INDENT=true;           else INCLUDE_INDENT=false;          fi
-    if [[ $BUNDLED =~ "gnu-libtool" ]];         then INCLUDE_LIBTOOL=true;          else INCLUDE_LIBTOOL=false;         fi
-    if [[ $BUNDLED =~ "gnu-m4" ]];              then INCLUDE_M4=true;               else INCLUDE_M4=false;              fi
-    if [[ $BUNDLED =~ "gnu-make" ]];            then INCLUDE_MAKE=true;             else INCLUDE_MAKE=false;            fi
-    if [[ $BUNDLED =~ "gnu-midnight-cmdr" ]];   then INCLUDE_MIDNIGHT_CMDR=true;    else INCLUDE_MIDNIGHT_CMDR=false;   fi
-    if [[ $BUNDLED =~ "gnu-nano" ]];            then INCLUDE_NANO=true;             else INCLUDE_NANO=false;            fi
-    if [[ $BUNDLED =~ "gpm" ]];                 then INCLUDE_GPM=true;              else INCLUDE_GPM=false;             fi
-    if [[ $BUNDLED =~ "htop" ]];                then INCLUDE_HTOP=true;             else INCLUDE_HTOP=false;            fi
-    if [[ $BUNDLED =~ "isapnptools" ]];         then INCLUDE_ISAPNPTOOLS=true;      else INCLUDE_ISAPNPTOOLS=false;     fi
-    if [[ $BUNDLED =~ "joe" ]];                 then INCLUDE_JOE=true;              else INCLUDE_JOE=false;             fi
-    if [[ $BUNDLED =~ "jq" ]];                  then INCLUDE_JQ=true;               else INCLUDE_JQ=false;              fi
-    if [[ $BUNDLED =~ "lsb-release-min" ]];     then INCLUDE_LSB_RELEASE_MIN=true;  else INCLUDE_LSB_RELEASE_MIN=false; fi
-    if [[ $BUNDLED =~ "lua" ]];                 then INCLUDE_LUA=true;              else INCLUDE_LUA=false;             fi
-    if [[ $BUNDLED =~ "lynx" ]];                then INCLUDE_LYNX=true;             else INCLUDE_LYNX=false;            fi
-    if [[ $BUNDLED =~ "memtester" ]];           then INCLUDE_MEMTESTER=true;        else INCLUDE_MEMTESTER=false;       fi
-    if [[ $BUNDLED =~ "mg" ]];                  then INCLUDE_MG=true;               else INCLUDE_MG=false;              fi
-    if [[ $BUNDLED =~ "micropython" ]];         then INCLUDE_MICROPYTHON=true;      else INCLUDE_MICROPYTHON=false;     fi
-    if [[ $BUNDLED =~ "mpg321" ]];              then INCLUDE_MPG321=true;           else INCLUDE_MPG321=false;          fi
-    if [[ $BUNDLED =~ "mt-st" ]];               then INCLUDE_MT_ST=true;            else INCLUDE_MT_ST=false;           fi
-    if [[ $BUNDLED =~ "nasm" ]];                then INCLUDE_NASM=true;             else INCLUDE_NASM=false;            fi
-    if [[ $BUNDLED =~ "nbsdgames" ]];           then INCLUDE_NBSDGAMES=true;        else INCLUDE_NBSDGAMES=false;       fi
-    if [[ $BUNDLED =~ "ncdu" ]];                then INCLUDE_NCDU=true;             else INCLUDE_NCDU=false;            fi
-    if [[ $BUNDLED =~ "nethack" ]];             then INCLUDE_NETHACK=true;          else INCLUDE_NETHACK=false;         fi
-    if [[ $BUNDLED =~ "patchelf" ]];            then INCLUDE_PATCHELF=true;         else INCLUDE_PATCHELF=false;        fi
-    if [[ $BUNDLED =~ "perl" ]];                then INCLUDE_PERL=true;             else INCLUDE_PERL=false;            fi
-    if [[ $BUNDLED =~ "sc-im" ]];               then INCLUDE_SC_IM=true;            else INCLUDE_SC_IM=false;           fi
-    if [[ $BUNDLED =~ "shorktainment" ]];       then INCLUDE_SHORKTAINMENT=true;    else INCLUDE_SHORKTAINMENT=false;   fi
-    if [[ $BUNDLED =~ "strace" ]];              then INCLUDE_STRACE=true;           else INCLUDE_STRACE=false;          fi
-    if [[ $BUNDLED =~ "sudo" ]];                then INCLUDE_SUDO=true;             else INCLUDE_SUDO=false;            fi
-    if [[ $BUNDLED =~ "tcc" ]];                 then INCLUDE_TCC=true;              else INCLUDE_TCC=false;             fi
-    if [[ $BUNDLED =~ "tcpdump" ]];             then INCLUDE_TCPDUMP=true;          else INCLUDE_TCPDUMP=false;         fi
-    if [[ $BUNDLED =~ "tilde" ]];               then INCLUDE_TILDE=true;            else INCLUDE_TILDE=false;           fi
-    if [[ $BUNDLED =~ "tmux" ]];                then INCLUDE_TMUX=true;             else INCLUDE_TMUX=false;            fi
-    if [[ $BUNDLED =~ "tn5250" ]];              then INCLUDE_TN5250=true;           else INCLUDE_TN5250=false;          fi
-    if [[ $BUNDLED =~ "tnftp" ]];               then INCLUDE_TNFTP=true;            else INCLUDE_TNFTP=false;           fi
-    if [[ $BUNDLED =~ "util-linux" ]];          then INCLUDE_UTIL_LINUX=true;       else INCLUDE_UTIL_LINUX=false;      fi
-    if [[ $BUNDLED =~ "vim" ]];                 then INCLUDE_VIM=true;              else INCLUDE_VIM=false;             fi
-fi
-
-# Enable prerequisites for selected bundled software
-if [ "$INCLUDE_MPG321" = true ]; then
-    ENABLE_SOUND=true
-fi
-if [ "$INCLUDE_MT_ST" = true ]; then
-    ENABLE_SCSI_EXP=true
-fi
-
-
-
-# Get option choices (486/586)
-OPTIONS=$(dialog --clear \
-    --backtitle "SHORK 486 Build Configurator" \
-    --title "Options" \
-    --cancel-label "Skip" \
-    --checklist "Select what other options to include. Some of these are benign, some may increase the RAM and disk space requirement considerably, some are experimental.\n* This option would be included in a \"default\" build\n† This option has specific memory requirements (check GitHub repository's README)" $HEIGHT $WIDTH 9 \
-    "cdrom"         "*Kernel-level CD-ROM & DVD-ROM support"                    $(val $ENABLE_CDROM) \
-    "con-fonts"     "*Console fonts pack (0.6MiB)"                              $(val $INCLUDE_CON_FONTS) \
-    "fb"            "*†vesafb & vga16fb framebuffer support"                    $(val $ENABLE_FB) \
-    "grub"          "GRUB 2.x instead of EXTLINUX (4MiB)"                       $(val $USE_GRUB) \
-    "gui"           "†SHORKGUI (22.7MiB, EXPERIMENTAL)"                         $(val $INCLUDE_GUI) \
-    "help-verbose"  "*BusyBox verbose --help"                                   $(val $ENABLE_HELP_VERBOSE) \
-    "highmem"       "†Kernel-level high memory support"                         $(val $ENABLE_HIGHMEM) \
-    "loop"          "*Kernel-level loopback device support & losetup"           $(val $ENABLE_LOOP) \
-    "menu"          "*Menu-based bootloader (0.5MiB)"                           $(val $ENABLE_MENU) \
-    "mouse"         "*Kernel-level mouse support"                               $(val $ENABLE_MOUSE) \
-    "no-vdso32"     "*Disable 32-bit vDSO & SEP usage"                          $(val $ENABLE_NO_VDS032) \
-    "pci.ids"       "*PCI IDs database (0.1MiB)"                                $(val $INCLUDE_PCI_IDS) \
-    "pcmcia"        "*Kernel-level PCMCIA support"                              $(val $ENABLE_PCMCIA) \
-    "sata"          "†Kernel-level SATA support"                                $(val $ENABLE_SATA) \
-    "scsi-exp"      "*Kernel-level SCSI media changer & tape drive support"     $(val $ENABLE_SCSI_EXP) \
-    "sound"         "Kernel-level sound support"                                $(val $ENABLE_SOUND) \
-    "usb"           "Kernel-level USB & HID support & lsusb (0.2MiB)"           $(val $ENABLE_USB) \
-    "zswap"         "*Kernel-level zswap support"                               $(val $ENABLE_ZSWAP) \
-    2>&1 >/dev/tty)
-    #"keymaps"   "Keymaps (0.06MiB)"             $(val $INCLUDE_KEYMAPS) \
-    
-SKIPPED=$?
-
-if [[ $SKIPPED -eq 1 ]]; then
-    :
-else
     if [[ $OPTIONS =~ "cdrom" ]];           then ENABLE_CDROM=true;         else ENABLE_CDROM=false;            fi
     if [[ $OPTIONS =~ "con-fonts" ]];       then INCLUDE_CON_FONTS=true;    else INCLUDE_CON_FONTS=false;       fi
     if [[ $OPTIONS =~ "fb" ]];              then ENABLE_FB=true;            else ENABLE_FB=false;               fi
     if [[ $OPTIONS =~ "grub" ]];            then USE_GRUB=true;             else USE_GRUB=false;                fi
-    if [[ $OPTIONS =~ "gui" ]];             then INCLUDE_GUI=true;          else INCLUDE_GUI=false;             fi
     if [[ $OPTIONS =~ "help-verbose" ]];    then ENABLE_HELP_VERBOSE=true;  else ENABLE_HELP_VERBOSE=false;     fi
     if [[ $OPTIONS =~ "highmem" ]];         then ENABLE_HIGHMEM=true;       else ENABLE_HIGHMEM=false;          fi
     if [[ $OPTIONS =~ "loop" ]];            then ENABLE_LOOP=true;          else ENABLE_LOOP=false;             fi
@@ -1662,6 +2239,33 @@ else
     if [[ $OPTIONS =~ "sound" ]];           then ENABLE_SOUND=true;         else ENABLE_SOUND=false;            fi
     if [[ $OPTIONS =~ "usb" ]];             then ENABLE_USB=true;           else ENABLE_USB=false;              fi
     if [[ $OPTIONS =~ "zswap" ]];           then ENABLE_ZSWAP=true;         else ENABLE_ZSWAP=false;            fi
+fi
+
+
+
+# Get include FreeDOS choice (+INCLUDE_DOSEMU2)
+if [ "$INCLUDE_DOSEMU2" = true ]; then
+    DEFAULT_FLAG=""
+    if ! $INCLUDE_FREEDOS; then
+        DEFAULT_FLAG="--defaultno"
+    fi
+
+    dialog --clear \
+        --backtitle "SHORK 486 Build Configurator" \
+        --title "Bundled FreeDOS environment" \
+        $DEFAULT_FLAG \
+        --yesno "Since SHORK includes DOS emulation, do you want to bundle a minimal FreeDOS environment? Choosing \"Yes\" includes a FreeDOS kernel, COMMAND.COM, DEBUG.COM, EDIT.EXE, MEM.EXE, MORE.EXE, MOVE.EXE and XCOPY.EXE (total ~0.5MiB).\n\nIf you choose \"No\", you will need to install or supply a DOS yourself to use DOS emulation. You can copy a preinstalled DOS to the \"payload/drive_c\" directory, and it will automatically be copied into SHORK's disk image. " \
+        11 $WIDTH
+
+    CHOICE=$?
+
+    if [[ $CHOICE -eq 0 ]]; then
+        INCLUDE_FREEDOS=true
+    else
+        INCLUDE_FREEDOS=false
+    fi
+else
+    INCLUDE_FREEDOS=false
 fi
 
 
@@ -1821,11 +2425,11 @@ if [ "$INCLUDE_GPM" = true ] && [ "$ENABLE_MOUSE" = false ]; then
     fi
 fi
 
-# Conflict Resolution - +INCLUDE_GUI/-ENABLE_MOUSE
-if [ "$INCLUDE_GUI" = true ] && [ "$ENABLE_MOUSE" = false ]; then
+# Conflict Resolution - +INCLUDE_SHORKGUI/-ENABLE_MOUSE
+if [ "$INCLUDE_SHORKGUI" = true ] && [ "$ENABLE_MOUSE" = false ]; then
     dialog --clear \
         --backtitle "SHORK 486 Build Configurator" \
-        --title "Conflict Resolution - +INCLUDE_GUI/-ENABLE_MOUSE" \
+        --title "Conflict Resolution - +INCLUDE_SHORKGUI/-ENABLE_MOUSE" \
         --yes-label "Enable support" \
         --no-label "Exclude SHORKGUI" \
         --yesno "You have chosen to enable SHORKGUI but disable kernel-level mouse support. Kernel-level support is required for SHORKGUI to work correctly. Do you wish to enable the required support, or exclude SHORKGUI?" \
@@ -1836,15 +2440,15 @@ if [ "$INCLUDE_GUI" = true ] && [ "$ENABLE_MOUSE" = false ]; then
     if [[ $CHOICE -eq 0 ]]; then
         ENABLE_MOUSE=true
     elif [[ $CHOICE -eq 1 ]]; then
-        INCLUDE_GUI=false
+        INCLUDE_SHORKGUI=false
     fi
 fi
 
-# Conflict Resolution - +INCLUDE_GUI/-ENABLE_FB
-if [ "$INCLUDE_GUI" = true ] && [ "$ENABLE_FB" = false ]; then
+# Conflict Resolution - +INCLUDE_SHORKGUI/-ENABLE_FB
+if [ "$INCLUDE_SHORKGUI" = true ] && [ "$ENABLE_FB" = false ]; then
     dialog --clear \
         --backtitle "SHORK 486 Build Configurator" \
-        --title "Conflict Resolution - +INCLUDE_GUI/-ENABLE_FB" \
+        --title "Conflict Resolution - +INCLUDE_SHORKGUI/-ENABLE_FB" \
         --yes-label "Enable FB" \
         --no-label "Exclude SHORKGUI" \
         --yesno "You have chosen to include SHORKGUI but not enable vesafb and vga16fb framebuffer support. A framebuffer is required to start an X server for the GUI. Do you wish to enable the required support, or exclude SHORKGUI?" \
@@ -1855,7 +2459,7 @@ if [ "$INCLUDE_GUI" = true ] && [ "$ENABLE_FB" = false ]; then
     if [[ $CHOICE -eq 0 ]]; then
         ENABLE_FB=true
     elif [[ $CHOICE -eq 1 ]]; then
-        INCLUDE_GUI=false
+        INCLUDE_SHORKGUI=false
     fi
 fi
 

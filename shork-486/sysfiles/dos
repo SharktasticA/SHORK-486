@@ -1,0 +1,3 @@
+#!/bin/sh
+mkdir -p "${HOME}/.dosemu"
+exec /usr/bin/dosemu -s -kt "$@" 2>"${HOME}/.dosemu/stderr.log.$$"

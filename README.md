@@ -1,6 +1,6 @@
 # SHORK 486, 586, DISC & DISKETTE
 
-**SHORK 486** is a free and open-source operating system for 486 and 586/Pentium (P5) era vintage personal computers! It is a 32-bit Linux distribution aiming to be lean yet functional, giving such retro hardware the best chance possible to run modern, updated software. A "default" SHORK 486 system aims to work with at least 16MiB of system memory and take up no more than ~120MiB on your disk. Despite those constraints, this experience includes [Linux kernel 7.3.1](KERNEL.md), a BusyBox userspace with many typical Linux commands, custom SHORK Utilities such as SHORKDIR (TUI file browser) and SHORKFETCH (*fetch utility), a terminal multiplexer, a C compiler, Lua intepreter, Python 3.4-syntax interpreter and dialog for shell TUI widgets, a text web browser, FTP, NTP, SCP/SSH, Telnet and TFTP clients and servers, Git source control client, ed, Mg, nano and vi editors, a spreadsheet editor, minesweeper- and Tetris-clone games, DOS and ext2/3/4 filesystem tools, IDE and SCSI CD-ROM and DVD-ROM support, SCSI tape drive support, ISA, PCI and PCMCIA ethernet, support for most major national keyboard layouts, and a cute ASCII shark welcome screen!
+**SHORK 486** is a free and open-source operating system for 486 and 586/Pentium (P5) era vintage personal computers! It is a 32-bit Linux distribution aiming to be lean yet functional, giving such retro hardware the best chance possible to run modern, updated software. A "default" SHORK 486 system aims to work with at least 16MiB of system memory and take up no more than ~120MiB on your disk. Despite those constraints, this experience includes [Linux kernel 7.3.4](KERNEL.md), a BusyBox userspace with many typical Linux commands, custom SHORK Utilities such as SHORKDIR (TUI file browser) and SHORKFETCH (*fetch utility), a terminal multiplexer, a C compiler, Lua intepreter, Python 3.4-syntax interpreter and dialog for shell TUI widgets, a text web browser, FTP, NTP, SCP/SSH, Telnet and TFTP clients and servers, Git source control client, ed, Mg, nano and vi editors, a spreadsheet editor, minesweeper- and Tetris-clone games, DOS and ext2/3/4 filesystem tools, IDE and SCSI CD-ROM and DVD-ROM support, SCSI tape drive support, ISA, PCI and PCMCIA ethernet, support for most major national keyboard layouts, and a cute ASCII shark welcome screen!
 
 A build configurator is available to alter the SHORK 486 Operating System to your liking. For example, you can select the "mini" variant that requires just 8MiB RAM and ~8MiB disk space, whilst still including most typical commands as before, some custom SHORK Utilities, and the ed and vi editors. You can also configure SHORK 486 for symmetric multiprocessing support, multi-user support and serial console use, and pick and choose specific software and other features to include. Versions of SHORK 486 that can be optimised specifically for 5x86/K5/Pentium (**SHORK 586**), burned to a CD (**SHORK DISC**) or small enough to fit on a 1.44MB floppy diskette (**SHORK DISKETTE**) are also available. **Suggestions, feedback, and observations/opinions on performance wanted!**
 
@@ -114,12 +114,12 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
     * Micro: 7MiB RAM
     * _**Note:** Add ~2MiB to RAM requirement to all except Max if symmetric multiprocessing support is enabled with no swap memory_
 * IDE or SCSI disk: 
-    * **Default: 120MiB**
+    * **Default: 128MiB**
     * Max: 690MiB
     * Plus: 670MiB
     * Writer: 90MiB
     * Terminal: 70MiB
-    * Offline: 70MiB
+    * Offline: 90MiB
     * Mini: 8MiB
     * Micro: 4MiB
 * Graphics: IBM EGA, VGA or compatible
@@ -182,17 +182,18 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 | [CTris](https://github.com/MitchelPaulin/CTris)<br>`ctris` | `4cf68a9` | Tetris clone | MIT |✓|**✓**|||✓|
 | [cURL](https://curl.se/)<br>`curl` | 8.23.0 | HTTP client & transfer utility | MIT |✓|**✓**||✓||
 | [dialog](https://invisible-mirror.net/dialog/dialog.html)¶<br>`dialog` | 1.3-20260721 | Shell script TUI widgets | GNU LGPLv2.1 |✓|**✓**|||✓|
-| [dosfstools](https://github.com/dosfstools/dosfstools/)<br>e.g. `dosfsck`, `mkdosfs`\* | 4.2 | FAT family filesystem utilities | GNU GPLv3 |✓|**✓**|||✓|
+| [dosemu2](https://github.com/dosemu2/dosemu2)†<br>`dosemu` | 2.0pre9-2 | DOS emulation | GNU GPLv2 |✓|||||
+| [dosfstools](https://github.com/dosfstools/dosfstools)<br>e.g. `dosfsck`, `mkdosfs`\* | 4.2 | FAT family filesystem utilities | GNU GPLv3 |✓|**✓**|||✓|
 | [Dropbear](https://github.com/mkj/dropbear)<br>`scp`, `ssh` | 2026.94 | SCP and SSH clients | MIT +<br>BSD 2-Clause |✓|**✓**||✓||
 | [e2fsprogs](https://e2fsprogs.sourceforge.net/)<br>e.g. `blkid`\*, `chattr`\*, `fsck`\*, `lsattr`\*, `mke2fs`\*, `resize2fs`, `tune2fs`\*, `uuidgen`\* | 1.47.4 | ext2/3/4 filesystem utilities | GNU GPLv2 + LGPLv2 |✓|**✓**|||✓|
 | [file](https://github.com/file/file)<br>`file` | 5_48 | File identification | BSD 2-Clause |✓|**✓**|||✓|
 | [Git](https://github.com/git/git)<br>`git` | 2.56.0 | Source control client | GNU GPLv2 |✓|**✓**|||||
-| [GNU Autoconf](https://www.gnu.org/software/autoconf/)<br>`autoconf`, `autoreconf` | 2.73 | configure script generator | GNU GPLv2 |✓|||||
-| [GNU Automake](https://www.gnu.org/software/automake/)<br>`aclocal`, `automake` | 1.19 | Makefile.in generator | GNU GPLv2 |✓|||||
-| [GNU Binutils](https://musl.cc/)‡<br>e.g. `ar`\*, `as`, `gprof`, `ld`, `nm`, `objdump`, `ranlib`,`readelf`, `strings`\*, `strip` | 2.37 | Binary tools to compliment GCC | GNU GPLv3 |✓|||||
-| [GNU Compiler Collection](https://musl.cc/)‡§<br>`gcc`, `g++`, `gfortran` | 11.2.1 | C, C++ and Fortran compilers | GNU GPLv3 +<br>GCC RLE |✓|||||
+| [GNU Autoconf](https://www.gnu.org/software/autoconf/)†<br>`autoconf`, `autoreconf` | 2.73 | configure script generator | GNU GPLv2 |✓|||||
+| [GNU Automake](https://www.gnu.org/software/automake/)†<br>`aclocal`, `automake` | 1.19 | Makefile.in generator | GNU GPLv2 |✓|||||
+| [GNU Binutils](https://musl.cc/)†‡<br>e.g. `ar`\*, `as`, `gprof`, `ld`, `nm`, `objdump`, `ranlib`,`readelf`, `strings`\*, `strip` | 2.37 | Binary tools to compliment GCC | GNU GPLv3 |✓|||||
+| [GNU Compiler Collection](https://musl.cc/)†‡§<br>`gcc`, `g++`, `gfortran` | 11.2.1 | C, C++ and Fortran compilers | GNU GPLv3 +<br>GCC RLE |✓|||||
 | [GNU Indent](https://www.gnu.org/software/indent/)<br>`indent` | 2.2.13 | C code formatter | GNU GPLv3 |✓|||||
-| [GNU Libtool](https://www.gnu.org/software/libtool/)<br>`libtool`, `libtoolize` | 2.6.2 | Portable shared library build helper | GNU GPLv2 |✓|||||
+| [GNU Libtool](https://www.gnu.org/software/libtool/)†<br>`libtool`, `libtoolize` | 2.6.2 | Portable shared library build helper | GNU GPLv2 |✓|||||
 | [GNU m4](https://www.gnu.org/software/m4/)<br>`m4` | 1.4.21 | General-purpose macro processor | GNU GPLv3 |✓|||||
 | [GNU Make](https://www.gnu.org/software/make/)<br>`make` | 4.4.1 | Build automation tool | GNU GPLv3 |✓|||||
 | [GNU Midnight Commander](https://midnight-commander.org/)¶<br>`mc`, `mcdiff`, `mcedit`, `mcview` | 4.8.33 | Norton Commander-style file manager | GNU GPLv3 |✓|||||
@@ -207,7 +208,7 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 | [Lua](https://www.lua.org/)<br>`lua` | 5.5.1 | Embedded scripting & extensions language | MIT |✓|**✓**|||✓|
 | [Lynx](https://github.com/ThomasDickey/lynx-snapshots)¶<br>`lynx` | 2-9-3f | Terminal web browser | GNU GPLv2 |✓|**✓**|||||
 | [memtester](https://pyropus.ca./software/memtester/)<br>`memtester` | 4.7.1 | Userspace memory subsystem fault tester | GNU GPLv2 |✓|**✓**|✓|✓|✓|
-| [Mg](https://github.com/troglobit/mg)<br>`mg` | 4.5 | Emacs-style text editor | Unlicense |✓|**✓**|✓||✓|
+| [Mg](https://github.com/troglobit/mg)<br>`mg` | 4.7 | Emacs-style text editor | Unlicense |✓|**✓**|✓||✓|
 | [MicroPython](https://github.com/micropython/micropython)<br>`micropython` | 1.29.0 | Python 3.4-syntax intepreter | MIT |✓|**✓**|||✓|
 | [mpg321](https://mpg321.sourceforge.net/)†<br>`mpg321` | 0.3.2-1 | MP3 player | GNU GPLv2 |✓|||||
 | [mt-st](https://github.com/iustin/mt-st)<br>`mt`, `stinit` | 1.8 | Tape drive tools | GNU GPLv2 |✓|**✓**|||✓|
@@ -215,7 +216,7 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 | [Ncdu](https://dev.yorhel.nl/ncdu)<br>`ncdu` | 1.22 | Disk usage analyser | MIT |✓|**✓**|✓||✓|
 | [NetHack](https://github.com/NetHack/NetHack)¶<br>`nethack` | 5.0.0 | Dungeon exploration game | NetHack GPL |✓|||||
 | [New BSD Games](https://github.com/abakh/nbsdgames)¶<br>`nbsdgames` | 6.0.3 | Terminal games pack (22) | Public domain |✓|||||
-| [PatchELF](https://github.com/nixos/patchelf)<br>`patchelf` | 0.19.2 | ELF binary patching | GNU GPLv3 |✓|||||
+| [PatchELF](https://github.com/nixos/patchelf)<br>`patchelf` | 0.19.3 | ELF binary patching | GNU GPLv3 |✓|||||
 | [Perl](https://www.perl.org/)<br>`perl` | 5.44.0 | General-purpose scripting language | GNU GPLv1 |✓|||||
 | [sc-im](https://github.com/andmarti1424/sc-im)¶<br>`sc-im` | 0.8.5 | Terminal spreadsheet editor | BSD 4-Clause |✓|**✓**|✓||✓|
 | [strace](https://github.com/strace/strace)<br>`strace` | 7.2 | System calls & signals tracer | GNU LGPLv2.1 |✓|**✓**|||✓|
@@ -232,7 +233,7 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 | [x3270](https://github.com/pmattes/x3270)†¶<br>`c3270` | 4.5ga6 | 3270 terminal emulator | BSD 3-Clause |✓|||||
 
 * _\* Replaces a BusyBox version of the same utility_
-* _† Inclusion is experimental - expect bugs_
+* _† Inclusion is experimental or is pending needed optimisation_
 * _‡ GCC and GNU Binutils are separate projects but are bundled together as one complete toolchain, separate in the table for easy reading_
 * _§ Includes musl for their libc_
 * _‖ Only included with multi-user configurations_
@@ -256,6 +257,7 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 | [libao](https://github.com/xiph/libao) | 1.2.2 | mpg321 | GNU GPLv2 |
 | [libassuan](https://www.gnupg.org/software/libassuan/index.html) | 3.0.2 | GnuPG | GNU GPLv3 |
 | libcom_err | 1.47.4 | e2fsprogs | MIT SIPB |
+| [libb64](https://github.com/libb64/libb64) | 2.0.0.1 | dosemu2 | Public domain |
 | [libevent](https://github.com/libevent/libevent) | 2.1.13 | tmux | BSD 3-Clause |
 | [libffi](https://github.com/libffi/libffi) | 3.8.0 | GLib | MIT |
 | [libgcrypt](https://www.gnupg.org/software/libgcrypt/index.html) | 1.12.4 | GnuPG | GNU GPLv3 |
@@ -284,7 +286,8 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 | [nPth](https://www.gnupg.org/software/npth/index.html) | 1.8 | GnuPG | GNU LGPLv2.1 |
 | [OpenSSL](https://github.com/openssl/openssl) | 3.6.5 | cURL, Git, Lynx, Midnight Commander, tcpdump, tn5250 | Apache 2.0 |
 | [PCRE2](https://pcre2project.github.io/pcre2/) | 10.49 | GLib, Tilde | BSD 3-Clause w/<br>PCRE2 exception |
-| [zlib](https://github.com/madler/zlib) | 1.3.2 | Git, GLib, GnuPG, libzip | zlib |
+| [S-Lang](https://www.jedsoft.org/slang/) | 2.3.3 | dosemu2 | GNU GPLv2 |
+| [zlib](https://github.com/madler/zlib) | 1.4 | Git, GLib, GnuPG, libzip | zlib |
 | [Zstandard](https://github.com/Facebook/zstd) | 1.5.7 | GnuTLS | BSD 3-Clause or<br>**GNU GPLv2** |
 
 ### SHORK Utilities (SHORKUTILS)
@@ -521,7 +524,7 @@ When running the SHORK 486 Build Configurator, you will be prompted to select th
 * _If SHORK DISKETTE:_
     * Target diskette size (1.44MB or 2.88MB)
 * Target architecture (486SX, 486DX, 586, 586TSC or 586MMX)
-* Linux kernel version (7.4-rc1, 7.3.1, 7.2.15, 7.1.13 or 7.0.14)
+* Linux kernel version (7.4-rc2, 7.3.4, 7.2.15, 7.1.13 or 7.0.14)
 * Keyboard scancode set (skip, set 2 or set 3)
 * _If SHORK 486/586:_
     * __If not "Micro" or "Mini" build type selected:__
@@ -542,6 +545,8 @@ When running the SHORK 486 Build Configurator, you will be prompted to select th
     * __If "Custom" build type selected:__
         * Bundled software (multiple choice)
         * Options (all other configuration) (multiple choice)
+    * __If DOS emulation included:__
+        * Bundled FreeDOS environment (yes/no)
 
 Below are further explanations for options that could not fit into the configurator itself.
 
@@ -597,6 +602,11 @@ EXTLINUX (SHORK 486/586), ISOLINUX (SHORK DISC) and SYSLINUX (SHORK DISKETTE) ar
 
 #### Bundled Software
 
+* **dosemu2**: Adds dosemu2 to provide a DOS emulation environment. Currently, SHORK's inclusion of it is useful only for text-mode DOS applications - trying to run a graphics-mode application will likely crash, but work to address this is underway. It ideally requires 20MiB RAM, or at least 16MiB RAM with 4MiB swap. Efforts to bring this memory requirement down are also underway.
+    * **dosemu2's inclusion is an experimental feature - expect quirks and incompleteness!**
+    * Including dosemu2 will also give you the option to include a bundled FreeDOS environment for it toward the end of the Build Configurator. It includes the FreeDOS kernel, COMMAND.COM, DEBUG.COM, EDIT.EXE, MEM.EXE, MORE.EXE, MOVE.EXE and XCOPY.EXE (total ~0.5MiB).
+    * If you decline the aforementioned option, you will need to install or provide your own DOS. To help with this, you can create the `shork-486/payload/drive_c` directory and copy a complete DOS installation into it, so that it will be subsequently copied into the final hard disk image for you. This directory is not deleted or modified by the build process, so it is safe to keep files in it across multiple builds.
+
 * **dosfstools**: Adds utilities for creating, inspecting and maintaining FAT12, FAT16 and FAT32 filesystems.
     * **Note:** If included, BusyBox's `mkdosfs`/`mkfs.vfat` implementation will be disabled in favour of dosfstools'.
 
@@ -608,11 +618,18 @@ EXTLINUX (SHORK 486/586), ISOLINUX (SHORK DISC) and SYSLINUX (SHORK DISKETTE) ar
 * **gcc**: Adds the GCC's C, C++ and Fortran compiler, musl C standard library and GNU Bintuils. Using `g++` requires more system memory than usual, hence it is not included by default. Memory requirements are ideally 32MiB system memory if no swap partition, 24MiB with 8MiB swap or 16MiB with 16MiB swap.
     * **Note:** If included, BusyBox's `ar` and `strings` implementations will be disabled in favour of GNU Binutils'.
 
-* **midnight-cmdr**: Adds the GNU Midnight Commander file manager. It presently has a hard dependency on networking, but making this optional is planned. Memory requirements are ideally 16MiB with 8MiB swap.
+* **midnight-cmdr**: Adds the GNU Midnight Commander file manager. It presently has a hard dependency on networking, but making this optional is planned. Memory requirements are ideally 16MiB with 4MiB swap.
 
 * **nbsdgames**: Adds a pack of 22 ncurses-based games. It includes battleship, checkers, darrt, fifteen, fisher, jewels, memoblocks, miketron, mines, muncher, pipes, rabbithole, redsquare, revenge, reversi, scissor, sjump, snakeduel, sos, sudoku, trsr, and tugow. They require at least 12MiB RAM.
 
 * **perl**: Includes the Perl general-purpose scripting language interpreter. Using Perl independently or Perl-based tools like GNU Autoconf or Automake require ideally 24MiB RAM, or at least 16MiB RAM with 8MiB swap.
+
+* **shorkgui**: Includes SHORK 486/586's graphical environment ("SHORKGUI"). It's comprised of the TinyX display server, TWM window manager, various supporting X11 utilities, st terminal emulator, and the `shorkgui` utility.
+    * **SHORKGUI is an experimental feature - expect quirks and incompleteness!**
+    * As it is subject to big changes, the system requirements are not set in stone. But the following should provide a usable experience for now:
+        * IntelDX4 (ideally; 486SX, 486DX, etc. work but are very slow)
+        * 24MiB physical memory
+        * A display card supported by either `vga16fb` or `vesafb` framebuffer drivers
 
 * **shorktainment**: Includes the SHORK Entertainment programs bundle: shorklocomotive, shorkmatrix, shorkmines, and shorksay.
 
@@ -624,13 +641,6 @@ EXTLINUX (SHORK 486/586), ISOLINUX (SHORK DISC) and SYSLINUX (SHORK DISKETTE) ar
 * **fb**: Adds vesafb and vga16fb framebuffer support and enables BusyBox's `fbset` and `fbsplash` implementations. This allows a framebuffer device to be created when supported hardware is present, which in turn allows an X server to run, and gives applications per-pixel read/write capabilities. `shorkset` will also be able to offer VBE-style resolutions for vesafb, and other framebuffer-specific settings.
 
 * **grub**: Uses a GRUB 2.x bootloader instead of EXTLINUX. GRUB may be more familiar to modern Linux users, but it requires approximately 12MiB more space than EXTLINUX. The build script overrides this option if you said "Yes" to using SHORK's patched fork of EXTLINUX.
-
-* **gui**: Includes SHORK 486/586's graphical environment ("SHORKGUI"). It's comprised of the TinyX display server, TWM window manager, various supporting X11 utilities, st terminal emulator, and the `shorkgui` utility.
-    * **SHORKGUI is an experimental feature - expect quirks and incompleteness!**
-    * As it is subject to big changes, the system requirements are not set in stone. But the following should provide a usable experience for now:
-        * IntelDX4 (ideally; 486SX, 486DX, etc. work but are very slow)
-        * 24MiB physical memory
-        * A display card supported by either `vga16fb` or `vesafb` framebuffer drivers
 
 * **highmem**: Adds kernel-level high memory support and declares that non-reserved physical memory starts at 16MiB instead of 1MiB. In general, this is provided in case someone wanted to try SHORK 486/586 on a more modern system with more than 875MiB RAM. **It is not needed for most '90s hardware**. Its RAM requirements are 24MiB with no swap partition or 16MiB with 8MiB swap.
 

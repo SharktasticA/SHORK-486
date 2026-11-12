@@ -184,7 +184,7 @@ NEEDED_MESON="1.4.0"
 # Target software/feature versions
 LINUX_STABLE_SRC="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git"
 LINUX_TORVALDS_SRC="https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
-LINUX_VER="7.3.1"
+LINUX_VER="7.3.4"
 
 BUSYBOX_SRC="https://busybox.net/downloads"
 BUSYBOX_VER="1.38.0"
@@ -317,6 +317,9 @@ LIBAO_VER="1.2.2"
 LIBASSUAN_SRC="https://gnupg.org/ftp/gcrypt/libassuan"
 LIBASSUAN_VER="3.0.2"
 
+LIBB64_SRC="https://github.com/libb64/libb64.git"
+LIBB64_VER="2.0.0.1"
+
 LIBCAP_SRC="https://git.kernel.org/pub/scm/libs/libcap/libcap.git"
 LIBCAP_VER="1.2.78"
 
@@ -409,7 +412,7 @@ MAKE_VER="4.4.1"
 MEMTESTER_SRC="https://fossies.org/linux/misc"
 MEMTESTER_VER="4.7.1"
 MG_SRC="https://github.com/troglobit/mg.git"
-MG_VER="4.5"
+MG_VER="4.7"
 MICRO_SRC="https://github.com/micro-editor/MICRO.git"
 MICRO_VER="2.0.15"
 MICROPYTHON_SRC="https://github.com/micropython/micropython.git"
@@ -449,7 +452,7 @@ NPTH_VER="1.8"
 OPENSSL_SRC="https://github.com/openssl/openssl.git"
 OPENSSL_VER="3.6.5"
 PATCHELF_SRC="https://github.com/NixOS/patchelf/archive/refs/tags"
-PATCHELF_VER="0.19.2"
+PATCHELF_VER="0.19.3"
 PCRE2_SRC="https://github.com/PCRE2Project/pcre2/releases/download"
 PCRE2_VER="10.49"
 
@@ -466,6 +469,9 @@ RUSTID_VER="2.3.0"
 
 SC_IM_SRC="https://github.com/andmarti1424/sc-im.git"
 SC_IM_VER="0.8.5"
+
+SLANG_SRC="https://www.jedsoft.org/releases/slang"
+SLANG_VER="2.3.3"
 
 SNAPPY_SRC="https://github.com/google/snappy.git"
 SNAPPY_VER="1.2.2"
@@ -507,7 +513,7 @@ XXHASH_SRC="https://github.com/Cyan4973/xxHash.git"
 XXHASH_VER="0.8.4"
 
 ZLIB_SRC="https://github.com/madler/zlib.git"
-ZLIB_VER="1.3.2"
+ZLIB_VER="1.4"
 
 ZSTD_SRC="https://github.com/facebook/zstd.git"
 ZSTD_VER="1.5.7"
@@ -540,6 +546,7 @@ USE_TORVALDS=false
 
 ENABLE_CDROM=false
 ENABLE_EPOLL=false
+ENABLE_EVDEV=false
 ENABLE_FB=false
 ENABLE_HELP_VERBOSE=false
 ENABLE_HIGHMEM=false
@@ -587,7 +594,6 @@ INCLUDE_GCC=false
 INCLUDE_GIT=false
 INCLUDE_GNUPG=false
 INCLUDE_GPM=false
-INCLUDE_GUI=false
 INCLUDE_HTOP=false
 INCLUDE_HWINFO=false
 INCLUDE_INDENT=false
@@ -619,6 +625,7 @@ INCLUDE_PCI_IDS=false
 INCLUDE_RUSTID=false
 INCLUDE_SC_IM=false
 INCLUDE_SUDO=false
+INCLUDE_SHORKGUI=false
 INCLUDE_SHORKSTALL=false
 INCLUDE_SHORKTAINMENT=false
 INCLUDE_STRACE=false
@@ -698,54 +705,12 @@ fi
 ## Overrides                                        ##
 ######################################################
 
-# Overrides to ensure the correct estimated RAM requirement is shown in the after-build report
-if [[ "$ID" == "shork-"*86 ]]; then
-    if [ "$BUILD_TYPE" = "custom" ]; then
-        echo -e "${GREEN}Noting minimum memory requirements for a SHORK 486/586 custom build...${RESET}"
-        if [ "$INCLUDE_GCC" = true ]; then
-            EST_MIN_RAM="24MiB + 8MiB swap/16MiB + 16MiB swap"
-        elif [ "$INCLUDE_GUI" = true ] || [ "$ENABLE_HIGHMEM" = true ] || [ "$ENABLE_SATA" = true ]; then
-            EST_MIN_RAM="24MiB/16MiB + 8MiB swap"
-        elif [ "$ENABLE_NET_ETH" = true ]; then
-            EST_MIN_RAM="16MiB"
-        else
-            EST_MIN_RAM="12MiB"
-        fi
-    elif [ "$BUILD_TYPE" = "default" ]; then
-        echo -e "${GREEN}Noting minimum memory requirements for SHORK 486/586 Default...${RESET}"
-        EST_MIN_RAM="16MiB"
-    elif [ "$BUILD_TYPE" = "max" ]; then
-        echo -e "${GREEN}Noting minimum memory requirements for SHORK 486/586 Max...${RESET}"
-        EST_MIN_RAM="32MiB/24MiB + 8MiB swap"
-    elif [ "$BUILD_TYPE" = "plus" ]; then
-        echo -e "${GREEN}Noting minimum memory requirements for SHORK 486/586 Plus...${RESET}"
-        EST_MIN_RAM="24MiB + 8MiB swap/16MiB + 16MiB swap"
-    elif [ "$BUILD_TYPE" = "writer" ]; then
-        echo -e "${GREEN}Noting minimum memory requirements for SHORK 486/586 Writer...${RESET}"
-        EST_MIN_RAM="24MiB + 8MiB swap/16MiB + 16MiB swap"
-    elif [ "$BUILD_TYPE" = "offline" ]; then
-        echo -e "${GREEN}Noting minimum memory requirements for SHORK 486/586 Offline...${RESET}"
-        EST_MIN_RAM="12MiB"
-    elif [ "$BUILD_TYPE" = "mini" ]; then
-        echo -e "${GREEN}Noting minimum memory requirements for SHORK 486/586 Mini...${RESET}"
-        EST_MIN_RAM="8MiB"
-    elif [ "$BUILD_TYPE" = "micro" ]; then
-        echo -e "${GREEN}Noting minimum memory requirements for SHORK 486/586 Micro...${RESET}"
-        EST_MIN_RAM="8MiB"
-    fi
-elif [ "$ID" == "shork-disc" ]; then
-    echo -e "${GREEN}Noting minimum memory requirements for SHORK DISC...${RESET}"
-    EST_MIN_RAM="12MiB"
-elif [ "$ID" == "shork-diskette" ]; then
-    echo -e "${GREEN}Noting minimum memory requirements for SHORK DISKETTE...${RESET}"
-    EST_MIN_RAM="16MiB"
-fi
-
-# Override to ensure the USED_WM is empty when the "use GUI" parameter is not used
-if ! $INCLUDE_GUI; then
+# Override to ensure the USED_WM is empty when no SHORKGUI
+if ! $INCLUDE_SHORKGUI; then
     USED_WM=""
 else
-    # If USED_WM is empty but GUI is desired, ensure the default WM (TWM) is set
+    # If USED_WM is empty but SHORKGUI is desired, ensure the default WM
+    # (TWM) is set
     if [[ $USED_WM == "" ]]; then
         USED_WM="TWM"
     fi
@@ -792,8 +757,9 @@ if [ "$INCLUDE_BIND9_DNSUTILS" = true ] || [ "$INCLUDE_MICRO" = true ]; then
     ENABLE_EPOLL=true
 fi
 
-# Ensure FB is enabled with GUI
-if [ "$INCLUDE_GUI" = true ]; then
+# Ensure EVDEV and FB are enabled with GUI
+if [ "$INCLUDE_SHORKGUI" = true ]; then
+    ENABLE_EVDEV=true
     ENABLE_FB=true
 fi
 
@@ -808,8 +774,8 @@ if [ "$INCLUDE_MPG321" = true ]; then
     ENABLE_SYSVIPC=true
 fi
 
-# Ensure MOUSE is enabled with GPM or GUI
-if [ "$INCLUDE_GPM" = true ] || [ "$INCLUDE_GUI" = true ]; then
+# Ensure MOUSE is enabled with GPM or SHORKGUI
+if [ "$INCLUDE_GPM" = true ] || [ "$INCLUDE_SHORKGUI" = true ]; then
     ENABLE_MOUSE=true
 fi
 
@@ -836,11 +802,11 @@ if [ "$INCLUDE_DOSEMU2" = true ]; then
     ENABLE_VM86=true
 fi
 
-# Ensure NET_BASE is enabled with DOSEMU2, GNUPG, GPM, GUI, HTOP, NET_ETH,
-# SUDO or TMUX
+# Ensure NET_BASE is enabled with DOSEMU2, GNUPG, GPM, HTOP, NET_ETH,
+# SHORKGUI, SUDO or TMUX
 if [ "$INCLUDE_DOSEMU2" = true ] || [ "$INCLUDE_GNUPG" = true ] || 
-    [ "$INCLUDE_GPM" = true ] || [ "$INCLUDE_GUI" = true ] ||
-    [ "$INCLUDE_HTOP" = true ] || [ "$INCLUDE_SUDO" = true ] ||
+    [ "$INCLUDE_GPM" = true ] || [ "$INCLUDE_HTOP" = true ] ||
+    [ "$INCLUDE_SHORKGUI" = true ] || [ "$INCLUDE_SUDO" = true ] ||
     [ "$INCLUDE_TMUX" = true ] || [ "$ENABLE_NET_ETH" = true ]; then
     ENABLE_NET_BASE=true
 fi
@@ -948,6 +914,7 @@ NEED_GNUTLS=false
 NEED_KRB5=false
 NEED_LIBAO=false
 NEED_LIBASSUAN=false
+NEED_LIBB64=false
 NEED_LIBCAP=false
 NEED_LIBEVENT=false
 NEED_LIBFFI=false
@@ -986,6 +953,7 @@ NEED_NPTH=false
 NEED_OPENSSL=false
 NEED_PCRE2=false
 NEED_RUST=false
+NEED_SLANG=false
 NEED_SNAPPY=false
 NEED_X86EMU=false
 NEED_XXHASH=false
@@ -1016,9 +984,14 @@ if $INCLUDE_CTAGS; then
 fi
 
 if $INCLUDE_CURL || $INCLUDE_GIT; then
-    NEED_CURL=true
     NEED_OPENSSL=true
     NEED_ZLIB=true
+    NEED_CURL=true
+fi
+
+if $INCLUDE_DOSEMU2; then
+    NEED_LIBB64=true
+    NEED_SLANG=true
 fi
 
 if $INCLUDE_EMACS; then
@@ -1232,6 +1205,74 @@ clean_stale_mounts()
     sudo umount -lf /mnt/$ID 2>/dev/null || true
     sudo losetup -a | grep $ID | cut -d: -f1 | xargs -r sudo losetup -d || true
     sudo dmsetup remove_all 2>/dev/null || true
+}
+
+
+
+######################################################
+## Download helpers                                 ##
+######################################################
+
+# Prints a random user agent string
+random_ua()
+{
+    local UAS=(
+        "Wget/1.25"
+        "Mozilla/5.0 (X11; Linux x86_64; rv:153.0) Gecko/20100101 Firefox/153.0"
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) QtWebEngine/6.8.2 Chrome/122.0.6261.171 Safari/537.36"
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36"
+    )
+    printf '%s\n' "${UAS[RANDOM % ${#UAS[@]}]}"
+}
+
+# Download something with wget if not already present. It will use a random
+# user-agent string and retry up to 3 times.
+# $1 - output file; "" to use filename from first URL
+# $2 - URLs to try
+wget_download()
+{
+    local OUT="$1"
+    shift
+
+    local URLS=("$@")
+    if [ "${#URLS[@]}" -eq 0 ]; then
+        echo -e "${RED}ERROR: no/invalid URLs given${RESET}" >&2
+        exit 2
+    fi
+
+    OUT="${OUT:-${URLS[0]##*/}}"
+    if [ -s "$OUT" ]; then
+        echo -e "${LIGHT_RED}${OUT} already downloaded, skipping...${RESET}" >&2
+        return 0
+    fi
+
+    local TRY URL
+    for TRY in 1 2 3; do
+        URL="${URLS[RANDOM % ${#URLS[@]}]}"
+
+        # Catch if SourceForge since they serve an interstitial HTML page
+        # if using browser UAs, rather than what we want
+        if [[ "$URL" == *sourceforge* ]]; then
+            UA="Wget/1.25"
+        else
+            UA="$(random_ua)"
+        fi
+
+        if [ "$TRY" -eq 1 ]; then
+            echo -e "${GREEN}Downloading $URL (attempt $TRY/3)...${RESET}" >&2
+        else
+            echo -e "${YELLOW}Downloading $URL (attempt $TRY/3)...${RESET}" >&2
+            sleep 2
+        fi
+
+        if wget -U "$UA" -O "$OUT" "$URL"; then
+            return 0
+        fi
+        rm -f "$OUT"
+    done
+
+    echo -e "${RED}ERROR: failed to download $URL after $TRY tries${RESET}" >&2
+    exit 1
 }
 
 
@@ -1571,7 +1612,7 @@ get_musl_cross()
     # Download cross
     if [ ! -f "${CROSS}.tgz" ]; then
         echo -e "${GREEN}Downloading ${CROSS}...${RESET}"
-        wget "https://musl.cc/${CROSS}.tgz"
+        wget_download "" "https://musl.cc/${CROSS}.tgz"
     fi
 
     # Look for SYSROOT path stamp to see if this project has changed
@@ -1633,7 +1674,7 @@ get_gpm()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading gpm...${RESET}"
-        git clone --branch "$GPM_VER" $GPM_SRC
+        git clone --branch "$GPM_VER" "$GPM_SRC"
         cd "gpm"
     fi
 
@@ -1679,7 +1720,7 @@ get_ncurses()
         URI="${NCURSES_SRC}/${ARC}"
 
         # Download source
-        [ -f $ARC ] || wget $URI
+        wget_download "" "$URI"
 
         # Extract source
         if [ -d $DIR ]; then
@@ -1775,7 +1816,7 @@ get_brotli()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading Brotli...${RESET}"
-        git clone --depth=1 --branch "v$BROTLI_VER" $BROTLI_SRC
+        git clone --depth=1 --branch "v$BROTLI_VER" "$BROTLI_SRC"
         cd brotli
     fi
 
@@ -1817,7 +1858,7 @@ get_cares()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading c-ares...${RESET}"
-        git clone --depth=1 --branch "v$CARES_VER" $CARES_SRC
+        git clone --depth=1 --branch "v$CARES_VER" "$CARES_SRC"
         cd c-ares
     fi
 
@@ -1853,7 +1894,7 @@ get_curl()
         CURL_URI="${CURL_SRC}/${CURL_ARC}"
 
         # Download source
-        [ -f $CURL_ARC ] || wget $CURL_URI
+        wget_download "" "$CURL_URI"
 
         # Extract source
         if [ -d $CURL ]; then
@@ -1918,7 +1959,7 @@ get_gccgo()
     BINUTILS_TEST_DIR="binutils-${BINUTILS_TEST_VER}"
     ARC="${BINUTILS_TEST_DIR}.tar.xz"
     URI="${BINUTILS_TEST_SRC}/${ARC}"
-    [ -f $ARC ] || wget $URI
+    wget_download "" "$URI"
 
     # Extract GNU Binutils source
     if [ -d $BINUTILS_TEST_DIR ]; then
@@ -1960,7 +2001,7 @@ get_gccgo()
     GCC_DIR="gcc-${GCCGO_VER}"
     ARC="${GCC_DIR}.tar.xz"
     URI="${GCCGO_SRC}/${GCC_DIR}/${ARC}"
-    [ -f $ARC ] || wget $URI
+    wget_download "" "$URI"
 
     # Extract GCC source
     if [ -d $GCC_DIR ]; then
@@ -2006,7 +2047,7 @@ get_gccgo()
     GLIBC_DIR="glibc-${GLIBC_VER}"
     ARC="${GLIBC_DIR}.tar.xz"
     URI="${GLIBC_SRC}/${ARC}"
-    [ -f $ARC ] || wget $URI
+    wget_download "" "$URI"
 
     # Extract glibc source
     if [ -d $GLIBC_DIR ]; then
@@ -2075,7 +2116,7 @@ get_glib()
     URI="${GLIB_SRC}/${GLIB_DIST}/${ARC}"
 
     # Download source
-    [ -f $ARC ] || wget $URI
+    wget_download "" "$URI"
 
     # Extract source
     if [ -d $DIR ]; then
@@ -2123,7 +2164,7 @@ get_gmp()
     URI="${GMP_SRC}/${ARC}"
 
     # Download source
-    [ -f $ARC ] || wget $URI
+    wget_download "" "$URI"
 
     # Extract source
     if [ -d $DIR ]; then
@@ -2166,7 +2207,7 @@ get_gnutls()
     URI="${GNUTLS_SRC}/${GNUTLS_DIST}/${ARC}"
 
     # Download source
-    [ -f $ARC ] || wget $URI
+    wget_download "" "$URI"
 
     # Extract source
     if [ -d $DIR ]; then
@@ -2244,7 +2285,7 @@ get_krb5()
     URI="${KRB5_SRC}/${KRB5_DIST}/${ARC}"
 
     # Download source
-    [ -f $ARC ] || wget $URI
+    wget_download "" "$URI"
 
     # Extract source
     if [ -d $DIR ]; then
@@ -2347,7 +2388,7 @@ get_libassuan()
     URI="${LIBASSUAN_SRC}/${ARC}"
 
     # Download source
-    [ -f $ARC ] || wget $URI
+    wget_download "" "$URI"
 
     # Extract source
     if [ -d $DIR ]; then
@@ -2378,6 +2419,46 @@ get_libassuan()
     make install
 }
 
+# Download and compile libb64
+get_libb64()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/libb64.a" ]; then
+        echo -e "${LIGHT_RED}libb64 already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d libb64 ]; then
+        echo -e "${YELLOW}libb64 source already present, resetting...${RESET}"
+        cd libb64
+        git config --global --add safe.directory "${CURR_DIR}"/build/libb64
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading libb64...${RESET}"
+        git clone --depth=1 --branch "v$LIBB64_VER" "$LIBB64_SRC"
+        cd libb64
+    fi
+
+    # libb64 2.0.0.1 has "#elseif" (invalid) in ccommon.h, so the preprocessor
+    # always falls through to its own "typedef unsigned long size_t", which
+    # conflicts with musl's size_t
+    sed -i 's/#elseif/#elif/' include/b64/ccommon.h
+
+    # Compile and install
+    echo -e "${GREEN}Compiling libb64...${RESET}"
+    $CC_STATIC $CFLAGS_NOPIE -Iinclude -c src/cencode.c -o cencode.o
+    $CC_STATIC $CFLAGS_NOPIE -Iinclude -c src/cdecode.c -o cdecode.o
+    $AR rcs libb64.a cencode.o cdecode.o
+    $RANLIB libb64.a
+    mkdir -p "${SYSROOT}/usr/lib" "${SYSROOT}/usr/include/b64"
+    cp libb64.a "${SYSROOT}/usr/lib/"
+    cp include/b64/*.h "${SYSROOT}/usr/include/b64/"
+}
+
 # Download and compile libcap
 get_libcap()
 {
@@ -2398,7 +2479,7 @@ get_libcap()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading libcap...${RESET}"
-        git clone --depth=1 --branch "v$LIBCAP_VER" $LIBCAP_SRC
+        git clone --depth=1 --branch "v$LIBCAP_VER" "$LIBCAP_SRC"
         cd libcap
     fi
 
@@ -2474,7 +2555,7 @@ get_libffi()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading libffi...${RESET}"
-        git clone --depth=1 --branch "v$LIBFFI_VER" $LIBFFI_SRC
+        git clone --depth=1 --branch "v$LIBFFI_VER" "$LIBFFI_SRC"
         cd libffi
     fi
 
@@ -2513,7 +2594,7 @@ get_libgcrypt()
     URI="${LIBGCRYPT_SRC}/${ARC}"
 
     # Download source
-    [ -f $ARC ] || wget $URI
+    wget_download "" "$URI"
 
     # Extract source
     if [ -d $DIR ]; then
@@ -2561,7 +2642,7 @@ get_libgpg_error()
     URI="${LIBGPG_ERROR_SRC}/${ARC}"
 
     # Download source
-    [ -f $ARC ] || wget $URI
+    wget_download "" "$URI"
 
     # Extract source
     if [ -d $DIR ]; then
@@ -2652,7 +2733,7 @@ get_libidn2()
     URI="${LIBIDN2_SRC}/${ARC}"
 
     # Download source
-    [ -f $ARC ] || wget $URI
+    wget_download "" "$URI"
 
     # Extract source
     if [ -d $DIR ]; then
@@ -2695,7 +2776,7 @@ get_libksba()
     URI="${LIBKSBA_SRC}/${ARC}"
 
     # Download source
-    [ -f $ARC ] || wget $URI
+    wget_download "" "$URI"
 
     # Extract source
     if [ -d $DIR ]; then
@@ -2743,7 +2824,7 @@ get_liblua()
     URI="${LIBLUA_SRC}/${ARC}"
 
     # Download source
-    [ -f $ARC ] || wget $URI
+    wget_download "" "$URI"
 
     # Extract source
     if [ -d $DIR ]; then
@@ -2831,7 +2912,7 @@ get_libnl()
     else
         echo -e "${GREEN}Downloading libnl...${RESET}"
         LIBNL_TAG="libnl${LIBNL_VER//./_}"
-        git clone --depth=1 --branch "$LIBNL_TAG" $LIBNL_SRC
+        git clone --depth=1 --branch "$LIBNL_TAG" "$LIBNL_SRC"
         cd libnl
     fi
 
@@ -2869,7 +2950,7 @@ get_libpcap()
     URI="${LIBPCAP_SRC}/${ARC}"
 
     # Download source
-    [ -f $ARC ] || wget $URI
+    wget_download "" "$URI"
 
     # Extract source
     if [ -d $DIR ]; then
@@ -2918,7 +2999,7 @@ get_libsmi()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading libsmi...${RESET}"
-        git clone --depth=1 --branch "$LIBSMI_VER" $LIBSMI_SRC
+        git clone --depth=1 --branch "$LIBSMI_VER" "$LIBSMI_SRC"
         cd libsmi
     fi
 
@@ -3039,7 +3120,7 @@ get_libssh()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading libssh...${RESET}"
-        git clone --depth=1 --branch "libssh-$LIBSSH_VER" $LIBSSH_SRC
+        git clone --depth=1 --branch "libssh-$LIBSSH_VER" "$LIBSSH_SRC"
         cd libssh-mirror
     fi
 
@@ -3093,7 +3174,7 @@ get_libssh2()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading libssh2...${RESET}"
-        git clone --depth=1 --branch "libssh2-$LIBSSH2_VER" $LIBSSH2_SRC
+        git clone --depth=1 --branch "libssh2-$LIBSSH2_VER" "$LIBSSH2_SRC"
         cd libssh2
     fi
 
@@ -3139,7 +3220,7 @@ get_libt3config()
     URI="${LIBT3_SRC}/${ARC}"
 
     # Download source
-    [ -f $ARC ] || wget $URI
+    wget_download "" "$URI"
 
     # Extract source
     if [ -d $DIR ]; then
@@ -3205,7 +3286,7 @@ get_libt3highlight()
     URI="${LIBT3_SRC}/${ARC}"
 
     # Download source
-    [ -f $ARC ] || wget $URI
+    wget_download "" "$URI"
 
     # Extract source
     if [ -d $DIR ]; then
@@ -3261,7 +3342,7 @@ get_libt3key()
     URI="${LIBT3_SRC}/${ARC}"
 
     # Download source
-    [ -f $ARC ] || wget $URI
+    wget_download "" "$URI"
 
     # Extract source
     if [ -d $DIR ]; then
@@ -3353,7 +3434,7 @@ get_libt3widget()
     URI="${LIBT3_SRC}/${ARC}"
 
     # Download source
-    [ -f $ARC ] || wget $URI
+    wget_download "" "$URI"
 
     # Extract source
     if [ -d $DIR ]; then
@@ -3416,7 +3497,7 @@ get_libt3window()
     URI="${LIBT3_SRC}/${ARC}"
 
     # Download source
-    [ -f $ARC ] || wget $URI
+    wget_download "" "$URI"
 
     # Extract source
     if [ -d $DIR ]; then
@@ -3475,7 +3556,7 @@ get_libtasn1()
     URI="${LIBTASN1_SRC}/${ARC}"
 
     # Download source
-    [ -f $ARC ] || wget $URI
+    wget_download "" "$URI"
 
     # Extract source
     if [ -d $DIR ]; then
@@ -3518,7 +3599,7 @@ get_libtool_tilde()
     URI="${LIBTOOL_SRC}/${ARC}"
 
     # Download source
-    [ -f $ARC ] || wget $URI
+    wget_download "" "$URI"
 
     # Extract source
     if [ -d $DIR ]; then
@@ -3572,7 +3653,7 @@ get_libtranscript()
         URI="${LIBT3_SRC}/${ARC}"
 
         # Download source
-        [ -f $ARC ] || wget $URI
+        wget_download "" "$URI"
 
         # Extract source
         if [ -d $DIR ]; then
@@ -3648,7 +3729,7 @@ get_libunistring()
     URI="${LIBUNISTRING_SRC}/${ARC}"
 
     # Download source
-    [ -f $ARC ] || wget $URI
+    wget_download "" "$URI"
 
     # Extract source
     if [ -d $DIR ]; then
@@ -3696,7 +3777,7 @@ get_liburcu()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading liburcu...${RESET}"
-        git clone --depth=1 --branch "v$LIBURCU_VER" $LIBURCU_SRC
+        git clone --depth=1 --branch "v$LIBURCU_VER" "$LIBURCU_SRC"
         cd userspace-rcu
     fi
 
@@ -3782,7 +3863,7 @@ get_libuv()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading libuv...${RESET}"
-        git clone --depth=1 --branch "v$LIBUV_VER" $LIBUV_SRC
+        git clone --depth=1 --branch "v$LIBUV_VER" "$LIBUV_SRC"
         cd libuv
     fi
 
@@ -3953,7 +4034,7 @@ get_lz4()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading LZ4...${RESET}"
-        git clone --depth=1 --branch "v$LZ4_VER" $LZ4_SRC
+        git clone --depth=1 --branch "v$LZ4_VER" "$LZ4_SRC"
         cd lz4
     fi
 
@@ -3994,7 +4075,7 @@ get_nettle()
     URI="${NETTLE_SRC}/${ARC}"
 
     # Download source
-    [ -f $ARC ] || wget $URI
+    wget_download "" "$URI"
 
     # Extract source
     if [ -d $DIR ]; then
@@ -4037,7 +4118,7 @@ get_npth()
     URI="${NPTH_SRC}/${ARC}"
 
     # Download source
-    [ -f $ARC ] || wget $URI
+    wget_download "" "$URI"
 
     # Extract source
     if [ -d $DIR ]; then
@@ -4119,7 +4200,7 @@ get_pcre2()
     URI="${PCRE2_SRC}/${DIR}/${ARC}"
 
     # Download source
-    [ -f $ARC ] || wget $URI
+    wget_download "" "$URI"
 
     # Extract source
     if [ -d $DIR ]; then
@@ -4175,6 +4256,52 @@ get_rust()
         --toolchain nightly
 }
 
+# Download and compile S-Lang
+get_slang()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/libslang.a" ]; then
+        echo -e "${LIGHT_RED}S-Lang already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading S-Lang...${RESET}"
+    DIR="slang-${SLANG_VER}"
+    ARC="${DIR}.tar.bz2"
+    URI="${SLANG_SRC}/${ARC}"
+
+    # Download source
+    wget_download "" "$URI"
+
+    # Extract source
+    if [ -d $DIR ]; then
+        echo -e "${YELLOW}S-Lang's source archive is already present, re-extracting before proceeding...${RESET}"
+        rm -rf $DIR
+    fi
+    tar xf $ARC
+    cd $DIR
+
+    # Compile and install
+    echo -e "${GREEN}Compiling S-Lang...${RESET}"
+    ./configure \
+        --host="$HOST" \
+        --prefix="${SYSROOT}/usr" \
+        --without-png \
+        --without-pcre \
+        --without-onig \
+        --without-z \
+        --without-iconv \
+        CC="$CC_STATIC" \
+        AR="$AR" \
+        RANLIB="$RANLIB" \
+        CFLAGS="${CFLAGS_NOPIE}" \
+        LDFLAGS="-static -L${SYSROOT}/lib -L${SYSROOT}/usr/lib"
+    make static
+    make install-static
+}
+
 # Download and compile Snappy
 get_snappy()
 {
@@ -4195,7 +4322,7 @@ get_snappy()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading Snappy...${RESET}"
-        git clone --depth=1 --branch "$SNAPPY_VER" $SNAPPY_SRC
+        git clone --depth=1 --branch "$SNAPPY_VER" "$SNAPPY_SRC"
         cd snappy
     fi
 
@@ -4240,7 +4367,7 @@ get_xxhash()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading xxHash...${RESET}"
-        git clone --depth=1 --branch "v$XXHASH_VER" $XXHASH_SRC
+        git clone --depth=1 --branch "v$XXHASH_VER" "$XXHASH_SRC"
         cd xxHash
     fi
 
@@ -4326,7 +4453,7 @@ get_zstd()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading Zstandard...${RESET}"
-        git clone --depth=1 --branch "v$ZSTD_VER" $ZSTD_SRC
+        git clone --depth=1 --branch "v$ZSTD_VER" "$ZSTD_SRC"
         cd zstd
     fi
 
@@ -4479,7 +4606,7 @@ get_busybox()
 
     # Download source
     echo -e "${GREEN}Downloading BusyBox...${RESET}"
-    [ -f $BUSYBOX_ARC ] || wget $BUSYBOX_URI
+    wget_download "" "$BUSYBOX_URI"
 
     # Extract source
     if [ -d $BUSYBOX ]; then
@@ -4846,9 +4973,9 @@ configure_kernel()
             FRAGS+="${CONFIGS_DIR}/linux/linux.config.fb.frag "
         fi
 
-        if $INCLUDE_GUI; then
+        if $ENABLE_EVDEV; then
             echo -e "${GREEN}Enabling kernel-level event interface support...${RESET}"
-            FRAGS+="${CONFIGS_DIR}/linux/linux.config.x11.frag "
+            FRAGS+="${CONFIGS_DIR}/linux/linux.config.evdev.frag "
         fi
 
         if $ENABLE_HIGHMEM; then
@@ -5103,6 +5230,13 @@ compile_kernel()
     echo -e "${GREEN}Applying 7.0.x_vga16fb-force-ega-fix patch...${RESET}"
     patch -p1 < "${PATCHES_DIR}/linux/7.0.x/7.0.x_vga16fb-force-ega-fix.patch"
 
+    if [[ "$LINUX_VER" == 7.4* ]]; then
+        echo -e "${GREEN}Applying 7.4.x_vgacon-noblink patch...${RESET}"
+        patch -p1 < "${PATCHES_DIR}/linux/7.4.x/7.4.x_vgacon-noblink.patch"
+    else
+        patch -p1 < "${PATCHES_DIR}/linux/7.0.x/7.0.x_vgacon-noblink.patch"
+    fi
+
     echo -e "${GREEN}Compiling Linux kernel...${RESET}"
     make ARCH=x86 olddefconfig
     make ARCH=x86 bzImage -j"$JOBS"
@@ -5229,7 +5363,7 @@ get_xorgproto()
     XORGPROTO_URI="https://xorg.freedesktop.org/archive/individual/proto/${XORGPROTO_ARC}"
 
     # Download source
-    [ -f $XORGPROTO_ARC ] || wget $XORGPROTO_URI
+    wget_download "" "$XORGPROTO_URI"
 
     # Extract source
     if [ -d $XORGPROTO ]; then
@@ -5266,7 +5400,7 @@ get_libxdmcp()
     LIBXDMCP_URI="https://xorg.freedesktop.org/archive/individual/lib/${LIBXDMCP_ARC}"
 
     # Download source
-    [ -f $LIBXDMCP_ARC ] || wget $LIBXDMCP_URI
+    wget_download "" "$LIBXDMCP_URI"
 
     # Extract source
     if [ -d $LIBXDMCP ]; then
@@ -5311,7 +5445,7 @@ get_libxau()
     LIBXAU_URI="https://xorg.freedesktop.org/archive/individual/lib/${LIBXAU_ARC}"
 
     # Download source
-    [ -f $LIBXAU_ARC ] || wget $LIBXAU_URI
+    wget_download "" "$LIBXAU_URI"
 
     # Extract source
     if [ -d $LIBXAU ]; then
@@ -5348,7 +5482,7 @@ get_xcbproto()
     LIBXCBPROTO_URI="https://xorg.freedesktop.org/archive/individual/proto/${LIBXCBPROTO_ARC}"
 
     # Download source
-    [ -f $LIBXCBPROTO_ARC ] || wget $LIBXCBPROTO_URI
+    wget_download "" "$LIBXCBPROTO_URI"
 
     # Extract source
     if [ -d $LIBXCBPROTO ]; then
@@ -5396,7 +5530,7 @@ get_libxcb()
     LIBXCB_URI="https://xorg.freedesktop.org/archive/individual/lib/${LIBXCB_ARC}"
 
     # Download source
-    [ -f $LIBXCB_ARC ] || wget $LIBXCB_URI
+    wget_download "" "$LIBXCB_URI"
 
     # Extract source
     if [ -d $LIBXCB ]; then
@@ -5441,7 +5575,7 @@ get_xtrans()
     XTRANS_URI="https://xorg.freedesktop.org/archive/individual/lib/${XTRANS_ARC}"
 
     # Download source
-    [ -f $XTRANS_ARC ] || wget $XTRANS_URI
+    wget_download "" "$XTRANS_URI"
 
     # Extract source
     if [ -d $XTRANS ]; then
@@ -5478,7 +5612,7 @@ get_libx11()
     LIBX11_URI="https://xorg.freedesktop.org/archive/individual/lib/${LIBX11_ARC}"
 
     # Download source
-    [ -f $LIBX11_ARC ] || wget $LIBX11_URI
+    wget_download "" "$LIBX11_URI"
 
     # Extract source
     if [ -d $LIBX11 ]; then
@@ -5532,7 +5666,7 @@ get_libxext()
     LIBXEXT_URI="https://xorg.freedesktop.org/archive/individual/lib//${LIBXEXT_ARC}"
 
     # Download source
-    [ -f $LIBXEXT_ARC ] || wget $LIBXEXT_URI
+    wget_download "" "$LIBXEXT_URI"
 
     # Extract source
     if [ -d $LIBXEXT ]; then
@@ -5569,7 +5703,7 @@ get_libxfixes()
     LIBXFIXES_URI="https://xorg.freedesktop.org/archive/individual/lib/${LIBXFIXES_ARC}"
 
     # Download source
-    [ -f $LIBXFIXES_ARC ] || wget $LIBXFIXES_URI
+    wget_download "" "$LIBXFIXES_URI"
 
     # Extract source
     if [ -d $LIBXFIXES ]; then
@@ -5606,7 +5740,7 @@ get_libxi()
     LIBXI_URI="https://xorg.freedesktop.org/archive/individual/lib/${LIBXI_ARC}"
 
     # Download source
-    [ -f $LIBXI_ARC ] || wget $LIBXI_URI
+    wget_download "" "$LIBXI_URI"
 
     # Extract source
     if [ -d $LIBXI ]; then
@@ -5643,7 +5777,7 @@ get_libxtst()
     LIBXTST_URI="https://xorg.freedesktop.org/archive/individual/lib/${LIBXTST_ARC}"
 
     # Download source
-    [ -f $LIBXTST_ARC ] || wget $LIBXTST_URI
+    wget_download "" "$LIBXTST_URI"
 
     # Extract source
     if [ -d $LIBXTST ]; then
@@ -5680,7 +5814,7 @@ get_libice()
     LIBICE_URI="https://xorg.freedesktop.org/archive/individual/lib/${LIBICE_ARC}"
 
     # Download source
-    [ -f $LIBICE_ARC ] || wget $LIBICE_URI
+    wget_download "" "$LIBICE_URI"
 
     # Extract source
     if [ -d $LIBICE ]; then
@@ -5717,7 +5851,7 @@ get_libsm()
     LIBSM_URI="https://xorg.freedesktop.org/archive/individual/lib/${LIBSM_ARC}"
 
     # Download source
-    [ -f $LIBSM_ARC ] || wget $LIBSM_URI
+    wget_download "" "$LIBSM_URI"
 
     # Extract source
     if [ -d $LIBSM ]; then
@@ -5754,7 +5888,7 @@ get_libxt()
     LIBXT_URI="https://xorg.freedesktop.org/archive/individual/lib/${LIBXT_ARC}"
 
     # Download source
-    [ -f $LIBXT_ARC ] || wget $LIBXT_URI
+    wget_download "" "$LIBXT_URI"
 
     # Extract source
     if [ -d $LIBXT ]; then
@@ -5802,7 +5936,7 @@ get_libpng()
     LIBPNG_URI="https://unlimited.dl.sourceforge.net/project/libpng/libpng16/1.6.54/${LIBPNG_ARC}"
 
     # Download source
-    [ -f "$LIBPNG_ARC" ] || wget "$LIBPNG_URI"
+    wget_download "" "$LIBPNG_URI"
 
     # Extract source
     if [ -d $LIBPNG ]; then
@@ -5839,7 +5973,7 @@ get_libxpm()
     LIBXPM_URI="https://xorg.freedesktop.org/archive/individual/lib/${LIBXPM_ARC}"
 
     # Download source
-    [ -f $LIBXPM_ARC ] || wget $LIBXPM_URI
+    wget_download "" "$LIBXPM_URI"
 
     # Extract source
     if [ -d $LIBXPM ]; then
@@ -5876,7 +6010,7 @@ get_libxmu()
     LIBXMU_URI="https://xorg.freedesktop.org/archive/individual/lib/${LIBXMU_ARC}"
 
     # Download source
-    [ -f $LIBXMU_ARC ] || wget $LIBXMU_URI
+    wget_download "" "$LIBXMU_URI"
 
     # Extract source
     if [ -d $LIBXMU ]; then
@@ -5913,7 +6047,7 @@ get_utilmacros()
     echo -e "${GREEN}Downloading util-macros...${RESET}"
 
     # Download source
-    [ -f $UTILMACROS_ARC ] || wget $UTILMACROS_URI
+    wget_download "" "$UTILMACROS_URI"
 
     # Extract source
     if [ -d $UTILMACROS ]; then
@@ -5950,7 +6084,7 @@ get_freetype()
     FREETYPE_URI="https://download.savannah.gnu.org/releases/freetype/${FREETYPE_ARC}"
 
     # Download source
-    [ -f $FREETYPE_ARC ] || wget $FREETYPE_URI
+    wget_download "" "$FREETYPE_URI"
 
     # Extract source
     if [ -d $FREETYPE ]; then
@@ -5996,7 +6130,7 @@ get_libexpat()
     LIBEXPAT_URI="https://github.com/libexpat/libexpat/releases/download/R_2_5_0/${LIBEXPAT_ARC}"
 
     # Download source
-    [ -f $LIBEXPAT_ARC ] || wget $LIBEXPAT_URI
+    wget_download "" "$LIBEXPAT_URI"
 
     # Extract source
     if [ -d $LIBEXPAT ]; then
@@ -6033,7 +6167,7 @@ get_fontconfig()
     FONTCONFIG_URI="https://www.freedesktop.org/software/fontconfig/release/${FONTCONFIG_ARC}"
 
     # Download source
-    [ -f $FONTCONFIG_ARC ] || wget $FONTCONFIG_URI
+    wget_download "" "$FONTCONFIG_URI"
 
     # Extract source
     if [ -d $FONTCONFIG ]; then
@@ -6080,7 +6214,7 @@ get_libxrender()
     LIBXRENDER_URI="https://xorg.freedesktop.org/archive/individual/lib/${LIBXRENDER_ARC}"
 
     # Download source
-    [ -f $LIBXRENDER_ARC ] || wget $LIBXRENDER_URI
+    wget_download "" "$LIBXRENDER_URI"
 
     # Extract source
     if [ -d $LIBXRENDER ]; then
@@ -6117,7 +6251,7 @@ get_libxft()
     LIBXFT_URI="https://xorg.freedesktop.org/archive/individual/lib/${LIBXFT_ARC}"
 
     # Download source
-    [ -f $LIBXFT_ARC ] || wget $LIBXFT_URI
+    wget_download "" "$LIBXFT_URI"
 
     # Extract source
     if [ -d $LIBXFT ]; then
@@ -6154,7 +6288,7 @@ get_libfontenc()
     LIBFONTENC_URI="https://xorg.freedesktop.org/archive/individual/lib/${LIBFONTENC_ARC}"
 
     # Download source
-    [ -f $LIBFONTENC_ARC ] || wget $LIBFONTENC_URI
+    wget_download "" "$LIBFONTENC_URI"
 
     # Extract source
     if [ -d $LIBFONTENC ]; then
@@ -6191,7 +6325,7 @@ get_libxfont()
     LIBXFONT_URI="https://xorg.freedesktop.org/archive/individual/lib/${LIBXFONT_ARC}"
 
     # Download source
-    [ -f $LIBXFONT_ARC ] || wget $LIBXFONT_URI
+    wget_download "" "$LIBXFONT_URI"
 
     # Extract source
     if [ -d $LIBXFONT ]; then
@@ -6236,7 +6370,7 @@ get_fontutil()
     FONTUTIL_URI="https://xorg.freedesktop.org/archive/individual/font/${FONTUTIL_ARC}"
 
     # Download source
-    [ -f $FONTUTIL_ARC ] || wget $FONTUTIL_URI
+    wget_download "" "$FONTUTIL_URI"
 
     # Extract source
     if [ -d $FONTUTIL ]; then
@@ -6275,7 +6409,7 @@ get_fonts()
         echo -e "${GREEN}Building $FONT...${RESET}"
         ARC="${FONT}.tar.xz"
         URI="https://xorg.freedesktop.org/archive/individual/font/${ARC}"
-        [ -f $ARC ] || wget $URI
+        wget_download "" "$URI"
         tar xf $ARC
         cd $FONT
         ./configure \
@@ -6316,7 +6450,7 @@ get_fonts()
     IBMPM_URI="https://github.com/IBM/plex/releases/download/%40ibm%2Fplex-mono%401.1.0/${IBMPM_ARC}"
 
     mkdir -p "$OTF_FONT_DIR/$IBMPM"
-    [ -f $IBMPM_ARC ] || wget $IBMPM_URI
+    wget_download "" "$IBMPM_URI"
     unzip -oj "$IBMPM_ARC" "ibm-plex-mono/fonts/complete/otf/IBMPlexMono-Regular.otf" -d "${CURR_DIR}"/build/plex
     unzip -oj "$IBMPM_ARC" "ibm-plex-mono/LICENSE.txt" -d "${CURR_DIR}"/build/plex
     cd plex
@@ -6351,7 +6485,7 @@ get_libxaw()
     LIBXAW_URI="https://xorg.freedesktop.org/archive/individual/lib/${LIBXAW_ARC}"
 
     # Download source
-    [ -f $LIBXAW_ARC ] || wget $LIBXAW_URI
+    wget_download "" "$LIBXAW_URI"
 
     # Extract source
     if [ -d $LIBXAW ]; then
@@ -6388,7 +6522,7 @@ get_libxkbfile()
     LIBXKBFILE_URI="https://xorg.freedesktop.org/archive/individual/lib/${LIBXKBFILE_ARC}"
 
     # Download source
-    [ -f $LIBXKBFILE_ARC ] || wget $LIBXKBFILE_URI
+    wget_download "" "$LIBXKBFILE_URI"
 
     # Extract source
     if [ -d $LIBXKBFILE ]; then
@@ -6425,7 +6559,7 @@ get_xbitmaps()
     XBITMAPS_URI="https://xorg.freedesktop.org/archive/individual/data/${XBITMAPS_ARC}"
 
     # Download source
-    [ -f $XBITMAPS_ARC ] || wget $XBITMAPS_URI
+    wget_download "" "$XBITMAPS_URI"
 
     # Extract source
     if [ -d $XBITMAPS ]; then
@@ -6466,7 +6600,7 @@ get_openmotif()
     OPENMOTIF_URI="https://deac-fra.dl.sourceforge.net/project/motif/Motif%202.3.8%20Source%20Code/${OPENMOTIF_ARC}"
 
     # Download source
-    [ -f $OPENMOTIF_ARC ] || wget $OPENMOTIF_URI
+    wget_download "" "$OPENMOTIF_URI"
 
     # Extract source
     if [ -d $OPENMOTIF ]; then
@@ -6519,7 +6653,7 @@ get_xbiff()
     XBIFF_URI="https://xorg.freedesktop.org/archive/individual/app/${XBIFF_ARC}"
 
     # Download source
-    [ -f $XBIFF_ARC ] || wget $XBIFF_URI
+    wget_download "" "$XBIFF_URI"
 
     # Extract source
     if [ -d $XBIFF ]; then
@@ -6720,7 +6854,7 @@ get_twm()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading TWM...${RESET}"
-        git clone --branch "twm-${TWM_VER}" $TWM_SRC
+        git clone --branch "twm-${TWM_VER}" "$TWM_SRC"
         cd twm
     fi
 
@@ -6876,7 +7010,7 @@ get_xcalc()
     XCALC_URI="https://xorg.freedesktop.org/archive/individual/app/${XCALC_ARC}"
 
     # Download source
-    [ -f $XCALC_ARC ] || wget $XCALC_URI
+    wget_download "" "$XCALC_URI"
 
     # Extract source
     if [ -d $XCALC ]; then
@@ -6916,7 +7050,7 @@ get_xclock()
     XCLOCK_URI="https://xorg.freedesktop.org/archive/individual/app/${XCLOCK_ARC}"
 
     # Download source
-    [ -f $XCLOCK_ARC ] || wget $XCLOCK_URI
+    wget_download "" "$XCLOCK_URI"
 
     # Extract source
     if [ -d $XCLOCK ]; then
@@ -6950,7 +7084,7 @@ get_xedit()
     XEDIT_URI="https://xorg.freedesktop.org/archive/individual/app/${XEDIT_ARC}"
 
     # Download source
-    [ -f $XEDIT_ARC ] || wget $XEDIT_URI
+    wget_download "" "$XEDIT_URI"
 
     # Extract source
     if [ -d $XEDIT ]; then
@@ -6984,7 +7118,7 @@ get_xeyes()
     XEYES_URI="https://xorg.freedesktop.org/archive/individual/app/${XEYES_ARC}"
 
     # Download source
-    [ -f $XEYES_ARC ] || wget $XEYES_URI
+    wget_download "" "$XEYES_URI"
 
     # Extract source
     if [ -d $XEYES ]; then
@@ -7065,7 +7199,7 @@ get_xload()
     XLOAD_URI="https://xorg.freedesktop.org/archive/individual/app/${XLOAD_ARC}"
 
     # Download source
-    [ -f $XLOAD_ARC ] || wget $XLOAD_URI
+    wget_download "" "$XLOAD_URI"
 
     # Extract source
     if [ -d $XLOAD ]; then
@@ -7102,7 +7236,7 @@ get_xset()
     XSET_URI="https://xorg.freedesktop.org/archive/individual/app/${XSET_ARC}"
 
     # Download source
-    [ -f $XSET_ARC ] || wget $XSET_URI
+    wget_download "" "$XSET_URI"
 
     # Extract source
     if [ -d $XSET ]; then
@@ -7144,7 +7278,7 @@ get_console_fonts()
     URI="${CON_SETUP_SRC}/${ARC}"
 
     # Download source
-    [ -f $ARC ] || wget $URI
+    wget_download "" "$URI"
 
     # Extract source
     [ -d $DIR ] || tar xf $ARC
@@ -7173,19 +7307,10 @@ get_console_fonts()
     cd "${CURR_DIR}"/build
 
     # Download Terminus' licence file
-    TERMINUS_MIRRORS=(
-        "https://altushost-bul.dl.sourceforge.net/project/terminus-font/terminus-font-4.49"
-        "https://altushost-swe.dl.sourceforge.net/project/terminus-font/terminus-font-4.49"
-        "https://sf-eu-introserv-3.dl.sourceforge.net/project/terminus-font/terminus-font-4.49"
-    )
-    TERMINUS_ARC="terminus-font-4.49.1.tar.gz"
-    if [ ! -f "$TERMINUS_ARC" ]; then
-        for MIRROR in "${TERMINUS_MIRRORS[@]}"; do
-            if wget --timeout=5 --tries=1 "$MIRROR/$TERMINUS_ARC"; then
-                break
-            fi
-        done
-    fi
+    wget_download "" \
+        "https://altushost-bul.dl.sourceforge.net/project/terminus-font/terminus-font-4.49/terminus-font-4.49.1.tar.gz" \
+        "https://altushost-swe.dl.sourceforge.net/project/terminus-font/terminus-font-4.49/terminus-font-4.49.1.tar.gz" \
+        "https://sf-eu-introserv-3.dl.sourceforge.net/project/terminus-font/terminus-font-4.49/terminus-font-4.49.1.tar.gz"
 
     # Download IBM3161-font
     if [ -d "IBM3161-font" ]; then
@@ -7194,14 +7319,14 @@ get_console_fonts()
         git config --global --add safe.directory "${CURR_DIR}/build/IBM3161-font"
     else
         echo -e "${GREEN}Downloading IBM3161-font...${RESET}"
-        git clone --branch "$IBM3161_FONT_VER" $IBM3161_FONT_SRC
+        git clone --branch "$IBM3161_FONT_VER" "$IBM3161_FONT_SRC"
         cd "IBM3161-font"
     fi
     echo -e "${GREEN}Installing IBM3161-font...${RESET}"
     cp linux-console/IBM3161.psf "${DESTDIR}/usr/share/consolefonts/Uni-IBM3161-16.psf"
 
     # Download IBM3161-font's licence file
-    [ -f LICENSE.txt ] || wget -q https://unifoundry.com/LICENSE.txt -O LICENSE.txt
+    wget_download "" "https://unifoundry.com/LICENSE.txt"
     cd ..
 
     # Download Inconsolata-psf
@@ -7300,7 +7425,7 @@ get_keymaps()
     URI="${CON_DATA_SRC}/${ARC}"
 
     # Download source
-    [ -f $ARC ] || wget $URI
+    wget_download "" "$URI"
 
     # Extract source
     [ -d $DIR ] || tar xjf $ARC
@@ -7490,21 +7615,23 @@ get_prog_tar()
     URI="${SRC_URI}/${ARC}"
 
     # Download source
-    [ -f "$ARC" ] || wget "$URI"
+    wget_download "" "$URI"
 
     # Extract source
-    if [ -d "$SRC_DIR" ]; then
-        echo -e "${YELLOW}$NAME's source archive is already present, re-extracting before proceeding...${RESET}"
-        sudo rm -rf "$SRC_DIR"
-    fi
+    for D in "$SRC_DIR" "${NAME}-${SRC_DIR}"; do
+        if [ -d "$D" ]; then
+            echo -e "${YELLOW}$NAME's source archive is already present, re-extracting before proceeding...${RESET}"
+            sudo rm -rf "$D"
+        fi
+    done
     tar "$TAR_CMD" "$ARC"
-    cd "$SRC_DIR" || cd "${NAME}-${SRC_DIR}"
+    cd "$SRC_DIR" 2>/dev/null || cd "${NAME}-${SRC_DIR}"
 
 
 
     # Apply any desired patches
     if [ "$NAME" = "dosemu2" ]; then
-        sed -i '/^int priv_drop(void)$/{n; s/^{$/{\n  if (skip_priv_setting)\n    return 1;/}' src/base/core/priv.c
+        patch -p1 < "${PATCHES_DIR}/dosemu2/2.0pre9-2_musl_lowmem.patch"
     elif [ "$NAME" = "tcpdump" ]; then
         sed -i 's/if (setgid(getgid()) != 0 || setuid(getuid()) != 0 *)/if ((getuid() != geteuid() || getgid() != getegid()) \&\& (setgid(getgid()) != 0 || setuid(getuid()) != 0))/' tcpdump.c
     fi
@@ -7552,6 +7679,26 @@ get_prog_tar()
             CURSES_CFLAGS="${CFLAGS_NOPIE} -I${PREFIX}/include" \
             CURSES_LIBS="-L${PREFIX}/lib -lncursesw -Wl,--end-group"
     fi
+
+    # dosemu2: with --disable-dlplugins, configure only links plugins listed in
+    # ST_PLUGINSUBDIRS, and it leaves "term" out (its Makefile mentions
+    # USE_DL_PLUGINS). Without term there is no video driver (Video_none), so
+    # direct writes to B800: such as EDIT's are never drawn.
+    if [ "$NAME" = "dosemu2" ]; then
+        grep -q '^ST_PLUGINSUBDIRS.*plugin/term' Makefile.conf || \
+            sed -i 's|^\(ST_PLUGINSUBDIRS :=.*\)$|\1 plugin/term|' \
+            Makefile.conf
+        grep -q '^ST_PLUGINSUBDIRS.*plugin/console' Makefile.conf || \
+            sed -i 's|^\(ST_PLUGINSUBDIRS :=.*\)$|\1 plugin/console|' \
+            Makefile.conf
+        # Static link needs S-Lang and libm after the plugin archives
+        grep -q 'LIBS += \$(SLANGLIB)' src/plugin/term/Makefile.conf || \
+            echo 'LIBS += $(SLANGLIB) -lm' >> src/plugin/term/Makefile.conf
+
+        sed -i 's|^ST_PLUGINSUBDIRS :=.*|& plugin/gpm|' Makefile.conf
+        sed -i 's|-Wl,--start-group |-Wl,--start-group -lgpm |' Makefile.conf
+    fi
+
     make -j"$JOBS"
     make DESTDIR="$DESTDIR" INSTALL_OWNER= install
 }
@@ -7564,13 +7711,32 @@ init_dyn_swap()
         local BIN_FULL_PATH="$1"
         local BIN_REAL_PATH="${BIN_FULL_PATH#"$DESTDIR"}"
 
-        if [ -f "$BIN_FULL_PATH" ] && [ ! -f "$BIN_FULL_PATH.real" ]; then
-            echo -e "${GREEN}Configure dynamic swap for $BIN_FULL_PATH...${RESET}"
-            mv "$BIN_FULL_PATH" "$BIN_FULL_PATH.real"
-            cp "$CURR_DIR/sysfiles/dyn_swap_template" "$BIN_FULL_PATH"
-            sed -i "s|@BIN_FULL_PATH@|${BIN_REAL_PATH}.real|g" "$BIN_FULL_PATH"
-            sudo chmod 755 "$BIN_FULL_PATH"
+        if [ ! -f "$BIN_FULL_PATH" ] && [ ! -f "$BIN_FULL_PATH.real" ]; then
+            return 0
         fi
+
+        local REQ_MIB="$2"
+        case "$REQ_MIB" in
+            ''|*[!0-9]*) REQ_MIB="" ;;
+        esac
+
+        if [ -f "$BIN_FULL_PATH.real" ]; then
+            echo -e "${GREEN}Recreating dynamic swap wrapper for $BIN_FULL_PATH...${RESET}"
+            if [ -f "$BIN_FULL_PATH" ] &&
+                ! grep -qF "${BIN_REAL_PATH}.real" "$BIN_FULL_PATH"; then
+                mv -f "$BIN_FULL_PATH" "$BIN_FULL_PATH.real"
+            fi
+        else
+            echo -e "${GREEN}Configuring dynamic swap for $BIN_FULL_PATH...${RESET}"
+            mv "$BIN_FULL_PATH" "$BIN_FULL_PATH.real"
+        fi
+
+        cp -f "$CURR_DIR/sysfiles/dyn_swap_template" "$BIN_FULL_PATH"
+        sed -i \
+            -e "s|@BIN_FULL_PATH@|${BIN_REAL_PATH}.real|g" \
+            -e "s|@REQ_MIB@|${REQ_MIB}|g" \
+            "$BIN_FULL_PATH"
+        sudo chmod 755 "$BIN_FULL_PATH"
     fi
 }
 
@@ -7597,7 +7763,7 @@ get_bind9_dnsutils()
     URI="${BIND9_SRC}/${BIND9_VER}/${ARC}"
 
     # Download source
-    [ -f $ARC ] || wget $URI
+    wget_download "" "$URI"
 
     # Extract source
     if [ -d $DIR ]; then
@@ -7772,34 +7938,63 @@ get_freedos()
     cd "${CURR_DIR}/build"
 
     if [ -d "${DESTDIR}/root/.dosemu/drive_c" ] &&
-        [ "$(ls -1 "${DESTDIR}/root/.dosemu/drive_c" 2>/dev/null | wc -l)" -eq 8 ]; then
+        [ "$(ls -1 "${DESTDIR}/root/.dosemu/drive_c" 2>/dev/null | wc -l)" -eq 10 ]; then
         echo -e "${LIGHT_RED}FreeDOS for dosemu2 already copied, skipping...${RESET}"
         return
     fi
 
-    mkdir -p "${DESTDIR}"/root/.dosemu/drive_c
+    rm -rf "${DESTDIR}/root/.dosemu/drive_c/"*
     mkdir -p "${CURR_DIR}/build/FreeDOS"
     cd "${CURR_DIR}/build/FreeDOS"
 
-    [ -f "DEBUG250.zip" ] || wget https://www.ibiblio.org/pub/micro/pc-stuff/freedos/files/dos/debug/debugx/2.50/DEBUG250.zip
-    [ -f "edit09ax.zip" ] || wget https://www.ibiblio.org/pub/micro/pc-stuff/freedos/files/dos/edit/0.9/edit09ax.zip
-    [ -f "fdkernel.zip" ] || wget https://pushbx.org/ecm/download/fdkernel.zip
-    [ -f "freecom.zip" ]  || wget https://pushbx.org/ecm/download/freecom.zip
-    [ -f "more43.zip" ] || wget https://www.ibiblio.org/pub/micro/pc-stuff/freedos/files/dos/more/4.3/more43.zip
-    [ -f "move34.zip" ] || wget https://www.ibiblio.org/pub/micro/pc-stuff/freedos/files/dos/move/3.4/move34.zip
-    [ -f "xcopy18b.zip" ] || wget https://www.ibiblio.org/pub/micro/pc-stuff/freedos/files/dos/xcopy/1.8/xcopy18b.zip
+    wget_download "" \
+        "https://www.ibiblio.org/pub/micro/pc-stuff/freedos/files/dos/debug/debugx/2.50/DEBUG250.zip" \
+        "https://web.archive.org/web/20250916024006/https://www.ibiblio.org/pub/micro/pc-stuff/freedos/files/dos/debug/debugx/2.50/DEBUG250.zip"
+    wget_download "" \
+        "https://www.ibiblio.org/pub/micro/pc-stuff/freedos/files/dos/edit/0.9/edit09ax.zip" \
+        "https://web.archive.org/web/20250916024006/https://www.ibiblio.org/pub/micro/pc-stuff/freedos/files/dos/edit/0.9/edit09ax.zip"
+    wget_download "" \
+        "https://pushbx.org/ecm/download/fdkernel.zip"
+    wget_download "" \
+        "https://pushbx.org/ecm/download/freecom.zip"
+    wget_download "" \
+        "https://www.ibiblio.org/pub/micro/pc-stuff/freedos/files/dos/mem/1.11/mem1_11.zip" \
+        "http://ftp.sun.ac.za/ftp/pub/mirrors/freedos/files/dos/mem/mem1_11.zip"
+    wget_download "" \
+        https://www.ibiblio.org/pub/micro/pc-stuff/freedos/files/dos/more/4.3/more43.zip \
+        "http://ftp.sun.ac.za/ftp/pub/mirrors/freedos/files/dos/more/more43.zip"
+    wget_download "" \
+        "https://www.ibiblio.org/pub/micro/pc-stuff/freedos/files/dos/move/3.4/move34.zip" \
+        "https://web.archive.org/web/20250916024006/https://www.ibiblio.org/pub/micro/pc-stuff/freedos/files/dos/move/3.4/move34.zip"
+    wget_download "" \
+        "https://www.ibiblio.org/pub/micro/pc-stuff/freedos/files/dos/xcopy/1.8/xcopy18b.zip" \
+        "https://web.archive.org/web/20250916024006/https://www.ibiblio.org/pub/micro/pc-stuff/freedos/files/dos/xcopy/1.8/xcopy18b.zip"
 
     # The core essentials
+    unzip -o -j freecom.zip command.com -d "${DESTDIR}/root/.dosemu/drive_c"
     unzip -o -j fdkernel.zip bin/kernel.sys -d "${DESTDIR}/root/.dosemu/drive_c"
     unzip -o -j fdkernel.zip bin/sys.com -d "${DESTDIR}/root/.dosemu/drive_c"
-    unzip -o -j freecom.zip command.com -d "${DESTDIR}/root/.dosemu/drive_c"
 
     # Nice to haves
     unzip -o -j DEBUG250.zip DEBUG.COM -d "${DESTDIR}/root/.dosemu/drive_c"
     unzip -o -j edit09ax.zip BIN/EDIT.EXE -d "${DESTDIR}/root/.dosemu/drive_c"
+    unzip -o -j mem1_11.zip bin/mem.exe -d "${DESTDIR}/root/.dosemu/drive_c"
     unzip -o -j more43.zip bin/MORE.EXE -d "${DESTDIR}/root/.dosemu/drive_c"
     unzip -o -j move34.zip move/bin/move.exe -d "${DESTDIR}/root/.dosemu/drive_c"
     unzip -o -j xcopy18b.zip xcopy/BIN/xcopy.exe -d "${DESTDIR}/root/.dosemu/drive_c"
+
+    for f in "${DESTDIR}/root/.dosemu/drive_c/"*; do
+        [ -f "$f" ] || continue
+        BASE="${f##*/}"
+        UPPER="${BASE^^}"
+        if [ "$BASE" != "$UPPER" ]; then
+            mv -f "$f" "${DESTDIR}/root/.dosemu/drive_c/${UPPER}"
+        fi
+    done
+
+    # Minimal AUTOEXEC.BAT so exitemu works
+    printf '@echo off\r\nPATH C:\\;D:\\DOSEMU\r\n' \
+        > "${DESTDIR}/root/.dosemu/drive_c/AUTOEXEC.BAT"
 }
 
 # Download and compile file
@@ -7821,7 +8016,7 @@ get_file()
         git reset --hard
     else
         echo -e "${GREEN}Downloading file...${RESET}"
-        git clone --branch "FILE$FILE_VER" $FILE_SRC
+        git clone --branch "FILE$FILE_VER" "$FILE_SRC"
         cd file
     fi
 
@@ -7864,7 +8059,7 @@ get_gcc()
         URI="${GCC_SRC}/${ARC}"
 
         # Download
-        [ -f "$ARC" ] || wget "$URI"
+        wget_download "" "$URI"
 
         # Extract
         if [ -d "${DESTDIR}/opt/$DIR" ]; then
@@ -7909,7 +8104,7 @@ get_git()
         git reset --hard
     else
         echo -e "${GREEN}Downloading Git...${RESET}"
-        git clone --branch "v${GIT_VER}" $GIT_SRC
+        git clone --branch "v${GIT_VER}" "$GIT_SRC"
         cd git
     fi
 
@@ -7960,7 +8155,7 @@ get_htop()
         git reset --hard
     else
         echo -e "${GREEN}Downloading htop...${RESET}"
-        git clone --branch "${HTOP_VER}" $HTOP_SRC
+        git clone --branch "${HTOP_VER}" "$HTOP_SRC"
         cd htop
     fi
 
@@ -7999,7 +8194,7 @@ get_hwinfo()
         git reset --hard
     else
         echo -e "${GREEN}Downloading hwinfo...${RESET}"
-        git clone --branch "${HWINFO_VER}" $HWINFO_SRC
+        git clone --branch "${HWINFO_VER}" "$HWINFO_SRC"
         cd hwinfo
     fi
 
@@ -8039,7 +8234,7 @@ get_joe()
         git reset --hard
     else
         echo -e "${GREEN}Downloading JOE...${RESET}"
-        git clone --branch "releases/joe-${JOE_VER}" $JOE_SRC
+        git clone --branch "releases/joe-${JOE_VER}" "$JOE_SRC"
         cd joe
     fi
 
@@ -8112,7 +8307,7 @@ get_lsb_release_minimal()
         git reset --hard
     else
         echo -e "${GREEN}Downloading lsb-release-minimal...${RESET}"
-        git clone --branch "${LSB_RELEASE_MIN_VER}" $LSB_RELEASE_MIN_SRC
+        git clone --branch "${LSB_RELEASE_MIN_VER}" "$LSB_RELEASE_MIN_SRC"
         cd lsb-release-minimal
     fi
 
@@ -8142,7 +8337,7 @@ get_lua()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading Lua...${RESET}"
-        git clone --branch "v${LUA_VER}" $LUA_SRC
+        git clone --branch "v${LUA_VER}" "$LUA_SRC"
         cd lua
     fi
 
@@ -8170,7 +8365,7 @@ get_memtester()
     URI="${MEMTESTER_SRC}/${ARC}"
 
     # Download source
-    [ -f $ARC ] || wget $URI
+    wget_download "" "$URI"
 
     # Extract source
     if [ -d $DIR ]; then
@@ -8211,7 +8406,7 @@ get_mg()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading Mg...${RESET}"
-        git clone --branch "v${MG_VER}" $MG_SRC
+        git clone --branch "v${MG_VER}" "$MG_SRC"
         cd mg
     fi
 
@@ -8260,7 +8455,7 @@ get_micro()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading micro...${RESET}"
-        git clone --branch "v${MICRO_VER}" $MICRO_SRC
+        git clone --branch "v${MICRO_VER}" "$MICRO_SRC"
         cd MICRO
     fi
     
@@ -8319,7 +8514,7 @@ get_micropython()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading MicroPython...${RESET}"
-        git clone --branch "v${MICROPYTHON_VER}" $MICROPYTHON_SRC
+        git clone --branch "v${MICROPYTHON_VER}" "$MICROPYTHON_SRC"
         cd micropython
     fi
     
@@ -8435,7 +8630,7 @@ get_nano()
     NANO_URI="${NANO_SRC}/${NANO_DIST}/${NANO_ARC}"
 
     # Download source
-    [ -f $NANO_ARC ] || wget $NANO_URI
+    wget_download "" "$NANO_URI"
 
     # Extract source
     if [ -d $NANO ]; then
@@ -8496,7 +8691,7 @@ get_nasm()
         git reset --hard
     else
         echo -e "${GREEN}Downloading NASM...${RESET}"
-        git clone --branch "nasm-${NASM_VER}" $NASM_SRC
+        git clone --branch "nasm-${NASM_VER}" "$NASM_SRC"
         cd nasm
     fi
 
@@ -8534,7 +8729,7 @@ get_nbsdgames()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading nbsdgames...${RESET}"
-        git clone --depth=1 --branch "v${NBSDGAMES_VER}" $NBSDGAMES_SRC
+        git clone --depth=1 --branch "v${NBSDGAMES_VER}" "$NBSDGAMES_SRC"
         cd nbsdgames
     fi
 
@@ -8574,7 +8769,7 @@ get_nethack()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading NetHack...${RESET}"
-        git clone --branch "NetHack-${NETHACK_VER}_Released" $NETHACK_SRC
+        git clone --branch "NetHack-${NETHACK_VER}_Released" "$NETHACK_SRC"
         cd "NetHack"
     fi
 
@@ -8644,7 +8839,7 @@ get_perl()
 
     # Download source (Perl)
     echo -e "${GREEN}Downloading Perl...${RESET}"
-    [ -f $ARC ] || wget $URI
+    wget_download "" "$URI"
 
     # Extract source (Perl)
     if [ -d $DIR ]; then
@@ -8663,7 +8858,7 @@ get_perl()
         cd ..
     else
         echo -e "${GREEN}Downloading perl-cross...${RESET}"
-        git clone --depth 1 --branch "${PERL_CROSS_VER}" $PERL_CROSS_SRC
+        git clone --depth 1 --branch "${PERL_CROSS_VER}" "$PERL_CROSS_SRC"
     fi
 
     # Copy perl-cross over Perl source
@@ -8730,7 +8925,7 @@ get_rustid()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading rustid...${RESET}"
-        git clone --branch "v${RUSTID_VER}" $RUSTID_SRC
+        git clone --branch "v${RUSTID_VER}" "$RUSTID_SRC"
         cd rustid
     fi
 
@@ -8766,7 +8961,7 @@ get_sc_im()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading sc-im...${RESET}"
-        git clone --branch "v${SC_IM_VER}" $SC_IM_SRC
+        git clone --branch "v${SC_IM_VER}" "$SC_IM_SRC"
         cd sc-im
     fi
 
@@ -8849,7 +9044,7 @@ get_tilde()
     URI="${LIBT3_SRC}/${ARC}"
 
     # Download source
-    [ -f $ARC ] || wget $URI
+    wget_download "" "$URI"
 
     # Extract source
     if [ -d $DIR ]; then
@@ -8932,7 +9127,7 @@ get_tn5250()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading tn5250...${RESET}"
-        git clone --branch "v${TN5250_VER}" $TN5250_SRC
+        git clone --branch "v${TN5250_VER}" "$TN5250_SRC"
         cd tn5250
     fi
 
@@ -8976,7 +9171,7 @@ get_tnftp()
     TNFTP_URI="${TNFTP_SRC}/${TNFTP_ARC}"
 
     # Download source
-    [ -f $TNFTP_ARC ] || wget $TNFTP_URI
+    wget_download "" "$TNFTP_URI"
 
     # Extract source
     if [ -d $TNFTP ]; then
@@ -9061,7 +9256,7 @@ get_tshark()
     URI="${WIRESHARK_SRC}/${ARC}"
 
     # Download source
-    [ -f $ARC ] || wget $URI
+    wget_download "" "$URI"
 
     # Extract source
     if [ -d $DIR ]; then
@@ -9182,7 +9377,7 @@ get_vim()
         git clean -fdx
     else
         echo -e "${GREEN}Downloading Vim...${RESET}"
-        git clone --branch "v$VIM_VER" $VIM_SRC
+        git clone --branch "v$VIM_VER" "$VIM_SRC"
         cd "vim"
     fi
 
@@ -9347,7 +9542,7 @@ get_shorkfetch()
 
     # Download source
     echo -e "${GREEN}Downloading shorkfetch...${RESET}"
-    git clone --branch "${SHORKFETCH_VER}" $SHORKFETCH_SRC
+    git clone --branch "${SHORKFETCH_VER}" "$SHORKFETCH_SRC"
     cd shorkfetch
 
     # Optimise for size
@@ -9360,7 +9555,7 @@ get_shorkfetch()
     sed -i 's|,scn,|,|' src/main.c
 
     # If no SHORKGUI included, skip DE and WM fields
-    if ! $INCLUDE_GUI; then
+    if ! $INCLUDE_SHORKGUI; then
         sed -i 's|,de,|,|' src/main.c
         sed -i 's|,wm,|,|' src/main.c
     fi
@@ -9856,7 +10051,7 @@ trim_fat()
         fi
     fi
 
-    if $INCLUDE_GUI && ! $ENABLE_MULTIUSER_REAL; then
+    if $INCLUDE_SHORKGUI && ! $ENABLE_MULTIUSER_REAL; then
         sudo rm -rf "${DESTDIR}/home"
     fi
 
@@ -10116,14 +10311,16 @@ copy_licences()
     fi
 
     if $INCLUDE_FREEDOS; then
-        wget -qO "${DESTDIR}/LICENCES/freedos.txt" "https://raw.githubusercontent.com/FDOS/kernel/refs/heads/master/COPYING" || true
+        wget_download "${DESTDIR}/LICENCES/freedos.txt" \
+            "https://raw.githubusercontent.com/FDOS/kernel/refs/heads/master/COPYING"
         CSV+="\nFreeDOS,GNU GPLv2,freedos.txt"
     fi
 
     if $INCLUDE_GCC &&
         [ -f "../../COPYING" ]; then
         cp "../../COPYING" "${DESTDIR}/LICENCES/gcc.txt" || true
-        wget -qO "${DESTDIR}/LICENCES/gcc-exception.txt" "https://raw.githubusercontent.com/gcc-mirror/gcc/master/COPYING.RUNTIME" || true
+        wget_download "${DESTDIR}/LICENCES/gcc-exception.txt" \
+            "https://raw.githubusercontent.com/gcc-mirror/gcc/master/COPYING.RUNTIME"
         CSV+="\nGCC,GNU GPLv3,gcc.txt"
         CSV+="\nGCC Runtime,GCC Runtime Library Exception,gcc-exception.txt"
     fi
@@ -10298,6 +10495,13 @@ copy_licences()
         CSV+="\nlibao,GNU GPLv2,libao.txt"
     fi
 
+    if $NEED_LIBB64 && 
+        [ -f "${CURR_DIR}/build/libb64/LICENSE.md" ]; then
+        cp "${CURR_DIR}/build/libb64/LICENSE.md" \
+            "${DESTDIR}/LICENCES/libb64.txt" || true
+        CSV+="\nlibb64,public domain,libb64.txt"
+    fi
+
     if $INCLUDE_E2FSPROGS &&
         [ -f "${CURR_DIR}/build/e2fsprogs-$E2FSPROGS_VER/lib/et/com_err.c" ]; then
         sed -n '/^ \* Copyright/,/warranty\.$/p' "${CURR_DIR}/build/e2fsprogs-$E2FSPROGS_VER/lib/et/com_err.c" | sed 's/^ \* \{0,1\}//' > "${DESTDIR}/LICENCES/libcom_err.txt"
@@ -10436,7 +10640,8 @@ copy_licences()
         cp "${CURR_DIR}/build/musl-$MUSL_VER/COPYRIGHT" "${DESTDIR}/LICENCES/musl.txt" || true
         CSV+="\nmusl,MIT,musl.txt"
     elif $INCLUDE_GCC; then
-        wget -qO "${DESTDIR}/LICENCES/musl.txt" "https://git.musl-libc.org/cgit/musl/plain/COPYRIGHT" || true
+        wget_download "${DESTDIR}/LICENCES/musl.txt" \
+            "https://git.musl-libc.org/cgit/musl/plain/COPYRIGHT"
         CSV+="\nmusl,MIT,musl.txt"
     fi
 
@@ -10542,6 +10747,13 @@ copy_licences()
             cat "../../COPYING"
         } > "${DESTDIR}/LICENCES/pci-ids.txt" || true
         CSV+="\npci.ids,GNU GPLv3,pci-ids.txt"
+    fi
+
+    if $NEED_SLANG && 
+        [ -f "${CURR_DIR}/build/slang-${SLANG_VER}/COPYING" ]; then
+        cp "${CURR_DIR}/build/slang-${SLANG_VER}/COPYING" \
+            "${DESTDIR}/LICENCES/slang.txt" || true
+        CSV+="\nS-Lang,GNU GPLv2,slang.txt"
     fi
 
     if $INCLUDE_SC_IM && \
@@ -10747,22 +10959,22 @@ build_filesystem()
         copy_sysfile "${CURR_DIR}"/sysfiles/disc/profile "${DESTDIR}"/etc/profile
         copy_sysfile "${CURR_DIR}"/sysfiles/disc/rc "${DESTDIR}"/etc/init.d/rc
         copy_sysfile "${CURR_DIR}"/sysfiles/disc/welcome "${DESTDIR}"/banners/welcome
-    
-        echo -e "${GREEN}Copying and compiling terminfo database...${RESET}"
-        mkdir -p "${DESTDIR}"/usr/share/terminfo/src/
-        cp "${CURR_DIR}"/sysfiles/terminfo.src "${DESTDIR}"/usr/share/terminfo/src/
-        tic -x -1 -o "${DESTDIR}"/usr/share/terminfo "${DESTDIR}"/usr/share/terminfo/src/terminfo.src
     elif [ "$ID" == "shork-diskette" ]; then
         copy_sysfile "${CURR_DIR}"/sysfiles/diskette/profile "${DESTDIR}"/etc/profile
         copy_sysfile "${CURR_DIR}"/sysfiles/diskette/rc "${DESTDIR}"/etc/init.d/rc
         copy_sysfile "${CURR_DIR}"/sysfiles/diskette/welcome "${DESTDIR}"/banners/welcome
     fi
 
-    if [ "$BUILD_TYPE" != "micro" ] && [ "$BUILD_TYPE" != "mini" ]; then
+    if [ "$ID" != "shork-diskette" ] && [ "$BUILD_TYPE" != "micro" ]; then
         echo -e "${GREEN}Copying and compiling terminfo database...${RESET}"
         mkdir -p "${DESTDIR}"/usr/share/terminfo/src/
-        cp "${CURR_DIR}"/sysfiles/terminfo.src "${DESTDIR}"/usr/share/terminfo/src/
-        tic -x -1 -o "${DESTDIR}"/usr/share/terminfo "${DESTDIR}"/usr/share/terminfo/src/terminfo.src
+        cp "${CURR_DIR}"/sysfiles/terminfo.src \
+            "${DESTDIR}"/usr/share/terminfo/src/
+        tic -x -1 -o "${DESTDIR}"/usr/share/terminfo \
+            "${DESTDIR}"/usr/share/terminfo/src/terminfo.src
+        #tic -x -e "linux,st-256color,vt100,xterm,dumb" \
+        #    -o "${DESTDIR}"/usr/share/terminfo \
+        #    "${CURR_DIR}/build/ncurses-${NCURSES_VER}/misc/terminfo.src"
     fi
 
     if $INCLUDE_DOSEMU2; then
@@ -10783,7 +10995,7 @@ build_filesystem()
         fi
     fi
 
-    if $INCLUDE_GUI; then
+    if $INCLUDE_SHORKGUI; then
         echo -e "${GREEN}Installing files needed for SHORKGUI...${RESET}"
         mkdir -p "${DESTDIR}/usr/share/X11/app-defaults"
         copy_sysfile "${CURR_DIR}"/shorkutils/shorkgui "${DESTDIR}"/usr/bin/shorkgui
@@ -10930,8 +11142,16 @@ build_filesystem()
         copy_sysfile /etc/ssl/certs/ca-certificates.crt "${DESTDIR}"/etc/ssl/cert.pem
     fi
 
-    # Copy any payload
-    if [ "$ID" == "shork-disc" ]; then
+    # Copy payload
+    if [[ "$ID" == "shork-"*86 ]]; then
+        if [ -d "${DESTDIR}/root/.dosemu/drive_c" ] &&
+            [ -d "${CURR_DIR}/payload/drive_c" ] && $INCLUDE_DOSEMU2 &&
+            ! $INCLUDE_FREEDOS; then
+            rm -rf "${DESTDIR}/root/.dosemu/drive_c/"*
+            cp -a "${CURR_DIR}/payload/drive_c/." \
+                "${DESTDIR}/root/.dosemu/drive_c/"
+        fi
+    elif [ "$ID" == "shork-disc" ]; then
         find "${CURR_DIR}/payload/" -mindepth 1 -not -name "notice.txt" | while read -r item; do
             cp -r "$item" "${DESTDIR}/root/"
         done
@@ -11370,7 +11590,8 @@ build_disk_img()
         # We can assume these features demand more
         if [[ ! "$BUILD_TYPE" =~ ^(mini|micro)$ ]]; then
             OVERHEAD_MIB=16
-            if [ "$INCLUDE_GCC" = true ] || [ "$INCLUDE_GUI" = true ] ||
+            if [ "$INCLUDE_GCC" = true ] ||
+                [ "$INCLUDE_SHORKGUI" = true ] ||
                 [ "$INCLUDE_TSHARK" = true ]; then
                 OVERHEAD_MIB=48
             fi
@@ -11383,8 +11604,8 @@ build_disk_img()
         # Use target disk value if provided and large enough
         if [ -n "$TARGET_DISK" ]; then
             if [ "$TARGET_DISK" -lt "$TOTAL_MIB" ]; then
-                echo -e "${YELLOW}WARNING: the provided target disk value (${TARGET_DISK}MiB) is smaller than required size (${TOTAL_MIB}MiB) - using calculated size instead${RESET}"
-                TOTAL_DISK_SIZE=$TOTAL_MIB
+                TOTAL_DISK_SIZE=$((TOTAL_MIB + 25))
+                echo -e "${YELLOW}WARNING: the provided target disk value (${TARGET_DISK}MiB) is smaller than required size (${TOTAL_DISK_SIZE}MiB) - using calculated size instead${RESET}"
             else
                 echo -e "${GREEN}Using user-specified disk size (${TARGET_DISK}MiB)${RESET}"
                 TOTAL_DISK_SIZE=$TARGET_DISK
@@ -12002,7 +12223,7 @@ get_installed_progs_feats()
 {
     # Kernel features
     if [[ "$ID" == "shork-"*86 ]]; then
-        if $INCLUDE_GUI; then
+        if $$ENABLE_EVDEV; then
             INCLUDED_FEATURES+=("kernel-level event interface support")
         else
             EXCLUDED_FEATURES+=("kernel-level event interface support")
@@ -12686,9 +12907,15 @@ fi
 if $NEED_LIBUV; then
     get_libuv
 fi
+if $NEED_LIBB64; then
+    get_libb64
+fi
+if $NEED_SLANG; then
+    get_slang
+fi
 
 # Compile SHORKGUI
-if $INCLUDE_GUI; then
+if $INCLUDE_SHORKGUI; then
     prepare_x11
     get_tinyx
     if [[ $USED_WM == "TWM" ]]; then
@@ -12863,9 +13090,9 @@ if $INCLUDE_DOSEMU2; then
         true \
         false \
         "/usr" \
-        "--sysconfdir=/etc --disable-x --disable-sdl --disable-fdpp --disable-dj64 --disable-alsa --disable-libao --disable-ladspa --disable-fluidsynth --disable-midimisc --disable-dlplugins"
+        "--sysconfdir=/etc --disable-x --disable-sdl --disable-fdpp --disable-dj64 --disable-alsa --disable-libao --disable-ladspa --disable-fluidsynth --disable-midimisc --disable-dlplugins --disable-cpuemu ac_cv_have_decl_MADV_POPULATE_WRITE=no"
 
-    init_dyn_swap "${DESTDIR}/usr/bin/dosemu.bin"
+    mkdir -p "${DESTDIR}"/root/.dosemu/drive_c
 
     # Make the dosemu bootstrap script pure shell-compatible and remove
     # unneeded parts
@@ -12878,6 +13105,16 @@ if $INCLUDE_DOSEMU2; then
         -e 's/if \[ "`id -ur`" -eq 0 \]; then/if [ "$(whoami)" = "root" ]; then/' \
         -e '/if \[ -f "\$LOG_FILE" -a -x "\/usr\/bin\/dpkg-query" \]; then/,/^fi$/d' \
         "${DESTDIR}/usr/bin/dosemu"
+
+    init_dyn_swap "${DESTDIR}/usr/bin/dosemu.bin" 4
+    cp "${CURR_DIR}/sysfiles/dos" "${DESTDIR}"/usr/bin/dos
+    chmod +x "${DESTDIR}"/usr/bin/dos
+
+    if $INCLUDE_FREEDOS; then
+        get_freedos
+    else
+        rm -rf "${DESTDIR}/root/.dosemu/drive_c/"*
+    fi
 fi
 if $INCLUDE_DOSFSTOOLS; then
     get_prog_git \
@@ -12930,12 +13167,9 @@ fi
 if $INCLUDE_FILE; then
     get_file
 fi
-if $INCLUDE_FREEDOS; then
-    get_freedos
-fi
 if $INCLUDE_GIT; then
     get_git
-    init_dyn_swap "${DESTDIR}/usr/bin/git"
+    init_dyn_swap "${DESTDIR}/usr/bin/git" 8
 fi
 if $INCLUDE_GNUPG; then
     get_prog_tar \
@@ -13109,6 +13343,7 @@ if $INCLUDE_MIDNIGHT_CMDR; then
         "-I${SYSROOT}/usr/include -I${PREFIX}/include" \
         "-L${SYSROOT}/usr/lib -L${PREFIX}/lib" \
         "-Wl,--start-group -lssh2 -lcrypto -lz -lpcre2-8 -Wl,-Bstatic -latomic -lncursesw -ltinfo -lgpm -Wl,--end-group"
+    init_dyn_swap "${DESTDIR}/usr/bin/mc" 4
 fi
 if $INCLUDE_MPG321; then
     get_mpg321
@@ -13212,7 +13447,7 @@ if $INCLUDE_TCC; then
         "" \
         ""
     get_tcc
-    init_dyn_swap "${DESTDIR}/usr/local/bin/i386-tcc"
+    init_dyn_swap "${DESTDIR}/usr/local/bin/i386-tcc" 16
     ln -sf /usr/local/bin/i386-tcc "${DESTDIR}"/usr/bin/tcc || true
 fi
 if $INCLUDE_TCPDUMP; then
@@ -13265,7 +13500,7 @@ if $INCLUDE_TSHARK; then
 fi
 if $INCLUDE_VIM; then
     get_vim
-    init_dyn_swap "${DESTDIR}/usr/bin/vim"
+    init_dyn_swap "${DESTDIR}/usr/bin/vim" 16
 fi
 if $INCLUDE_GCC; then
     get_gcc

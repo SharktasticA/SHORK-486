@@ -1,3 +1,7 @@
 #!/bin/sh
 . /etc/profile
-_dyn_swap "@BIN_FULL_PATH@" "$@"
+if command -v _dyn_swap >/dev/null 2>&1; then
+    _dyn_swap "@REQ_MIB@" "@BIN_FULL_PATH@" "$@"
+else
+    exec "@BIN_FULL_PATH@" "$@"
+fi

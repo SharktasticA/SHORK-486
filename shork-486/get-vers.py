@@ -43,6 +43,7 @@ REPOS = [
     "joe-editor/joe",
     "legionus/kbd"
     "xiph/libao",
+    "libb64/libb64",
     "libevent/libevent",
     "libffi/libffi",
     "gitzone83/libsmi",

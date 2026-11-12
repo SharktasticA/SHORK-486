@@ -81,13 +81,19 @@ _reap_stale_swaps()
     [ "$REAPED" -eq 1 ] && _mfk_unset
 }
 
-# Wraps launching a program with creating a <=48MiB swap file for it to help
+# Wraps launching a program with creating a <=NMiB swap file for it to help
 # prevent the kernel from OOM-killing it when the system runs out of
 # physical memory
 _dyn_swap()
 {
-    local BIN_PATH="$1"
-    shift
+    local REQ_MB="$1"
+    local BIN_PATH="$2"
+    shift 2
+
+    # Default to 48MiB if the requested size is blank or invalid
+    case "$REQ_MB" in
+        ''|*[!0-9]*|0) REQ_MB=48 ;;
+    esac
 
     if [ ! -x "$BIN_PATH" ]; then
         printf "${SHELL}: %s: not found\n" "$(basename "$BIN_PATH")"
@@ -130,9 +136,9 @@ _dyn_swap()
 
     local SWAP_DIR="/var/tmp"
     local SWAP_PATH="${SWAP_DIR}/.$(basename "$BIN_PATH")_dsf.$$"
-    local TARGET_B=$((48 * 1048576))
+    local TARGET_B=$((REQ_MB * 1048576))
 
-    # If target is more than half of root free space, set it to quater of
+    # If target is more than half of root free space, set it to quarter of
     # said space
     local ROOT_AVAIL_B=$(df -B1 / 2>/dev/null | awk 'NR==2 {print $4}')
     if [ -n "$ROOT_AVAIL_B" ] && [ "$ROOT_AVAIL_B" -gt 0 ]; then

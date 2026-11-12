@@ -17,12 +17,12 @@ PATCHES_DIR=$(pwd)
 
 if [[ -d tmp/linux ]]; then
     cd tmp/linux
-    git reset --hard v7.4-rc1
+    git reset --hard v7.4-rc2
     git clean -fdx
 else
     mkdir -p tmp
     cd tmp
-    git clone --depth=1 --branch v7.4-rc1 https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+    git clone --depth=1 --branch v7.4-rc2 https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
     cd linux
 fi
 

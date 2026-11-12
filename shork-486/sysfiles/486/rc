@@ -301,6 +301,11 @@ mount -t proc  proc  /proc
 log "Mounting /sys" 1
 mount -t sysfs sysfs /sys
 
+# Flush /tmp so its empty on each boot
+log "Flushing /tmp" 2
+rm -rf /tmp
+mkdir -p /tmp
+chmod 1777 /tmp 2>/dev/null
 
 # Disable watermark boosting to help avoid OOM killer
 log "Disabling watermark boosting" 2
@@ -331,6 +336,12 @@ fi
 log "Mounting /dev/pts" 3
 mkdir -p /dev/pts
 mount -t devpts -o gid=5,mode=620,ptmxmode=666 devpts /dev/pts
+
+# Mount /dev/shm for POSIX shared memory
+log "Mounting /dev/shm" 3
+mkdir -p /dev/shm
+mount -t ramfs -o mode=1777 ramfs /dev/shm
+chmod 1777 /dev/shm 2>/dev/null
 
 # Create /var/run for utmp when multi-user
 if [ -d /home ]; then
