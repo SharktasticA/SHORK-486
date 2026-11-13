@@ -1,0 +1,518 @@
+############################################################################
+## 3.15.0_lazy_loading.patch                                              ##
+############################################################################
+## "Lazy-loading" PCI vendor:name lookup. Instead of needing to load      ##
+## entire pci.ids into memory, PCI classes are loaded separately from a   ##
+## pci.classes file the SHORK 486 Build Script generates, and pci.ids is  ##
+## queried line-by-line when looking up devices. This all can decrease    ##
+## lspci loading times by (e.g.) 2/3 on 486SX.                            ##
+############################################################################
+## This patch is a derivative work of pciutils. It is licensed separately ##
+## under the terms of the GNU GPLv2 licence, and is distributed as part   ##
+## of the SHORK project. See the accompanying COPYING file in this        ##
+## directory for details.                                                 ##
+############################################################################
+## Kali (links.sharktastica.co.uk)                                        ##
+############################################################################
+
+diff --git a/lib/Makefile b/lib/Makefile
+index 3ed5e45..bff4162 100644
+--- a/lib/Makefile
++++ b/lib/Makefile
+@@ -3,7 +3,7 @@
+ 
+ # Expects to be invoked from the top-level Makefile and uses lots of its variables.
+ 
+-OBJS=init access generic dump names filter names-hash names-parse names-net names-cache names-hwdb params caps
++OBJS=init access generic dump names filter names-hash names-parse names-lazy names-net names-cache names-hwdb params caps
+ INCL=internal.h pci.h config.h header.h sysdep.h types.h
+ 
+ ifdef PCI_HAVE_PM_LINUX_SYSFS
+@@ -161,6 +161,7 @@ dump.o: dump.c $(INCL)
+ names.o: names.c $(INCL) names.h
+ names-cache.o: names-cache.c $(INCL) names.h
+ names-hash.o: names-hash.c $(INCL) names.h
++names-lazy.o: names-lazy.c $(INCL) names.h
+ names-net.o: names-net.c $(INCL) names.h
+ names-parse.o: names-parse.c $(INCL) names.h
+ names-hwdb.o: names-hwdb.c $(INCL) names.h
+diff --git a/lib/names-lazy.c b/lib/names-lazy.c
+new file mode 100644
+index 0000000..24bb45c
+--- /dev/null
++++ b/lib/names-lazy.c
+@@ -0,0 +1,458 @@
++/**
++ * Patch for SHORK 486:
++ * "Lazy-loading" PCI vendor:name lookup. Instead of needing to load entire
++ * pci.ids into memory, PCI classes are loaded separately from a pci.classes
++ * file the SHORK 486 Build Script generates, and pci.ids is queried
++ * line-by-line when looking up devices. This all can decrease lspci
++ * loading times by (e.g.) 2/3 on 486SX. If pci.classes is missing, classes
++ * are read from pci.ids instead as a fallback. If no devices have been
++ * scanned yet, or in zlib builds, it falls back to the original loader.
++ *
++ * Can be freely distributed and used under the terms of the GNU GPL v2+
++ *
++ * SPDX-License-Identifier: GPL-2.0-or-later
++ */
++
++
++
++#include "internal.h"
++#include "names.h"
++
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++
++
++
++/**
++ * The original loader from names-parse.c, renamed but still available as a
++ * fallback.
++ * @param a PCI access structure containing context
++ * @return Non-zero if the ID file was opened and parsed; 0 if not
++ */
++int pci_load_name_list_orig(struct pci_access *a);
++
++
++
++#ifdef PCI_COMPRESSED_IDS
++/**
++ * A passthrough to access the original pci_load_name_list(). This is
++ * required for zlib builds.
++ * @param a PCI access structure containing context
++ * @return Non-zero if the ID file was opened and parsed; 0 if not
++ */
++int pci_load_name_list(struct pci_access *a)
++{
++  return pci_load_name_list_orig(a);
++}
++#else
++
++// Possible values to parse in parse_file()
++enum PARSE_TYPE {
++  PARSE_VENDORS,
++  PARSE_CLASSES,
++  PARSE_BOTH
++};
++
++// Set of scanned device PCI IDs wanted
++struct wanted {
++  // Bitmap over all 16-bit vendor IDs whose names are needed
++  byte vendors[8192];
++  // Wanted devices ((vendor << 16) | device)
++  u32 *pairs;
++  // Number of entries used in pairs
++  int n;
++  // Number of entries allocated in pairs
++  int cap;
++  // Highest wanted vendor ID
++  unsigned int max_vendor;
++};
++
++
++
++static void add_pair_wanted(struct pci_access*, struct wanted*,
++  unsigned int, unsigned int);
++static int collect_wanted(struct pci_access*, struct wanted*);
++static char *extract_name(char*);
++static int id_hex(char*, int);
++static inline int id_white_p(char);
++static int is_pair_wanted(struct wanted*, unsigned int, unsigned int);
++static int is_vendor_wanted(struct wanted*, unsigned int);
++static void mark_vendor_wanted(struct wanted*, unsigned int);
++static FILE *open_pci_classes(struct pci_access*);
++static void parse_file(struct pci_access*, FILE*, struct wanted*,
++  enum PARSE_TYPE);
++
++
++
++/**
++ * Adds a given vendor:device ID pair to the wanted set.
++ * @param a PCI access structure containing context
++ * @param w Wanted set to update
++ * @param v Given vendor ID
++ * @param d Given device ID
++ */
++static void add_pair_wanted(struct pci_access *a, struct wanted *w,
++  unsigned int v, unsigned int d)
++{
++  if (w->n == w->cap)
++  {
++    int ncap = w->cap ? w->cap * 2 : 32;
++    u32 *np = pci_malloc(a, sizeof(u32) * ncap);
++    if (w->n)
++      memcpy(np, w->pairs, sizeof(u32) * w->n);
++    pci_mfree(w->pairs);
++    w->pairs = np;
++    w->cap = ncap;
++  }
++  w->pairs[w->n++] = ((u32) (v & 0xffff) << 16) | (d & 0xffff);
++  mark_vendor_wanted(w, v);
++}
++
++/**
++ * Walks the scanned devices list and fills in the wanted set.
++ * @param a PCI access structure containing context
++ * @param w Wanted set to fill
++ * @return Number of devices found
++ */
++static int collect_wanted(struct pci_access *a, struct wanted *w)
++{
++  struct pci_dev *d;
++  int count = 0;
++
++  for (d = a->devices; d; d = d->next)
++  {
++    pci_fill_info(d, PCI_FILL_IDENT | PCI_FILL_SUBSYS);
++    add_pair_wanted(a, w, d->vendor_id, d->device_id);
++    mark_vendor_wanted(w, d->subsys_vendor_id);
++    count++;
++  }
++  return count;
++}
++
++/**
++ * Extracts a name from a given pci.ids line.
++ * @param p Pointer to text after the ID
++ * @return Pointer to the trimmed name inside the same buffer; NULL if empty
++ */
++static char *extract_name(char *p)
++{
++  char *e;
++  while (id_white_p(*p))
++    p++;
++  e = p + strlen(p);
++  while (e > p &&
++    (e[-1] == '\n' || e[-1] == '\r' || e[-1] == ' ' || e[-1] == '\t'))
++    *--e = 0;
++  return *p ? p : NULL;
++}
++
++/**
++ * Parse a fixed number of hex digits. Copied from names-parse.c.
++ * @param p Pointer to first digit
++ * @param cnt Number of digits to parse
++ * @return Result hex value; -1 if non-hex char found
++ */
++static int id_hex(char *p, int cnt)
++{
++  int x = 0;
++  while (cnt--)
++  {
++    x <<= 4;
++    if (*p >= '0' && *p <= '9')
++      x += (*p - '0');
++    else if (*p >= 'a' && *p <= 'f')
++      x += (*p - 'a' + 10);
++    else if (*p >= 'A' && *p <= 'F')
++      x += (*p - 'A' + 10);
++    else
++      return -1;
++    p++;
++  }
++  return x;
++}
++
++/**
++ * Evaluates if the given character is whitespace that is permitted between
++ * a PCI ID and its name. Copied from names-parse.c.
++ * @param c Character to test
++ * @return 1 if permitted; 0 if not
++ */
++static inline int id_white_p(char c)
++{
++  return (c == ' ') || (c == '\t');
++}
++
++/**
++ * Tests whether a given vendor:device pair is wanted.
++ * @param w Wanted set to query
++ * @param v Given vendor ID
++ * @param d Given device ID
++ * @return 1 if the pair is wanted; 0 if not
++ */
++static int is_pair_wanted(struct wanted *w, unsigned int v,
++  unsigned int d)
++{
++  u32 key = ((u32) v << 16) | d;
++  int i;
++  for (i = 0; i < w->n; i++)
++    if (w->pairs[i] == key)
++      return 1;
++  return 0;
++}
++
++/**
++ * Tests whether a given vendor ID was marked as "wanted".
++ * @param w Wanted set to query
++ * @param v Vendor ID to query
++ * @return Non-zero if wanted; 0 if not
++ */
++static int is_vendor_wanted(struct wanted *w, unsigned int v)
++{
++  return w->vendors[v >> 3] & (1 << (v & 7));
++}
++
++/**
++ * Marks the given vendor ID as "wanted" and updates the highest wanted
++ * vendor if needed.
++ * @param w Wanted set to update
++ * @param v Vendor ID to mark
++ */
++static void mark_vendor_wanted(struct wanted *w, unsigned int v)
++{
++  v &= 0xffff;
++  w->vendors[v >> 3] |= 1 << (v & 7);
++  if (v > w->max_vendor)
++    w->max_vendor = v;
++}
++
++/**
++ * Opens a possible pci.classes file in the same directory as pci.ids.
++ * @param a PCI access structure containing context
++ * @return Pointer to open file; NULL if pci.classes wasn't found
++ */
++static FILE *open_pci_classes(struct pci_access *a)
++{
++  char *slash = strrchr(a->id_file_name, '/');
++  size_t dir = slash ? (size_t) (slash - a->id_file_name) + 1 : 0;
++  char *path = pci_malloc(a, dir + sizeof("pci.classes"));
++  FILE *f;
++
++  memcpy(path, a->id_file_name, dir);
++  strcpy(path + dir, "pci.classes");
++  f = fopen(path, "r");
++  pci_mfree(path);
++  return f;
++}
++
++/**
++ * Reads an ID file line by line, and inserts into the ID hash just the
++ * entries the scanned devices need. It stops at the first vendor above
++ * max_vendor unless classes are still needed.
++ * @param a PCI access structure containing context
++ * @param f Open file to read (pci.ids or pci.classes)
++ * @param w Wanted set used to filter entries
++ * @param to_parse What to parse (PARSE_VENDORS, PARSE_CLASSES or
++ *                 PARSE_BOTH)
++ */
++static void parse_file(struct pci_access *a, FILE *f, struct wanted *w,
++  enum PARSE_TYPE to_parse)
++{
++  char line[MAX_LINE];
++  // 0 = skip, 1 = vendor block, 2 = class block
++  int mode = 0;
++  // IDs of the enclosing lines - used as parents for nested entries
++  int vendor = 0, dev = 0;
++  // Flags whether the current device was kept
++  int dev_keep = 0;
++  int cls = 0, sub = 0;
++  // Previous line was longer than the buffer
++  int cont = 0;
++
++  while (fgets(line, sizeof(line), f))
++  {
++    char *p = line, *name;
++    int nest, x, y;
++    int was_cont = cont;
++
++    // A line with no newline and not at EOF was cut off by the buffer, so
++    // its remainder arrives as the next "line" and should be ignored
++    cont = !strchr(line, '\n') && !feof(f);
++    if (was_cont)
++      continue;
++
++    // Cheap skips before any parsing
++    if (line[0] == '\t')
++    {
++      // Inside a skipped block, every nested line is unwanted
++      if (mode == 0)
++        continue;
++      // Subsystem lines are only kept for devices that were kept
++      if (mode == 1 && line[1] == '\t' && !dev_keep)
++        continue;
++    }
++
++    if (!line[0] || line[0] == '\n' || line[0] == '\r' || line[0] == '#')
++      continue;
++
++    // Nesting depth is the number of leading tabs; 0 = vendor/class,
++    // 1 = device/subclass, 2 = subsystem/prog-if
++    while (*p == '\t')
++      p++;
++    nest = p - line;
++
++    // New block
++    if (!nest)
++    {
++      mode = 0;
++      dev_keep = 0;
++
++      // Class block
++      if (p[0] == 'C' && p[1] == ' ')
++      {
++        // Classes come from pci.classes when it exists
++        if (to_parse == PARSE_VENDORS)
++          continue;
++        if ((cls = id_hex(p + 2, 2)) < 0 || !id_white_p(p[4]))
++          continue;
++        if ((name = extract_name(p + 4)))
++        {
++          pci_id_insert(a, ID_CLASS, cls, 0, 0, 0, name, SRC_LOCAL);
++          mode = 2;
++        }
++        continue;
++      }
++
++      // S and RFU blocks are not loaded
++      if (p[0] >= 'A' && p[0] <= 'Z' && p[1] == ' ')
++        continue;
++      // pci.classes has no vendors
++      if (to_parse == PARSE_CLASSES)
++        continue;
++      if ((vendor = id_hex(p, 4)) < 0 || !id_white_p(p[4]))
++        continue;
++      // Vendor list is sorted, so nothing after the highest wanted vendor
++      // is needed (except for PARSE_BOTH to capture classes)
++      if (to_parse == PARSE_VENDORS &&
++        (unsigned int) vendor > w->max_vendor)
++        break;
++
++      // Keep the vendor name and its block only if a scanned device uses it
++      if (is_vendor_wanted(w, vendor) && (name = extract_name(p + 4)))
++      {
++        pci_id_insert(a, ID_VENDOR, vendor, 0, 0, 0, name, SRC_LOCAL);
++        mode = 1;
++      }
++      continue;
++    }
++
++    // Inside a wanted vendor block
++    if (mode == 1)
++    {
++      // Device line
++      if (nest == 1)
++      {
++        dev_keep = 0;
++        if ((dev = id_hex(p, 4)) < 0 || !id_white_p(p[4]))
++          continue;
++        if (is_pair_wanted(w, vendor, dev) && (name = extract_name(p + 4)))
++        {
++          pci_id_insert(a, ID_DEVICE, vendor, dev, 0, 0, name, SRC_LOCAL);
++          dev_keep = 1;
++        }
++      }
++      // Subsystem line
++      else if (nest == 2 && dev_keep)
++      {
++        if ((x = id_hex(p, 4)) < 0 || !id_white_p(p[4]) ||
++          (y = id_hex(p + 5, 4)) < 0 || !id_white_p(p[9]))
++          continue;
++        if ((name = extract_name(p + 9)))
++          pci_id_insert(a, ID_SUBSYSTEM, vendor, dev, x, y, name, SRC_LOCAL);
++      }
++    }
++    // Inside a class block
++    else if (mode == 2)
++    {
++      // Subclass line
++      if (nest == 1)
++      {
++        if ((sub = id_hex(p, 2)) < 0 || !id_white_p(p[2]))
++          continue;
++        if ((name = extract_name(p + 2)))
++          pci_id_insert(a, ID_SUBCLASS, cls, sub, 0, 0, name, SRC_LOCAL);
++      }
++      // Programming interface line
++      else if (nest == 2)
++      {
++        if ((x = id_hex(p, 2)) < 0 || !id_white_p(p[2]))
++          continue;
++        if ((name = extract_name(p + 2)))
++          pci_id_insert(a, ID_PROGIF, cls, sub, x, 0, name, SRC_LOCAL);
++      }
++    }
++  }
++}
++
++
++
++/**
++ * Replaces the original pci_load_name_list() (which was renamed to
++ * pci_load_name_list_orig() and can be used as a fallback).
++ * @param a PCI access structure containing context
++ * @return Non-zero if any ID file was opened and parsed; 0 if not
++ */
++int pci_load_name_list(struct pci_access *a)
++{
++  struct wanted *w;
++  FILE *f, *fc;
++  enum PARSE_TYPE to_parse_fb = PARSE_VENDORS;
++
++  // No scanned devices - we don't know what's wanted, so load everything
++  if (!a->devices)
++    return pci_load_name_list_orig(a);
++
++  // Work out which IDs the scanned devices need before any file reading
++  w = pci_malloc(a, sizeof(*w));
++  memset(w, 0, sizeof(*w));
++  if (!collect_wanted(a, w))
++  {
++    pci_mfree(w->pairs);
++    pci_mfree(w);
++    return pci_load_name_list_orig(a);
++  }
++
++  // Reset the name state, then mark the list as loaded so pci_lookup_name()
++  // doesn't call this function again
++  pci_free_name_list(a);
++  a->id_load_attempted = 1;
++
++  // Classes first
++  fc = open_pci_classes(a);
++  if (fc)
++  {
++    parse_file(a, fc, w, PARSE_CLASSES);
++    fclose(fc);
++  }
++
++  f = fopen(a->id_file_name, "r");
++  if (!f)
++  {
++    pci_mfree(w->pairs);
++    pci_mfree(w);
++    // pci.ids is missing - report success if at least the classes loaded
++    return fc != NULL;
++  }
++
++  // Without pci.classes, the classes must be read from the end of pci.ids
++  if (!fc)
++    to_parse_fb = PARSE_BOTH;
++  parse_file(a, f, w, to_parse_fb);
++  fclose(f);
++
++  pci_mfree(w->pairs);
++  pci_mfree(w);
++  return 1;
++}
++
++#endif
+diff --git a/lib/names-parse.c b/lib/names-parse.c
+index 1f8925a..153790f 100644
+--- a/lib/names-parse.c
++++ b/lib/names-parse.c
+@@ -215,8 +215,10 @@ static const char *id_parse_list(struct pci_access *a, pci_file f, int *lino)
+   return NULL;
+ }
+ 
++int pci_load_name_list_orig(struct pci_access *a);
++
+ int
+-pci_load_name_list(struct pci_access *a)
++pci_load_name_list_orig(struct pci_access *a)
+ {
+   pci_file f;
+   int lino;

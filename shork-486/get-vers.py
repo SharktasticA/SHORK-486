@@ -67,6 +67,7 @@ REPOS = [
     "abakh/nbsdgames",
     "openssl/openssl",
     "NixOS/patchelf",
+    "pciutils/pciutils",
     "PCRE2Project/pcre2",
     "andmarti1424/sc-im",
     "strace/strace",

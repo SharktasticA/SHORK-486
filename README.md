@@ -217,6 +217,7 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 | [NetHack](https://github.com/NetHack/NetHack)¶<br>`nethack` | 5.0.0 | Dungeon exploration game | NetHack GPL |✓|||||
 | [New BSD Games](https://github.com/abakh/nbsdgames)¶<br>`nbsdgames` | 6.0.3 | Terminal games pack (22) | Public domain |✓|||||
 | [PatchELF](https://github.com/nixos/patchelf)<br>`patchelf` | 0.19.3 | ELF binary patching | GNU GPLv3 |✓|||||
+| [PCI Utilities](https://github.com/pciutils/pciutils)<br>`lspci`\*, `setpci` | 3.15.0 | PCI utilities | GNU GPLv2 |✓|**✓**|✓|✓|✓|
 | [Perl](https://www.perl.org/)<br>`perl` | 5.44.0 | General-purpose scripting language | GNU GPLv1 |✓|||||
 | [sc-im](https://github.com/andmarti1424/sc-im)¶<br>`sc-im` | 0.8.5 | Terminal spreadsheet editor | BSD 4-Clause |✓|**✓**|✓||✓|
 | [strace](https://github.com/strace/strace)<br>`strace` | 7.2 | System calls & signals tracer | GNU LGPLv2.1 |✓|**✓**|||✓|

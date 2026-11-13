@@ -453,6 +453,10 @@ OPENSSL_SRC="https://github.com/openssl/openssl.git"
 OPENSSL_VER="3.6.5"
 PATCHELF_SRC="https://github.com/NixOS/patchelf/archive/refs/tags"
 PATCHELF_VER="0.19.3"
+
+PCIUTILS_SRC="https://github.com/pciutils/pciutils.git"
+PCIUTILS_VER="3.15.0"
+
 PCRE2_SRC="https://github.com/PCRE2Project/pcre2/releases/download"
 PCRE2_VER="10.49"
 
@@ -620,8 +624,9 @@ INCLUDE_NBSDGAMES=false
 INCLUDE_NCDU=false
 INCLUDE_NETHACK=false
 INCLUDE_PATCHELF=false
-INCLUDE_PERL=false
 INCLUDE_PCI_IDS=false
+INCLUDE_PCIUTILS=false
+INCLUDE_PERL=false
 INCLUDE_RUSTID=false
 INCLUDE_SC_IM=false
 INCLUDE_SUDO=false
@@ -4735,6 +4740,11 @@ get_busybox()
             disable_bb_feat "CONFIG_STRINGS"
         fi
 
+        if $INCLUDE_PCIUTILS; then
+            echo -e "${GREEN}Disabling BusyBox's lspci implementation in favour of pciutils'...${RESET}"
+            disable_bb_feat "CONFIG_LSPCI"
+        fi
+
         if $INCLUDE_UTIL_LINUX; then
             echo -e "${GREEN}Disabling BusyBox's fdisk implementation in favour of util-linux's...${RESET}"
             disable_bb_feat "CONFIG_FDISK"
@@ -8822,6 +8832,74 @@ get_nethack()
     : > "${HACKDIR_DEST}/xlogfile"; chmod 666 "${HACKDIR_DEST}/xlogfile"
 }
 
+# Download and compile pciutils
+get_pciutils()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ -f "${DESTDIR}/usr/sbin/setpci" ]; then
+        echo -e "${LIGHT_RED}pciutils already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d "pciutils" ]; then
+        echo -e "${YELLOW}pciutils source already present, resetting & cleaning...${RESET}"
+        cd "pciutils"
+        git config --global --add safe.directory "${CURR_DIR}/build/pciutils"
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading pciutils...${RESET}"
+        git clone --branch "v${PCIUTILS_VER}" "$PCIUTILS_SRC"
+        cd "pciutils"
+    fi
+
+    patch -p1 < "${PATCHES_DIR}/pciutils/3.15.0_lazy_loading.patch"
+
+    # Compile and install
+    echo -e "${GREEN}Compiling pciutils...${RESET}"
+    make \
+        CROSS_COMPILE="${PREFIX}/bin/${CROSS_ARCH}-linux-musl-" \
+        CC="${CC_STATIC}" \
+        HOST="${CROSS_ARCH}-linux" \
+        OPT="${CFLAGS_NOPIE} -ffunction-sections -fdata-sections" \
+        LDFLAGS="-static -Wl,--gc-sections -s" \
+        PREFIX="/usr" \
+        SHARED=no \
+        ZLIB=no \
+        DNS=no \
+        LIBKMOD=no \
+        HWDB=no \
+        IDSDIR="/usr/share/misc" \
+        -j"$JOBS"
+
+    install -d "${DESTDIR}/usr/sbin"
+    install -m 755 lspci setpci "${DESTDIR}/usr/sbin/"
+    if $ENABLE_NET_ETH; then
+        install -m 755 update-pciids "${DESTDIR}/usr/sbin/"
+    fi
+    if $INCLUDE_PCI_IDS; then
+        install -d "${DESTDIR}/usr/share/misc"
+        grep -Ev '^[[:space:]]*(#|$)' pci.ids > \
+            "${DESTDIR}/usr/share/misc/pci.ids"
+        chmod 644 "${DESTDIR}/usr/share/misc/pci.ids"
+        sed -n \
+            '/^C 00  Unclassified device/,$p' \
+            "${DESTDIR}/usr/share/misc/pci.ids" > \
+            "${DESTDIR}/usr/share/misc/pci.classes"
+    fi
+    
+    # BusyBox's wget doesn't have --no-timestamping
+    sed -i 's/--no-timestamping//' "${DESTDIR}/usr/sbin/update-pciids"
+    # Use gzip instead of xz as BusyBox's implementation things the archive
+    # update-pciids downloads is corrupt
+    sed -i \
+        's/\.xz/.gz/g; s/\bxz -d\b/gzip -d/g; s/\bunxz\b/gunzip/g; s/\bxz\b/gzip/g' \
+        "${DESTDIR}/usr/sbin/update-pciids"
+}
+
 # Download and compile Perl
 get_perl()
 {
@@ -9571,7 +9649,7 @@ get_shorkfetch()
     fi
 
     # If no true networking enabled, skip local IP field
-    if ! $NET_ETH; then
+    if ! $ENABLE_NET_ETH; then
         sed -i 's|,lip,|,|' src/main.c
     fi
 
@@ -10734,6 +10812,13 @@ copy_licences()
         CSV+="\nPatchELF,GNU GPLv3,patchelf.txt"
     fi
 
+    if $INCLUDE_PCIUTILS &&
+        [ -f "${CURR_DIR}/build/pciutils/COPYING" ]; then
+        cp "${CURR_DIR}/build/pciutils/COPYING" \
+            "${DESTDIR}/LICENCES/pciutils.txt" || true
+        CSV+="\nPCI Utilities,GNU GPLv2,pciutils.txt"
+    fi
+
     if $INCLUDE_PERL && 
         [ -f "${CURR_DIR}/build/perl-${PERL_VER}/Copying" ]; then
         cp "${CURR_DIR}/build/perl-${PERL_VER}/Copying" "${DESTDIR}/LICENCES/perl.txt" || true
@@ -11122,8 +11207,8 @@ build_filesystem()
         copy_sysfile "${CURR_DIR}"/sysfiles/nanorc "${DESTDIR}"/usr/etc/nanorc
     fi
 
-    if $INCLUDE_PCI_IDS; then
-        # Include PCI IDs for shorkfetch's GPU identification
+    if ! $INCLUDE_PCIUTILS && $INCLUDE_PCI_IDS; then
+        # Include a subset of PCI IDs for shorkfetch's GPU identification
         # **Work offloaded to Python**
         echo -e "${GREEN}Generating pci.ids database...${RESET}"
         cd "${CURR_DIR}"/
@@ -12223,7 +12308,7 @@ get_installed_progs_feats()
 {
     # Kernel features
     if [[ "$ID" == "shork-"*86 ]]; then
-        if $$ENABLE_EVDEV; then
+        if $ENABLE_EVDEV; then
             INCLUDED_FEATURES+=("kernel-level event interface support")
         else
             EXCLUDED_FEATURES+=("kernel-level event interface support")
@@ -12383,7 +12468,7 @@ get_installed_progs_feats()
 
         check_installed_file "musl for TCC ${MUSL_VER}" "/usr/local/musl/lib/libc.so"
     fi
-    if [[ "$ID" == "shork-"*86 ]] || [ "$ID" == "shork-disc" ]; then
+    if [[ "$ID" == "shork-"*86 ]] || [ "$ID" == "shork-disc" ] ; then
         check_installed_file "pci.ids database" "/usr/share/misc/pci.ids"
     fi
 
@@ -12474,6 +12559,7 @@ get_installed_progs_feats()
         check_installed_file "tcpdump ${TCPDUMP_VER}" "/usr/bin/tcpdump"
         check_installed_file "NetHack ${NETHACK_VER}" "/usr/bin/nethack"
         check_installed_file "isapnptools ${ISAPNPTOOLS_VER}" "/sbin/isapnp"
+        check_installed_file "PCI Utilities ${PCIUTILS_VER}" "/usr/sbin/setpci"
     fi
     if [[ "$ID" == "shork-"*86 ]] || [ "$ID" == "shork-disc" ]; then
         check_installed_file "util-linux ${UTIL_LINUX_VER}" "/usr/bin/whereis"
@@ -13406,6 +13492,9 @@ if $INCLUDE_PATCHELF; then
         false \
         false \
         "/usr"
+fi
+if $INCLUDE_PCIUTILS; then
+    get_pciutils
 fi
 if $INCLUDE_PERL; then
     get_perl

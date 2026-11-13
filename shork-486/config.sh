@@ -108,6 +108,7 @@ INCLUDE_NBSDGAMES=false
 INCLUDE_NCDU=false
 INCLUDE_NETHACK=false
 INCLUDE_PATCHELF=false
+INCLUDE_PCIUTILS=false
 INCLUDE_PERL=false
 INCLUDE_SC_IM=false
 INCLUDE_SHORKGUI=false
@@ -338,6 +339,7 @@ save_env()
         echo "INCLUDE_NCDU=$INCLUDE_NCDU"
         echo "INCLUDE_NETHACK=$INCLUDE_NETHACK"
         echo "INCLUDE_PATCHELF=$INCLUDE_PATCHELF"
+        echo "INCLUDE_PCIUTILS=$INCLUDE_PCIUTILS"
         echo "INCLUDE_PERL=$INCLUDE_PERL"
         echo "INCLUDE_SC_IM=$INCLUDE_SC_IM"
         echo "INCLUDE_SHORKGUI=$INCLUDE_SHORKGUI"
@@ -459,6 +461,7 @@ set_mini_vars()
     INCLUDE_NCDU=false
     INCLUDE_NETHACK=false
     INCLUDE_PATCHELF=false
+    INCLUDE_PCIUTILS=false
     INCLUDE_PERL=false
     INCLUDE_SC_IM=false
     INCLUDE_SHORKGUI=false
@@ -509,6 +512,7 @@ set_terminal_vars()
     INCLUDE_ISAPNPTOOLS=true
     INCLUDE_LSB_RELEASE_MIN=true
     INCLUDE_MEMTESTER=true
+    INCLUDE_PCIUTILS=true
     INCLUDE_TMUX=true
     INCLUDE_TN5250=true
     INCLUDE_TNFTP=true
@@ -541,6 +545,7 @@ set_writer_vars()
     INCLUDE_MG=true
     INCLUDE_NANO=true
     INCLUDE_NCDU=true
+    INCLUDE_PCIUTILS=true
     INCLUDE_SC_IM=true
     INCLUDE_TILDE=true
     INCLUDE_TMUX=true
@@ -585,6 +590,7 @@ set_default_vars()
     INCLUDE_MT_ST=true
     INCLUDE_NANO=true
     INCLUDE_NCDU=true
+    INCLUDE_PCIUTILS=true
     INCLUDE_SC_IM=true
     INCLUDE_SHORKTAINMENT=true
     INCLUDE_STRACE=true
@@ -1131,6 +1137,16 @@ BUNDLED_SOFTWARE=(
         ""
         "12MiB"
         "INCLUDE_PATCHELF"
+        "false"
+        "always"
+
+    "pciutils"
+        "PCI utilities"
+        "1.9MiB"
+        "lspci, setpci, update-pciids"
+        "Including this will replace BusyBox's lspci implementation."
+        "12MiB"
+        "INCLUDE_PCIUTILS"
         "false"
         "always"
 
@@ -2194,6 +2210,10 @@ if [ "$BUILD_TYPE" = "custom" ]; then
     fi
 
 
+    PCIIDS_SIZE="0.1MiB"
+    if $INCLUDE_PCIUTILS; then
+        PCIIDS_SIZE="1.4MiB"
+    fi
 
     # Get option choices (486/586)
     OPTIONS=$(dialog --clear \
@@ -2211,7 +2231,7 @@ if [ "$BUILD_TYPE" = "custom" ]; then
         "menu"          "*Menu-based bootloader (0.5MiB)"                           $(val $ENABLE_MENU) \
         "mouse"         "*Kernel-level mouse support"                               $(val $ENABLE_MOUSE) \
         "no-vdso32"     "*Disable 32-bit vDSO & SEP usage"                          $(val $ENABLE_NO_VDS032) \
-        "pci.ids"       "*PCI IDs database (0.1MiB)"                                $(val $INCLUDE_PCI_IDS) \
+        "pci.ids"       "*PCI IDs database ($PCIIDS_SIZE)"                          $(val $INCLUDE_PCI_IDS) \
         "pcmcia"        "*Kernel-level PCMCIA support"                              $(val $ENABLE_PCMCIA) \
         "sata"          "†Kernel-level SATA support"                                $(val $ENABLE_SATA) \
         "scsi-exp"      "*Kernel-level SCSI media changer & tape drive support"     $(val $ENABLE_SCSI_EXP) \
