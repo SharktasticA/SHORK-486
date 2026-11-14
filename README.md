@@ -713,9 +713,9 @@ When built as a single-user system or a multi-user system with no additional use
 
 
 
-## AI policy
+## Generative AI policy
 
-SHORK itself, SHORK Utilities and SHORK Entertainment are developed under a **no LLM-generated code or documentation** policy. PR requests that contain contributions from an LLM bot or are obviously LLM-generated/vibecoded will be denied. I cannot vouch this for third-party bundled software, or that the tutorials I'm learning from and sources I'm reading weren't influenced by LLM content unbeknownst to me, but I will do my best to recognise such and ensure this doesn't affect the things I control. Even considering locally-trained models or limiting LLM usage to speeding up repetitive tasks (etc.), my wish is for the SHORK family to be a human-made project. :)
+SHORK 486 is developed under a policy of **no LLM-generated code or documentation, and no AI-generated images**. PR requests that contain contributions from an LLM bot or are obviously LLM-generated will be denied. I cannot vouch this for third-party libraries, or that the tutorials and sources I may be reading weren't influenced by generative AI content unbeknownst to me, but I will do my best to recognise such and ensure this doesn't affect the things I control. Whatever your views on this subject, I ask that you respect my wish for the SHORK family (SHORK itself, SHORK Utilities and SHORK Entertainment) to be free of such influence as far as is humanly possible.
 
 
 
