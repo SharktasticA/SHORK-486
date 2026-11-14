@@ -715,7 +715,7 @@ When built as a single-user system or a multi-user system with no additional use
 
 ## Generative AI policy
 
-SHORK 486 is developed under a policy of **no LLM-generated code or documentation, and no AI-generated images**. PR requests that contain contributions from an LLM bot or are obviously LLM-generated will be denied. I cannot vouch this for third-party libraries, or that the tutorials and sources I may be reading weren't influenced by generative AI content unbeknownst to me, but I will do my best to recognise such and ensure this doesn't affect the things I control. Whatever your views on this subject, I ask that you respect my wish for the SHORK family (SHORK itself, SHORK Utilities and SHORK Entertainment) to be free of such influence as far as is humanly possible.
+The SHORK 486 Operating System is developed under a policy of **no LLM-generated code or documentation, and no AI-generated images**. PR requests that contain contributions from an LLM bot or are obviously LLM-generated will be denied. I cannot vouch this for third-party libraries, or that the tutorials and sources I may be reading weren't influenced by generative AI content unbeknownst to me, but I will do my best to recognise such and ensure this doesn't affect the things I control. Whatever your views on this subject, I ask that you respect my wish for the SHORK family (SHORK itself, SHORK Utilities and SHORK Entertainment) to be free of such influence as far as is humanly possible.
 
 
 
