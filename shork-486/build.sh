@@ -327,7 +327,7 @@ LIBEVENT_SRC="https://github.com/libevent/libevent.git"
 LIBEVENT_VER="release-2.1.13-stable"
 
 LIBFFI_SRC="https://github.com/libffi/libffi.git"
-LIBFFI_VER="3.8.0"
+LIBFFI_VER="3.8.1"
 
 LIBGCRYPT_SRC="https://gnupg.org/ftp/gcrypt/libgcrypt"
 LIBGCRYPT_VER="1.12.4"
@@ -424,7 +424,7 @@ MIDNIGHT_CMDR_VER="4.8.33"
 MPG321_SRC="https://github.com/GiterMirror/mpg321.git"
 MPG321_VER="a41a9397d10576d3aee39c2ed7628a78c285714d"
 MT_ST_SRC="https://github.com/iustin/mt-st.git"
-MT_ST_VER="1.8"
+MT_ST_VER="1.9"
 MUSL_SRC="https://fossies.org/linux/misc"
 MUSL_VER="1.2.6"
 NANO_SRC="https://www.nano-editor.org/dist"
@@ -7576,7 +7576,16 @@ get_prog_git()
             CURSES_LIBS="-L${PREFIX}/lib -lncursesw -Wl,--end-group"
     fi
 
-    make -j"$JOBS"
+    make -j"$JOBS" \
+        CC="${CC_STATIC}" \
+        AR="${AR}" \
+        AS="${AS}" \
+        RANLIB="${RANLIB}" \
+        STRIP="${STRIP}" \
+        CFLAGS="${CFLAGS_NOPIE} ${EXTRA_CFLAGS} -ffunction-sections -fdata-sections" \
+        CPPFLAGS="-I${SYSROOT}/include -I${PREFIX}/include" \
+        LDFLAGS="-static -Wl,--gc-sections -s -L${PREFIX}/lib ${EXTRA_LDFLAGS}" \
+        LDLIBS="${EXTRA_LIBS}"
     make DESTDIR="$DESTDIR" INSTALL_OWNER= install
 }
 
@@ -7709,7 +7718,16 @@ get_prog_tar()
         sed -i 's|-Wl,--start-group |-Wl,--start-group -lgpm |' Makefile.conf
     fi
 
-    make -j"$JOBS"
+    make -j"$JOBS" \
+        CC="${CC_STATIC}" \
+        AR="${AR}" \
+        AS="${AS}" \
+        RANLIB="${RANLIB}" \
+        STRIP="${STRIP}" \
+        CFLAGS="${CFLAGS_NOPIE} ${EXTRA_CFLAGS} -ffunction-sections -fdata-sections" \
+        CPPFLAGS="-I${SYSROOT}/include -I${PREFIX}/include" \
+        LDFLAGS="-static -Wl,--gc-sections -s -L${PREFIX}/lib ${EXTRA_LDFLAGS}" \
+        LDLIBS="${EXTRA_LIBS}"
     make DESTDIR="$DESTDIR" INSTALL_OWNER= install
 }
 
