@@ -1,0 +1,69 @@
+{
+    "name": "IBM flagship lineage",
+    "families": [
+        {
+            "id": 1,
+            "name": "Model B",
+            "year": 1972,
+            "switches": [
+                "IBM beam spring"
+            ],
+            "oems": [
+                "IBM United States Lexington, Kentucky (plant 11)",
+                "IBM United States Raleigh, North Carolina (plant 23)",
+                "IBM Italia Vimercate, Lombardy (plant 53)",
+                "IBM United Kingdom Greenock, Scotland (plant 55)",
+                "IBM Netherlands Amsterdam, North Holland (plant 58)",
+                "IBM Canada Don Mills, Ontario (plant 91)",
+                "IBM Canada Bromont, Quebec (plant 93)"
+            ],
+            "still_made": false
+        },
+        {
+            "id": 2,
+            "name": "Model F",
+            "year": 1981,
+            "switches": [
+                "IBM capacitive buckling spring"
+            ],
+            "oems": [
+                "IBM United States Lexington, Kentucky (plant 11)",
+                "IBM United States Raleigh, North Carolina (plant 23)",
+                "IBM Italia Vimercate, Lombardy (plant 53)",
+                "IBM United Kingdom Greenock, Scotland (plant 55)"
+            ],
+            "still_made": false
+        },
+        {
+            "id": 3,
+            "name": "Model M",
+            "year": 1984,
+            "switches": [
+                "IBM membrane buckling spring",
+                "IBM Quiet Touch buckling sleeve",
+                "IBM Quiet Touch rubber dome"
+            ],
+            "oems": [
+                "IBM United States Lexington, Kentucky (plant 11)",
+                "IBM United States Raleigh, North Carolina (plant 23)",
+                "IBM United States Charlotte, North Carolina (plant 41)",
+                "IBM United Kingdom Greenock, Scotland (plant 55)",
+                "IBM Netherlands Amsterdam, North Holland (plant 58)",
+                "IBM de Mexico Guadalajara, Jalisco (plant 78)",
+                "IBM Canada Don Mills, Ontario (plant 91)",
+                "Key Tronic United States (KTC1)",
+                "Key Tronic Mexico (KTC2)",
+                "Key Tronic Mexico (KTC3)",
+                "Lexmark United States (plant 11)",
+                "Lexmark United Kingdom (plant 55)",
+                "Lexmark Mexico (plant 78)",
+                "Maxi Switch",
+                "Toshiba TEC",
+                "Unicomp",
+                "XAC",
+                "XSZ"
+            ],
+            "still_made": true
+        }
+    ]
+}
