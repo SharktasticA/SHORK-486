@@ -488,6 +488,10 @@ STRACE_VER="7.3"
 
 SUDO_SRC="https://www.sudo.ws/dist"
 SUDO_VER="1.9.17p2"
+
+SYSFSUTILS_SRC="https://github.com/linux-ras/sysfsutils.git"
+SYSFSUTILS_VER="2.1.1"
+
 TCC_SRC="https://github.com/Tiny-C-Compiler/tinycc-mirror-repository.git"
 TCC_VER="e5eedc0"
 
@@ -940,6 +944,7 @@ NEED_LIBSMI=false
 NEED_LIBSOFTFP=false
 NEED_LIBSSH=false
 NEED_LIBSSH2=false
+NEED_LIBSYSFS=false
 NEED_LIBT3CONFIG=false
 NEED_LIBT3HIGHLIGHT=false
 NEED_LIBT3KEY=false
@@ -1044,6 +1049,10 @@ if $INCLUDE_MPG321; then
     NEED_LIBID3TAG=true
     NEED_LIBMAD=true
     NEED_LIBAO=true
+fi
+
+if $INCLUDE_PCMCIAUTILS; then
+    NEED_LIBSYSFS=true
 fi
 
 if $INCLUDE_RUSTID; then
@@ -4354,6 +4363,49 @@ get_snappy()
         -DSNAPPY_BUILD_BENCHMARKS=OFF
     cmake --build build -j"$JOBS"
     cmake --install build --prefix "${SYSROOT}/usr"
+}
+
+# Download and compile libsysfs
+get_libsysfs()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ -f "$SYSROOT/usr/lib/libsysfs.a" ]; then
+        echo -e "${LIGHT_RED}libsysfs already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d sysfsutils ]; then
+        echo -e "${YELLOW}libsysfs source already present, resetting...${RESET}"
+        cd sysfsutils
+        git config --global --add safe.directory "${CURR_DIR}"/build/libsysfs
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading libsysfs...${RESET}"
+        git clone --depth=1 --branch "v$SYSFSUTILS_VER" "$SYSFSUTILS_SRC"
+        cd sysfsutils
+    fi
+
+    # Compile and install
+    echo -e "${GREEN}Compiling libsysfs...${RESET}"
+    autoreconf -fi
+    ./configure \
+        --host="${HOST}" \
+        --prefix=/usr \
+        --enable-static \
+        --disable-shared \
+        CC="${CC_STATIC}" \
+        AR="${AR}" \
+        RANLIB="${RANLIB}" \
+        STRIP="${STRIP}" \
+        CFLAGS="${CFLAGS_NOPIE} -ffunction-sections -fdata-sections" \
+        CPPFLAGS="-I${SYSROOT}/include -I${PREFIX}/include" \
+        LDFLAGS="-static -Wl,--gc-sections -L${PREFIX}/lib"
+    make -j"$JOBS"
+    make DESTDIR="$SYSROOT" install
 }
 
 # Download and compile xxHash
@@ -7718,6 +7770,10 @@ get_prog_tar()
             LDFLAGS="-static -Wl,--gc-sections -s -L${PREFIX}/lib ${EXTRA_LDFLAGS}"
             LDLIBS="${EXTRA_LIBS}"
         )
+
+        if [ "$NAME" = "pcmciautils" ]; then
+            MAKE_VARS+=(LD="${CC_STATIC}" UDEV=false STATIC=true)
+        fi
     fi
 
     # dosemu2: with --disable-dlplugins, configure only links plugins listed in
@@ -10688,6 +10744,12 @@ copy_licences()
         CSV+="\nlibssh2,BSD 3-Clause,libssh2.txt"
     fi
 
+    if $NEED_LIBSYSFS && 
+        [ -f "${CURR_DIR}/build/sysfsutils/lib/LGPL" ]; then
+        cp "${CURR_DIR}/build/sysfsutils/lib/LGPL" "${DESTDIR}/LICENCES/libsysfs.txt" || true
+        CSV+="\nlibsysfs,GNU LGPLv2.1,libsysfs.txt"
+    fi
+
     if $NEED_LIBURCU && 
         [ -f "${CURR_DIR}/build/userspace-rcu/LICENSES/LGPL-2.1-or-later.txt" ]; then
         cp "${CURR_DIR}/build/userspace-rcu/LICENSES/LGPL-2.1-or-later.txt" "${DESTDIR}/LICENCES/liburcu.txt" || true
@@ -10842,19 +10904,6 @@ copy_licences()
         CSV+="\nPatchELF,GNU GPLv3,patchelf.txt"
     fi
 
-    if $INCLUDE_PCIUTILS &&
-        [ -f "${CURR_DIR}/build/pciutils/COPYING" ]; then
-        cp "${CURR_DIR}/build/pciutils/COPYING" \
-            "${DESTDIR}/LICENCES/pciutils.txt" || true
-        CSV+="\nPCI Utilities,GNU GPLv2,pciutils.txt"
-    fi
-
-    if $INCLUDE_PERL && 
-        [ -f "${CURR_DIR}/build/perl-${PERL_VER}/Copying" ]; then
-        cp "${CURR_DIR}/build/perl-${PERL_VER}/Copying" "${DESTDIR}/LICENCES/perl.txt" || true
-        CSV+="\nPerl & perl-cross,GNU GPLv1,perl.txt"
-    fi
-
     if $INCLUDE_PCI_IDS && 
         [ -f "../../COPYING" ]; then
         {
@@ -10862,6 +10911,26 @@ copy_licences()
             cat "../../COPYING"
         } > "${DESTDIR}/LICENCES/pci-ids.txt" || true
         CSV+="\npci.ids,GNU GPLv3,pci-ids.txt"
+    fi
+
+    if $INCLUDE_PCIUTILS &&
+        [ -f "${CURR_DIR}/build/pciutils/COPYING" ]; then
+        cp "${CURR_DIR}/build/pciutils/COPYING" \
+            "${DESTDIR}/LICENCES/pciutils.txt" || true
+        CSV+="\npciutils,GNU GPLv2,pciutils.txt"
+    fi
+
+    if $INCLUDE_PCMCIAUTILS &&
+        [ -f "${CURR_DIR}/build/pcmciautils-${PCMCIAUTILS_VER}/COPYING" ]; then
+        cp "${CURR_DIR}/build/pcmciautils-${PCMCIAUTILS_VER}/COPYING" \
+            "${DESTDIR}/LICENCES/pcmciautils.txt" || true
+        CSV+="\npcmciautils,GNU GPLv2,pcmciautils.txt"
+    fi
+
+    if $INCLUDE_PERL && 
+        [ -f "${CURR_DIR}/build/perl-${PERL_VER}/Copying" ]; then
+        cp "${CURR_DIR}/build/perl-${PERL_VER}/Copying" "${DESTDIR}/LICENCES/perl.txt" || true
+        CSV+="\nPerl & perl-cross,GNU GPLv1,perl.txt"
     fi
 
     if $NEED_SLANG && 
@@ -12589,7 +12658,8 @@ get_installed_progs_feats()
         check_installed_file "tcpdump ${TCPDUMP_VER}" "/usr/bin/tcpdump"
         check_installed_file "NetHack ${NETHACK_VER}" "/usr/bin/nethack"
         check_installed_file "isapnptools ${ISAPNPTOOLS_VER}" "/sbin/isapnp"
-        check_installed_file "PCI Utilities ${PCIUTILS_VER}" "/usr/sbin/setpci"
+        check_installed_file "pciutils ${PCIUTILS_VER}" "/usr/sbin/setpci"
+        check_installed_file "pcmciautils ${PCMCIAUTILS_VER}" "/sbin/lspcmcia"
     fi
     if [[ "$ID" == "shork-"*86 ]] || [ "$ID" == "shork-disc" ]; then
         check_installed_file "util-linux ${UTIL_LINUX_VER}" "/usr/bin/whereis"
@@ -13028,6 +13098,9 @@ if $NEED_LIBB64; then
 fi
 if $NEED_SLANG; then
     get_slang
+fi
+if $NEED_LIBSYSFS; then
+    get_libsysfs
 fi
 
 # Compile SHORKGUI
@@ -13540,9 +13613,9 @@ if $INCLUDE_PCMCIAUTILS; then
         false \
         "" \
         "" \
-        "" \
-        "" \
-        ""
+        "-D_GNU_SOURCE -include sys/types.h -DPCMCIAUTILS_VERSION=\\\"${PCMCIAUTILS_VER}\\\"" \
+        "-L${SYSROOT}/usr/lib" \
+        "-lsysfs"
 fi
 if $INCLUDE_PERL; then
     get_perl

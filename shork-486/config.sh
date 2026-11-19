@@ -109,6 +109,7 @@ INCLUDE_NCDU=false
 INCLUDE_NETHACK=false
 INCLUDE_PATCHELF=false
 INCLUDE_PCIUTILS=false
+INCLUDE_PCMCIAUTILS=false
 INCLUDE_PERL=false
 INCLUDE_SC_IM=false
 INCLUDE_SHORKGUI=false
@@ -340,6 +341,7 @@ save_env()
         echo "INCLUDE_NETHACK=$INCLUDE_NETHACK"
         echo "INCLUDE_PATCHELF=$INCLUDE_PATCHELF"
         echo "INCLUDE_PCIUTILS=$INCLUDE_PCIUTILS"
+        echo "INCLUDE_PCMCIAUTILS=$INCLUDE_PCMCIAUTILS"
         echo "INCLUDE_PERL=$INCLUDE_PERL"
         echo "INCLUDE_SC_IM=$INCLUDE_SC_IM"
         echo "INCLUDE_SHORKGUI=$INCLUDE_SHORKGUI"
@@ -462,6 +464,7 @@ set_mini_vars()
     INCLUDE_NETHACK=false
     INCLUDE_PATCHELF=false
     INCLUDE_PCIUTILS=false
+    INCLUDE_PCMCIAUTILS=false
     INCLUDE_PERL=false
     INCLUDE_SC_IM=false
     INCLUDE_SHORKGUI=false
@@ -513,6 +516,7 @@ set_terminal_vars()
     INCLUDE_LSB_RELEASE_MIN=true
     INCLUDE_MEMTESTER=true
     INCLUDE_PCIUTILS=true
+    INCLUDE_PCMCIAUTILS=true
     INCLUDE_TMUX=true
     INCLUDE_TN5250=true
     INCLUDE_TNFTP=true
@@ -591,6 +595,7 @@ set_default_vars()
     INCLUDE_NANO=true
     INCLUDE_NCDU=true
     INCLUDE_PCIUTILS=true
+    INCLUDE_PCMCIAUTILS=true
     INCLUDE_SC_IM=true
     INCLUDE_SHORKTAINMENT=true
     INCLUDE_STRACE=true
@@ -1147,6 +1152,16 @@ BUNDLED_SOFTWARE=(
         "Including this will replace BusyBox's lspci implementation."
         "12MiB"
         "INCLUDE_PCIUTILS"
+        "false"
+        "always"
+
+    "pcmciautils"
+        "PCMCIA utilities"
+        "0.2MiB"
+        "lspcmcia, pccardctl"
+        ""
+        "12MiB"
+        "INCLUDE_PCMCIAUTILS"
         "false"
         "always"
 

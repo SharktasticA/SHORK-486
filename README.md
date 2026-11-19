@@ -217,7 +217,8 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 | [NetHack](https://github.com/NetHack/NetHack)¶<br>`nethack` | 5.0.0 | Dungeon exploration game | NetHack GPL |✓|||||
 | [New BSD Games](https://github.com/abakh/nbsdgames)¶<br>`nbsdgames` | 6.0.3 | Terminal games pack (22) | Public domain |✓|||||
 | [PatchELF](https://github.com/nixos/patchelf)<br>`patchelf` | 0.19.3 | ELF binary patching | GNU GPLv3 |✓|||||
-| [PCI Utilities](https://github.com/pciutils/pciutils)<br>`lspci`\*, `setpci` | 3.15.0 | PCI utilities | GNU GPLv2 |✓|**✓**|✓|✓|✓|
+| [pciutils](https://github.com/pciutils/pciutils)<br>`lspci`\*, `setpci` | 3.15.0 | PCI utilities | GNU GPLv2 |✓|**✓**|✓|✓|✓|
+| [pcmciautils](https://www.kernel.org/pub/linux/utils/kernel/pcmcia)<br>`lspcmcia`, `pccardctl` | 018 | PCMCIA utilities | GNU GPLv2 |✓|**✓**||✓||
 | [Perl](https://www.perl.org/)<br>`perl` | 5.44.0 | General-purpose scripting language | GNU GPLv1 |✓|||||
 | [sc-im](https://github.com/andmarti1424/sc-im)¶<br>`sc-im` | 0.8.5 | Terminal spreadsheet editor | BSD 4-Clause |✓|**✓**|✓||✓|
 | [strace](https://github.com/strace/strace)<br>`strace` | 7.2 | System calls & signals tracer | GNU LGPLv2.1 |✓|**✓**|||✓|
@@ -270,6 +271,7 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 | [libsmi](https://www.ibr.cs.tu-bs.de/projects/libsmi/) | 0.4.8 | tcpdump | BSD-like +<br>Beerware |
 | libss | 1.47.4 | e2fsprogs | MIT SIPB |
 | [libssh2](https://github.com/libssh2/libssh2) | 1.11.1 | Midnight Commander | BSD 3-Clause |
+| [libsysfs](https://linux-diag.sourceforge.net/Sysfsutils.html) | 2.1.1 | pcmciautils | GNU LGPLv2.1 |
 | [libt3config](https://os.ghalkes.nl/t3/libt3config.html) | 1.0.0 | Tilde | GNU GPLv3 |
 | [libt3highlight](https://os.ghalkes.nl/t3/libt3highlight.html) | 0.5.0 | Tilde | GNU GPLv3 |
 | [libt3key](https://os.ghalkes.nl/t3/libt3key.html) | 0.2.11 | Tilde | GNU GPLv3 |
