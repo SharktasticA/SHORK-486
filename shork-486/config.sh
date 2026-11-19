@@ -2535,3 +2535,22 @@ if [ "$INCLUDE_MT_ST" = true ] && [ "$ENABLE_SCSI_EXP" = false ]; then
         INCLUDE_MT_ST=false
     fi
 fi
+
+# Conflict Resolution - +INCLUDE_PCMCIAUTILS/-ENABLE_PCMCIA
+if [ "$INCLUDE_PCMCIAUTILS" = true ] && [ "$ENABLE_PCMCIA" = false ]; then
+    dialog --clear \
+        --backtitle "SHORK 486 Build Configurator" \
+        --title "Conflict Resolution - +INCLUDE_PCMCIAUTILS/-ENABLE_PCMCIA" \
+        --yes-label "Enable support" \
+        --no-label "Exclude utilities" \
+        --yesno "You have chosen to include PCMCIA utilities but disable kernel-level PCMCIA support. Do you wish to enable the required support, or exclude the utilities?" \
+        6 "$WIDTH"
+
+    CHOICE=$?
+
+    if [[ $CHOICE -eq 0 ]]; then
+        ENABLE_PCMCIA=true
+    elif [[ $CHOICE -eq 1 ]]; then
+        INCLUDE_PCMCIAUTILS=false
+    fi
+fi
