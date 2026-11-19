@@ -457,6 +457,9 @@ PATCHELF_VER="0.19.3"
 PCIUTILS_SRC="https://github.com/pciutils/pciutils.git"
 PCIUTILS_VER="3.15.0"
 
+PCMCIAUTILS_SRC="https://www.kernel.org/pub/linux/utils/kernel/pcmcia"
+PCMCIAUTILS_VER="018"
+
 PCRE2_SRC="https://github.com/PCRE2Project/pcre2/releases/download"
 PCRE2_VER="10.49"
 
@@ -626,6 +629,7 @@ INCLUDE_NETHACK=false
 INCLUDE_PATCHELF=false
 INCLUDE_PCI_IDS=false
 INCLUDE_PCIUTILS=false
+INCLUDE_PCMCIAUTILS=false
 INCLUDE_PERL=false
 INCLUDE_RUSTID=false
 INCLUDE_SC_IM=false
@@ -7529,6 +7533,7 @@ get_prog_git()
 
 
 
+    local MAKE_VARS=()
     export PKG_CONFIG_LIBDIR="${SYSROOT}/usr/lib/pkgconfig:${SYSROOT}/lib/pkgconfig"
     export PKG_CONFIG_PATH=""
     export PKG_CONFIG_SYSROOT_DIR="${SYSROOT}"
@@ -7574,18 +7579,21 @@ get_prog_git()
             LIBEVENT_LIBS="-L${PREFIX}/lib -levent" \
             CURSES_CFLAGS="${CFLAGS_NOPIE} -I${PREFIX}/include" \
             CURSES_LIBS="-L${PREFIX}/lib -lncursesw -Wl,--end-group"
+    else
+        MAKE_VARS=(
+            CC="${CC_STATIC}"
+            AR="${AR}"
+            AS="${AS}"
+            RANLIB="${RANLIB}"
+            STRIP="${STRIP}"
+            CFLAGS="${CFLAGS_NOPIE} ${EXTRA_CFLAGS} -ffunction-sections -fdata-sections"
+            CPPFLAGS="-I${SYSROOT}/include -I${PREFIX}/include"
+            LDFLAGS="-static -Wl,--gc-sections -s -L${PREFIX}/lib ${EXTRA_LDFLAGS}"
+            LDLIBS="${EXTRA_LIBS}"
+        )
     fi
 
-    make -j"$JOBS" \
-        CC="${CC_STATIC}" \
-        AR="${AR}" \
-        AS="${AS}" \
-        RANLIB="${RANLIB}" \
-        STRIP="${STRIP}" \
-        CFLAGS="${CFLAGS_NOPIE} ${EXTRA_CFLAGS} -ffunction-sections -fdata-sections" \
-        CPPFLAGS="-I${SYSROOT}/include -I${PREFIX}/include" \
-        LDFLAGS="-static -Wl,--gc-sections -s -L${PREFIX}/lib ${EXTRA_LDFLAGS}" \
-        LDLIBS="${EXTRA_LIBS}"
+    make -j"$JOBS" "${MAKE_VARS[@]}"
     make DESTDIR="$DESTDIR" INSTALL_OWNER= install
 }
 
@@ -7657,6 +7665,7 @@ get_prog_tar()
 
 
 
+    local MAKE_VARS=()
     export PKG_CONFIG_LIBDIR="${SYSROOT}/usr/lib/pkgconfig:${SYSROOT}/lib/pkgconfig"
     export PKG_CONFIG_PATH=""
     export PKG_CONFIG_SYSROOT_DIR="${SYSROOT}"
@@ -7697,6 +7706,18 @@ get_prog_tar()
             LIBEVENT_LIBS="-L${PREFIX}/lib -levent" \
             CURSES_CFLAGS="${CFLAGS_NOPIE} -I${PREFIX}/include" \
             CURSES_LIBS="-L${PREFIX}/lib -lncursesw -Wl,--end-group"
+    else
+        MAKE_VARS=(
+            CC="${CC_STATIC}"
+            AR="${AR}"
+            AS="${AS}"
+            RANLIB="${RANLIB}"
+            STRIP="${STRIP}"
+            CFLAGS="${CFLAGS_NOPIE} ${EXTRA_CFLAGS} -ffunction-sections -fdata-sections"
+            CPPFLAGS="-I${SYSROOT}/include -I${PREFIX}/include"
+            LDFLAGS="-static -Wl,--gc-sections -s -L${PREFIX}/lib ${EXTRA_LDFLAGS}"
+            LDLIBS="${EXTRA_LIBS}"
+        )
     fi
 
     # dosemu2: with --disable-dlplugins, configure only links plugins listed in
@@ -7718,16 +7739,7 @@ get_prog_tar()
         sed -i 's|-Wl,--start-group |-Wl,--start-group -lgpm |' Makefile.conf
     fi
 
-    make -j"$JOBS" \
-        CC="${CC_STATIC}" \
-        AR="${AR}" \
-        AS="${AS}" \
-        RANLIB="${RANLIB}" \
-        STRIP="${STRIP}" \
-        CFLAGS="${CFLAGS_NOPIE} ${EXTRA_CFLAGS} -ffunction-sections -fdata-sections" \
-        CPPFLAGS="-I${SYSROOT}/include -I${PREFIX}/include" \
-        LDFLAGS="-static -Wl,--gc-sections -s -L${PREFIX}/lib ${EXTRA_LDFLAGS}" \
-        LDLIBS="${EXTRA_LIBS}"
+    make -j"$JOBS" "${MAKE_VARS[@]}"
     make DESTDIR="$DESTDIR" INSTALL_OWNER= install
 }
 
@@ -13513,6 +13525,24 @@ if $INCLUDE_PATCHELF; then
 fi
 if $INCLUDE_PCIUTILS; then
     get_pciutils
+fi
+if $INCLUDE_PCMCIAUTILS; then
+    get_prog_tar \
+        "sbin" \
+        "pccardctl" \
+        "pcmciautils" \
+        "$PCMCIAUTILS_VER" \
+        "pcmciautils-${PCMCIAUTILS_VER}" \
+        ".tar.gz" \
+        "$PCMCIAUTILS_SRC" \
+        "xzf" \
+        false \
+        false \
+        "" \
+        "" \
+        "" \
+        "" \
+        ""
 fi
 if $INCLUDE_PERL; then
     get_perl
