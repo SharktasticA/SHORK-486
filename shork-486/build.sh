@@ -2985,9 +2985,12 @@ get_libpcap()
         --prefix="${SYSROOT}/usr" \
         --enable-static \
         --disable-shared \
-        --disable-examples-build \
-        --with-crypto=openssl \
-        --with-libssl-prefix=${SYSROOT} \
+        --without-libnl \
+        --disable-dbus \
+        --disable-bluetooth \
+        --disable-rdma \
+        --disable-netmap \
+        --disable-usb \
         CC="$CC_STATIC" \
         AR="$AR" \
         RANLIB="$RANLIB" \
@@ -3027,6 +3030,12 @@ get_libsmi()
 
     # Patch support for Bison 3.x.x
     patch -p1 < "${PATCHES_DIR}/libsmi/0.4.8_bison_3.patch"
+    
+    # flex ~2.6.5+ emits a 'yybuffer' typedef that collides with libsmi's
+    # yybuffer array
+    sed -i 's/\byybuffer\b/smi_lex_buffer/g' \
+        lib/scanner-smi.l \
+        lib/scanner-sming.l
 
     # Compile and install
     echo -e "${GREEN}Compiling libsmi...${RESET}"
