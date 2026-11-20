@@ -70,7 +70,7 @@ In the temporary lieu of a package manager, SHORK 486 and SHORK 586 can be made 
 
 * **Default:** SHORK 486/586 in its recommended configuration that tries to balance features and software variety with system requirements. It's what was described at the start of this README.
 
-* **Max:** SHORK 486/586 with every possible option enabled, including support for more modern hardware. It is not intended or recommended for 486/586 systems per se, more a shortcut to those who like SHORK's design but want to use it on late '90s to early '10s systems as well, in lieu of future SHORK 686.
+* **Max:** SHORK 486/586 with every possible option enabled, including support for more modern hardware such as more than 875MiB RAM, SATA storage devices and USB peripherals. It is not intended or recommended for 486/586 systems per se, more a shortcut to those who like SHORK's design but want to use it on late '90s to early '10s systems as well, in lieu of future SHORK 686.
 
 * **Plus:** Like default but _with_ all the optional bundled software included. It includes a lot more development-focused software, additional editors (most notably Vim), IBM terminal emulation software, and (for 586) an MP3 player. It _can_ be used with the same minimum 16MiB system memory as default, but it will lean into slower swap memory a lot more if you don't have more physical memory (ideally at least 24MiB).
 
@@ -223,6 +223,7 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 | [Perl](https://www.perl.org/)<br>`perl` | 5.44.0 | General-purpose scripting language | GNU GPLv1 |✓|||||
 | [sc-im](https://github.com/andmarti1424/sc-im)¶<br>`sc-im` | 0.8.5 | Terminal spreadsheet editor | BSD 4-Clause |✓|**✓**|✓||✓|
 | [strace](https://github.com/strace/strace)<br>`strace` | 7.2 | System calls & signals tracer | GNU LGPLv2.1 |✓|**✓**|||✓|
+| [sysfstools](https://linux-diag.sourceforge.net/Sysfsutils.html)<br>`systool` | 2.1.1 | sysfs device & driver query tool | GNU GPLv2 |✓|**✓**|✓|✓|✓|
 | [sudo](https://www.sudo.ws/)‖<br>`sudo`, `sudoedit`, `visudo` | 1.9.17p2 | Run command as root/substitute user | ISC +<br>BSD 2-Clause +<br>BSD 3-Clause +<br>zlib |✓|**✓**|✓|✓|✓|
 | [tcpdump](https://www.tcpdump.org)<br>`tcpdump` | 4.99.7 | Packet analyzer | BSD 3-Clause |✓|||||
 | [Tilde](https://os.ghalkes.nl/tilde/)¶<br>`tilde` | 1.1.3 | GUI-like text editor | GNU GPLv3 |✓||✓|||
@@ -331,7 +332,7 @@ _The planned SHORK 686 will make these modern system-orientated options obsolete
 
 ## SHORK DISC
 
-SHORK DISC is a specialised version of the SHORK 486 Operating System that can be burned to a CD or DVD. Only a subset of BusyBox commands, utilities and software are available for it, it is only offered as a single-user (root) system, and has no persistent storage. It is envisioned as a completely immutable system or diagnostic aid, and is to be used as SHORK 486's installation media. Its ISO image will be ~21MB.
+SHORK DISC is a specialised version of the SHORK 486 Operating System that can be burned to a CD or DVD. Only a subset of BusyBox commands, utilities and software are available for it, it is only offered as a single-user (root) system, and has no persistent storage. It is envisioned as a completely immutable system or diagnostic aid, and is to be used as SHORK 486's installation media. Its ISO image will be ~27MB.
 
 ### Hardware requirements
 
@@ -360,8 +361,13 @@ SHORK DISC is a specialised version of the SHORK 486 Operating System that can b
 * [dosfstools](#bundled-software)
 * [e2fsprogs](#bundled-software)
 * [file](#bundled-software)
+* [isapnptools](#bundled-software)
+* [lshw](#bundled-software)
+* [memtester](#bundled-software)
 * [Ncdu](#bundled-software)
+* [pciutils](#bundled-software)
 * [strace](#bundled-software)
+* [sysfstools](#bundled-software)
 * [util-linux](#bundled-software)
 
 ### SHORK Utilities (shorkutils)

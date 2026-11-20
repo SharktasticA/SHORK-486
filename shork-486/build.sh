@@ -272,7 +272,8 @@ GLIB_VER="2.90.1"
 GLIBC_SRC="https://ftp.gnu.org/gnu/glibc"
 GLIBC_VER="2.44"
 
-GMP_SRC="https://gmplib.org/download/gmp"
+GMP_SRC_1="https://gmplib.org/download/gmp"
+GMP_SRC_2="https://ftp.gnu.org/gnu/gmp"
 GMP_VER="6.3.0"
 
 GNUPG_SRC="https://gnupg.org/ftp/gcrypt/gnupg"
@@ -413,8 +414,11 @@ M4_VER="1.4.21"
 
 MAKE_SRC="https://ftp.gnu.org/gnu/make"
 MAKE_VER="4.4.1"
-MEMTESTER_SRC="https://fossies.org/linux/misc"
+
+MEMTESTER_SRC_1="https://fossies.org/linux/misc"
+MEMTESTER_SRC_2="https://pyropus.ca./software/memtester/old-versions"
 MEMTESTER_VER="4.7.1"
+
 MG_SRC="https://github.com/troglobit/mg.git"
 MG_VER="4.7"
 MICRO_SRC="https://github.com/micro-editor/MICRO.git"
@@ -429,8 +433,11 @@ MPG321_SRC="https://github.com/GiterMirror/mpg321.git"
 MPG321_VER="a41a9397d10576d3aee39c2ed7628a78c285714d"
 MT_ST_SRC="https://github.com/iustin/mt-st.git"
 MT_ST_VER="1.9"
-MUSL_SRC="https://fossies.org/linux/misc"
+
+MUSL_SRC_1="https://fossies.org/linux/misc"
+MUSL_SRC_2="https://musl.libc.org/releases"
 MUSL_VER="1.2.6"
+
 NANO_SRC="https://www.nano-editor.org/dist"
 NANO_DIST="v9"
 NANO_VER="9.2"
@@ -647,6 +654,7 @@ INCLUDE_SHORKGUI=false
 INCLUDE_SHORKSTALL=false
 INCLUDE_SHORKTAINMENT=false
 INCLUDE_STRACE=false
+INCLUDE_SYSFSUTILS=false
 INCLUDE_TESTS=false
 INCLUDE_TCC=false
 INCLUDE_TCPDUMP=false
@@ -2184,10 +2192,9 @@ get_gmp()
     echo -e "${GREEN}Downloading GMP...${RESET}"
     DIR="gmp-${GMP_VER}"
     ARC="${DIR}.tar.xz"
-    URI="${GMP_SRC}/${ARC}"
 
     # Download source
-    wget_download "" "$URI"
+    wget_download "" "${GMP_SRC_1}/${ARC}" "${GMP_SRC_2}/${ARC}"
 
     # Extract source
     if [ -d $DIR ]; then
@@ -7699,16 +7706,24 @@ get_prog_tar()
 
     echo -e "${GREEN}Downloading $NAME...${RESET}"
 
-    ARC="${SRC_DIR}${ARC_EXT}"
-    # Catch if GitHub "archive/refs/tags" link and thus ARC should just be
-    # the version number + extension
-    if [[ "$SRC_URI" == *"archive/refs/tags"* ]]; then
-        ARC="${VER}${ARC_EXT}"
-    fi
-    URI="${SRC_URI}/${ARC}"
+    # Source URIs can be CSV to specify multiple mirrors
+    local SRC_URIS=()
+    IFS=',' read -r -a SRC_URIS <<< "$SRC_URI"
+
+    local URIS=() BASE_URI URI_ARC
+    for BASE_URI in "${SRC_URIS[@]}"; do
+        URI_ARC="${SRC_DIR}${ARC_EXT}"
+        # Catch if GitHub "archive/refs/tags" link and thus ARC should just
+        # be the version number + extension
+        if [[ "$BASE_URI" == *"archive/refs/tags"* ]]; then
+            URI_ARC="${VER}${ARC_EXT}"
+        fi
+        URIS+=("${BASE_URI}/${URI_ARC}")
+    done
+    ARC="${URIS[0]##*/}"
 
     # Download source
-    wget_download "" "$URI"
+    wget_download "$ARC" "${URIS[@]}"
 
     # Extract source
     for D in "$SRC_DIR" "${NAME}-${SRC_DIR}"; do
@@ -8515,10 +8530,9 @@ get_memtester()
     
     DIR="memtester-${MEMTESTER_VER}"
     ARC="${DIR}.tar.gz"
-    URI="${MEMTESTER_SRC}/${ARC}"
 
     # Download source
-    wget_download "" "$URI"
+    wget_download "" "${MEMTESTER_SRC_1}/${ARC}" "${MEMTESTER_SRC_2}/${ARC}"
 
     # Extract source
     if [ -d $DIR ]; then
@@ -9033,14 +9047,16 @@ get_pciutils()
             "${DESTDIR}/usr/share/misc/pci.ids" > \
             "${DESTDIR}/usr/share/misc/pci.classes"
     fi
-    
-    # BusyBox's wget doesn't have --no-timestamping
-    sed -i 's/--no-timestamping//' "${DESTDIR}/usr/sbin/update-pciids"
-    # Use gzip instead of xz as BusyBox's implementation things the archive
-    # update-pciids downloads is corrupt
-    sed -i \
-        's/\.xz/.gz/g; s/\bxz -d\b/gzip -d/g; s/\bunxz\b/gunzip/g; s/\bxz\b/gzip/g' \
-        "${DESTDIR}/usr/sbin/update-pciids"
+
+    if $ENABLE_NET_ETH; then
+        # BusyBox's wget doesn't have --no-timestamping
+        sed -i 's/--no-timestamping//' "${DESTDIR}/usr/sbin/update-pciids"
+        # Use gzip instead of xz as BusyBox's implementation things the archive
+        # update-pciids downloads is corrupt
+        sed -i \
+            's/\.xz/.gz/g; s/\bxz -d\b/gzip -d/g; s/\bunxz\b/gunzip/g; s/\bxz\b/gzip/g' \
+            "${DESTDIR}/usr/sbin/update-pciids"
+    fi
 }
 
 # Download and compile Perl
@@ -11033,6 +11049,12 @@ copy_licences()
         CSV+="\nsudo,ISC + BSD 2-Clause + BSD 3-Clause + zlib,sudo.txt"
     fi
 
+    if $INCLUDE_SYSFSUTILS && 
+        [ -f "${CURR_DIR}/build/sysfsutils/cmd/GPL" ]; then
+        cp "${CURR_DIR}/build/sysfsutils/cmd/GPL" "${DESTDIR}/LICENCES/sysfsutils.txt" || true
+        CSV+="\nsysfsutils,GNU GPLv2,sysfsutils.txt"
+    fi
+
     if $INCLUDE_TCPDUMP && 
         [ -f "${CURR_DIR}/build/tcpdump-${TCPDUMP_VER}/LICENSE" ]; then
         cp "${CURR_DIR}/build/tcpdump-${TCPDUMP_VER}/LICENSE" "${DESTDIR}/LICENCES/tcpdump.txt" || true
@@ -11399,9 +11421,8 @@ build_filesystem()
                 "${DESTDIR}/root/.dosemu/drive_c/"
         fi
     elif [ "$ID" == "shork-disc" ]; then
-        find "${CURR_DIR}/payload/" -mindepth 1 -not -name "notice.txt" | while read -r item; do
-            cp -r "$item" "${DESTDIR}/root/"
-        done
+        cp -a "${CURR_DIR}/payload/." "${DESTDIR}/root/"
+        rm -rf "${DESTDIR}/root/drive_c" "${DESTDIR}/root/notice.txt"
     fi
 
     echo -e "${GREEN}Ensure file permissions are correct...${RESET}"
@@ -12706,9 +12727,7 @@ get_installed_progs_feats()
         check_installed_file "tn5250 ${TN5250_VER}" "/usr/bin/tn5250"
         check_installed_file "Vim ${VIM_VER}" "/usr/bin/vim"
         check_installed_file "sudo ${SUDO_VER}" "/usr/bin/sudo"
-        check_installed_file "Ncdu ${NCDU_VER}" "/usr/bin/ncdu"
         check_installed_file "GnuPG ${GNUPG_VER}" "/usr/bin/gpg"
-        check_installed_file "memtester ${MEMTESTER_VER}" "/usr/bin/memtester"
         check_installed_file "PatchELF ${PATCHELF_VER}" "/usr/bin/patchelf"
         check_installed_file "lsb-release-minimal ${LSB_RELEASE_MIN_VER}" "/usr/bin/lsb_release"
         check_installed_file "jq ${JQ_VER}" "/usr/bin/jq"
@@ -12720,10 +12739,7 @@ get_installed_progs_feats()
         check_installed_file "chrony ${CHRONY_VER}" "/usr/bin/chronyc"
         check_installed_file "tcpdump ${TCPDUMP_VER}" "/usr/bin/tcpdump"
         check_installed_file "NetHack ${NETHACK_VER}" "/usr/bin/nethack"
-        check_installed_file "isapnptools ${ISAPNPTOOLS_VER}" "/sbin/isapnp"
-        check_installed_file "pciutils ${PCIUTILS_VER}" "/usr/sbin/setpci"
         check_installed_file "pcmciautils ${PCMCIAUTILS_VER}" "/sbin/lspcmcia"
-        check_installed_file "lshw ${LSHW_VER}" "/usr/sbin/lshw"
     fi
     if [[ "$ID" == "shork-"*86 ]] || [ "$ID" == "shork-disc" ]; then
         check_installed_file "util-linux ${UTIL_LINUX_VER}" "/usr/bin/whereis"
@@ -12731,6 +12747,12 @@ get_installed_progs_feats()
         check_installed_file "strace ${STRACE_VER}" "/usr/bin/strace"
         check_installed_file "dosfstools ${DOSFSTOOLS_VER}" "/sbin/fatlabel"
         check_installed_file "e2fsprogs ${E2FSPROGS_VER}" "/usr/bin/chattr"
+        check_installed_file "Ncdu ${NCDU_VER}" "/usr/bin/ncdu"
+        check_installed_file "memtester ${MEMTESTER_VER}" "/usr/bin/memtester"
+        check_installed_file "isapnptools ${ISAPNPTOOLS_VER}" "/sbin/isapnp"
+        check_installed_file "pciutils ${PCIUTILS_VER}" "/usr/sbin/setpci"
+        check_installed_file "lshw ${LSHW_VER}" "/usr/sbin/lshw"
+        check_installed_file "sysfsutils ${SYSFSUTILS_VER}" "/usr/bin/systool"
     fi
 
     if [[ ${#INCLUDED_FEATURES[@]} -gt 0 ]]; then
@@ -13709,6 +13731,24 @@ if $INCLUDE_SUDO; then
         "/usr" \
         "--sysconfdir=/etc --with-runas-group=root --enable-sudoers-group=root --with-rundir=/tmp/run/sudo --with-vardir=/tmp/run/sudo --disable-shared --disable-pie --without-pam --without-pam-session --with-plugindir=/usr/libexec/sudo --enable-static-sudoers --disable-shared-libutil --without-lecture --disable-zlib --disable-openssl --without-sendmail --disable-nls --with-editor=/bin/vi"
 fi
+if $INCLUDE_SYSFSUTILS; then
+    get_prog_git \
+        "usr/bin" \
+        "systool" \
+        "sysfsutils" \
+        "sysfsutils" \
+        "$SYSFSUTILS_SRC" \
+        "v${SYSFSUTILS_VER}" \
+        "" \
+        false \
+        true \
+        false \
+        "/usr" \
+        "--disable-shared --enable-static" \
+        "" \
+        "" \
+        ""
+fi
 if $INCLUDE_TCC; then
     get_prog_tar \
         "usr/local/musl/lib" \
@@ -13717,7 +13757,7 @@ if $INCLUDE_TCC; then
         "${MUSL_VER}" \
         "musl-${MUSL_VER}" \
         ".tar.gz" \
-        "$MUSL_SRC" \
+        "${MUSL_SRC_1},${MUSL_SRC_2}" \
         "xzf" \
         false \
         false \

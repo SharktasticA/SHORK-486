@@ -118,6 +118,7 @@ INCLUDE_SHORKSTALL=false
 INCLUDE_SHORKTAINMENT=false
 INCLUDE_STRACE=false
 INCLUDE_SUDO=false
+INCLUDE_SYSFSUTILS=false
 INCLUDE_TCC=false
 INCLUDE_TCPDUMP=false
 INCLUDE_TILDE=false
@@ -351,6 +352,7 @@ save_env()
         echo "INCLUDE_SHORKTAINMENT=$INCLUDE_SHORKTAINMENT"
         echo "INCLUDE_STRACE=$INCLUDE_STRACE"
         echo "INCLUDE_SUDO=$INCLUDE_SUDO"
+        echo "INCLUDE_SYSFSUTILS=$INCLUDE_SYSFSUTILS"
         echo "INCLUDE_TCC=$INCLUDE_TCC"
         echo "INCLUDE_TCPDUMP=$INCLUDE_TCPDUMP"
         echo "INCLUDE_TILDE=$INCLUDE_TILDE"
@@ -475,6 +477,7 @@ set_mini_vars()
     INCLUDE_SHORKTAINMENT=false
     INCLUDE_STRACE=false
     INCLUDE_SUDO=false
+    INCLUDE_SYSFSUTILS=false
     INCLUDE_TCC=false
     INCLUDE_TCPDUMP=false
     INCLUDE_TILDE=false
@@ -523,6 +526,7 @@ set_terminal_vars()
     INCLUDE_TMUX=true
     INCLUDE_TN5250=true
     INCLUDE_TNFTP=true
+    INCLUDE_SYSFSUTILS=true
 
     ENABLE_CDROM=true
     INCLUDE_CON_FONTS=true
@@ -557,6 +561,7 @@ set_writer_vars()
     INCLUDE_TILDE=true
     INCLUDE_TMUX=true
     INCLUDE_VIM=true
+    INCLUDE_SYSFSUTILS=true
 
     ENABLE_CDROM=true
     INCLUDE_CON_FONTS=true
@@ -602,6 +607,7 @@ set_default_vars()
     INCLUDE_SC_IM=true
     INCLUDE_SHORKTAINMENT=true
     INCLUDE_STRACE=true
+    INCLUDE_SYSFSUTILS=true
     INCLUDE_TCC=true
     INCLUDE_TNFTP=true
     INCLUDE_TMUX=true
@@ -692,14 +698,22 @@ set_custom_vars()
 set_disc_vars()
 {
     set_mini_vars
+
     ENABLE_CDROM=true
+    
     INCLUDE_DOSFSTOOLS=true
     INCLUDE_E2FSPROGS=true
     INCLUDE_FILE=true
+    INCLUDE_ISAPNPTOOLS=true
+    INCLUDE_LSHW=true
+    INCLUDE_MEMTESTER=true
     INCLUDE_NCDU=true
+    INCLUDE_PCIUTILS=true
     INCLUDE_SHORKTAINMENT=true
     INCLUDE_STRACE=true
+    INCLUDE_SYSFSUTILS=true
     INCLUDE_UTIL_LINUX=true
+
     INCLUDE_PCI_IDS=true
 }
 
@@ -800,7 +814,7 @@ BUNDLED_SOFTWARE=(
         "always"
 
     "dosemu2"
-        "*DOS emulation (WIP)"
+        "DOS emulation (WIP)"
         "4.1MiB"
         "dosemu"
         "This feature is a work-in-progress and is considered experimental - expect quirks and incompleteness. It is presently only suitable for text-mode operations."
@@ -1160,7 +1174,7 @@ BUNDLED_SOFTWARE=(
         "always"
 
     "pciutils"
-        "PCI utilities"
+        "*PCI utilities"
         "1.9MiB"
         "lspci, setpci, update-pciids"
         "Including this will replace BusyBox's lspci implementation."
@@ -1170,7 +1184,7 @@ BUNDLED_SOFTWARE=(
         "always"
 
     "pcmciautils"
-        "PCMCIA utilities"
+        "*PCMCIA utilities"
         "0.2MiB"
         "lspcmcia, pccardctl"
         ""
@@ -1226,6 +1240,16 @@ BUNDLED_SOFTWARE=(
         ""
         "10MiB"
         "INCLUDE_STRACE"
+        "false"
+        "always"
+
+    "sysfsutils"
+        "*sysfs device & driver query tool"
+        "0.2MiB"
+        "systool"
+        ""
+        "8MiB"
+        "INCLUDE_SYSFSUTILS"
         "false"
         "always"
 
