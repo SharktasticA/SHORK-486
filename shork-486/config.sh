@@ -92,6 +92,7 @@ INCLUDE_ISAPNPTOOLS=false
 INCLUDE_JOE=false
 INCLUDE_LIBTOOL=false
 INCLUDE_LSB_RELEASE_MIN=false
+INCLUDE_LSHW=false
 INCLUDE_LUA=false
 INCLUDE_LYNX=false
 INCLUDE_M4=false
@@ -324,6 +325,7 @@ save_env()
         echo "INCLUDE_JQ=$INCLUDE_JQ"
         echo "INCLUDE_LIBTOOL=$INCLUDE_LIBTOOL"
         echo "INCLUDE_LSB_RELEASE_MIN=$INCLUDE_LSB_RELEASE_MIN"
+        echo "INCLUDE_LSHW=$INCLUDE_LSHW"
         echo "INCLUDE_LUA=$INCLUDE_LUA"
         echo "INCLUDE_LYNX=$INCLUDE_LYNX"
         echo "INCLUDE_M4=$INCLUDE_M4"
@@ -447,6 +449,7 @@ set_mini_vars()
     INCLUDE_JQ=false
     INCLUDE_LIBTOOL=false
     INCLUDE_LSB_RELEASE_MIN=false
+    INCLUDE_LSHW=false
     INCLUDE_LUA=false
     INCLUDE_LYNX=false
     INCLUDE_M4=false
@@ -650,6 +653,7 @@ set_plus_vars()
     INCLUDE_JOE=true
     INCLUDE_JQ=true
     INCLUDE_LIBTOOL=true
+    INCLUDE_LSHW=true
     INCLUDE_M4=true
     INCLUDE_MAKE=true
     INCLUDE_MIDNIGHT_CMDR=true
@@ -1022,6 +1026,16 @@ BUNDLED_SOFTWARE=(
         ""
         "10MiB"
         "INCLUDE_LSB_RELEASE_MIN"
+        "false"
+        "always"
+
+    "lshw"
+        "Hardware configuration reporter"
+        "1.5MiB"
+        "lshw"
+        ""
+        "8MiB"
+        "INCLUDE_LSHW"
         "false"
         "always"
 

@@ -55,6 +55,7 @@ REPOS = [
     "nih-at/libzip",
     "llvm/llvm-project",
     "deepin-community/lsb-release-minimal",
+    "lyonel/lshw",
     "lua/lua",
     "jqlang/jq",
     "ThomasDickey/lynx-snapshots",

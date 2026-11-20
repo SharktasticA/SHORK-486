@@ -1,3 +1,14 @@
+############################################################################
+## 0.4.8_bison_3.patch                                                    ##
+############################################################################
+## This patch is a derivative work of libsmi. It is licensed              ##
+## separately under the terms of a BSD-like + Beerware licence, and is    ##
+## distributed as part of the SHORK project. See the accompanying COPYING ##
+## file in this directory for details.                                    ##
+############################################################################
+## Kali (links.sharktastica.co.uk)                                        ##
+############################################################################
+
 diff --git a/lib/error.h b/lib/error.h
 index 3318ace..b7759b5 100644
 --- a/lib/error.h

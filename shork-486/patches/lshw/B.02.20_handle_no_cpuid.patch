@@ -1,0 +1,70 @@
+############################################################################
+## B.02.20_handle_no_cpuid.patch                                          ##
+############################################################################
+## Adds a safety net to lshw's use of std::stoll when (e.g.) CPUs without ##
+## CPUID may pass non-numeric values into such calls.                     ##
+############################################################################
+## This patch is a derivative work of lshw. It is licensed                ##
+## separately under the terms of the GNU GPLv2 licence, and is            ##
+## distributed as part of the SHORK project. See the accompanying COPYING ##
+## file in this directory for details.                                    ##
+############################################################################
+## Kali (links.sharktastica.co.uk)                                        ##
+############################################################################
+
+diff --git a/src/core/cpuinfo.cc b/src/core/cpuinfo.cc
+index 1507baf..40c3a7d 100644
+--- a/src/core/cpuinfo.cc
++++ b/src/core/cpuinfo.cc
+@@ -13,6 +13,25 @@ __ID("@(#) $Id$");
+ 
+ static int currentcpu = 0;
+ 
++/**
++ * Patch for SHORK 486:
++ * try-catch's std::stoll to protect against (e.g.) non-numeric values from
++ * CPUs without CPUID.
++ * @param s Input string
++ * @return stoll's value; 0 if error caught
++ */
++static long long safe_stoll(const std::string &s)
++{
++  try
++  {
++    return std::stoll(s, NULL, 0);
++  }
++  catch (...)
++  {
++    return 0;
++  }
++}
++
+ static inline bool is_system_ppc_ibm(hwNode & node)
+ {
+   string desc = node.getDescription();
+@@ -63,7 +82,6 @@ int n = 0)
+     return NULL;
+ }
+ 
+-
+ static void cpuinfo_ppc_ibm(hwNode & node,
+ 			    const string & description, const string & version)
+ {
+@@ -465,13 +483,13 @@ string value)
+     if (id == "model name")
+       cpu->setProduct(value);
+     if (id == "microcode")
+-      cpu->setConfig(id, stoll(value, NULL, 0));
++      cpu->setConfig(id, safe_stoll(value));
+     if (id == "cpu family")
+-      cpu->addHint(id, stoll(value, NULL, 0));
++      cpu->addHint(id, safe_stoll(value));
+     if (id == "model")
+-      cpu->addHint(id, stoll(value, NULL, 0));
++      cpu->addHint(id, safe_stoll(value));
+     if (id == "stepping")
+-      cpu->addHint(id, stoll(value, NULL, 0));
++      cpu->addHint(id, safe_stoll(value));
+ 
+     family = cpu->getHint("cpu family");
+     model = cpu->getHint("model");

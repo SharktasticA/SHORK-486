@@ -396,6 +396,10 @@ LLVM_SRC="https://github.com/llvm/llvm-project.git"
 LLVM_VER="23.1.1"
 LSB_RELEASE_MIN_SRC="https://github.com/deepin-community/lsb-release-minimal.git"
 LSB_RELEASE_MIN_VER="12.0-2"
+
+LSHW_SRC="https://github.com/lyonel/lshw.git"
+LSHW_VER="B.02.20"
+
 LUA_SRC="https://github.com/lua/lua.git"
 LUA_VER="5.5.1"
 LYNX_SRC="https://github.com/ThomasDickey/lynx-snapshots.git"
@@ -614,6 +618,7 @@ INCLUDE_JQ=false
 INCLUDE_KEYMAPS=false
 INCLUDE_LIBTOOL=false
 INCLUDE_LSB_RELEASE_MIN=false
+INCLUDE_LSHW=false
 INCLUDE_LUA=false
 INCLUDE_LYNX=false
 INCLUDE_M4=false
@@ -8422,6 +8427,45 @@ get_lsb_release_minimal()
     sudo chmod +x "${DESTDIR}"/usr/bin/lsb_release
 }
 
+# Download and compile lshw
+get_lshw()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ -f "${DESTDIR}/usr/sbin/lshw" ]; then
+        echo -e "${LIGHT_RED}lshw already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d lshw ]; then
+        echo -e "${YELLOW}lshw source already present, resetting & cleaning...${RESET}"
+        cd lshw
+        git config --global --add safe.directory "${CURR_DIR}/build/lshw"
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading lshw...${RESET}"
+        git clone --branch "${LSHW_VER}" "$LSHW_SRC"
+        cd lshw
+    fi
+
+    patch -p1 < "${PATCHES_DIR}/lshw/B.02.20_handle_no_cpuid.patch"
+
+    # Compile and install
+    echo -e "${GREEN}Compiling lshw...${RESET}"
+    make -C src static \
+        CXX="${CXX_STATIC}" \
+        CC="${CC_STATIC}" \
+        AR="${AR}" \
+        RANLIB="${RANLIB}" \
+        STRIP="${STRIP}" \
+        NO_VERSION_CHECK=1 \
+        RPM_OPT_FLAGS="${CFLAGS_NOPIE} -D_GNU_SOURCE -ffunction-sections -fdata-sections"
+    install -D -m 755 src/lshw-static "${DESTDIR}/usr/sbin/lshw"
+}
+
 # Download and compile Lua
 get_lua()
 {
@@ -8448,7 +8492,11 @@ get_lua()
 
     # Compile and install
     echo -e "${GREEN}Compiling Lua...${RESET}"
-    make -j"$JOBS" CC="${CC_STATIC}" AR="${AR} rcu" RANLIB="${RANLIB}" STRIP="${STRIP}"
+    make -j"$JOBS" \
+        CC="${CC_STATIC}" \
+        AR="${AR} rcu" \
+        RANLIB="${RANLIB}" \
+        STRIP="${STRIP}"
     install -m755 lua "${DESTDIR}/usr/bin/lua"
 }
 
@@ -10802,6 +10850,12 @@ copy_licences()
         CSV+="\nlsb-release-minimal,ISC,lsb-release-minimal.txt"
     fi
 
+    if $INCLUDE_LSHW && 
+        [ -f "${CURR_DIR}/build/lshw/COPYING" ]; then
+        cp "${CURR_DIR}/build/lshw/COPYING" "${DESTDIR}/LICENCES/lshw.txt" || true
+        CSV+="\nlshw,GNU GPLv2,lshw.txt"
+    fi
+
     if $INCLUDE_LUA && 
         [ -f "${CURR_DIR}/build/lua/lua.h" ]; then
         sed -n '/^\* Copyright/,/^\* SOFTWARE/p' "${CURR_DIR}/build/lua/lua.h" | sed 's/^\* \{0,1\}//' > "${DESTDIR}/LICENCES/lua.txt"
@@ -12669,6 +12723,7 @@ get_installed_progs_feats()
         check_installed_file "isapnptools ${ISAPNPTOOLS_VER}" "/sbin/isapnp"
         check_installed_file "pciutils ${PCIUTILS_VER}" "/usr/sbin/setpci"
         check_installed_file "pcmciautils ${PCMCIAUTILS_VER}" "/sbin/lspcmcia"
+        check_installed_file "lshw ${LSHW_VER}" "/usr/sbin/lshw"
     fi
     if [[ "$ID" == "shork-"*86 ]] || [ "$ID" == "shork-disc" ]; then
         check_installed_file "util-linux ${UTIL_LINUX_VER}" "/usr/bin/whereis"
@@ -13475,6 +13530,9 @@ if $INCLUDE_LIBTOOL; then
 fi
 if $INCLUDE_LSB_RELEASE_MIN; then
     get_lsb_release_minimal
+fi
+if $INCLUDE_LSHW; then
+    get_lshw
 fi
 if $INCLUDE_LUA; then
     get_lua

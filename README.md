@@ -205,6 +205,7 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 | [Joe's Own Editor](https://github.com/joe-editor/joe)<br>`joe` | 4.8 | WordStar & Emacs-blend text editor | GNU GPLv2 |✓||✓|||
 | [jq](https://jqlang.org/)<br>`jq` | 1.8.2 | Command-line JSON processor | MIT +<br>CC BY 3.0 +<br>ICU |✓|||||
 | [lsb-release-minimal](https://github.com/deepin-community/lsb-release-minimal)<br>`lsb_release` | 12.0-2 | Linux Standard Base/distribution info reporter | ISC |✓|**✓**|✓|✓|✓|
+| [lshw](https://github.com/lyonel/lshw)<br>`lshw` | B.02.20 | Hardware configuration reporter | GNU GPLv2 |✓|||||
 | [Lua](https://www.lua.org/)<br>`lua` | 5.5.1 | Embedded scripting & extensions language | MIT |✓|**✓**|||✓|
 | [Lynx](https://github.com/ThomasDickey/lynx-snapshots)¶<br>`lynx` | 2-9-3f | Terminal web browser | GNU GPLv2 |✓|**✓**|||||
 | [memtester](https://pyropus.ca./software/memtester/)<br>`memtester` | 4.7.1 | Userspace memory subsystem fault tester | GNU GPLv2 |✓|**✓**|✓|✓|✓|
