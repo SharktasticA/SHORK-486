@@ -10,7 +10,7 @@ SHORK 486/586 CPU support depends on the target architecture selected when runni
         * Supports at least Intel 486SX/SX-S/SX2; AMD Am486SX/SX2; Cyrix Cx486DLC, Cx486DRx2, Cx486S, Cx486SLC/SLC2, Cx486SRx2; IBM 486BL/BL2/BL3, 486SLC/SLC2/SLC3.
     * `486DX`
         * For 486s with an FPU. It sheds x87 math emulation support for a slightly smaller kernel.
-        * Supports at least Intel 486DX/DX2/DX4, 486SL, RapidCAD; AMD Am486DE2, Am486DX/DX2/DX4; Cyrix Cx486DX/DX2/DX4; the above when paired with a compatible coprocessor.
+        * Supports at least Intel 486DX/DX2/DX4, 486SL, RapidCAD; AMD Am486DE2, Am486DX/DX2/DX4, Am5x86; Cyrix Cx486DX/DX2/DX4; the above when paired with a compatible coprocessor.
 * SHORK 586
     * `586`
         * For any TSC-less 586s, TSC-hidden 586s, and 486-586 'in-betweens'. It does not assume the RDTSC instruction is present, useful for CPUs without it or with CPUIDs that don't expose the feature automatically.
