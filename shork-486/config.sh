@@ -22,6 +22,9 @@ HEIGHT=20
 
 
 
+MAX_DISK=102400
+MAX_SWAP=64
+
 CUSTOM_DEF_SWAP=0
 CUSTOM_MIN_DISK=8
 DEFAULT_DEF_SWAP=8
@@ -1595,7 +1598,7 @@ if [[ "$ID" == "shork-"*86 ]]; then
             --backtitle "SHORK 486 Build Configurator" \
             --title "Target Disk Size" \
             --cancel-label "Skip" \
-            --inputbox "Enter a target disk size in mebibytes (between $CURR_MIN_DISK and 4096) to use when creating the disk image containing SHORK. Whilst the build script will try to honour this, it may be increased automatically to satisfy 2MiB alignment requirements, or if the combined kernel size, root partition size, optional swap partition size, and partition table overhead exceeds the target disk size." \
+            --inputbox "Enter a target disk size in mebibytes (between $CURR_MIN_DISK and $MAX_DISK) to use when creating the disk image containing SHORK. Whilst the build script will try to honour this, it may be increased automatically to satisfy 2MiB alignment requirements, or if the combined kernel size, root partition size, optional swap partition size, and partition table overhead exceeds the target disk size." \
             12 $WIDTH "$TARGET_DISK" \
             2>&1 >/dev/tty)
 
@@ -1613,11 +1616,21 @@ if [[ "$ID" == "shork-"*86 ]]; then
             continue
         fi
 
-        if (( TARGET_DISK_TMP < $CURR_MIN_DISK || TARGET_DISK_TMP > 4096 )); then
+        if (( TARGET_DISK_TMP < $CURR_MIN_DISK || TARGET_DISK_TMP > MAX_DISK )); then
             dialog --clear \
                 --backtitle "SHORK 486 Build Configurator" \
                 --title "Target Disk Size" \
-                --msgbox "The value must be between $CURR_MIN_DISK and 4096." 5 $WIDTH
+                --msgbox "The value must be between $CURR_MIN_DISK and $MAX_DISK." 5 $WIDTH
+            continue
+        fi
+
+        REQUIRED_MIB=$(( (TARGET_DISK_TMP * 120 + 99) / 100 ))
+        FREE_MIB=$(df -Pm -- "$CURR_DIR" 2>/dev/null | awk 'NR==2 {print $4}')
+        if (( FREE_MIB < REQUIRED_MIB )); then
+            dialog --clear \
+                --backtitle "SHORK 486 Build Configurator" \
+                --title "Target Disk Size" \
+                --msgbox "There is not enough free space on the disk containing $CURR_DIR.\n\nRequired: ${REQUIRED_MIB} MiB (${TARGET_DISK_TMP} MiB + 20% overhead)\nAvailable: ${FREE_MIB} MiB" 9 $WIDTH
             continue
         fi
 
@@ -1659,7 +1672,7 @@ if [[ "$ID" == "shork-"*86 ]]; then
             --backtitle "SHORK 486 Build Configurator" \
             --title "Swap Partition Size" \
             --cancel-label "Skip" \
-            --inputbox "Enter a swap partition size in mebibytes (between 1 and 64). Whilst not strictly needed, it is recommended to at least keep the default value if one was provided. If a swap partition isn't needed or desired, please skip or enter \"0\"." \
+            --inputbox "Enter a swap partition size in mebibytes (between 1 and $MAX_SWAP). Whilst not strictly needed, it is recommended to at least keep the default value if one was provided. If a swap partition isn't needed or desired, please skip or enter \"0\"." \
             9 $WIDTH "$TARGET_SWAP" \
             2>&1 >/dev/tty)
 
@@ -1678,11 +1691,11 @@ if [[ "$ID" == "shork-"*86 ]]; then
             continue
         fi
 
-        if (( TARGET_SWAP_TMP < 0 || TARGET_SWAP_TMP > 64 )); then
+        if (( TARGET_SWAP_TMP < 0 || TARGET_SWAP_TMP > MAX_SWAP )); then
             dialog --clear \
                 --backtitle "SHORK 486 Build Configurator" \
                 --title "Swap Partition Size" \
-                --msgbox "The value must be between 0 and 64." 5 $WIDTH
+                --msgbox "The value must be between 0 and $MAX_SWAP." 5 $WIDTH
             continue
         fi
 

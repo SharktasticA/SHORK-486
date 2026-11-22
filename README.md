@@ -525,10 +525,10 @@ When running the SHORK 486 Build Configurator, you will be prompted to select th
 * Target distribution (SHORK 486/586, SHORK DISC or SHORK DISKETTE)
 * _If SHORK 486/586:_
     * Build type (default, max, plus, writer, terminal, offline, mini, micro or custom)
-    * Target disk size (size in MiB)
+    * Target disk size (size in MiB, max 102400MiB)
     * __If target disk size is more than or equal to 20MiB:__
         * Separate boot partition (yes/no)
-    * Swap partition size (size in MiB)
+    * Swap partition size (size in MiB, max 64MiB)
     * __If not "Micro" or "Mini" build type selected:__
         * Dynamic swap (yes/no)
 * _If SHORK DISKETTE:_
