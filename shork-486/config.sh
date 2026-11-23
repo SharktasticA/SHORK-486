@@ -80,6 +80,7 @@ INCLUDE_CTAGS=false
 INCLUDE_CTRIS=false
 INCLUDE_CURL=false
 INCLUDE_DIALOG=false
+INCLUDE_DMIDECODE=false
 INCLUDE_DOSEMU2=false
 INCLUDE_DOSFSTOOLS=false
 INCLUDE_DROPBEAR=false
@@ -313,6 +314,7 @@ save_env()
         echo "INCLUDE_CTRIS=$INCLUDE_CTRIS"
         echo "INCLUDE_CURL=$INCLUDE_CURL"
         echo "INCLUDE_DIALOG=$INCLUDE_DIALOG"
+        echo "INCLUDE_DMIDECODE=$INCLUDE_DMIDECODE"
         echo "INCLUDE_DOSEMU2=$INCLUDE_DOSEMU2"
         echo "INCLUDE_DOSFSTOOLS=$INCLUDE_DOSFSTOOLS"
         echo "INCLUDE_DROPBEAR=$INCLUDE_DROPBEAR"
@@ -438,6 +440,7 @@ set_mini_vars()
     INCLUDE_CTRIS=false
     INCLUDE_CURL=false
     INCLUDE_DIALOG=false
+    INCLUDE_DMIDECODE=false
     INCLUDE_DOSEMU2=false
     INCLUDE_DOSFSTOOLS=false
     INCLUDE_DROPBEAR=false
@@ -519,6 +522,7 @@ set_terminal_vars()
 
     INCLUDE_CHRONY=true
     INCLUDE_CURL=true
+    INCLUDE_DMIDECODE=true
     INCLUDE_DROPBEAR=true
     INCLUDE_GPM=true
     INCLUDE_ISAPNPTOOLS=true
@@ -550,6 +554,7 @@ set_writer_vars()
 
     SETUP_DYN_SWAP=true
 
+    INCLUDE_DMIDECODE=true
     INCLUDE_HTOP=true
     INCLUDE_ISAPNPTOOLS=true
     INCLUDE_GPM=true
@@ -588,6 +593,7 @@ set_default_vars()
     INCLUDE_CTRIS=true
     INCLUDE_CURL=true
     INCLUDE_DIALOG=true
+    INCLUDE_DMIDECODE=true
     INCLUDE_DOSFSTOOLS=true
     INCLUDE_DROPBEAR=true
     INCLUDE_E2FSPROGS=true
@@ -703,7 +709,8 @@ set_disc_vars()
     set_mini_vars
 
     ENABLE_CDROM=true
-    
+
+    INCLUDE_DMIDECODE=true
     INCLUDE_DOSFSTOOLS=true
     INCLUDE_E2FSPROGS=true
     INCLUDE_FILE=true
@@ -813,6 +820,16 @@ BUNDLED_SOFTWARE=(
         ""
         "10MiB"
         "INCLUDE_DIALOG"
+        "false"
+        "always"
+
+    "dmidecode"
+        "*DMI/SMBIOS table decoder"
+        "0.2MiB"
+        "biosdecode, dmidecode, ownership, vpddecode"
+        ""
+        "8MiB"
+        "INCLUDE_DMIDECODE"
         "false"
         "always"
 

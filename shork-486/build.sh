@@ -239,6 +239,10 @@ CURL_VER="8.23.0"
 
 DIALOG_SRC="https://invisible-mirror.net/archives/dialog"
 DIALOG_VER="1.3-20260721"
+
+DMIDECODE_SRC="https://download.savannah.gnu.org/releases/dmidecode"
+DMIDECODE_VER="3.7"
+
 DOSEMU2_SRC="https://codeload.github.com/dosemu2/dosemu2/tar.gz/refs/tags"
 DOSEMU2_VER="2.0pre9-2"
 DOSFSTOOLS_SRC="https://github.com/dosfstools/dosfstools.git"
@@ -605,6 +609,7 @@ INCLUDE_CTAGS=false
 INCLUDE_CTRIS=false
 INCLUDE_CURL=false
 INCLUDE_DIALOG=false
+INCLUDE_DMIDECODE=false
 INCLUDE_DOSEMU2=false
 INCLUDE_DOSFSTOOLS=false
 INCLUDE_DROPBEAR=false
@@ -7742,6 +7747,9 @@ get_prog_tar()
         patch -p1 < "${PATCHES_DIR}/dosemu2/2.0pre9-2_musl_lowmem.patch"
     elif [ "$NAME" = "tcpdump" ]; then
         sed -i 's/if (setgid(getgid()) != 0 || setuid(getuid()) != 0 *)/if ((getuid() != geteuid() || getgid() != getegid()) \&\& (setgid(getgid()) != 0 || setuid(getuid()) != 0))/' tcpdump.c
+    elif [ "$NAME" = "dmidecode" ]; then
+        # Install to /usr/sbin instead of /usr/local/sbin
+        sed -i 's|^prefix[[:space:]]*=.*|prefix = /usr|' Makefile
     fi
 
 
@@ -10136,7 +10144,14 @@ trim_fat()
 {
     echo -e "${GREEN}Trimming any possible fat...${RESET}"
 
-    sudo rm -rf "${DESTDIR}/usr/lib/pkgconfig" "${DESTDIR}/usr/man" "${DESTDIR}/usr/local/share/man" "${DESTDIR}/usr/share/bash-completion" "${DESTDIR}/usr/share/doc" "${DESTDIR}/usr/share/info" "${DESTDIR}/usr/share/man"
+    sudo rm -rf \
+        "${DESTDIR}/usr/lib/pkgconfig" \
+        "${DESTDIR}/usr/man" \
+        "${DESTDIR}/usr/local/share/man" \
+        "${DESTDIR}/usr/share/bash-completion" \
+        "${DESTDIR}/usr/share/doc" \
+        "${DESTDIR}/usr/share/info" \
+        "${DESTDIR}/usr/share/man"
 
     if $INCLUDE_DIALOG; then
         # TODO: consider skipping if GCC is included
@@ -10508,6 +10523,13 @@ copy_licences()
         [ -f "${CURR_DIR}/build/dialog-${DIALOG_VER}/COPYING" ]; then
         cp "${CURR_DIR}/build/dialog-${DIALOG_VER}/COPYING" "${DESTDIR}/LICENCES/dialog.txt" || true
         CSV+="\ndialog,GNU LGPLv2.1,dialog.txt"
+    fi
+
+    if $INCLUDE_DMIDECODE && 
+        [ -f "${CURR_DIR}/build/dmidecode-${DMIDECODE_VER}/LICENSE" ]; then
+        cp "${CURR_DIR}/build/dmidecode-${DMIDECODE_VER}/LICENSE" \
+            "${DESTDIR}/LICENCES/dmidecode.txt" || true
+        CSV+="\ndmidecode,GNU GPLv2,dmidecode.txt"
     fi
 
     if $INCLUDE_DOSEMU2 && 
@@ -12753,6 +12775,7 @@ get_installed_progs_feats()
         check_installed_file "pciutils ${PCIUTILS_VER}" "/usr/sbin/setpci"
         check_installed_file "lshw ${LSHW_VER}" "/usr/sbin/lshw"
         check_installed_file "sysfsutils ${SYSFSUTILS_VER}" "/usr/bin/systool"
+        check_installed_file "dmidecode ${DMIDECODE_VER}" "/usr/sbin/dmidecode"
     fi
 
     if [[ ${#INCLUDED_FEATURES[@]} -gt 0 ]]; then
@@ -13351,6 +13374,24 @@ if $INCLUDE_DIALOG; then
         "" \
         "" \
         "-lgpm"
+fi
+if $INCLUDE_DMIDECODE; then
+    get_prog_tar \
+        "/usr/sbin" \
+        "dmidecode" \
+        "dmidecode" \
+        "$DMIDECODE_VER" \
+        "dmidecode-${DMIDECODE_VER}" \
+        ".tar.xz" \
+        "$DMIDECODE_SRC" \
+        "-xJf" \
+        false \
+        false \
+        "" \
+        "" \
+        "" \
+        "" \
+        ""
 fi
 if $INCLUDE_DOSEMU2; then
     get_prog_tar \
