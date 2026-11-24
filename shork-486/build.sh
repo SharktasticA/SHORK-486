@@ -253,6 +253,10 @@ E2FSPROGS_SRC="https://mirrors.edge.kernel.org/pub/linux/kernel/people/tytso/e2f
 E2FSPROGS_VER="1.47.4"
 EMACS_SRC="https://ftp.gnu.org/gnu/emacs"
 EMACS_VER="31.1"
+
+EXFATPROGS_SRC="https://github.com/exfatprogs/exfatprogs.git"
+EXFATPROGS_VER="1.4.5"
+
 FILE_SRC="https://github.com/file/file.git"
 FILE_VER="5_48"
 
@@ -450,6 +454,9 @@ MUSL_SRC_1="https://fossies.org/linux/misc"
 MUSL_SRC_2="https://musl.libc.org/releases"
 MUSL_VER="1.2.6"
 
+MUSL_FTS_SRC="https://github.com/void-linux/musl-fts.git"
+MUSL_FTS_VER="1.2.7"
+
 NANO_SRC="https://www.nano-editor.org/dist"
 NANO_DIST="v9"
 NANO_VER="9.2"
@@ -629,6 +636,7 @@ INCLUDE_DOSFSTOOLS=false
 INCLUDE_DROPBEAR=false
 INCLUDE_E2FSPROGS=false
 INCLUDE_EMACS=false
+INCLUDE_EXFATPROGS=false
 INCLUDE_FILE=false
 INCLUDE_FREEDOS=false
 INCLUDE_GCC=false
@@ -964,6 +972,7 @@ NEED_KRB5=false
 NEED_LIBAO=false
 NEED_LIBASSUAN=false
 NEED_LIBB64=false
+NEED_LIBBLKID=false
 NEED_LIBCAP=false
 NEED_LIBEVENT=false
 NEED_LIBFFI=false
@@ -998,6 +1007,7 @@ NEED_LIBXML2=false
 NEED_LIBZIP=false
 NEED_LOADKEYS=false
 NEED_LZ4=false
+NEED_MUSL_FTS=false
 NEED_NETTLE=false
 NEED_NPTH=false
 NEED_OPENSSL=false
@@ -1046,6 +1056,11 @@ fi
 
 if $INCLUDE_EMACS; then
     NEED_LIBXML2=true
+fi
+
+if $INCLUDE_EXFATPROGS; then
+    NEED_LIBBLKID=true
+    NEED_MUSL_FTS=true
 fi
 
 if $INCLUDE_GNUPG; then
@@ -2510,6 +2525,54 @@ get_libb64()
     mkdir -p "${SYSROOT}/usr/lib" "${SYSROOT}/usr/include/b64"
     cp libb64.a "${SYSROOT}/usr/lib/"
     cp include/b64/*.h "${SYSROOT}/usr/include/b64/"
+}
+
+# Download and compile util-linux for libblkid
+get_libblkid()
+{
+    mkdir -p "${CURR_DIR}/build/libblkid"
+    cd "${CURR_DIR}/build/libblkid"
+
+    # Skip if already compiled
+    if [ -f "${SYSROOT}/usr/lib/libblkid.a" ] &&
+       [ -f "${SYSROOT}/usr/include/blkid/blkid.h" ]; then
+        echo -e "${LIGHT_RED}util-linux for libblkid already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d util-linux ]; then
+        echo -e "${YELLOW}util-linux for libblkid source already present, resetting...${RESET}"
+        cd util-linux
+        git config --global --add safe.directory "${CURR_DIR}"/build/libblkid/util-linux
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading util-linux for libblkid...${RESET}"
+        git clone --depth=1 --branch v$UTIL_LINUX_VER $UTIL_LINUX_SRC
+        cd util-linux
+    fi
+
+    # Compile and install
+    echo -e "${GREEN}Compiling util-linux for libblkid...${RESET}"
+    ./autogen.sh
+    ./configure \
+        --host="${HOST}" \
+        --prefix="${SYSROOT}/usr" \
+        --disable-all-programs \
+        --enable-libblkid \
+        --enable-libuuid \
+        --disable-shared \
+        --enable-static \
+        --without-python \
+        --disable-nls \
+        CC="${CC_STATIC}" \
+        CFLAGS="${CFLAGS_NOPIE}" \
+        CPPFLAGS="-I${PREFIX}/include" \
+        LDFLAGS="-L${PREFIX}/lib -static" \
+        PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig"
+    make TINFO_LIBS="" -j"$JOBS"
+    make install
 }
 
 # Download and compile libcap
@@ -4118,6 +4181,48 @@ get_lz4()
         BUILD_SHARED=no \
         BUILD_STATIC=yes \
         -C lib install
+}
+
+# Download and compile musl-fts
+get_musl_fts()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ -f "${SYSROOT}/usr/lib/libfts.a" ] &&
+       [ -f "${SYSROOT}/usr/include/fts.h" ]; then
+        echo -e "${LIGHT_RED}musl-fts already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d musl-fts ]; then
+        echo -e "${YELLOW}musl-fts source already present, resetting...${RESET}"
+        cd musl-fts
+        git config --global --add safe.directory "${CURR_DIR}/build/musl-fts"
+        git reset --hard
+        git clean -fdx
+    else
+        echo -e "${GREEN}Downloading musl-fts...${RESET}"
+        git clone --depth=1 --branch "v${MUSL_FTS_VER}" "${MUSL_FTS_SRC}"
+        cd musl-fts
+    fi
+
+    # Compile and install
+    echo -e "${GREEN}Compiling musl-fts...${RESET}"
+    ./bootstrap.sh
+    ./configure \
+        --host="$HOST" \
+        --prefix="${SYSROOT}/usr" \
+        --enable-static \
+        --disable-shared \
+        CC="$CC_STATIC" \
+        AR="$AR" \
+        RANLIB="$RANLIB" \
+        CFLAGS="${CFLAGS_NOPIE}" \
+        LDFLAGS="-static -L${SYSROOT}/lib"
+    make -j"$JOBS"
+    make install
 }
 
 # Download and compile Nettle
@@ -10657,6 +10762,13 @@ copy_licences()
         CSV+="\ne2fsprogs,GNU GPLv2 & LGPLv2,e2fsprogs.txt"
     fi
 
+    if $INCLUDE_EXFATPROGS && 
+        [ -f "${CURR_DIR}/build/exfatprogs/COPYING" ]; then
+        cp "${CURR_DIR}/build/exfatprogs/COPYING" \
+            "${DESTDIR}/LICENCES/exfatprogs.txt" || true
+        CSV+="\nexfatprogs,GNU GPLv2,exfatprogs.txt"
+    fi
+
     if [[ "$ID" == "shork-"*86 ]] &&
        $FIX_EXTLINUX &&
         [ -f "${CURR_DIR}/build/syslinux/COPYING" ]; then
@@ -10874,6 +10986,13 @@ copy_licences()
         cp "${CURR_DIR}/build/libb64/LICENSE.md" \
             "${DESTDIR}/LICENCES/libb64.txt" || true
         CSV+="\nlibb64,public domain,libb64.txt"
+    fi
+
+    if $NEED_LIBBLKID && 
+        [ -f "${CURR_DIR}/build/libblkid/util-linux/COPYING" ]; then
+        cp "${CURR_DIR}/build/libblkid/util-linux/COPYING" \
+            "${DESTDIR}/LICENCES/libblkid.txt" || true
+        CSV+="\nlibblkid,GNU GPLv2,libblkid.txt"
     fi
 
     if $INCLUDE_E2FSPROGS &&
@@ -12908,6 +13027,7 @@ get_installed_progs_feats()
         check_installed_file "sdparm ${SDPARM_VER}" "/usr/bin/sdparm"
         check_installed_file "setserial ${SETSERIAL_VER}" "/usr/sbin/setserial"
         check_installed_file "GNU Mtools ${MTOOLS_VER}" "/usr/bin/mtools"
+        check_installed_file "exfatprogs ${EXFATPROGS_VER}" "/usr/sbin/mkfs.exfat"
     fi
 
     if [[ ${#INCLUDED_FEATURES[@]} -gt 0 ]]; then
@@ -13343,6 +13463,12 @@ fi
 if $NEED_LIBSYSFS; then
     get_libsysfs
 fi
+if $NEED_LIBBLKID; then
+    get_libblkid
+fi
+if $NEED_MUSL_FTS; then
+    get_musl_fts
+fi
 
 # Compile SHORKGUI
 if $INCLUDE_SHORKGUI; then
@@ -13611,6 +13737,21 @@ if $INCLUDE_EMACS; then
         false \
         "/usr" \
         "--without-x --without-ns --without-gsettings --without-gconf --without-imagemagick --without-json --without-modules --without-dbus --without-gpm --without-gtk --without-toolkit-scroll-bars --without-xwidgets --without-libsystemd --without-selinux --with-xml2 --without-harfbuzz --with-gnutls=no --without-sound ac_cv_func_malloc_0_nonnull=yes ac_cv_func_realloc_0_nonnull=yes"
+fi
+if $INCLUDE_EXFATPROGS; then
+    get_prog_git \
+        "usr/sbin" \
+        "mkfs.exfat" \
+        "exfatprogs" \
+        "exfatprogs" \
+        "$EXFATPROGS_SRC" \
+        "$EXFATPROGS_VER" \
+        "" \
+        true \
+        false \
+        false \
+        "/usr" \
+        "--disable-shared"
 fi
 if $INCLUDE_FILE; then
     get_file

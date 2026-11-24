@@ -85,6 +85,7 @@ INCLUDE_DOSEMU2=false
 INCLUDE_DOSFSTOOLS=false
 INCLUDE_DROPBEAR=false
 INCLUDE_E2FSPROGS=false
+INCLUDE_EXFATPROGS=false
 INCLUDE_FILE=false
 INCLUDE_GCC=false
 INCLUDE_GIT=false
@@ -323,6 +324,7 @@ save_env()
         echo "INCLUDE_DOSFSTOOLS=$INCLUDE_DOSFSTOOLS"
         echo "INCLUDE_DROPBEAR=$INCLUDE_DROPBEAR"
         echo "INCLUDE_E2FSPROGS=$INCLUDE_E2FSPROGS"
+        echo "INCLUDE_EXFATPROGS=$INCLUDE_EXFATPROGS"
         echo "INCLUDE_FILE=$INCLUDE_FILE"
         echo "INCLUDE_GCC=$INCLUDE_GCC"
         echo "INCLUDE_GIT=$INCLUDE_GIT"
@@ -453,6 +455,7 @@ set_mini_vars()
     INCLUDE_DOSFSTOOLS=false
     INCLUDE_DROPBEAR=false
     INCLUDE_E2FSPROGS=false
+    INCLUDE_EXFATPROGS=false
     INCLUDE_FILE=false
     INCLUDE_GCC=false
     INCLUDE_GIT=false
@@ -617,6 +620,7 @@ set_default_vars()
     INCLUDE_DOSFSTOOLS=true
     INCLUDE_DROPBEAR=true
     INCLUDE_E2FSPROGS=true
+    INCLUDE_EXFATPROGS=true
     INCLUDE_FILE=true
     INCLUDE_GIT=true
     INCLUDE_GPM=true
@@ -737,6 +741,7 @@ set_disc_vars()
     INCLUDE_DMIDECODE=true
     INCLUDE_DOSFSTOOLS=true
     INCLUDE_E2FSPROGS=true
+    INCLUDE_EXFATPROGS=true
     INCLUDE_FILE=true
     INCLUDE_HDPARM=true
     INCLUDE_ISAPNPTOOLS=true
@@ -908,6 +913,16 @@ BUNDLED_SOFTWARE=(
         "Including this will replace BusyBox's blkid, chattr, fsck, lsattr, mke2fs, tune2fs and uuidgen implementations."
         "10MiB"
         "INCLUDE_E2FSPROGS"
+        "false"
+        "always"
+
+    "exfatprogs"
+        "*exFAT filesystem utilities"
+        "0.8MiB"
+        "(e.g.) chdosattr, exfatlabel, fsck.exfat, lsdosattr, mkfs.exfat, tune.exfat"
+        ""
+        "10MiB"
+        "INCLUDE_EXFATPROGS"
         "false"
         "always"
 
@@ -2290,7 +2305,7 @@ if [ "$BUILD_TYPE" = "custom" ]; then
             --help-button \
             --help-status \
             --default-item "$BUNDLED_DEFAULT" \
-            --checklist "Select what software to bundle with SHORK. Selecting \"Help\" will show you the selected item's commands, its minimum memory requirements, and any other useful context.\n* This option would be included in a \"default\" build\n" $HEIGHT $WIDTH 8 \
+            --checklist "Select what software to bundle with SHORK. Selecting \"Help\" will show you the selected item's commands, its minimum memory requirements, and any other useful context.\n* This option would be included in a \"default\" build" $HEIGHT $WIDTH 8 \
             "${BUNDLED_FILTERED[@]}" \
             2>&1 >/dev/tty)
         ACTION=$?

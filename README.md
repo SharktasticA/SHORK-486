@@ -187,6 +187,7 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 | [dosfstools](https://github.com/dosfstools/dosfstools)<br>e.g. `dosfsck`, `mkdosfs`\* | 4.2 | FAT family filesystem utilities | GNU GPLv3 |✓|**✓**|||✓|
 | [Dropbear](https://github.com/mkj/dropbear)<br>`scp`, `ssh`, `sshd`‖ | 2026.94 | SCP and SSH clients, SSH daemon‖ | MIT +<br>BSD 2-Clause |✓|**✓**||✓||
 | [e2fsprogs](https://e2fsprogs.sourceforge.net/)<br>e.g. `blkid`\*, `chattr`\*, `fsck`\*, `lsattr`\*, `mke2fs`\*, `resize2fs`, `tune2fs`\*, `uuidgen`\* | 1.47.4 | ext2/3/4 filesystem utilities | GNU GPLv2 + LGPLv2 |✓|**✓**|||✓|
+| [exfatprogs](https://github.com/exfatprogs/exfatprogs)<br>e.g. `chdosattr`, `exfatlabel`, `fsck.exfat`, `lsdosattr`, `mkfs.exfat`, `tune.exfat` | 1.4.5 | exFAT filesystem utilities | GNU GPLv2 |✓|**✓**|||✓|
 | [file](https://github.com/file/file)<br>`file` | 5_48 | File identification | BSD 2-Clause |✓|**✓**|||✓|
 | [Git](https://github.com/git/git)<br>`git` | 2.56.0 | Source control client | GNU GPLv2 |✓|**✓**|||||
 | [GNU Autoconf](https://www.gnu.org/software/autoconf/)†<br>`autoconf`, `autoreconf` | 2.73 | configure script generator | GNU GPLv2 |✓|||||
@@ -267,6 +268,7 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 | [libassuan](https://www.gnupg.org/software/libassuan/index.html) | 3.0.2 | GnuPG | GNU GPLv3 |
 | libcom_err | 1.47.4 | e2fsprogs | MIT SIPB |
 | [libb64](https://github.com/libb64/libb64) | 2.0.0.1 | dosemu2 | Public domain |
+| [libblkid](https://github.com/util-linux/util-linux) | 2.42.4 | exfatprogs | GNU LGPLv2.1 |
 | [libevent](https://github.com/libevent/libevent) | 2.1.13 | tmux | BSD 3-Clause |
 | [libffi](https://github.com/libffi/libffi) | 3.8.0 | GLib | MIT |
 | [libgcrypt](https://www.gnupg.org/software/libgcrypt/index.html) | 1.12.4 | GnuPG | GNU GPLv3 |
@@ -292,6 +294,7 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 | [libxml2](https://github.com/gnome/libxml2) | 2.15.4 | sc-im, Universal Ctags | MIT |
 | [libzip](https://github.com/nih-at/libzip) | 1.12.1 | Midnight Commander, sc-im | BSD 3-Clause |
 | [musl](somethhttps://musl.libc.org/) | 1.2.6 | GCC, Tiny C Compiler | MIT |
+| [musl-fts](https://github.com/void-linux/musl-fts) | 1.2.7 | exfatprogs | BSD 3-Clause |
 | [ncurses](https://invisible-island.net/ncurses/) | 6.6 | Cscope, CTris, dialog, htop, Lynx, Midnight Commander, nano, Ncdu, NetHack, New BSD Games, sc-im, SHORKMINES, tic, tmux, tn5250, util-linux, x3270 | MIT |
 | [nPth](https://www.gnupg.org/software/npth/index.html) | 1.8 | GnuPG | GNU LGPLv2.1 |
 | [OpenSSL](https://github.com/openssl/openssl) | 3.6.5 | cURL, Git, Lynx, Midnight Commander, tcpdump, tn5250 | Apache 2.0 |
@@ -366,6 +369,7 @@ SHORK DISC is a specialised version of the SHORK 486 Operating System that can b
 * [dmidecode](#bundled-software)
 * [dosfstools](#bundled-software)
 * [e2fsprogs](#bundled-software)
+* [exfatprogs](#bundled-software)
 * [file](#bundled-software)
 * [GNU Mtools](#bundled-software)
 * [hdparm](#bundled-software)

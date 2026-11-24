@@ -19,14 +19,13 @@
 * bison
 * cmake
 * Common Lisp
-* dosemu2
-    * Already successfully compiled - working out teething issues
 * flex
 * GDB
 * GNU Emacs
     * Already successfully compiled - streamlining/pruning extraneous files
 * IRC client (exact one TBD)
 * links
+* MToolsFM
 * pkg-config
 * SQLite
 * SWIG
