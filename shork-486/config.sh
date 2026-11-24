@@ -108,6 +108,7 @@ INCLUDE_MICROPYTHON=false
 INCLUDE_MIDNIGHT_CMDR=false
 INCLUDE_MPG321=false
 INCLUDE_MT_ST=false
+INCLUDE_MTOOLS=false
 INCLUDE_NANO=false
 INCLUDE_NASM=false
 INCLUDE_NBSDGAMES=false
@@ -346,6 +347,7 @@ save_env()
         echo "INCLUDE_MIDNIGHT_CMDR=$INCLUDE_MIDNIGHT_CMDR"
         echo "INCLUDE_MPG321=$INCLUDE_MPG321"
         echo "INCLUDE_MT_ST=$INCLUDE_MT_ST"
+        echo "INCLUDE_MTOOLS=$INCLUDE_MTOOLS"
         echo "INCLUDE_NANO=$INCLUDE_NANO"
         echo "INCLUDE_NASM=$INCLUDE_NASM"
         echo "INCLUDE_NBSDGAMES=$INCLUDE_NBSDGAMES"
@@ -475,6 +477,7 @@ set_mini_vars()
     INCLUDE_MIDNIGHT_CMDR=false
     INCLUDE_MPG321=false
     INCLUDE_MT_ST=false
+    INCLUDE_MTOOLS=false
     INCLUDE_NANO=false
     INCLUDE_NASM=false
     INCLUDE_NBSDGAMES=false
@@ -538,6 +541,7 @@ set_terminal_vars()
     INCLUDE_ISAPNPTOOLS=true
     INCLUDE_LSB_RELEASE_MIN=true
     INCLUDE_MEMTESTER=true
+    INCLUDE_MTOOLS=true
     INCLUDE_PCIUTILS=true
     INCLUDE_PCMCIAUTILS=true
     INCLUDE_SDPARM=true
@@ -575,6 +579,7 @@ set_writer_vars()
     INCLUDE_LSB_RELEASE_MIN=true
     INCLUDE_MEMTESTER=true
     INCLUDE_MG=true
+    INCLUDE_MTOOLS=true
     INCLUDE_NANO=true
     INCLUDE_NCDU=true
     INCLUDE_PCIUTILS=true
@@ -625,6 +630,7 @@ set_default_vars()
     INCLUDE_MG=true
     INCLUDE_MICROPYTHON=true
     INCLUDE_MT_ST=true
+    INCLUDE_MTOOLS=true
     INCLUDE_NANO=true
     INCLUDE_NCDU=true
     INCLUDE_PCIUTILS=true
@@ -736,6 +742,7 @@ set_disc_vars()
     INCLUDE_ISAPNPTOOLS=true
     INCLUDE_LSHW=true
     INCLUDE_MEMTESTER=true
+    INCLUDE_MTOOLS=true
     INCLUDE_NCDU=true
     INCLUDE_PCIUTILS=true
     INCLUDE_SDPARM=true
@@ -1004,6 +1011,16 @@ BUNDLED_SOFTWARE=(
         "true"
         "always"
 
+    "gnu-mtools"
+        "*MS-DOS/FAT disk access without mounting"
+        "0.4MiB"
+        "(e.g.) mcopy, mdir, mformat, mlabel, mpartition, mtype"
+        ""
+        "8MiB"
+        "INCLUDE_MTOOLS"
+        "false"
+        "always"
+    
     "gnu-nano"
         "*Pico-style text editor"
         "0.8MiB"

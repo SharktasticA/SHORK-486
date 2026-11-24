@@ -198,6 +198,7 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 | [GNU m4](https://www.gnu.org/software/m4/)<br>`m4` | 1.4.21 | General-purpose macro processor | GNU GPLv3 |✓|||||
 | [GNU Make](https://www.gnu.org/software/make/)<br>`make` | 4.4.1 | Build automation tool | GNU GPLv3 |✓|||||
 | [GNU Midnight Commander](https://midnight-commander.org/)¶<br>`mc`, `mcdiff`, `mcedit`, `mcview` | 4.8.33 | Norton Commander-style file manager | GNU GPLv3 |✓|||||
+| [GNU Mtools](https://www.gnu.org/software/mtools/)<br>e.g. `mcopy`, `mdir`, `mformat`, `mlabel`, `mpartition`, `mtype` | 4.0.50 | MS-DOS/FAT disk access without mounting | GNU GPLv3 |✓|**✓**|✓|✓|✓|
 | [GNU nano](https://www.nano-editor.org/)¶<br>`nano` | 9.2 | Pico-style text editor | GNU GPLv3 |✓|**✓**|✓||✓|
 | [GnuPG & pinentry](https://gnupg.org/)<br>e.g. `gpg`, `gpg-agent`, `gpgconf`, `kbxutil`, `pinentry`, `watchgnupg` | 2.5.24 & 1.3.3 | OpenPGP-compliant encryption & signing | GNU GPLv3 |✓|||||
 | [gpm](https://www.nico.schottelius.org/software/gpm/)<br>`gpm` | 1.20.7 | Virtual console mouse | GNU GPLv2 |✓|✓|✓|✓|✓|
@@ -366,6 +367,7 @@ SHORK DISC is a specialised version of the SHORK 486 Operating System that can b
 * [dosfstools](#bundled-software)
 * [e2fsprogs](#bundled-software)
 * [file](#bundled-software)
+* [GNU Mtools](#bundled-software)
 * [hdparm](#bundled-software)
 * [isapnptools](#bundled-software)
 * [lshw](#bundled-software)

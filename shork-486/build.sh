@@ -443,6 +443,9 @@ MPG321_VER="a41a9397d10576d3aee39c2ed7628a78c285714d"
 MT_ST_SRC="https://github.com/iustin/mt-st.git"
 MT_ST_VER="1.9"
 
+MTOOLS_SRC="https://ftp.gnu.org/gnu/mtools"
+MTOOLS_VER="4.0.50"
+
 MUSL_SRC_1="https://fossies.org/linux/misc"
 MUSL_SRC_2="https://musl.libc.org/releases"
 MUSL_VER="1.2.6"
@@ -654,6 +657,7 @@ INCLUDE_MICROPYTHON=false
 INCLUDE_MIDNIGHT_CMDR=false
 INCLUDE_MPG321=false
 INCLUDE_MT_ST=false
+INCLUDE_MTOOLS=false
 INCLUDE_NANO=false
 INCLUDE_NASM=false
 INCLUDE_NBSDGAMES=false
@@ -10753,6 +10757,13 @@ copy_licences()
         CSV+="\nGNU MP,GNU GPLv3,gmp.txt"
     fi
 
+    if $INCLUDE_MTOOLS && 
+        [ -f "${CURR_DIR}/build/mtools-${MTOOLS_VER}/COPYING" ]; then
+        cp "${CURR_DIR}/build/mtools-${MTOOLS_VER}/COPYING" \
+            "${DESTDIR}/LICENCES/mtools.txt" || true
+        CSV+="\nGNU Mtools,GNU GPLv3,mtools.txt"
+    fi
+
     if $INCLUDE_NANO &&
         [ -f "${CURR_DIR}/build/nano-$NANO_VER/COPYING" ]; then
         cp "${CURR_DIR}/build/nano-$NANO_VER/COPYING" "${DESTDIR}/LICENCES/nano.txt" || true
@@ -12896,6 +12907,7 @@ get_installed_progs_feats()
         check_installed_file "hdparm ${HDPARM_VER}" "/sbin/hdparm"
         check_installed_file "sdparm ${SDPARM_VER}" "/usr/bin/sdparm"
         check_installed_file "setserial ${SETSERIAL_VER}" "/usr/sbin/setserial"
+        check_installed_file "GNU Mtools ${MTOOLS_VER}" "/usr/bin/mtools"
     fi
 
     if [[ ${#INCLUDED_FEATURES[@]} -gt 0 ]]; then
@@ -13803,6 +13815,24 @@ if $INCLUDE_MT_ST; then
         false \
         false \
         "/usr" \
+        ""
+fi
+if $INCLUDE_MTOOLS; then
+    get_prog_tar \
+        "/usr/bin" \
+        "mtools" \
+        "mtools" \
+        "$MTOOLS_VER" \
+        "mtools-${MTOOLS_VER}" \
+        ".tar.bz2" \
+        "$MTOOLS_SRC" \
+        "-xjf" \
+        false \
+        false \
+        "/usr" \
+        "--disable-floppyd --without-x" \
+        "" \
+        "" \
         ""
 fi
 if $INCLUDE_NANO; then
