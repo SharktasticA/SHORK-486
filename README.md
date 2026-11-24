@@ -201,6 +201,7 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 | [GNU nano](https://www.nano-editor.org/)¶<br>`nano` | 9.2 | Pico-style text editor | GNU GPLv3 |✓|**✓**|✓||✓|
 | [GnuPG & pinentry](https://gnupg.org/)<br>e.g. `gpg`, `gpg-agent`, `gpgconf`, `kbxutil`, `pinentry`, `watchgnupg` | 2.5.24 & 1.3.3 | OpenPGP-compliant encryption & signing | GNU GPLv3 |✓|||||
 | [gpm](https://www.nico.schottelius.org/software/gpm/)<br>`gpm` | 1.20.7 | Virtual console mouse | GNU GPLv2 |✓|✓|✓|✓|✓|
+| [hdparm](https://sourceforge.net/projects/hdparm/)<br>`hdparm` | 9.65 | ATA drive parameter get/set | BSD-style |✓|**✓**|✓|✓|✓|
 | [htop](https://github.com/htop-dev/htop)¶<br>`htop` | 3.5.3 | Interactive process viewer | GNU GPLv2 |✓|**✓**|✓||✓|
 | [isapnptools](https://github.com/retroprom/isapnptools)<br>`isapnp`, `pnpdump` | 1.27 | ISA PnP utilities | GNU GPLv2 |✓|**✓**|✓|✓|✓|
 | [Joe's Own Editor](https://github.com/joe-editor/joe)<br>`joe` | 4.8 | WordStar & Emacs-blend text editor | GNU GPLv2 |✓||✓|||
@@ -223,6 +224,7 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 | [pcmciautils](https://www.kernel.org/pub/linux/utils/kernel/pcmcia)<br>`lspcmcia`, `pccardctl` | 018 | PCMCIA utilities | GNU GPLv2 |✓|**✓**||✓||
 | [Perl](https://www.perl.org/)<br>`perl` | 5.44.0 | General-purpose scripting language | GNU GPLv1 |✓|||||
 | [sc-im](https://github.com/andmarti1424/sc-im)¶<br>`sc-im` | 0.8.5 | Terminal spreadsheet editor | BSD 4-Clause |✓|**✓**|✓||✓|
+| [sdparm](https://sg.danny.cz/sg/sdparm.html/)<br>`sas_disk_blink`, `scsi_ch_swp`, `sdparm` | 1.12 | SCSI drive parameter get/set | BSD 3-Clause |✓|**✓**|✓|✓|✓|
 | [strace](https://github.com/strace/strace)<br>`strace` | 7.2 | System calls & signals tracer | GNU LGPLv2.1 |✓|**✓**|||✓|
 | [sysfstools](https://linux-diag.sourceforge.net/Sysfsutils.html)<br>`systool` | 2.1.1 | sysfs device & driver query tool | GNU GPLv2 |✓|**✓**|✓|✓|✓|
 | [sudo](https://www.sudo.ws/)‖<br>`sudo`, `sudoedit`, `visudo` | 1.9.17p2 | Run command as root/substitute user | ISC +<br>BSD 2-Clause +<br>BSD 3-Clause +<br>zlib |✓|**✓**|✓|✓|✓|
@@ -363,11 +365,13 @@ SHORK DISC is a specialised version of the SHORK 486 Operating System that can b
 * [dosfstools](#bundled-software)
 * [e2fsprogs](#bundled-software)
 * [file](#bundled-software)
+* [hdparm](#bundled-software)
 * [isapnptools](#bundled-software)
 * [lshw](#bundled-software)
 * [memtester](#bundled-software)
 * [Ncdu](#bundled-software)
 * [pciutils](#bundled-software)
+* [sdparm](#bundled-software)
 * [strace](#bundled-software)
 * [sysfstools](#bundled-software)
 * [util-linux](#bundled-software)

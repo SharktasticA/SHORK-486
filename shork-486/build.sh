@@ -289,8 +289,13 @@ GNUTLS_VER="3.8.13"
 
 GPM_SRC="https://github.com/telmich/gpm.git"
 GPM_VER="1.20.7"
+
+HDPARM_SRC="https://sourceforge.net/projects/hdparm/files/hdparm"
+HDPARM_VER="9.65"
+
 HTOP_SRC="https://github.com/htop-dev/htop.git"
 HTOP_VER="3.5.3"
+
 HWINFO_SRC="https://github.com/opensuse/hwinfo.git"
 HWINFO_VER="25.5"
 
@@ -492,6 +497,9 @@ RUSTID_VER="2.3.0"
 SC_IM_SRC="https://github.com/andmarti1424/sc-im.git"
 SC_IM_VER="0.8.5"
 
+SDPARM_SRC="http://sg.danny.cz/sg/p"
+SDPARM_VER="1.12"
+
 SLANG_SRC="https://www.jedsoft.org/releases/slang"
 SLANG_VER="2.3.3"
 
@@ -621,6 +629,7 @@ INCLUDE_GCC=false
 INCLUDE_GIT=false
 INCLUDE_GNUPG=false
 INCLUDE_GPM=false
+INCLUDE_HDPARM=false
 INCLUDE_HTOP=false
 INCLUDE_HWINFO=false
 INCLUDE_INDENT=false
@@ -654,6 +663,7 @@ INCLUDE_PCMCIAUTILS=false
 INCLUDE_PERL=false
 INCLUDE_RUSTID=false
 INCLUDE_SC_IM=false
+INCLUDE_SDPARM=false
 INCLUDE_SUDO=false
 INCLUDE_SHORKGUI=false
 INCLUDE_SHORKSTALL=false
@@ -8218,6 +8228,48 @@ get_gcc()
     GCC_SYSROOT="${DESTDIR}/opt/${CROSS_ARCH}-linux-musl-native"
 }
 
+# Download and compile hdparm
+get_hdparm()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ -f "${DESTDIR}/sbin/hdparm" ]; then
+        echo -e "${LIGHT_RED}hdparm already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading hdparm...${RESET}"
+
+    HDPARM="hdparm-${HDPARM_VER}"
+    HDPARM_ARC="${HDPARM}.tar.gz"
+    HDPARM_URI=
+
+    # Download source 
+    wget_download "$HDPARM_ARC" "${HDPARM_SRC}/${HDPARM_ARC}/download"
+
+    # Extract source
+    if [ -d $HDPARM ]; then
+        echo -e "${YELLOW}hdparm's source archive is already present, re-extracting before proceeding...${RESET}"
+        sudo rm -rf $HDPARM
+    fi
+    tar xzf $HDPARM_ARC
+    cd $HDPARM
+
+    # Compile and install
+    echo -e "${GREEN}Compiling hdparm...${RESET}"
+    make -j"$JOBS" \
+        CC="${CC_STATIC}" \
+        STRIP="${STRIP}" \
+        CFLAGS="${CFLAGS_NOPIE} -D_FILE_OFFSET_BITS=64 -ffunction-sections -fdata-sections" \
+        LDFLAGS="-static -Wl,--gc-sections -s"
+    make DESTDIR="$DESTDIR" install \
+        CC="${CC_STATIC}" \
+        STRIP="${STRIP}" \
+        CFLAGS="${CFLAGS_NOPIE} -D_FILE_OFFSET_BITS=64 -ffunction-sections -fdata-sections" \
+        LDFLAGS="-static -Wl,--gc-sections -s"
+}
+
 # Download and compile Git
 get_git()
 {
@@ -10686,6 +10738,13 @@ copy_licences()
         CSV+="\ngpm,GNU GPLv2,gpm.txt"
     fi
 
+    if $INCLUDE_HDPARM && 
+        [ -f "${CURR_DIR}/build/hdparm-${HDPARM_VER}/LICENSE.TXT" ]; then
+        cp "${CURR_DIR}/build/hdparm-${HDPARM_VER}/LICENSE.TXT" \
+            "${DESTDIR}/LICENCES/hdparm.txt" || true
+        CSV+="\nhdparm,BSD-style,hdparm.txt"
+    fi
+
     if $INCLUDE_HTOP && 
         [ -f "${CURR_DIR}/build/htop/COPYING" ]; then
         cp "${CURR_DIR}/build/htop/COPYING" "${DESTDIR}/LICENCES/htop.txt" || true
@@ -11045,6 +11104,13 @@ copy_licences()
         [ -f "${CURR_DIR}/build/sc-im/LICENSE" ]; then
         cp "${CURR_DIR}/build/sc-im/LICENSE" "${DESTDIR}/LICENCES/sc-im.txt" || true
         CSV+="\nsc-im,BSD 4-Clause,sc-im.txt"
+    fi
+
+    if $INCLUDE_SDPARM && 
+        [ -f "${CURR_DIR}/build/sdparm-${SDPARM_VER}/COPYING" ]; then
+        cp "${CURR_DIR}/build/sdparm-${SDPARM_VER}/COPYING" \
+            "${DESTDIR}/LICENCES/sdparm.txt" || true
+        CSV+="\nsdparm,BSD 3-Clause,sdparm.txt"
     fi
 
     if $INCLUDE_SHORKTAINMENT &&
@@ -12776,6 +12842,8 @@ get_installed_progs_feats()
         check_installed_file "lshw ${LSHW_VER}" "/usr/sbin/lshw"
         check_installed_file "sysfsutils ${SYSFSUTILS_VER}" "/usr/bin/systool"
         check_installed_file "dmidecode ${DMIDECODE_VER}" "/usr/sbin/dmidecode"
+        check_installed_file "hdparm ${HDPARM_VER}" "/sbin/hdparm"
+        check_installed_file "sdparm ${SDPARM_VER}" "/usr/bin/sdparm"
     fi
 
     if [[ ${#INCLUDED_FEATURES[@]} -gt 0 ]]; then
@@ -13522,6 +13590,9 @@ if $INCLUDE_GNUPG; then
         "" \
         "-lgcc"
 fi
+if $INCLUDE_HDPARM; then
+    get_hdparm
+fi
 if $INCLUDE_HTOP; then
     get_htop
 fi
@@ -13756,6 +13827,24 @@ if $INCLUDE_RUSTID; then
 fi
 if $INCLUDE_SC_IM; then
     get_sc_im
+fi
+if $INCLUDE_SDPARM; then
+    get_prog_tar \
+        "/usr/bin" \
+        "sdparm" \
+        "sdparm" \
+        "$SDPARM_VER" \
+        "sdparm-${SDPARM_VER}" \
+        ".tgz" \
+        "$SDPARM_SRC" \
+        "-xzf" \
+        false \
+        false \
+        "/usr" \
+        "" \
+        "" \
+        "" \
+        ""
 fi
 if $INCLUDE_SUDO; then
     get_prog_tar \

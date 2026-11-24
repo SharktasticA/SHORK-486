@@ -90,6 +90,7 @@ INCLUDE_GCC=false
 INCLUDE_GIT=false
 INCLUDE_GNUPG=false
 INCLUDE_GPM=false
+INCLUDE_HDPARM=false
 INCLUDE_HTOP=false
 INCLUDE_INDENT=false
 INCLUDE_ISAPNPTOOLS=false
@@ -117,6 +118,7 @@ INCLUDE_PCIUTILS=false
 INCLUDE_PCMCIAUTILS=false
 INCLUDE_PERL=false
 INCLUDE_SC_IM=false
+INCLUDE_SDPARM=false
 INCLUDE_SHORKGUI=false
 INCLUDE_SHORKSTALL=false
 INCLUDE_SHORKTAINMENT=false
@@ -324,6 +326,7 @@ save_env()
         echo "INCLUDE_GIT=$INCLUDE_GIT"
         echo "INCLUDE_GNUPG=$INCLUDE_GNUPG"
         echo "INCLUDE_GPM=$INCLUDE_GPM"
+        echo "INCLUDE_HDPARM=$INCLUDE_HDPARM"
         echo "INCLUDE_HTOP=$INCLUDE_HTOP"
         echo "INCLUDE_INDENT=$INCLUDE_INDENT"
         echo "INCLUDE_ISAPNPTOOLS=$INCLUDE_ISAPNPTOOLS"
@@ -352,6 +355,7 @@ save_env()
         echo "INCLUDE_PCMCIAUTILS=$INCLUDE_PCMCIAUTILS"
         echo "INCLUDE_PERL=$INCLUDE_PERL"
         echo "INCLUDE_SC_IM=$INCLUDE_SC_IM"
+        echo "INCLUDE_SDPARM=$INCLUDE_SDPARM"
         echo "INCLUDE_SHORKGUI=$INCLUDE_SHORKGUI"
         echo "INCLUDE_SHORKSTALL=$INCLUDE_SHORKSTALL"
         echo "INCLUDE_SHORKTAINMENT=$INCLUDE_SHORKTAINMENT"
@@ -450,6 +454,7 @@ set_mini_vars()
     INCLUDE_GIT=false
     INCLUDE_GNUPG=false
     INCLUDE_GPM=false
+    INCLUDE_HDPARM=false
     INCLUDE_HTOP=false
     INCLUDE_INDENT=false
     INCLUDE_ISAPNPTOOLS=false
@@ -478,6 +483,7 @@ set_mini_vars()
     INCLUDE_PCMCIAUTILS=false
     INCLUDE_PERL=false
     INCLUDE_SC_IM=false
+    INCLUDE_SDPARM=false
     INCLUDE_SHORKGUI=false
     INCLUDE_SHORKSTALL=false
     INCLUDE_SHORKTAINMENT=false
@@ -525,11 +531,13 @@ set_terminal_vars()
     INCLUDE_DMIDECODE=true
     INCLUDE_DROPBEAR=true
     INCLUDE_GPM=true
+    INCLUDE_HDPARM=true
     INCLUDE_ISAPNPTOOLS=true
     INCLUDE_LSB_RELEASE_MIN=true
     INCLUDE_MEMTESTER=true
     INCLUDE_PCIUTILS=true
     INCLUDE_PCMCIAUTILS=true
+    INCLUDE_SDPARM=true
     INCLUDE_TMUX=true
     INCLUDE_TN5250=true
     INCLUDE_TNFTP=true
@@ -555,6 +563,7 @@ set_writer_vars()
     SETUP_DYN_SWAP=true
 
     INCLUDE_DMIDECODE=true
+    INCLUDE_HDPARM=true
     INCLUDE_HTOP=true
     INCLUDE_ISAPNPTOOLS=true
     INCLUDE_GPM=true
@@ -566,6 +575,7 @@ set_writer_vars()
     INCLUDE_NCDU=true
     INCLUDE_PCIUTILS=true
     INCLUDE_SC_IM=true
+    INCLUDE_SDPARM=true
     INCLUDE_TILDE=true
     INCLUDE_TMUX=true
     INCLUDE_VIM=true
@@ -600,6 +610,7 @@ set_default_vars()
     INCLUDE_FILE=true
     INCLUDE_GIT=true
     INCLUDE_GPM=true
+    INCLUDE_HDPARM=true
     INCLUDE_HTOP=true
     INCLUDE_ISAPNPTOOLS=true
     INCLUDE_LSB_RELEASE_MIN=true
@@ -614,6 +625,7 @@ set_default_vars()
     INCLUDE_PCIUTILS=true
     INCLUDE_PCMCIAUTILS=true
     INCLUDE_SC_IM=true
+    INCLUDE_SDPARM=true
     INCLUDE_SHORKTAINMENT=true
     INCLUDE_STRACE=true
     INCLUDE_SYSFSUTILS=true
@@ -714,11 +726,13 @@ set_disc_vars()
     INCLUDE_DOSFSTOOLS=true
     INCLUDE_E2FSPROGS=true
     INCLUDE_FILE=true
+    INCLUDE_HDPARM=true
     INCLUDE_ISAPNPTOOLS=true
     INCLUDE_LSHW=true
     INCLUDE_MEMTESTER=true
     INCLUDE_NCDU=true
     INCLUDE_PCIUTILS=true
+    INCLUDE_SDPARM=true
     INCLUDE_SHORKTAINMENT=true
     INCLUDE_STRACE=true
     INCLUDE_SYSFSUTILS=true
@@ -1013,6 +1027,16 @@ BUNDLED_SOFTWARE=(
         "false"
         "always"
 
+    "hdparm"
+        "*ATA drive parameter get/set"
+        "0.1MiB"
+        "hdparm"
+        ""
+        "10MiB"
+        "INCLUDE_HDPARM"
+        "false"
+        "always"
+
     "htop"
         "*Interactive process viewer"
         "0.6MiB"
@@ -1230,6 +1254,16 @@ BUNDLED_SOFTWARE=(
         ""
         "12MiB"
         "INCLUDE_SC_IM"
+        "false"
+        "always"
+
+    "sdparm"
+        "*SCSI drive parameter get/set"
+        "0.3MiB"
+        "sas_disk_blink, scsi_ch_swp, sdparm"
+        ""
+        "8MiB"
+        "INCLUDE_SDPARM"
         "false"
         "always"
 
