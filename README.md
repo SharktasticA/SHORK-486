@@ -225,6 +225,7 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 | [Perl](https://www.perl.org/)<br>`perl` | 5.44.0 | General-purpose scripting language | GNU GPLv1 |✓|||||
 | [sc-im](https://github.com/andmarti1424/sc-im)¶<br>`sc-im` | 0.8.5 | Terminal spreadsheet editor | BSD 4-Clause |✓|**✓**|✓||✓|
 | [sdparm](https://sg.danny.cz/sg/sdparm.html/)<br>`sas_disk_blink`, `scsi_ch_swp`, `sdparm` | 1.12 | SCSI drive parameter get/set | BSD 3-Clause |✓|**✓**|✓|✓|✓|
+| [setserial](https://setserial.sourceforge.net/)<br>`setserial` | 2.17 | Serial port configuration get/set | GNU GPLv2 |✓|**✓**|✓|✓|✓|
 | [strace](https://github.com/strace/strace)<br>`strace` | 7.2 | System calls & signals tracer | GNU LGPLv2.1 |✓|**✓**|||✓|
 | [sysfstools](https://linux-diag.sourceforge.net/Sysfsutils.html)<br>`systool` | 2.1.1 | sysfs device & driver query tool | GNU GPLv2 |✓|**✓**|✓|✓|✓|
 | [sudo](https://www.sudo.ws/)‖<br>`sudo`, `sudoedit`, `visudo` | 1.9.17p2 | Run command as root/substitute user | ISC +<br>BSD 2-Clause +<br>BSD 3-Clause +<br>zlib |✓|**✓**|✓|✓|✓|
@@ -372,6 +373,7 @@ SHORK DISC is a specialised version of the SHORK 486 Operating System that can b
 * [Ncdu](#bundled-software)
 * [pciutils](#bundled-software)
 * [sdparm](#bundled-software)
+* [setserial](#bundled-software)
 * [strace](#bundled-software)
 * [sysfstools](#bundled-software)
 * [util-linux](#bundled-software)

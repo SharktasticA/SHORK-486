@@ -119,6 +119,7 @@ INCLUDE_PCMCIAUTILS=false
 INCLUDE_PERL=false
 INCLUDE_SC_IM=false
 INCLUDE_SDPARM=false
+INCLUDE_SETSERIAL=false
 INCLUDE_SHORKGUI=false
 INCLUDE_SHORKSTALL=false
 INCLUDE_SHORKTAINMENT=false
@@ -356,6 +357,7 @@ save_env()
         echo "INCLUDE_PERL=$INCLUDE_PERL"
         echo "INCLUDE_SC_IM=$INCLUDE_SC_IM"
         echo "INCLUDE_SDPARM=$INCLUDE_SDPARM"
+        echo "INCLUDE_SETSERIAL=$INCLUDE_SETSERIAL"
         echo "INCLUDE_SHORKGUI=$INCLUDE_SHORKGUI"
         echo "INCLUDE_SHORKSTALL=$INCLUDE_SHORKSTALL"
         echo "INCLUDE_SHORKTAINMENT=$INCLUDE_SHORKTAINMENT"
@@ -484,6 +486,7 @@ set_mini_vars()
     INCLUDE_PERL=false
     INCLUDE_SC_IM=false
     INCLUDE_SDPARM=false
+    INCLUDE_SETSERIAL=false
     INCLUDE_SHORKGUI=false
     INCLUDE_SHORKSTALL=false
     INCLUDE_SHORKTAINMENT=false
@@ -538,6 +541,7 @@ set_terminal_vars()
     INCLUDE_PCIUTILS=true
     INCLUDE_PCMCIAUTILS=true
     INCLUDE_SDPARM=true
+    INCLUDE_SETSERIAL=true
     INCLUDE_TMUX=true
     INCLUDE_TN5250=true
     INCLUDE_TNFTP=true
@@ -576,6 +580,7 @@ set_writer_vars()
     INCLUDE_PCIUTILS=true
     INCLUDE_SC_IM=true
     INCLUDE_SDPARM=true
+    INCLUDE_SETSERIAL=true
     INCLUDE_TILDE=true
     INCLUDE_TMUX=true
     INCLUDE_VIM=true
@@ -626,6 +631,7 @@ set_default_vars()
     INCLUDE_PCMCIAUTILS=true
     INCLUDE_SC_IM=true
     INCLUDE_SDPARM=true
+    INCLUDE_SETSERIAL=true
     INCLUDE_SHORKTAINMENT=true
     INCLUDE_STRACE=true
     INCLUDE_SYSFSUTILS=true
@@ -733,6 +739,7 @@ set_disc_vars()
     INCLUDE_NCDU=true
     INCLUDE_PCIUTILS=true
     INCLUDE_SDPARM=true
+    INCLUDE_SETSERIAL=true
     INCLUDE_SHORKTAINMENT=true
     INCLUDE_STRACE=true
     INCLUDE_SYSFSUTILS=true
@@ -1264,6 +1271,16 @@ BUNDLED_SOFTWARE=(
         ""
         "8MiB"
         "INCLUDE_SDPARM"
+        "false"
+        "always"
+
+    "setserial"
+        "*Serial port configuration get/set"
+        "0.07MiB"
+        "setserial"
+        ""
+        "8MiB"
+        "INCLUDE_SETSERIAL"
         "false"
         "always"
 

@@ -500,6 +500,9 @@ SC_IM_VER="0.8.5"
 SDPARM_SRC="http://sg.danny.cz/sg/p"
 SDPARM_VER="1.12"
 
+SETSERIAL_SRC="https://sourceforge.net/projects/setserial/files/setserial"
+SETSERIAL_VER="2.17"
+
 SLANG_SRC="https://www.jedsoft.org/releases/slang"
 SLANG_VER="2.3.3"
 
@@ -664,6 +667,7 @@ INCLUDE_PERL=false
 INCLUDE_RUSTID=false
 INCLUDE_SC_IM=false
 INCLUDE_SDPARM=false
+INCLUDE_SETSERIAL=false
 INCLUDE_SUDO=false
 INCLUDE_SHORKGUI=false
 INCLUDE_SHORKSTALL=false
@@ -9284,6 +9288,47 @@ get_sc_im()
     make -C src DESTDIR="${DESTDIR}" prefix=/usr install
 }
 
+# Download and compile setserial
+get_setserial()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ -f "${DESTDIR}/usr/sbin/setserial" ]; then
+        echo -e "${LIGHT_RED}setserial already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading setserial...${RESET}"
+
+    SETSERIAL="setserial-${SETSERIAL_VER}"
+    SETSERIAL_ARC="${SETSERIAL}.tar.gz"
+
+    # Download source
+    wget_download "$SETSERIAL_ARC" "${SETSERIAL_SRC}/${SETSERIAL_VER}/${SETSERIAL_ARC}/download"
+
+    # Extract source
+    if [ -d "$SETSERIAL" ]; then
+        echo -e "${YELLOW}setserial's source archive is already present, re-extracting before proceeding...${RESET}"
+        sudo rm -rf "$SETSERIAL"
+    fi
+    tar xzf "$SETSERIAL_ARC"
+    cd "$SETSERIAL"
+
+    # Compile
+    echo -e "${GREEN}Compiling setserial...${RESET}"
+    unset LIBS
+    CC="${CC_STATIC}" \
+    CFLAGS="${CFLAGS_NOPIE} -ffunction-sections -fdata-sections" \
+    LDFLAGS="-static -Wl,--gc-sections -s" \
+    ./configure
+    make -j"$JOBS" setserial \
+        CC="${CC_STATIC}" \
+        CFLAGS="${CFLAGS_NOPIE} -ffunction-sections -fdata-sections" \
+        LDFLAGS="-static -Wl,--gc-sections -s"
+    install -D -m 755 setserial "${DESTDIR}/usr/sbin/setserial"
+}
+
 # Download and compile Tiny C Compiler
 get_tcc()
 {
@@ -11113,6 +11158,12 @@ copy_licences()
         CSV+="\nsdparm,BSD 3-Clause,sdparm.txt"
     fi
 
+    if $INCLUDE_SETSERIAL; then
+        wget_download "${DESTDIR}/LICENCES/setserial.txt" \
+            "https://www.gnu.org/licenses/old-licenses/gpl-2.0.txt"
+        CSV+="\nsetserial,GNU GPLv2,setserial.txt"
+    fi
+
     if $INCLUDE_SHORKTAINMENT &&
         [ -f "${CURR_DIR}/build/shorkmines/LICENSE" ]; then
         cp "${CURR_DIR}/build/shorkmines/LICENSE" "${DESTDIR}/LICENCES/shorkmines.txt" || true
@@ -12844,6 +12895,7 @@ get_installed_progs_feats()
         check_installed_file "dmidecode ${DMIDECODE_VER}" "/usr/sbin/dmidecode"
         check_installed_file "hdparm ${HDPARM_VER}" "/sbin/hdparm"
         check_installed_file "sdparm ${SDPARM_VER}" "/usr/bin/sdparm"
+        check_installed_file "setserial ${SETSERIAL_VER}" "/usr/sbin/setserial"
     fi
 
     if [[ ${#INCLUDED_FEATURES[@]} -gt 0 ]]; then
@@ -13845,6 +13897,9 @@ if $INCLUDE_SDPARM; then
         "" \
         "" \
         ""
+fi
+if $INCLUDE_SETSERIAL; then
+    get_setserial
 fi
 if $INCLUDE_SUDO; then
     get_prog_tar \
