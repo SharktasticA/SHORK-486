@@ -4544,7 +4544,7 @@ get_libsysfs()
     if [ -d sysfsutils ]; then
         echo -e "${YELLOW}libsysfs source already present, resetting...${RESET}"
         cd sysfsutils
-        git config --global --add safe.directory "${CURR_DIR}"/build/libsysfs
+        git config --global --add safe.directory "${CURR_DIR}"/build/sysfsutils
         git reset --hard
         git clean -fdx
     else
