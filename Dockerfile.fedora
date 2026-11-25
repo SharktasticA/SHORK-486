@@ -1,4 +1,4 @@
-FROM fedora:44
+FROM fedora:45
 
 RUN dnf -y --setopt=install_weak_deps=False install \
     autoconf automake bc bdftopcf bison byacc cmake dialog \
@@ -6,7 +6,7 @@ RUN dnf -y --setopt=install_weak_deps=False install \
     genisoimage gettext git gperf grub2-common grub2-pc kpartx \
     libffi-devel libtool libuuid-devel make meson mkfontscale nasm \
     ncurses-devel ninja-build patch perl pciutils python3 qemu-img sudo \
-    syslinux-extlinux syslinux-nonlinux texinfo util-linux \
+    syslinux-extlinux syslinux-nonlinux texinfo util-linux wget \
     xorg-x11-font-utils
 
 WORKDIR /var/shork-486
