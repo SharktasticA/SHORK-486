@@ -594,6 +594,7 @@ USE_TORVALDS=false
 ENABLE_CDROM=false
 ENABLE_EPOLL=false
 ENABLE_EVDEV=false
+ENABLE_EXFAT=false
 ENABLE_FB=false
 ENABLE_HELP_VERBOSE=false
 ENABLE_HIGHMEM=false
@@ -607,6 +608,7 @@ ENABLE_NET_BASE=false
 ENABLE_NET_ETH=false
 ENABLE_NET_PCMCIA=false
 ENABLE_NO_VDS032=true
+ENABLE_NTFS=false
 ENABLE_PCMCIA=false
 ENABLE_SATA=false
 ENABLE_SCSI_EXP=false
@@ -5193,6 +5195,11 @@ configure_kernel()
             FRAGS+="${CONFIGS_DIR}/linux/linux.config.evdev.frag "
         fi
 
+        if $ENABLE_EXFAT; then
+            echo -e "${GREEN}Enabling kernel-level exFAT filesystem support...${RESET}"
+            FRAGS+="${CONFIGS_DIR}/linux/linux.config.exfat.frag "
+        fi
+
         if $ENABLE_HIGHMEM; then
             echo -e "${GREEN}Enabling kernel-level high memory support...${RESET}"
             FRAGS+="${CONFIGS_DIR}/linux/linux.config.highmem.frag "
@@ -5231,6 +5238,11 @@ configure_kernel()
         if $ENABLE_NET_PCMCIA; then
             echo -e "${GREEN}Enabling kernel-level networking support (PCMCIA)...${RESET}"
             FRAGS+="${CONFIGS_DIR}/linux/linux.config.net.pcmcia.frag "
+        fi
+
+        if $ENABLE_NTFS; then
+            echo -e "${GREEN}Enabling kernel-level NTFS filesystem support...${RESET}"
+            FRAGS+="${CONFIGS_DIR}/linux/linux.config.ntfs.frag "
         fi
 
         if $ENABLE_PCMCIA; then
@@ -12760,30 +12772,28 @@ get_installed_progs_feats()
 {
     # Kernel features
     if [[ "$ID" == "shork-"*86 ]]; then
+        if $ENABLE_CDROM; then
+            INCLUDED_FEATURES+=("kernel-level CD-ROM & DVD-ROM support")
+        else
+            EXCLUDED_FEATURES+=("kernel-level CD-ROM & DVD-ROM support")
+        fi
+    
+        if $ENABLE_EPOLL; then
+            INCLUDED_FEATURES+=("kernel-level eventpoll support")
+        else
+            EXCLUDED_FEATURES+=("kernel-level eventpoll support")
+        fi
+
         if $ENABLE_EVDEV; then
             INCLUDED_FEATURES+=("kernel-level event interface support")
         else
             EXCLUDED_FEATURES+=("kernel-level event interface support")
         fi
 
-        if $ENABLE_CDROM; then
-            INCLUDED_FEATURES+=("kernel-level CD-ROM & DVD-ROM support")
+        if $ENABLE_EXFAT; then
+            INCLUDED_FEATURES+=("kernel-level exFAT filesystem support")
         else
-            EXCLUDED_FEATURES+=("kernel-level CD-ROM & DVD-ROM support")
-        fi
-    elif [ "$ID" == "shork-diskette" ]; then
-        if $ENABLE_CDROM; then
-            INCLUDED_FEATURES+=("kernel-level block device support")
-        else
-            EXCLUDED_FEATURES+=("kernel-level block device support")
-        fi
-    fi
-
-    if [[ "$ID" == "shork-"*86 ]]; then
-        if $ENABLE_EPOLL; then
-            INCLUDED_FEATURES+=("kernel-level eventpoll support")
-        else
-            EXCLUDED_FEATURES+=("kernel-level eventpoll support")
+            EXCLUDED_FEATURES+=("kernel-level exFAT filesystem support")
         fi
 
         if $ENABLE_FB; then
@@ -12840,6 +12850,12 @@ get_installed_progs_feats()
             EXCLUDED_FEATURES+=("kernel-level networking support (PCMCIA)")
         fi
 
+        if $ENABLE_NTFS; then
+            INCLUDED_FEATURES+=("kernel-level NTFS filesystem support")
+        else
+            EXCLUDED_FEATURES+=("kernel-level NTFS filesystem support")
+        fi
+
         if $ENABLE_PCMCIA; then
             INCLUDED_FEATURES+=("kernel-level PCMCIA support")
         else
@@ -12892,6 +12908,12 @@ get_installed_progs_feats()
             INCLUDED_FEATURES+=("kernel-level zswap support")
         else
             EXCLUDED_FEATURES+=("kernel-level zswap support")
+        fi
+    elif [ "$ID" == "shork-diskette" ]; then
+        if $ENABLE_CDROM; then
+            INCLUDED_FEATURES+=("kernel-level block device support")
+        else
+            EXCLUDED_FEATURES+=("kernel-level block device support")
         fi
     fi
 

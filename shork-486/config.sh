@@ -137,6 +137,7 @@ INCLUDE_TMUX=false
 INCLUDE_UTIL_LINUX=false
 INCLUDE_VIM=false
 INCLUDE_CON_FONTS=false
+ENABLE_EXFAT=false
 ENABLE_FB=false
 INCLUDE_FREEDOS=false
 USE_GRUB=false
@@ -147,6 +148,7 @@ ENABLE_LOOP=false
 ENABLE_MENU=false
 ENABLE_MOUSE=false
 ENABLE_NO_VDS032=true
+ENABLE_NTFS=false
 INCLUDE_PCI_IDS=false
 ENABLE_PCMCIA=false
 ENABLE_SATA=false
@@ -377,6 +379,7 @@ save_env()
         echo "INCLUDE_UTIL_LINUX=$INCLUDE_UTIL_LINUX"
         echo "INCLUDE_VIM=$INCLUDE_VIM"
         echo "INCLUDE_CON_FONTS=$INCLUDE_CON_FONTS"
+        echo "ENABLE_EXFAT=$ENABLE_EXFAT"
         echo "ENABLE_FB=$ENABLE_FB"
         echo "INCLUDE_FREEDOS=$INCLUDE_FREEDOS"
         echo "USE_GRUB=$USE_GRUB"
@@ -387,6 +390,7 @@ save_env()
         echo "ENABLE_MENU=$ENABLE_MENU"
         echo "ENABLE_MOUSE=$ENABLE_MOUSE"
         echo "ENABLE_NO_VDS032=$ENABLE_NO_VDS032"
+        echo "ENABLE_NTFS=$ENABLE_NTFS"
         echo "INCLUDE_PCI_IDS=$INCLUDE_PCI_IDS"
         echo "ENABLE_PCMCIA=$ENABLE_PCMCIA"
         echo "ENABLE_SATA=$ENABLE_SATA"
@@ -652,12 +656,14 @@ set_default_vars()
 
     ENABLE_CDROM=true
     INCLUDE_CON_FONTS=true
+    ENABLE_EXFAT=true
     ENABLE_FB=true
     ENABLE_HELP_VERBOSE=true
     INCLUDE_KEYMAPS=true
     ENABLE_LOOP=true
     ENABLE_MENU=true
     ENABLE_MOUSE=true
+    ENABLE_NTFS=true
     INCLUDE_PCI_IDS=true
     ENABLE_PCMCIA=true
     ENABLE_SCSI_EXP=true
@@ -757,7 +763,9 @@ set_disc_vars()
     INCLUDE_SYSFSUTILS=true
     INCLUDE_UTIL_LINUX=true
 
+    ENABLE_EXFAT=true
     INCLUDE_PCI_IDS=true
+    ENABLE_NTFS=true
 }
 
 set_diskette_vars()
@@ -2389,6 +2397,7 @@ if [ "$BUILD_TYPE" = "custom" ]; then
         --checklist "Select what other options to include. Some of these are benign, some may increase the RAM and disk space requirement considerably.\n* This option would be included in a \"default\" build\n† This option has specific memory requirements (check GitHub repository's README)" $HEIGHT $WIDTH 9 \
         "cdrom"         "*Kernel-level CD-ROM & DVD-ROM support"                    $(val $ENABLE_CDROM) \
         "con-fonts"     "*Console fonts pack (0.6MiB)"                              $(val $INCLUDE_CON_FONTS) \
+        "exfat"         "*Kernel-level exFAT filesystem support"                    $(val $ENABLE_EXFAT) \
         "fb"            "*†vesafb & vga16fb framebuffer support"                    $(val $ENABLE_FB) \
         "grub"          "GRUB 2.x instead of EXTLINUX (4MiB)"                       $(val $USE_GRUB) \
         "help-verbose"  "*BusyBox verbose --help"                                   $(val $ENABLE_HELP_VERBOSE) \
@@ -2397,6 +2406,7 @@ if [ "$BUILD_TYPE" = "custom" ]; then
         "menu"          "*Menu-based bootloader (0.5MiB)"                           $(val $ENABLE_MENU) \
         "mouse"         "*Kernel-level mouse support"                               $(val $ENABLE_MOUSE) \
         "no-vdso32"     "*Disable 32-bit vDSO & SEP usage"                          $(val $ENABLE_NO_VDS032) \
+        "ntfs"          "*Kernel-level NTFS filesystem support"                     $(val $ENABLE_NTFS) \
         "pci.ids"       "*PCI IDs database ($PCIIDS_SIZE)"                          $(val $INCLUDE_PCI_IDS) \
         "pcmcia"        "*Kernel-level PCMCIA support"                              $(val $ENABLE_PCMCIA) \
         "sata"          "†Kernel-level SATA support"                                $(val $ENABLE_SATA) \
@@ -2409,6 +2419,7 @@ if [ "$BUILD_TYPE" = "custom" ]; then
 
     if [[ $OPTIONS =~ "cdrom" ]];           then ENABLE_CDROM=true;         else ENABLE_CDROM=false;            fi
     if [[ $OPTIONS =~ "con-fonts" ]];       then INCLUDE_CON_FONTS=true;    else INCLUDE_CON_FONTS=false;       fi
+    if [[ $OPTIONS =~ "exfat" ]];           then ENABLE_EXFAT=true;         else ENABLE_EXFAT=false;            fi
     if [[ $OPTIONS =~ "fb" ]];              then ENABLE_FB=true;            else ENABLE_FB=false;               fi
     if [[ $OPTIONS =~ "grub" ]];            then USE_GRUB=true;             else USE_GRUB=false;                fi
     if [[ $OPTIONS =~ "help-verbose" ]];    then ENABLE_HELP_VERBOSE=true;  else ENABLE_HELP_VERBOSE=false;     fi
@@ -2418,6 +2429,7 @@ if [ "$BUILD_TYPE" = "custom" ]; then
     if [[ $OPTIONS =~ "menu" ]];            then ENABLE_MENU=true;          else ENABLE_MENU=false;             fi
     if [[ $OPTIONS =~ "mouse" ]];           then ENABLE_MOUSE=true;         else ENABLE_MOUSE=false;            fi
     if [[ $OPTIONS =~ "no-vdso32" ]];       then ENABLE_NO_VDS032=true;     else ENABLE_NO_VDS032=false;        fi
+    if [[ $OPTIONS =~ "ntfs" ]];            then ENABLE_NTFS=true;          else ENABLE_NTFS=false;             fi
     if [[ $OPTIONS =~ "pci.ids" ]];         then INCLUDE_PCI_IDS=true;      else INCLUDE_PCI_IDS=false;         fi
     if [[ $OPTIONS =~ "pcmcia" ]];          then ENABLE_PCMCIA=true;        else ENABLE_PCMCIA=false;           fi
     if [[ $OPTIONS =~ "sata" ]];            then ENABLE_SATA=true;          else ENABLE_SATA=false;             fi
@@ -2470,6 +2482,25 @@ if [ "$INCLUDE_AUTOCONF" = true ] && [ "$INCLUDE_AUTOMAKE" = false ]; then
 
     if [[ $CHOICE -eq 0 ]]; then
         INCLUDE_AUTOMAKE=true
+    elif [[ $CHOICE -eq 1 ]]; then
+        :
+    fi
+fi
+
+# Advisory - +INCLUDE_EXFATPROGS/-ENABLE_EXFAT
+if [ "$INCLUDE_EXFATPROGS" = true ] && [ "$ENABLE_EXFAT" = false ]; then
+    dialog --clear \
+        --backtitle "SHORK 486 Build Configurator" \
+        --title "Advisory - +INCLUDE_EXFATPROGS/-ENABLE_EXFAT" \
+        --yes-label "Include kernel-level support" \
+        --no-label "Ignore" \
+        --yesno "You have chosen to include exfatprogs but exclude kernel-level exFAT filesystem support. You will be able to create, format and repair exFAT volumes, but the system will not be able to mount them." \
+        7 "$WIDTH"
+
+    CHOICE=$?
+
+    if [[ $CHOICE -eq 0 ]]; then
+        ENABLE_EXFAT=true
     elif [[ $CHOICE -eq 1 ]]; then
         :
     fi
