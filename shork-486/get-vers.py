@@ -68,6 +68,7 @@ REPOS = [
     "void-linux/musl-fts",
     "netwide-assembler/nasm",
     "abakh/nbsdgames",
+    "ntfsprogs-plus/ntfsprogs-plus",
     "openssl/openssl",
     "NixOS/patchelf",
     "pciutils/pciutils",

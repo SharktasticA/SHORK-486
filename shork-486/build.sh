@@ -479,6 +479,10 @@ NETTLE_VER="4.0"
 
 NPTH_SRC="https://gnupg.org/ftp/gcrypt/npth"
 NPTH_VER="1.8"
+
+NTFSPROGS_PLUS_SRC="https://github.com/ntfsprogs-plus/ntfsprogs-plus.git"
+NTFSPROGS_PLUS_VER="1.0.0"
+
 OPENSSL_SRC="https://github.com/openssl/openssl.git"
 OPENSSL_VER="3.6.5"
 PATCHELF_SRC="https://github.com/NixOS/patchelf/archive/refs/tags"
@@ -673,6 +677,7 @@ INCLUDE_NASM=false
 INCLUDE_NBSDGAMES=false
 INCLUDE_NCDU=false
 INCLUDE_NETHACK=false
+INCLUDE_NTFSPROGS_PLUS=false
 INCLUDE_PATCHELF=false
 INCLUDE_PCI_IDS=false
 INCLUDE_PCIUTILS=false
@@ -1104,6 +1109,12 @@ if $INCLUDE_MPG321; then
     NEED_LIBAO=true
 fi
 
+if $INCLUDE_NTFSPROGS_PLUS; then
+    NEED_LIBGCRYPT=true
+    NEED_LIBGPG_ERROR=true
+    NEED_LIBUUID=true
+fi
+
 if $INCLUDE_PCMCIAUTILS; then
     NEED_LIBSYSFS=true
 fi
@@ -1336,7 +1347,7 @@ wget_download()
             sleep 2
         fi
 
-        if wget -U "$UA" -O "$OUT" "$URL"; then
+        if wget --timeout=10 --tries=1 -U "$UA" -O "$OUT" "$URL"; then
             return 0
         fi
         rm -f "$OUT"
@@ -3932,10 +3943,8 @@ get_libuuid()
     cd "${CURR_DIR}/build/libuuid"
 
     # Skip if already compiled
-    if [ -f "${DESTDIR}/usr/bin/lscpu" ] &&
-       [ -f "${DESTDIR}/usr/bin/partx" ] &&
-       [ -f "${DESTDIR}/usr/sbin/sfdisk" ] &&
-       [ -f "${DESTDIR}/usr/bin/whereis" ]; then
+    if [ -f "${SYSROOT}/usr/lib/libuuid.a" ] &&
+       [ -f "${SYSROOT}/usr/include/uuid/uuid.h" ]; then
         echo -e "${LIGHT_RED}util-linux for libuuid already compiled, skipping...${RESET}"
         return
     fi
@@ -3961,6 +3970,10 @@ get_libuuid()
         --prefix="${SYSROOT}/usr" \
         --disable-all-programs \
         --enable-libuuid \
+        --disable-shared \
+        --enable-static \
+        --without-python \
+        --disable-nls \
         CC="${CC_STATIC}" \
         CFLAGS="${CFLAGS_NOPIE}" \
         CPPFLAGS="-I${PREFIX}/include" \
@@ -7744,6 +7757,11 @@ get_prog_git()
         patch -p1 < "${PATCHES_DIR}/${PATCH_FILE}"
     fi
 
+    if [ "$NAME" = "ntfsprogs-plus" ]; then
+        sed -i 's/^install-exec-hook:/install-exec-hook-disabled:/' \
+            libntfs/Makefile.am
+    fi
+
 
 
     local MAKE_VARS=()
@@ -10618,6 +10636,19 @@ trim_fat()
         sudo rm -rf "${DESTDIR}/usr/share/mg"
     fi
 
+    if $INCLUDE_NTFSPROGS_PLUS; then
+        for H in acls attrib attrlist bitmap bootsect cache collate compat \
+            compress debug device device_io dir ea efs endians fsck index \
+            inode ioctl layout lcnalloc lib_utils logfile logging mft misc \
+            mst ntfstime object_id param plugin problem realpath reparse \
+            runlist security support types unistr volume xattrs; do
+            sudo rm -rf "${DESTDIR}/usr/include/${H}.h"
+        done
+        rmdir --ignore-fail-on-non-empty "${DESTDIR}/usr/include" 2>/dev/null || true
+        sudo rm -rf "${DESTDIR}/usr/lib/libntfs.a" "${DESTDIR}/usr/lib/libntfs.la"
+        rmdir --ignore-fail-on-non-empty "${DESTDIR}/usr/lib" 2>/dev/null || true
+    fi
+
     if $INCLUDE_PERL; then
         sudo rm -f  "${DESTDIR}"/usr/bin/{perlbug,perlthanks,prove}
         sudo rm -rf "${DESTDIR}"/usr/lib/perl5/*/App/Prove*
@@ -11097,10 +11128,15 @@ copy_licences()
         CSV+="\nliburcu,GNU LGPLv2.1,liburcu.txt"
     fi
 
-    # TODO: $NEED_LIBUUID
-    if $INCLUDE_E2FSPROGS && 
+    if $INCLUDE_E2FSPROGS &&
         [ -f "${CURR_DIR}/build/e2fsprogs-$E2FSPROGS_VER/lib/uuid/COPYING" ]; then
-        cp "${CURR_DIR}/build/e2fsprogs-$E2FSPROGS_VER/lib/uuid/COPYING" "${DESTDIR}/LICENCES/libuuid.txt" || true
+        cp "${CURR_DIR}/build/e2fsprogs-$E2FSPROGS_VER/lib/uuid/COPYING" \
+            "${DESTDIR}/LICENCES/libuuid.txt" || true
+        CSV+="\nlibuuid,BSD 3-Clause,libuuid.txt"
+    elif $NEED_LIBUUID &&
+        [ -f "${CURR_DIR}/build/libuuid/util-linux/Documentation/licenses/COPYING.BSD-3-Clause" ]; then
+        cp "${CURR_DIR}/build/libuuid/util-linux/Documentation/licenses/COPYING.BSD-3-Clause" \
+            "${DESTDIR}/LICENCES/libuuid.txt" || true
         CSV+="\nlibuuid,BSD 3-Clause,libuuid.txt"
     fi
 
@@ -11234,6 +11270,13 @@ copy_licences()
         CSV+="\nnPth,GNU LGPLv2.1,npth.txt"
     fi
 
+    if $INCLUDE_NTFSPROGS_PLUS && 
+        [ -f "${CURR_DIR}/build/ntfsprogs-plus/COPYING" ]; then
+        cp "${CURR_DIR}/build/ntfsprogs-plus/COPYING" \
+            "${DESTDIR}/LICENCES/ntfsprogs-plus.txt" || true
+        CSV+="\nntfsprogs-plus,GNU GPLv2,ntfsprogs-plus.txt"
+    fi
+
     if [ -f "${DESTDIR}/usr/bin/oneko" ]; then
         echo "Public domain" | tee "${DESTDIR}/LICENCES/oneko.txt" > /dev/null
         CSV+="\noneko,public domain,oneko.txt"
@@ -11302,7 +11345,8 @@ copy_licences()
 
     if $INCLUDE_SETSERIAL; then
         wget_download "${DESTDIR}/LICENCES/setserial.txt" \
-            "https://www.gnu.org/licenses/old-licenses/gpl-2.0.txt"
+            "https://www.gnu.org/licenses/old-licenses/gpl-2.0.txt" \
+            "https://raw.githubusercontent.com/spdx/license-list-data/main/text/GPL-2.0-only.txt"
         CSV+="\nsetserial,GNU GPLv2,setserial.txt"
     fi
 
@@ -13050,6 +13094,7 @@ get_installed_progs_feats()
         check_installed_file "setserial ${SETSERIAL_VER}" "/usr/sbin/setserial"
         check_installed_file "GNU Mtools ${MTOOLS_VER}" "/usr/bin/mtools"
         check_installed_file "exfatprogs ${EXFATPROGS_VER}" "/usr/sbin/mkfs.exfat"
+        check_installed_file "ntfsprogs-plus ${NTFSPROGS_PLUS_VER}" "/usr/sbin/mkntfs"
     fi
 
     if [[ ${#INCLUDED_FEATURES[@]} -gt 0 ]]; then
@@ -14007,9 +14052,6 @@ fi
 if $INCLUDE_NBSDGAMES; then
     get_nbsdgames
 fi
-if $INCLUDE_NETHACK; then
-    get_nethack
-fi
 if $INCLUDE_NCDU; then
     get_prog_tar \
         "usr/bin" \
@@ -14027,6 +14069,28 @@ if $INCLUDE_NCDU; then
         "" \
         "" \
         "-lgpm"
+fi
+if $INCLUDE_NETHACK; then
+    get_nethack
+fi
+if $INCLUDE_NTFSPROGS_PLUS; then
+    ACLOCAL_PATH="${SYSROOT}/usr/share/aclocal" \
+    get_prog_git \
+        "/usr/sbin" \
+        "mkntfs" \
+        "ntfsprogs-plus" \
+        "ntfsprogs-plus" \
+        "$NTFSPROGS_PLUS_SRC" \
+        "$NTFSPROGS_PLUS_VER" \
+        "" \
+        true \
+        false \
+        false \
+        "/usr" \
+        "--disable-shared --enable-static" \
+        "" \
+        "" \
+        "-lgcrypt -lgpg-error"
 fi
 if $INCLUDE_PATCHELF; then
     get_prog_tar \

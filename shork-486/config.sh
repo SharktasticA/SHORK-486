@@ -28,7 +28,7 @@ MAX_SWAP=64
 CUSTOM_DEF_SWAP=0
 CUSTOM_MIN_DISK=8
 DEFAULT_DEF_SWAP=8
-DEFAULT_MIN_DISK=128
+DEFAULT_MIN_DISK=150
 MAX_DEF_SWAP=16
 MAX_MIN_DISK=690
 MICRO_DEF_SWAP=0
@@ -36,7 +36,7 @@ MICRO_MIN_DISK=4
 MINI_DEF_SWAP=0
 MINI_MIN_DISK=8
 OFFLINE_DEF_SWAP=8
-OFFLINE_MIN_DISK=90
+OFFLINE_MIN_DISK=110
 PLUS_DEF_SWAP=16
 PLUS_MIN_DISK=670
 TERM_DEF_SWAP=8
@@ -115,6 +115,7 @@ INCLUDE_NASM=false
 INCLUDE_NBSDGAMES=false
 INCLUDE_NCDU=false
 INCLUDE_NETHACK=false
+INCLUDE_NTFSPROGS_PLUS=false
 INCLUDE_PATCHELF=false
 INCLUDE_PCIUTILS=false
 INCLUDE_PCMCIAUTILS=false
@@ -357,6 +358,7 @@ save_env()
         echo "INCLUDE_NBSDGAMES=$INCLUDE_NBSDGAMES"
         echo "INCLUDE_NCDU=$INCLUDE_NCDU"
         echo "INCLUDE_NETHACK=$INCLUDE_NETHACK"
+        echo "INCLUDE_NTFSPROGS_PLUS=$INCLUDE_NTFSPROGS_PLUS"
         echo "INCLUDE_PATCHELF=$INCLUDE_PATCHELF"
         echo "INCLUDE_PCIUTILS=$INCLUDE_PCIUTILS"
         echo "INCLUDE_PCMCIAUTILS=$INCLUDE_PCMCIAUTILS"
@@ -490,6 +492,7 @@ set_mini_vars()
     INCLUDE_NBSDGAMES=false
     INCLUDE_NCDU=false
     INCLUDE_NETHACK=false
+    INCLUDE_NTFSPROGS_PLUS=false
     INCLUDE_PATCHELF=false
     INCLUDE_PCIUTILS=false
     INCLUDE_PCMCIAUTILS=false
@@ -641,6 +644,7 @@ set_default_vars()
     INCLUDE_MTOOLS=true
     INCLUDE_NANO=true
     INCLUDE_NCDU=true
+    INCLUDE_NTFSPROGS_PLUS=true
     INCLUDE_PCIUTILS=true
     INCLUDE_PCMCIAUTILS=true
     INCLUDE_SC_IM=true
@@ -755,6 +759,7 @@ set_disc_vars()
     INCLUDE_MEMTESTER=true
     INCLUDE_MTOOLS=true
     INCLUDE_NCDU=true
+    INCLUDE_NTFSPROGS_PLUS=true
     INCLUDE_PCIUTILS=true
     INCLUDE_SDPARM=true
     INCLUDE_SETSERIAL=true
@@ -1254,6 +1259,16 @@ BUNDLED_SOFTWARE=(
         "false"
         "always"
 
+    "ntfsprogs-plus"
+        "*NTFS filesystem utilities"
+        "1.7MiB"
+        "(e.g.) mkntfs, ntfsck, ntfsclone, ntfslabel, ntfsresize"
+        ""
+        "10MiB"
+        "INCLUDE_NTFSPROGS_PLUS"
+        "false"
+        "always"
+
     "patchelf"
         "*ELF binary patching"
         "0.9MiB"
@@ -1583,12 +1598,12 @@ if [[ "$ID" == "shork-"*86 ]]; then
         --cancel-label "Quit" \
         --default-item "$BUILD_TYPE" \
         --menu "Select the build type, presets for SHORK feature levels. The recommended minimum requirements for each are enclosed in brackets. The \"custom\" option will enable further prompts for software and feature selection." 18 $WIDTH 9 \
-        "default"   "Typical experience             (16MiB RAM, 8MiB swap, 128MiB disk)" \
+        "default"   "Typical experience             (16MiB RAM, 8MiB swap, 150MiB disk)" \
         "max"       "Largest configuration          (24MiB RAM, 8MiB swap, 690MiB disk)" \
         "plus"      "Default w/ optional software   (16MiB RAM, 16MiB swap, 670MiB disk)" \
         "writer"    "Writing focused                (16MiB RAM, 16MiB swap, 90MiB disk)" \
         "terminal"  "Remote session & file transfer (16MiB RAM, 8MiB swap, 70MiB disk)" \
-        "offline"   "Default w/o networking         (12MiB RAM, 8MiB swap, 90MiB disk)" \
+        "offline"   "Default w/o networking         (12MiB RAM, 8MiB swap, 110MiB disk)" \
         "mini"      "Small configuration            (8MiB RAM, 8MiB disk)" \
         "micro"     "Extremely tiny configuration   (7MiB RAM, 4MiB disk)" \
         "custom"    "Requirements depend on subsequent choices" \
@@ -2492,7 +2507,7 @@ if [ "$INCLUDE_EXFATPROGS" = true ] && [ "$ENABLE_EXFAT" = false ]; then
     dialog --clear \
         --backtitle "SHORK 486 Build Configurator" \
         --title "Advisory - +INCLUDE_EXFATPROGS/-ENABLE_EXFAT" \
-        --yes-label "Include kernel-level support" \
+        --yes-label "Include kernel support" \
         --no-label "Ignore" \
         --yesno "You have chosen to include exfatprogs but exclude kernel-level exFAT filesystem support. You will be able to create, format and repair exFAT volumes, but the system will not be able to mount them." \
         7 "$WIDTH"
@@ -2520,6 +2535,25 @@ if [ "$INCLUDE_NASM" = true ] && [ "$INCLUDE_GCC" = false ]; then
 
     if [[ $CHOICE -eq 0 ]]; then
         INCLUDE_GCC=true
+    elif [[ $CHOICE -eq 1 ]]; then
+        :
+    fi
+fi
+
+# Advisory - +INCLUDE_NTFSPROGS_PLUS/-ENABLE_NTFS
+if [ "$INCLUDE_NTFSPROGS_PLUS" = true ] && [ "$ENABLE_NTFS" = false ]; then
+    dialog --clear \
+        --backtitle "SHORK 486 Build Configurator" \
+        --title "Advisory - +INCLUDE_NTFSPROGS_PLUS/-ENABLE_NTFS" \
+        --yes-label "Include kernel support" \
+        --no-label "Ignore" \
+        --yesno "You have chosen to include ntfsprogs-plus but exclude kernel-level NTFS filesystem support. You will be able to create, format and repair NTFS volumes, but the system will not be able to mount them." \
+        7 "$WIDTH"
+
+    CHOICE=$?
+
+    if [[ $CHOICE -eq 0 ]]; then
+        ENABLE_NTFS=true
     elif [[ $CHOICE -eq 1 ]]; then
         :
     fi

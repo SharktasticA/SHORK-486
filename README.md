@@ -1,6 +1,6 @@
 # SHORK 486, 586, DISC & DISKETTE
 
-**SHORK 486** is a free and open-source operating system for 486 and 586/Pentium (P5) era vintage personal computers! It is a 32-bit Linux distribution aiming to be lean yet functional, giving such retro hardware the best chance possible to run modern, updated software. A "default" SHORK 486 system aims to work with at least 16MiB of system memory and take up no more than ~120MiB on your disk. Despite those constraints, this experience includes [Linux kernel 7.3.6](KERNEL.md), a BusyBox userspace with many typical Linux commands, custom SHORK Utilities such as SHORKDIR (TUI file browser) and SHORKFETCH (*fetch utility), a terminal multiplexer, a C compiler, Lua intepreter, Python 3.4-syntax interpreter and dialog for shell TUI widgets, a text web browser, FTP, NTP, SCP/SSH, Telnet and TFTP clients and servers, Git source control client, ed, Mg, nano and vi editors, a spreadsheet editor, minesweeper- and Tetris-clone games, DOS and ext2/3/4 filesystem tools, IDE and SCSI CD-ROM and DVD-ROM support, SCSI tape drive support, ISA, PCI and PCMCIA ethernet, support for most major national keyboard layouts, and a cute ASCII shark welcome screen!
+**SHORK 486** is a free and open-source operating system for 486 and 586/Pentium (P5) era vintage personal computers! It is a 32-bit Linux distribution aiming to be lean yet functional, giving such retro hardware the best chance possible to run modern, updated software. A "default" SHORK 486 system aims to work with at least 16MiB of system memory and take up no more than ~150MiB on your disk. Despite those constraints, this experience includes [Linux kernel 7.3.6](KERNEL.md), a BusyBox userspace with many typical Linux commands, custom SHORK Utilities such as SHORKDIR (TUI file browser) and SHORKFETCH (*fetch utility), a terminal multiplexer, a C compiler, Lua intepreter, Python 3.4-syntax interpreter and dialog for shell TUI widgets, a text web browser, FTP, NTP, SCP/SSH, Telnet and TFTP clients and servers, Git source control client, ed, Mg, nano and vi editors, a spreadsheet editor, minesweeper- and Tetris-clone games, FAT12/16/32, exFAT, ext2/3/4 and NTFS filesystem support and tools, IDE and SCSI CD-ROM and DVD-ROM support, SCSI tape drive support, ISA, PCI and PCMCIA ethernet, support for most major national keyboard layouts, and a cute ASCII shark welcome screen!
 
 A build configurator is available to alter the SHORK 486 Operating System to your liking. For example, you can select the "mini" variant that requires just 8MiB RAM and ~8MiB disk space, whilst still including most typical commands as before, some custom SHORK Utilities, and the ed and vi editors. You can also configure SHORK 486 for symmetric multiprocessing support, multi-user support and serial console use, and pick and choose specific software and other features to include. Versions of SHORK 486 that can be optimised specifically for 5x86/K5/Pentium (**SHORK 586**), burned to a CD (**SHORK DISC**) or small enough to fit on a 1.44MB floppy diskette (**SHORK DISKETTE**) are also available. **Suggestions, feedback, and observations/opinions on performance wanted!**
 
@@ -114,12 +114,12 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
     * Micro: 7MiB RAM
     * _**Note:** Add ~2MiB to RAM requirement to all except Max if symmetric multiprocessing support is enabled with no swap memory_
 * IDE or SCSI disk: 
-    * **Default: 128MiB**
+    * **Default: 150MiB**
     * Max: 690MiB
     * Plus: 670MiB
     * Writer: 90MiB
     * Terminal: 70MiB
-    * Offline: 90MiB
+    * Offline: 110MiB
     * Mini: 8MiB
     * Micro: 4MiB
 * Graphics: IBM EGA, VGA or compatible
@@ -221,6 +221,7 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 | [Ncdu](https://dev.yorhel.nl/ncdu)<br>`ncdu` | 1.22 | Disk usage analyser | MIT |✓|**✓**|✓||✓|
 | [NetHack](https://github.com/NetHack/NetHack)¶<br>`nethack` | 5.0.0 | Dungeon exploration game | NetHack GPL |✓|||||
 | [New BSD Games](https://github.com/abakh/nbsdgames)¶<br>`nbsdgames` | 6.0.3 | Terminal games pack (22) | Public domain |✓|||||
+| [ntfsprogs-plus](https://github.com/ntfsprogs-plus/ntfsprogs-plus)<br>e.g. `mkntfs`, `ntfsck`, `ntfsclone`, `ntfslabel`, `ntfsresize` | 1.0.0 | NTFS filesystem utilities | GNU GPLv2 |✓|**✓**|||✓|
 | [PatchELF](https://github.com/nixos/patchelf)<br>`patchelf` | 0.19.3 | ELF binary patching | GNU GPLv3 |✓|||||
 | [pciutils](https://github.com/pciutils/pciutils)<br>`lspci`\*, `setpci` | 3.15.0 | PCI utilities | GNU GPLv2 |✓|**✓**|✓|✓|✓|
 | [pcmciautils](https://www.kernel.org/pub/linux/utils/kernel/pcmcia)<br>`lspcmcia`, `pccardctl` | 018 | PCMCIA utilities | GNU GPLv2 |✓|**✓**||✓||
@@ -271,8 +272,8 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 | [libblkid](https://github.com/util-linux/util-linux) | 2.42.4 | exfatprogs | GNU LGPLv2.1 |
 | [libevent](https://github.com/libevent/libevent) | 2.1.13 | tmux | BSD 3-Clause |
 | [libffi](https://github.com/libffi/libffi) | 3.8.0 | GLib | MIT |
-| [libgcrypt](https://www.gnupg.org/software/libgcrypt/index.html) | 1.12.4 | GnuPG | GNU GPLv3 |
-| [libgpg-error](https://www.gnupg.org/software/libgpg-error/index.html) | 1.61 | GnuPG | GNU GPLv3 |
+| [libgcrypt](https://www.gnupg.org/software/libgcrypt/index.html) | 1.12.4 | GnuPG, ntfsprogs-plus | GNU GPLv3 |
+| [libgpg-error](https://www.gnupg.org/software/libgpg-error/index.html) | 1.61 | GnuPG, ntfsprogs-plus | GNU GPLv3 |
 | [libid3tag](https://github.com/markjeee/libid3tag) | 0.15.1b | mpg321 | GNU GPLv2 |
 | [libksba](https://www.gnupg.org/software/libksba/index.html) | 1.8.1 | GnuPG | GNU GPLv3 |
 | [libmad](https://github.com/markjeee/libmad) | 0.15.1b | mpg321 | GNU GPLv2 |
@@ -288,7 +289,7 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 | [libt3window](https://os.ghalkes.nl/t3/libt3window.html) | 0.4.2 | Tilde | GNU GPLv3 |
 | [libtranscript](https://os.ghalkes.nl/libtranscript.html) | 0.3.4 | Tilde | GNU GPLv3 |
 | [liburcu](https://github.com/urcu/userspace-rcu) | 0.15.7 | BIND 9 | GNU LGPLv2.1 |
-| libuuid | 1.47.4 | e2fsprogs | BSD 3-Clause |
+| libuuid | | e2fsprogs, ntfsprogs-plus | BSD 3-Clause |
 | [libuv](https://github.com/libuv/libuv) | 1.53.0 | BIND 9 | MIT |
 | [libxlsxwriter](https://github.com/jmcnamara/libxlsxwriter) | 1.2.4 | sc-im | BSD 2-Clause |
 | [libxml2](https://github.com/gnome/libxml2) | 2.15.4 | sc-im, Universal Ctags | MIT |
@@ -340,7 +341,7 @@ _The planned SHORK 686 will make these modern system-orientated options obsolete
 
 ## SHORK DISC
 
-SHORK DISC is a specialised version of the SHORK 486 Operating System that can be burned to a CD or DVD. Only a subset of BusyBox commands, utilities and software are available for it, it is only offered as a single-user (root) system, and has no persistent storage. It is envisioned as a completely immutable system or diagnostic aid, and is to be used as SHORK 486's installation media. Its ISO image will be ~27MB.
+SHORK DISC is a specialised version of the SHORK 486 Operating System that can be burned to a CD or DVD. Only a subset of BusyBox commands, utilities and software are available for it, it is only offered as a single-user (root) system, and has no persistent storage. It is envisioned as a completely immutable system or diagnostic aid, and is to be used as SHORK 486's installation media. Its ISO image will be ~31MB.
 
 ### Hardware requirements
 
@@ -377,6 +378,7 @@ SHORK DISC is a specialised version of the SHORK 486 Operating System that can b
 * [lshw](#bundled-software)
 * [memtester](#bundled-software)
 * [Ncdu](#bundled-software)
+* [ntfsprogs-plus](#bundled-software)
 * [pciutils](#bundled-software)
 * [sdparm](#bundled-software)
 * [setserial](#bundled-software)
