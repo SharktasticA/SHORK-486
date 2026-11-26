@@ -1333,8 +1333,9 @@ wget_download()
     fi
 
     local TRY URL
+    local START=$((RANDOM % ${#URLS[@]}))
     for TRY in 1 2 3; do
-        URL="${URLS[RANDOM % ${#URLS[@]}]}"
+        URL="${URLS[(START + TRY - 1) % ${#URLS[@]}]}"
 
         # Catch if SourceForge since they serve an interstitial HTML page
         # if using browser UAs, rather than what we want
