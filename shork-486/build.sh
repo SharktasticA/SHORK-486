@@ -13204,10 +13204,10 @@ get_installed_progs_feats()
     fi
 
     if [[ ${#INCLUDED_FEATURES[@]} -gt 0 ]]; then
-        readarray -t INCLUDED_FEATURES < <(printf '%s\n' "${INCLUDED_FEATURES[@]}" | sort)
+        readarray -t INCLUDED_FEATURES < <(printf '%s\n' "${INCLUDED_FEATURES[@]}" | sort -f)
     fi
     if [[ ${#EXCLUDED_FEATURES[@]} -gt 0 ]]; then
-        readarray -t EXCLUDED_FEATURES < <(printf '%s\n' "${EXCLUDED_FEATURES[@]}" | sort)
+        readarray -t EXCLUDED_FEATURES < <(printf '%s\n' "${EXCLUDED_FEATURES[@]}" | sort -f)
     fi
 }
 
