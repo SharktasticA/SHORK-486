@@ -11632,7 +11632,9 @@ build_filesystem()
     copy_sysfile "${CURR_DIR}"/sysfiles/dir "${DESTDIR}"/bin/dir
     copy_sysfile "${CURR_DIR}"/sysfiles/hostname "${DESTDIR}"/etc/hostname
     copy_sysfile "${CURR_DIR}"/sysfiles/issue "${DESTDIR}"/etc/issue
-    copy_sysfile "${CURR_DIR}"/sysfiles/mtab "${DESTDIR}"/etc/mtab
+    if [ "$ID" != "shork-diskette" ]; then
+        copy_sysfile "${CURR_DIR}"/sysfiles/mtab "${DESTDIR}"/etc/mtab
+    fi
     copy_sysfile "${CURR_DIR}"/sysfiles/os-release "${DESTDIR}"/etc/os-release
     copy_sysfile "${CURR_DIR}"/sysfiles/vdir "${DESTDIR}"/bin/vdir
 
