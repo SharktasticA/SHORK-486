@@ -10781,6 +10781,29 @@ trim_fat()
             [ -f "$bin" ] && "$STRIP" "$bin" 2>/dev/null || true
         done
     done
+
+    if [ -f "${DESTDIR}/usr/bin/shorkhelp" ]; then
+        if [ "$ID" == "shork-diskette" ]; then
+            # SHORK DISKETTE cannot afford to have program DB descriptions
+            rm -f "${DESTDIR}/usr/share/shorkhelp/program-descs.csv"
+        fi
+
+        # Trim program DB names to just what actually exists in DESTDIR
+        local TMP_NAMES=$(mktemp)
+        local TMP_CSV=$(mktemp)
+        find "${DESTDIR}/" -not -type d | \
+            awk -F/ '{ print $NF }' | \
+            sort -u > "$TMP_NAMES"
+
+        awk -F, '
+            NR == FNR { seen[$0] = 1; next }
+            FNR == 1 || ($2 in seen)
+        ' "$TMP_NAMES" \
+            "${DESTDIR}/usr/share/shorkhelp/program-names.csv" > "$TMP_CSV"
+
+        cat "$TMP_CSV" > "${DESTDIR}/usr/share/shorkhelp/program-names.csv"
+        rm -f "$TMP_NAMES" "$TMP_CSV"
+    fi
 }
 
 # Copies all licences for included software
