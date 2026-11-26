@@ -13896,7 +13896,7 @@ if $INCLUDE_E2FSPROGS; then
         false \
         false \
         "/usr" \
-        "--disable-fuse2fs"
+        "--disable-fuse2fs --enable-libuuid --enable-libblkid --disable-uuidd"
 fi
 if $INCLUDE_EMACS; then
     get_prog_tar \
