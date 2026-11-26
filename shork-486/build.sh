@@ -8289,7 +8289,16 @@ get_fdutils()
     # Must build serially: libfdutils.a is built with archive-member rules 
     # that race otherwise
     make -j1 LOADLIBES="${PWD}/mtab_compat.o"
-    echo -e "${GREEN}Installing fdutils...${RESET}"
+
+    # Prevents installing files as directories
+    mkdir -p "${DESTDIR}/etc" \
+        "${DESTDIR}/usr/bin" \
+        "${DESTDIR}/usr/sbin" \
+        "${DESTDIR}/usr/share/man/man1" \
+        "${DESTDIR}/usr/share/man/man4" \
+        "${DESTDIR}/usr/share/man/man8" \
+        "${DESTDIR}/usr/share/info"
+
     make install \
         UID="$(id -u)" GID="$(id -g)" \
         prefix="${DESTDIR}/usr" \
