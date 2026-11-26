@@ -436,11 +436,11 @@ set_mini_vars()
     if [ -z "$3" ] || [ "$3" = false ]; then
         ENABLE_SMP=false
     fi
-    # Four argument =true bypasses resetting ENABLE_DYN_SWAP
+    # Fourth argument =true bypasses resetting ENABLE_DYN_SWAP
     if [ -z "$4" ] || [ "$4" = false ]; then
         ENABLE_DYN_SWAP=false
     fi
-    # Four argument =true bypasses resetting INCLUDE_FREEDOS
+    # Fifth argument =true bypasses resetting INCLUDE_FREEDOS
     if [ -z "$5" ] || [ "$5" = false ]; then
         INCLUDE_FREEDOS=false
     fi
@@ -520,6 +520,7 @@ set_mini_vars()
 
     ENABLE_CDROM=false
     INCLUDE_CON_FONTS=false
+    ENABLE_EXFAT=false
     ENABLE_FB=false
     USE_GRUB=false
     ENABLE_HELP_VERBOSE=false
@@ -529,6 +530,7 @@ set_mini_vars()
     ENABLE_MENU=false
     ENABLE_MOUSE=false
     ENABLE_NO_VDS032=true
+    ENABLE_NTFS=false
     INCLUDE_PCI_IDS=false
     ENABLE_PCMCIA=false
     ENABLE_SATA=false
