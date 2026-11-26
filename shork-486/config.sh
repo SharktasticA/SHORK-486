@@ -86,6 +86,7 @@ INCLUDE_DOSFSTOOLS=false
 INCLUDE_DROPBEAR=false
 INCLUDE_E2FSPROGS=false
 INCLUDE_EXFATPROGS=false
+INCLUDE_FDUTILS=false
 INCLUDE_FILE=false
 INCLUDE_GCC=false
 INCLUDE_GIT=false
@@ -328,6 +329,7 @@ save_env()
         echo "INCLUDE_DROPBEAR=$INCLUDE_DROPBEAR"
         echo "INCLUDE_E2FSPROGS=$INCLUDE_E2FSPROGS"
         echo "INCLUDE_EXFATPROGS=$INCLUDE_EXFATPROGS"
+        echo "INCLUDE_FDUTILS=$INCLUDE_FDUTILS"
         echo "INCLUDE_FILE=$INCLUDE_FILE"
         echo "INCLUDE_GCC=$INCLUDE_GCC"
         echo "INCLUDE_GIT=$INCLUDE_GIT"
@@ -462,6 +464,7 @@ set_mini_vars()
     INCLUDE_DROPBEAR=false
     INCLUDE_E2FSPROGS=false
     INCLUDE_EXFATPROGS=false
+    INCLUDE_FDUTILS=false
     INCLUDE_FILE=false
     INCLUDE_GCC=false
     INCLUDE_GIT=false
@@ -628,6 +631,7 @@ set_default_vars()
     INCLUDE_DROPBEAR=true
     INCLUDE_E2FSPROGS=true
     INCLUDE_EXFATPROGS=true
+    INCLUDE_FDUTILS=true
     INCLUDE_FILE=true
     INCLUDE_GIT=true
     INCLUDE_GPM=true
@@ -752,6 +756,7 @@ set_disc_vars()
     INCLUDE_DOSFSTOOLS=true
     INCLUDE_E2FSPROGS=true
     INCLUDE_EXFATPROGS=true
+    INCLUDE_FDUTILS=true
     INCLUDE_FILE=true
     INCLUDE_HDPARM=true
     INCLUDE_ISAPNPTOOLS=true
@@ -777,6 +782,8 @@ set_diskette_vars()
 {
     set_mini_vars
 }
+
+
 
 BUNDLED_SOFTWARE=(
     # Name
@@ -936,6 +943,16 @@ BUNDLED_SOFTWARE=(
         ""
         "10MiB"
         "INCLUDE_EXFATPROGS"
+        "false"
+        "always"
+
+    "fdutils"
+        "*Floppy drive utilities"
+        "0.6MiB"
+        "(e.g.) fdmount, floppycontrol, setfdprm, superformat, xdfcopy, xdfformat"
+        "These utilities only work on FDC-based (legacy) floppy drives, not LS-120 or USB-based drives."
+        "8MiB"
+        "INCLUDE_FDUTILS"
         "false"
         "always"
 
@@ -1495,6 +1512,35 @@ filter_bundled()
 
         BUNDLED_FILTERED+=( "$NAME" "$DESC ($SIZE)" "$VAL" )
     done
+}
+
+# Enables prerequisites for selected bundled software
+set_bundled_prereqs()
+{
+    # Presently handled by an advisory instead:
+    #if [ "$INCLUDE_EXFATPROGS" = true ]; then
+    #    ENABLE_EXFAT=true
+    #fi
+    if [ "$INCLUDE_GPM" = true ]; then
+        ENABLE_MOUSE=true
+    fi
+    if [ "$INCLUDE_MPG321" = true ]; then
+        ENABLE_SOUND=true
+    fi
+    if [ "$INCLUDE_MT_ST" = true ]; then
+        ENABLE_SCSI_EXP=true
+    fi
+    # Presently handled by an advisory instead:
+    #if [ "$INCLUDE_NTFSPROGS_PLUS" = true ]; then
+    #    ENABLE_NTFS=true
+    #fi
+    if [ "$INCLUDE_PCMCIAUTILS" = true ]; then
+        ENABLE_PCMCIA=true
+    fi
+    if [ "$INCLUDE_SHORKGUI" = true ]; then
+        ENABLE_FB=true
+        ENABLE_MOUSE=true
+    fi
 }
 
 
@@ -2383,21 +2429,7 @@ if [ "$BUILD_TYPE" = "custom" ]; then
             --msgbox "$HELP_INFO" 12 $WIDTH
     done
 
-    # Enable prerequisites for selected bundled software
-    if [ "$INCLUDE_GPM" = true ]; then
-        ENABLE_MOUSE=true
-    fi
-    if [ "$INCLUDE_MPG321" = true ]; then
-        ENABLE_SOUND=true
-    fi
-    if [ "$INCLUDE_MT_ST" = true ]; then
-        ENABLE_SCSI_EXP=true
-    fi
-    if [ "$INCLUDE_SHORKGUI" = true ]; then
-        ENABLE_FB=true
-        ENABLE_MOUSE=true
-    fi
-
+    set_bundled_prereqs
 
     PCIIDS_SIZE="0.1MiB"
     if $INCLUDE_PCIUTILS; then
@@ -2516,6 +2548,25 @@ if [ "$INCLUDE_EXFATPROGS" = true ] && [ "$ENABLE_EXFAT" = false ]; then
 
     if [[ $CHOICE -eq 0 ]]; then
         ENABLE_EXFAT=true
+    elif [[ $CHOICE -eq 1 ]]; then
+        :
+    fi
+fi
+
+# Advisory - +INCLUDE_FDUTILS/-INCLUDE_MTOOLS
+if [ "$INCLUDE_FDUTILS" = true ] && [ "$INCLUDE_MTOOLS" = false ]; then
+    dialog --clear \
+        --backtitle "SHORK 486 Build Configurator" \
+        --title "Advisory - +INCLUDE_FDUTILS/-INCLUDE_MTOOLS" \
+        --yes-label "Include Mtools" \
+        --no-label "Ignore" \
+        --yesno "You have chosen to include fdutils but exclude GNU Mtools. Most fdutils programs will work without it, but superformat and xdfcopy require Mtools at runtime and will not function without it." \
+        7 "$WIDTH"
+
+    CHOICE=$?
+
+    if [[ $CHOICE -eq 0 ]]; then
+        INCLUDE_MTOOLS=true
     elif [[ $CHOICE -eq 1 ]]; then
         :
     fi

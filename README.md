@@ -188,6 +188,7 @@ SHORK 486 proper and SHORK 586 are the main versions of the SHORK 486 Operating 
 | [Dropbear](https://github.com/mkj/dropbear)<br>`scp`, `ssh`, `sshd`‖ | 2026.94 | SCP and SSH clients, SSH daemon‖ | MIT +<br>BSD 2-Clause |✓|**✓**||✓||
 | [e2fsprogs](https://e2fsprogs.sourceforge.net/)<br>e.g. `blkid`\*, `chattr`\*, `fsck`\*, `lsattr`\*, `mke2fs`\*, `resize2fs`, `tune2fs`\*, `uuidgen`\* | 1.47.4 | ext2/3/4 filesystem utilities | GNU GPLv2 + LGPLv2 |✓|**✓**|||✓|
 | [exfatprogs](https://github.com/exfatprogs/exfatprogs)<br>e.g. `chdosattr`, `exfatlabel`, `fsck.exfat`, `lsdosattr`, `mkfs.exfat`, `tune.exfat` | 1.4.5 | exFAT filesystem utilities | GNU GPLv2 |✓|**✓**|||✓|
+| [fdutils](https://fdutils.linux.lu/)<br>e.g. `fdmount`, `floppycontrol`, `setfdprm`, `superformat`, `xdfcopy`, `xdfformat` | 5.6 | Floppy drive utilities | GNU GPLv2 |✓|**✓**|||✓|
 | [file](https://github.com/file/file)<br>`file` | 5_48 | File identification | BSD 2-Clause |✓|**✓**|||✓|
 | [Git](https://github.com/git/git)<br>`git` | 2.56.0 | Source control client | GNU GPLv2 |✓|**✓**|||||
 | [GNU Autoconf](https://www.gnu.org/software/autoconf/)†<br>`autoconf`, `autoreconf` | 2.73 | configure script generator | GNU GPLv2 |✓|||||
@@ -371,6 +372,7 @@ SHORK DISC is a specialised version of the SHORK 486 Operating System that can b
 * [dosfstools](#bundled-software)
 * [e2fsprogs](#bundled-software)
 * [exfatprogs](#bundled-software)
+* [fdutils](#bundled-software)
 * [file](#bundled-software)
 * [GNU Mtools](#bundled-software)
 * [hdparm](#bundled-software)

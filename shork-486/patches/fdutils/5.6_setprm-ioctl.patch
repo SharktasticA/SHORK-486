@@ -1,0 +1,44 @@
+############################################################################
+## 5.6_setprm-ioctl.patch                                                 ##
+############################################################################
+## Issue FDSETPRM on a separate ioctl-only descriptor as the driver       ##
+## rejects it with EPERM on the read-only descriptor fdmount uses for     ##
+## probing.                                                               ##
+############################################################################
+## This patch is a derivative work of fdutils. It is licensed             ##
+## separately under the terms of the GNU GPLv2 licence, and is            ##
+## distributed as part of the SHORK project. See the accompanying COPYING ##
+## file in this directory for details.                                    ##
+############################################################################
+## Kali (links.sharktastica.co.uk)                                        ##
+############################################################################
+
+diff --git a/src/fdmount.c b/src/fdmount.c
+index afb999b..6fbaa08 100644
+--- a/src/fdmount.c
++++ b/src/fdmount.c
+@@ -740,8 +740,22 @@ int do_mount(char *devname,char *_mountpoint,
+     printf("setting format:\n\n");
+     print_format(&F);
+ #endif
+-   
+-    DO_IOCTL(fd,FDSETPRM,&F);
++
++	/**
++	 * Patch for SHORK 486:
++	 * The kernel's floppy driver FDSETPRM (EPERM) on a descriptor that was
++	 * opened read-only. Use a separate ioctl-only descriptor just for this
++	 * call, falling back to fd if it can't be opened.
++	 */
++	int pfd = open(devname, 3 | O_NDELAY);
++	int rc = ioctl(pfd >= 0 ? pfd : fd, FDSETPRM, &F);
++	int err = errno;
++	if (pfd >= 0)
++		close(pfd);
++	if (rc != 0) {
++		errmsg("ioctl failed: %s", strerror(err));
++		goto err_close;
++	}
+ 
+     close(fd);  
+ 

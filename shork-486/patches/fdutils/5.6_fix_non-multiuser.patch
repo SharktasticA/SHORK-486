@@ -1,0 +1,45 @@
+############################################################################
+## 5.6_fix_non-multiuser.patch                                            ##
+############################################################################
+## Lets root user bypass fdmount's "member of group floppy" check, which  ##
+## otherwise fails on kernels with CONFIG_MULTIUSER=n because getgroups() ##
+## is unavailable.                                                        ##
+############################################################################
+## This patch is a derivative work of fdutils. It is licensed             ##
+## separately under the terms of the GNU GPLv2 licence, and is            ##
+## distributed as part of the SHORK project. See the accompanying COPYING ##
+## file in this directory for details.                                    ##
+############################################################################
+## Kali (links.sharktastica.co.uk)                                        ##
+############################################################################
+
+diff --git a/src/fdmount.c b/src/fdmount.c
+index b2d1ea0..afb999b 100644
+--- a/src/fdmount.c
++++ b/src/fdmount.c
+@@ -1114,7 +1114,15 @@ int main(int argc, char **argv)
+     opt_list  =(strcmp(progname,"fdlist")==0);
+ 
+ #ifdef FLOPPY_ONLY
+-    if ((ngroups = getgroups (NGROUPS_MAX, groups)) != -1) {
++	/**
++	 * Patch for SHORK 486:
++	 * When SHORK's kernel is not built with MULTIUSER, this check fails
++	 * even if the user is root. Thus we add a root-only path.
++	 */
++    if (getuid() == 0) {
++        not_allowed = 0;
++    }
++    else if ((ngroups = getgroups (NGROUPS_MAX, groups)) != -1) {
+     	int     i;
+     	struct group *gr;
+ 
+@@ -1125,7 +1133,7 @@ int main(int argc, char **argv)
+             	not_allowed = strcmp (gr -> gr_name, "floppy");
+     }
+     if (not_allowed)
+-        die("Must be member of group floppy");
++        die("Must be member of group floppy or the root user");
+ #endif
+ 
+ 

@@ -257,6 +257,9 @@ EMACS_VER="31.1"
 EXFATPROGS_SRC="https://github.com/exfatprogs/exfatprogs.git"
 EXFATPROGS_VER="1.4.5"
 
+FDUTILS_SRC="https://fdutils.linux.lu"
+FDUTILS_VER="5.6"
+
 FILE_SRC="https://github.com/file/file.git"
 FILE_VER="5_48"
 
@@ -644,6 +647,7 @@ INCLUDE_E2FSPROGS=false
 INCLUDE_EMACS=false
 INCLUDE_EXFATPROGS=false
 INCLUDE_FILE=false
+INCLUDE_FDUTILS=false
 INCLUDE_FREEDOS=false
 INCLUDE_GCC=false
 INCLUDE_GIT=false
@@ -8218,6 +8222,133 @@ get_dropbear()
     fi
 }
 
+# Download and compile fdutils
+get_fdutils()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ -f "${DESTDIR}/usr/bin/superformat" ]; then
+        echo -e "${LIGHT_RED}fdutils already compiled, skipping...${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}Downloading fdutils...${RESET}"
+
+    FDUTILS="fdutils-${FDUTILS_VER}"
+    FDUTILS_ARC="${FDUTILS}.tar.gz"
+
+    # Download source
+    wget_download "" "${FDUTILS_SRC}/${FDUTILS_ARC}"
+
+    # Extract source
+    if [ -d "$FDUTILS" ]; then
+        echo -e "${YELLOW}fdutils' source archive is already present, re-extracting before proceeding...${RESET}"
+        sudo rm -rf "$FDUTILS"
+    fi
+    tar xzf "$FDUTILS_ARC"
+    cd "$FDUTILS"
+
+    # musl's O_ACCMODE includes O_PATH which breaks floppy ioctls (EBADF),
+    # so use plain 3 instead
+    sed -i 's/\bO_ACCMODE\b/3/g' src/*.c
+
+    # fdmount needs struct ext2_super_block
+    cp "${PATCHES_DIR}/fdutils/ext2_compat.h" "ext2_compat.h"
+
+    # fdmount calls lock_mtab()/unlock_mtab(), which normally come from
+    # util-linux's mount code
+    cp "${PATCHES_DIR}/fdutils/mtab_compat.c" mtab_compat.c
+    "${CC_STATIC}" ${CFLAGS_NOPIE} -ffunction-sections -fdata-sections \
+        -c mtab_compat.c -o "${PWD}/mtab_compat.o"
+
+    # Fix for non-MULTIUSER systems
+    patch -p1 < "${PATCHES_DIR}/fdutils/5.6_fix_non-multiuser.patch"
+
+    # Use ioctl-only fd for FDSETPRM
+    patch -p1 < "${PATCHES_DIR}/fdutils/5.6_setprm-ioctl.patch"
+
+    export CONFIG_SHELL="/bin/sh"
+
+    echo -e "${GREEN}Compiling fdutils...${RESET}"
+    CC="${CC_STATIC}" \
+    CFLAGS="${CFLAGS_NOPIE} -fcommon -ffunction-sections -fdata-sections -include ${PWD}/ext2_compat.h" \
+    CPPFLAGS="-I${SYSROOT}/include -I${PREFIX}/include" \
+    LDFLAGS="-static -Wl,--gc-sections -s -L${PREFIX}/lib" \
+    AR="${AR}" \
+    AS="${AS}" \
+    RANLIB="${RANLIB}" \
+    STRIP="${STRIP}" \
+    ./configure \
+        --build="$(gcc -dumpmachine)" \
+        --host="${HOST}" \
+        --prefix=/usr \
+        --sysconfdir=/etc
+
+    # Must build serially: libfdutils.a is built with archive-member rules 
+    # that race otherwise
+    make -j1 LOADLIBES="${PWD}/mtab_compat.o"
+    echo -e "${GREEN}Installing fdutils...${RESET}"
+    make install \
+        UID="$(id -u)" GID="$(id -g)" \
+        prefix="${DESTDIR}/usr" \
+        exec_prefix="${DESTDIR}/usr" \
+        bindir="${DESTDIR}/usr/bin" \
+        sbindir="${DESTDIR}/usr/sbin" \
+        sysconfdir="${DESTDIR}/etc" \
+        datadir="${DESTDIR}/usr/share" \
+        mandir="${DESTDIR}/usr/share/man" \
+        infodir="${DESTDIR}/usr/share/info"
+}
+
+# Download and compile file
+get_file()
+{
+    cd "${CURR_DIR}/build"
+
+    # Skip if already compiled
+    if [ -f "${DESTDIR}/usr/bin/file" ]; then
+        echo -e "${LIGHT_RED}file already compiled, skipping...${RESET}"
+        return
+    fi
+
+    # Download source
+    if [ -d file ]; then
+        echo -e "${YELLOW}file source already present, resetting...${RESET}"
+        cd file
+        git config --global --add safe.directory "${CURR_DIR}"/build/file
+        git reset --hard
+    else
+        echo -e "${GREEN}Downloading file...${RESET}"
+        git clone --branch "FILE$FILE_VER" "$FILE_SRC"
+        cd file
+    fi
+
+    # Prune magic database of "non-essential" categories to save space
+    CULL_LIST="acorn adi adventure algol68 amigaos apple aria asf bioinformatics blackberry c64 claris clojure console convex dolby epoc erlang forth frame freebsd games geo hp ispell lif mach macintosh map mathematica mercurial mips nasa netbsd netscape ole2compounddocs pc98 pdp scientific sniffer spectrum statistics sun sysex ti-8x tplink vacuum-cleaner wordpress xenix zyxel"
+    for TO_CULL in $CULL_LIST; do
+        if [ -f "${CURR_DIR}/build/file/magic/Magdir/$TO_CULL" ]; then
+            truncate -s 0 "${CURR_DIR}/build/file/magic/Magdir/$TO_CULL"
+        fi
+    done
+
+    # Compile and install
+    echo -e "${GREEN}Compiling file...${RESET}"
+    autoreconf -fiv
+    ./configure \
+        --host="${HOST}" \
+        --prefix=/usr \
+        --disable-shared \
+        --enable-static \
+        CC="${CC_STATIC}" \
+        AR="${AR}" \
+        RANLIB="${RANLIB}" \
+        CFLAGS="${CFLAGS_NOPIE}" \
+        LDFLAGS="-static"
+    make -j"$JOBS"
+    make DESTDIR="$DESTDIR" install
+}
+
 # Download FreeDOS for dosemu2
 get_freedos()
 {
@@ -8281,54 +8412,6 @@ get_freedos()
     # Minimal AUTOEXEC.BAT so exitemu works
     printf '@echo off\r\nPATH C:\\;D:\\DOSEMU\r\n' \
         > "${DESTDIR}/root/.dosemu/drive_c/AUTOEXEC.BAT"
-}
-
-# Download and compile file
-get_file()
-{
-    cd "${CURR_DIR}/build"
-
-    # Skip if already compiled
-    if [ -f "${DESTDIR}/usr/bin/file" ]; then
-        echo -e "${LIGHT_RED}file already compiled, skipping...${RESET}"
-        return
-    fi
-
-    # Download source
-    if [ -d file ]; then
-        echo -e "${YELLOW}file source already present, resetting...${RESET}"
-        cd file
-        git config --global --add safe.directory "${CURR_DIR}"/build/file
-        git reset --hard
-    else
-        echo -e "${GREEN}Downloading file...${RESET}"
-        git clone --branch "FILE$FILE_VER" "$FILE_SRC"
-        cd file
-    fi
-
-    # Prune magic database of "non-essential" categories to save space
-    CULL_LIST="acorn adi adventure algol68 amigaos apple aria asf bioinformatics blackberry c64 claris clojure console convex dolby epoc erlang forth frame freebsd games geo hp ispell lif mach macintosh map mathematica mercurial mips nasa netbsd netscape ole2compounddocs pc98 pdp scientific sniffer spectrum statistics sun sysex ti-8x tplink vacuum-cleaner wordpress xenix zyxel"
-    for TO_CULL in $CULL_LIST; do
-        if [ -f "${CURR_DIR}/build/file/magic/Magdir/$TO_CULL" ]; then
-            truncate -s 0 "${CURR_DIR}/build/file/magic/Magdir/$TO_CULL"
-        fi
-    done
-
-    # Compile and install
-    echo -e "${GREEN}Compiling file...${RESET}"
-    autoreconf -fiv
-    ./configure \
-        --host="${HOST}" \
-        --prefix=/usr \
-        --disable-shared \
-        --enable-static \
-        CC="${CC_STATIC}" \
-        AR="${AR}" \
-        RANLIB="${RANLIB}" \
-        CFLAGS="${CFLAGS_NOPIE}" \
-        LDFLAGS="-static"
-    make -j"$JOBS"
-    make DESTDIR="$DESTDIR" install
 }
 
 # Download and extract GCC + musl
@@ -10819,6 +10902,13 @@ copy_licences()
         CSV+="\nEXTLINUX,GNU GPLv2,extlinux.txt"
     fi
 
+    if $INCLUDE_FDUTILS &&
+        [ -f "${CURR_DIR}/build/fdutils-${FDUTILS_VER}/COPYING" ]; then
+        cp "${CURR_DIR}/build/fdutils-${FDUTILS_VER}/COPYING" \
+            "${DESTDIR}/LICENCES/fdutils.txt" || true
+        CSV+="\nfdutils,GNU GPLv2,fdutils.txt"
+    fi
+
     if $INCLUDE_FILE && 
         [ -f "${CURR_DIR}/build/file/COPYING" ]; then
         cp "${CURR_DIR}/build/file/COPYING" "${DESTDIR}/LICENCES/file.txt" || true
@@ -11532,6 +11622,7 @@ build_filesystem()
     copy_sysfile "${CURR_DIR}"/sysfiles/dir "${DESTDIR}"/bin/dir
     copy_sysfile "${CURR_DIR}"/sysfiles/hostname "${DESTDIR}"/etc/hostname
     copy_sysfile "${CURR_DIR}"/sysfiles/issue "${DESTDIR}"/etc/issue
+    copy_sysfile "${CURR_DIR}"/sysfiles/mtab "${DESTDIR}"/etc/mtab
     copy_sysfile "${CURR_DIR}"/sysfiles/os-release "${DESTDIR}"/etc/os-release
     copy_sysfile "${CURR_DIR}"/sysfiles/vdir "${DESTDIR}"/bin/vdir
 
@@ -11763,62 +11854,66 @@ set_filesystem_perms()
 {
     echo -e "${GREEN}Setting filesystem permissions...${RESET}"
 
-    # If multi-user is enabled, we need to make sure particular files within
-    # DESTDIR have correct permissions
+    # Make sure particular files within DESTDIR have correct permissions
+    # Format: "path|owner:group|mode|type(f=file/d=dir)"
+    PATHS=(
+        "${DESTDIR}/etc|root:root|0755|d"
+        "${DESTDIR}/etc/busybox.conf|root:root|0644|f"
+        "${DESTDIR}/etc/group|root:root|0644|f"
+        "${DESTDIR}/etc/hostname|root:root|0644|f"
+        "${DESTDIR}/etc/init.d|root:root|0755|d"
+        "${DESTDIR}/etc/inittab|root:root|0644|f"
+        "${DESTDIR}/etc/issue|root:root|0644|f"
+        "${DESTDIR}/etc/os-release|root:root|0644|f"
+        "${DESTDIR}/etc/passwd|root:root|0644|f"
+        "${DESTDIR}/etc/profile|root:root|0644|f"
+        "${DESTDIR}/etc/shadow|root:42|0640|f"
+        "${DESTDIR}/etc/shorkset.conf|root:root|0644|f"
+        "${DESTDIR}/etc/sudo.conf|root:root|0644|f"
+        "${DESTDIR}/etc/sudo_logsrvd.conf|root:root|0644|f"
+        "${DESTDIR}/etc/sudoers|root:root|0440|f"
+        "${DESTDIR}/etc/sudoers.d|root:root|0750|d"
+        "${DESTDIR}/etc/sudoers.dist|root:root|0440|f"
+        "${DESTDIR}/usr/bin/sudoedit|root:root|0755|f"
+        "${DESTDIR}/usr/sbin/visudo|root:root|0755|f"
+        "${DESTDIR}/usr/bin/fdmount|root:root|4755|f"
+    )
+
+    # Setuid binaries only matter with multiple users
     if $ENABLE_MULTIUSER_REAL; then
-        # Format: "path|owner:group|mode|type(f=file/d=dir)"
-        PATHS=(
+        PATHS+=(
             "${DESTDIR}/bin/busybox|root:root|4755|f"
-            "${DESTDIR}/etc|root:root|0755|d"
-            "${DESTDIR}/etc/busybox.conf|root:root|0644|f"
-            "${DESTDIR}/etc/group|root:root|0644|f"
-            "${DESTDIR}/etc/hostname|root:root|0644|f"
-            "${DESTDIR}/etc/init.d|root:root|0755|d"
-            "${DESTDIR}/etc/inittab|root:root|0644|f"
-            "${DESTDIR}/etc/issue|root:root|0644|f"
-            "${DESTDIR}/etc/os-release|root:root|0644|f"
-            "${DESTDIR}/etc/passwd|root:root|0644|f"
-            "${DESTDIR}/etc/profile|root:root|0644|f"
-            "${DESTDIR}/etc/shadow|root:42|0640|f"
-            "${DESTDIR}/etc/shorkset.conf|root:root|0644|f"
-            "${DESTDIR}/etc/sudo.conf|root:root|0644|f"
-            "${DESTDIR}/etc/sudo_logsrvd.conf|root:root|0644|f"
-            "${DESTDIR}/etc/sudoers|root:root|0440|f"
-            "${DESTDIR}/etc/sudoers.d|root:root|0750|d"
-            "${DESTDIR}/etc/sudoers.dist|root:root|0440|f"
-            "${DESTDIR}/usr/bin/sudoedit|root:root|0755|f"
             "${DESTDIR}/usr/bin/sudo|root:root|4755|f"
-            "${DESTDIR}/usr/sbin/visudo|root:root|0755|f"
         )
+    fi
 
-        for P in "${PATHS[@]}"; do
-            IFS='|' read -r path owner mode type <<< "$P"
-            if [ "$type" = "d" ] && [ -d "$path" ]; then
-                sudo chown "$owner" "$path"
-                sudo chmod "$mode" "$path"
-            elif [ "$type" = "f" ] && [ -f "$path" ]; then
-                sudo chown "$owner" "$path"
-                sudo chmod "$mode" "$path"
-            fi
+    for P in "${PATHS[@]}"; do
+        IFS='|' read -r path owner mode type <<< "$P"
+        if [ "$type" = "d" ] && [ -d "$path" ]; then
+            sudo chown "$owner" "$path"
+            sudo chmod "$mode" "$path"
+        elif [ "$type" = "f" ] && [ -f "$path" ]; then
+            sudo chown "$owner" "$path"
+            sudo chmod "$mode" "$path"
+        fi
+    done
+
+    # Process init.d scripts separately
+    if [ -d "${DESTDIR}/etc/init.d" ]; then
+        for f in "${DESTDIR}/etc/init.d/"*; do
+            [ -f "$f" ] || continue
+            sudo chown root:root "$f"
+            sudo chmod 0755 "$f"
         done
+    fi
 
-        # Process init.d scripts separately
-        if [ -d "${DESTDIR}/etc/init.d" ]; then
-            for f in "${DESTDIR}/etc/init.d/"*; do
-                [ -f "$f" ] || continue
-                sudo chown root:root "$f"
-                sudo chmod 0755 "$f"
-            done
-        fi
-
-        # Process sudoers.d frags separately
-        if [ -d "${DESTDIR}/etc/sudoers.d" ]; then
-            for f in "${DESTDIR}/etc/sudoers.d/"*; do
-                [ -f "$f" ] || continue
-                sudo chown root:root "$f"
-                sudo chmod 0440 "$f"
-            done
-        fi
+    # Process sudoers.d frags separately
+    if [ -d "${DESTDIR}/etc/sudoers.d" ]; then
+        for f in "${DESTDIR}/etc/sudoers.d/"*; do
+            [ -f "$f" ] || continue
+            sudo chown root:root "$f"
+            sudo chmod 0440 "$f"
+        done
     fi
 }
 
@@ -13095,6 +13190,7 @@ get_installed_progs_feats()
         check_installed_file "GNU Mtools ${MTOOLS_VER}" "/usr/bin/mtools"
         check_installed_file "exfatprogs ${EXFATPROGS_VER}" "/usr/sbin/mkfs.exfat"
         check_installed_file "ntfsprogs-plus ${NTFSPROGS_PLUS_VER}" "/usr/sbin/mkntfs"
+        check_installed_file "fdutils ${FDUTILS_VER}" "/usr/bin/superformat"
     fi
 
     if [[ ${#INCLUDED_FEATURES[@]} -gt 0 ]]; then
@@ -13822,6 +13918,9 @@ if $INCLUDE_EXFATPROGS; then
 fi
 if $INCLUDE_FILE; then
     get_file
+fi
+if $INCLUDE_FDUTILS; then
+    get_fdutils
 fi
 if $INCLUDE_GIT; then
     get_git
