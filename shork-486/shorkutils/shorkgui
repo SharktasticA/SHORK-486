@@ -10,7 +10,7 @@ fi
 TERM_WIDTH=$(stty size 2>/dev/null | cut -d' ' -f2)
 
 if [ ! -e /dev/fb0 ]; then
-    printf "ERROR: No framebuffer device has been found. Please ensure your kernel was built with framebuffer support in the after-build report, or that either the \"force vga16fb\" driver option or a VBE-style resolution is selected in \033[32mshorkset\033[${FONT_COL_ANSI}m.\n" | fold -s -w "$TERM_WIDTH"
+    printf "ERROR: No framebuffer device has been found. Please ensure your kernel was built with framebuffer support in the after-build report, or that either the \"force vga16fb\" driver option or a VBE2+ resolution is selected in \033[32mshorkset\033[${FONT_COL_ANSI}m.\n" | fold -s -w "$TERM_WIDTH"
     exit 1
 fi
 
