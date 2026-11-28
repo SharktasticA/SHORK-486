@@ -784,12 +784,6 @@ else
     fi
 fi
 
-# Ensure VM86 is enabled with FB
-# NOT NEEDED YET
-#if [ "$ENABLE_FB" = true ]; then
-#    ENABLE_VM86=true
-#fi
-
 # Networking-related overrides
 if [ "$ENABLE_NET_ETH" = true ]; then
     # Ensure NET_PCMCIA is enabled NET_ETH and PCMCIA
@@ -829,6 +823,11 @@ fi
 if [ "$INCLUDE_SHORKGUI" = true ]; then
     ENABLE_EVDEV=true
     ENABLE_FB=true
+fi
+
+# Ensure VM86 is enabled with FB
+if [ "$ENABLE_FB" = true ]; then
+    ENABLE_VM86=true
 fi
 
 # Ensure FREEDOS is excluded without DOSEMU2
